@@ -1,4 +1,3 @@
-!.blank
 db/master.db
 cert/*
 cert.pem
@@ -9,12 +8,17 @@ tmp/*
 *.swo
 tmp/*
 control/outfiles/*
+!control/outfiles/.blank
 control/hashes/*
+!control/hashes/.blank
 control/cracked/*
+!control/cracked/.blank
 control/analysis/*
+!control/analysis/.blank
 control/status/*
-control/wordlists/crackstation.txt
+!control/status/.blank
 control/wordlists/wordlist-*
+!control/wordlists/.blank
 cudaHashcat.log
 *.pot
 *.restore
