@@ -1,3 +1,4 @@
+!.blank
 db/master.db
 cert/*
 cert.pem
