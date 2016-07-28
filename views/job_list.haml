@@ -1,0 +1,107 @@
+!!!
+%html
+  %body
+    %p
+    .span15
+      %br
+      - if @result
+        #{@result}
+      .container
+        %h2 Jobs
+        %br
+      .container
+        .row
+          .col-sm-3
+            %a.btn.btn-primary{:href => "/job/create"}
+              Start a New Job
+        %br
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Name
+                    %th
+                      %b Status
+                    %th
+                      %b Last updated by
+                    %th
+                      %b Control
+                %tbody
+                  - if @jobs
+                    - @jobs.each do |job|
+                      %tr
+                        %td #{job.name}
+                        - if job.status
+                          %td Running
+                        - else
+                          %td Stopped
+                        %td #{job.last_updated_by}
+                        %td
+                          - if job.status
+                            %a.btn.btn-danger{:href => "/job/stop/#{job.id}"}
+                              %i.glyphicon.glyphicon-stop{:title => 'Running'}
+                          - else
+                            %a.btn.btn-success{:href => "/job/start/#{job.id}"}
+                              %i.glyphicon.glyphicon-play{:title => 'stopped'}
+                          %a.btn.btn-primary{:href => "/download/cracked/#{job.id}"}
+                            %i.glyphicon.glyphicon-download{:title => 'download cracked hashes'}
+                          %a.btn.btn-primary{:href => "/download/stats/#{job.id}"}
+                            %i.glyphicon.glyphicon-stats{:title => 'display crack stats'}
+                          %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
+                            %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
+                          .modal.fade.modal{:id => "modal#{job.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                            .modal-dialog.modal-lg
+                              .modal-content
+                                .modal-header
+                                  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+                                    %span{"aria-hidden" => "true"} &times;
+                                  %h4.modal-title Job Tasks for: #{job.name} (id:#{job.id})
+                                .modal-body
+                                  %p
+                                  .table
+                                    %table{:class => 'table table-striped'}
+                                      - if @jobtasks
+                                        - @jobtasks.each do |jt|
+                                          - if jt.job_id == job.id
+                                            - @tasks.each do |task|
+                                              - if task.id == jt.task_id
+                                                %tr
+                                                  %td
+                                                    .row
+                                                      .form-group
+                                                        %label.control-label.col-xs-2{:for => ""} Task Name
+                                                        .col-xs-10
+                                                          #{task.name}
+                                                    .row
+                                                      .form-group
+                                                        %label.control-label.col-xs-2{:for => ""} Attack Mode
+                                                        .col-xs-4
+                                                          - if task.hc_attackmode == 3
+                                                            Brute Force
+                                                          - elsif task.hc_attackmode == 0
+                                                            Dictionary
+                                                          - else
+                                                            Unknown
+                                                    - if task.hc_attackmode == 0
+                                                      .row
+                                                        .form-group
+                                                          %label.control-label.col-xs-2{:for => ""} Wordlist
+                                                          .col-xs-4
+                                                            #{task.wl_id}
+                                                      .row
+                                                        .form-group
+                                                          %label.control-label.col-xs-2{:for => ""} Dictionary Rules
+                                                          .col-xs-4
+                                                            #{task.hc_rule}
+                                      - else
+                                        No tasks are assigned to this job
+                                  %p
+                                .modal-footer
+                                  %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+                          %a.btn.btn-warning{:href => "/job/edit/#{job.id}"}
+                            %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                          %a.btn.btn-danger{:href => "/job/delete/#{job.id}"}
+                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}

@@ -1,0 +1,25 @@
+!!!
+%html
+  %body
+    %p
+    .span15 
+      %br
+      .container
+        %h2 Add a new wordlist 
+        %br
+        .row
+          .col-md-10
+            %form{:class => "form-horizontal", :action => "/wordlist/upload/", :method => "post", :enctype=>"multipart/form-data"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Name:
+                .col-xs-10
+                  %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+              .form-group
+                %label.control-label.col-xs-2 Upload File:
+                .col-xs-10
+                  %input{:type => 'file', :name => 'file'}
+              .form-group
+                .col-xs-10
+                  %br
+                  %input{:type => 'submit', :value => 'Upload' }
+

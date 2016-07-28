@@ -1,0 +1,72 @@
+!!! 5
+%html{:lang => "en"}
+  %head
+    %script{:src => "/js/jquery-2.1.3.min.js"}
+    %script{:src => "/js/bootstrap.js"}
+    %meta{:charset => "utf-8"}/
+    %title HashView - Password Cracking Management Console
+    %meta{:content => "", :name => "Welcome our new website"}/
+    %link{:href => "/css/bootstrap.css", :rel => "stylesheet"}/
+    %link{:href => "/css/bootstrap.min.css", :rel => "stylesheet"}/
+    %link{:href => "/css/bootstrap-responsive.css", :rel => "stylesheet"}/
+    %link{:href => "/css/hashviewStyle.css", :rel => "stylesheet"}/
+
+
+    :css
+      .body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+      .padded {
+        padding-top: 10px;
+        padding-bottom: 5px;
+        padding-left: 15px;
+        padding-right: 0px;
+      }
+        %link{:href => "/css/bootstrap-responsive.css", :rel => "stylesheet"}
+  %body
+    .navbar.navbar-inverse.navbar-static-top
+      .container
+        %a.navbar-brand(href="/home")
+          HashView
+        %button.navbar-toggle(data-toggle="collapse" data-target=".navHeaderCollapse")
+          %span.icon-bar
+          %span.icon-bar
+          %span.icon-bar
+        .collapse.navbar-collapse.navHeaderCollapse
+          %ul.nav.navbar-nav.navbar-right.vCenter
+            %li
+              - if is_krakenbusy?
+                %span.label.label-danger Busy eating
+              - else
+                %span.label.label-success Feed me nom nom
+            - if valid_session?
+              %li.dropdown
+                %a.dropdown-toggle(data-toggle="dropdown" href="#")
+                  Controls
+                  %b.caret
+                %ul.dropdown-menu
+                  %li
+                    %a(href="/job/list") Jobs
+                  %li
+                    %a(href="/task/list") Tasks
+                  %li.divider{:role => "separator"}
+                  %li.dropdown-header
+                    Additional Functions
+                  - if is_development?
+                    %li
+                      %a(href="/job/queue")Job Queue
+                  %li
+                    %a(href="/analysis")Analysis
+                  %li
+                    %a(href="/wordlist/list")Wordlists
+                  %li
+                    %a(href="/search")Search
+                  %li
+                    %a(href="/settings")Global Settings
+            %li
+              - if valid_session?
+                %a(href="/logout")Logout
+              - else
+                %a(href="/login")Login
+    = yield

@@ -1,0 +1,107 @@
+!!!
+%html
+  %body
+    %p
+    .span15 
+      %br
+      .container
+        .row
+          .col-md-12
+            .table
+              .panel.panel-primary
+                .panel-heading
+                  %h3.panel-title 
+                    The following hashcat job/s are running:
+                - if @results.length > 1
+                  .panel-body
+                    %a.btn.btn-danger{:href => "/process/kill/#{@results.to_s.split()[1]}"}
+                      %i.glyphicon.glyphicon-remove{:title => 'Delete'}
+                      %b Stop Current Job
+                    %p
+                    #{@results}
+                    %br
+                    %br
+                    - @jobs.each do |job|
+                      - if job.status
+                        %h3
+                          Hashes Cracked 
+                          .badge #{@crackedtargets} / #{@alltargets}
+                        %p
+                        .progress
+                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%      
+                -else
+                  .panel-body None
+              %br
+          .col-md-4
+            .table
+              %table{:class => 'table'}
+                %thead
+                  %b Job Status:
+                  - activejob = false
+                  - @jobs.each do |job|
+                    - if job.status
+                      - activejob = true
+                      active job: #{job.name} (id: #{job.id})
+                  %br
+                  - if not activejob
+                    %br
+                    No HashView jobs are running
+                    %br
+                    %br
+                    %a.btn.btn-primary{:href => "/job/create"}
+                      Create a New Job
+                %tbody
+                  - @jobs.each do |job|
+                    - if job.status
+                      - @jobtasks.each do |jt|
+                        - if job.id == jt.job_id
+                          - @tasks.each do |task|
+                            - if task.id == jt.task_id
+                              %tr
+                                %td
+                                  #{task.name}
+                                %td
+                                  %div{:align => "right"}
+                                    - if jt.status == "Queue"
+                                      %span.label.label-default #{jt.status}
+                                    - elsif jt.status == "Completed"
+                                      %span.label.label-primary #{jt.status}
+                                    - elsif jt.status == "Running"
+                                      %span.label.label-success #{jt.status}
+                                    - else
+                                      %span.label.label-default #{jt.status}
+                  %br
+          .col-md-4
+            .table
+              %b GPUs:
+              %br
+              %br
+              - @gpustat.each do |gpu|
+                - if gpu.match(/^Adapter/)
+                  #{gpu}
+                  %br
+                - if gpu.match(/Sensor/)
+                  / hey sam look at mah dev chops!
+                  &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
+                  %br
+                - else
+                  - if gpu.split.last.to_i < 65
+                    .alert.alert-success{:role => "alert"} #{gpu}
+                  - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
+                    .alert.alert-warning{:role => "alert"} #{gpu}
+                  - if gpu.split.last.to_i > 79
+                    .alert.alert-danger{:role => "alert"} #{gpu}
+          .col-md-4
+            .table
+              %table{:class => 'table table-striped'}
+                %b Recently Cracked Passwords:
+                %br
+                %br
+                %tbody
+                  - @recentcracked.each do |cracked|
+                    - prefix, match, suffix = cracked.partition(':')
+                    %tr
+                      %td #{suffix}
+  %br
+  %br
+  %br

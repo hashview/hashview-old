@@ -1,0 +1,57 @@
+!!!
+%html 
+  %head
+    %script{:src => "/js/jquery-ui.min.js"}
+    %script{:src => "/js/jquery.bs_pagination.min.js"}
+    %script{:src => "/js/en.min.js"}
+    %script{:src => "/js/jquery.jui_filter_rules.min.js"}
+    %script{:src => "/js/jui_filter_rules/localization/en.min.js"}
+    %script{:src => "/js/moment.min.js"}
+    %script{:src => "/js/jquery.bs_grid.min.js"}
+    %link{:href => "/css/jquery-ui.min.css", :rel => "stylesheet"}/
+    %link{:href => "/css/jquery.bs_pagination.min.css", :rel => "stylesheet"}/
+    %link{:href => "/css/jquery.jui_filter_rules.bs.min.css", :rel => "stylesheet"}/
+    %link{:href => "/css/jquery.bs_grid.min.css", :rel => "stylesheet"}/ 
+    
+  %body
+    %p
+    
+      %br
+      .container
+        %h2
+        %h2 Search by hash
+        %br
+        .row
+          .col-md-10
+            %form{:class => "form-horizontal", :action => "/search", :method => "post"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Hash:
+                .col-xs-10
+                  %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+              .form-group
+                .col-xs-offset-2.col-xs-10
+                  %button.btn.btn-primary{:type => "submit"} Search
+        %br
+        .row
+          .col-md-10
+            %div{:id => "data_grid1"}
+            %script{:type => "text/javascript"}
+              :plain
+                $(function() {
+    
+                    $("#data_grid1").bs_grid({
+                
+                        ajaxFetchDataURL: "/search_ajax",
+                        row_primary_key: "name",
+                
+                        columns: [
+                            {field: "Hash", header: "Hash"},
+                            {field: "Plaintext", header: "Plaintext"}
+                        ],
+                
+                        sorting: [
+                            {sortingName: "Hash", field: "Hash", order: "none"},
+                            {sortingName: "Plaintext", field: "Plaintext", order: "ascending"}
+                        ],
+                    });
+                });

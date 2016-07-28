@@ -1,0 +1,16 @@
+.container
+  %h2 Upload Hash file for job: #{@job.name}
+  %br
+  .row
+    .col-md-10
+      %br
+      %form{:method => 'post', :action => "/job/#{@job.id}/upload/hashfile", :enctype=>"multipart/form-data"}
+        .form-group
+          %label.control-label.col-xs-2 Hash File:
+          .col-xs-10
+            %input{:type => 'file', :name => 'file'}
+        .form-group
+          .col-xs-10
+            %br
+            %input{:type => 'submit', :value => 'Upload' }
+

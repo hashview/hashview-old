@@ -1,0 +1,122 @@
+/*
+ * bs_grid v0.9.2 CSS (for Bootstrap 2) ****************************************
+*/
+
+/*
+DO NOT CHANGE this file, as it will be overwritten in next update.
+Write your own classes in other css file.
+*/
+
+.tools {
+    height: 32px;
+}
+
+.col-checkbox {
+    margin-top: 0 !important;
+}
+
+.columns-label {
+    margin-top: 3px;
+    margin-bottom: 3px;
+    font-weight: normal;
+}
+
+.columns-li-padding {
+    padding: 3px 20px;
+}
+
+.sorting-name {
+    display: inline-block;
+    padding-left: 20px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    vertical-align: middle;
+    padding-top: 5px;
+}
+
+.selected-rows {
+    margin-left: 5px;
+    margin-right: 2px;
+    text-align: right;
+}
+
+.th-common {
+    cursor: pointer;
+}
+
+.no-records-found {
+    text-align: center;
+}
+
+.pagination-container {
+    padding: 7px 7px 5px 7px !important;
+}
+
+.filters-container {
+    padding: 0 7px 10px 7px !important;
+}
+
+.filters-button {
+    margin: 0 3px;
+}
+
+/* Large desktop */
+@media (min-width: 1200px) {
+}
+
+/* Portrait tablet to landscape and desktop */
+@media (min-width: 768px) and (max-width: 979px) {
+}
+
+/* Landscape phone to portrait tablet */
+@media (max-width: 767px) {
+    .table-responsive {
+        width: 100%;
+        margin-bottom: 15px;
+        overflow-x: scroll;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+        border: 1px solid #ddd;
+    }
+    .table-responsive > .table {
+        margin-bottom: 0;
+    }
+    .table-responsive > .table > thead > tr > th,
+    .table-responsive > .table > tbody > tr > th,
+    .table-responsive > .table > tfoot > tr > th,
+    .table-responsive > .table > thead > tr > td,
+    .table-responsive > .table > tbody > tr > td,
+    .table-responsive > .table > tfoot > tr > td {
+        white-space: nowrap;
+    }
+    .table-responsive > .table-bordered {
+        border: 0;
+    }
+    .table-responsive > .table-bordered > thead > tr > th:first-child,
+    .table-responsive > .table-bordered > tbody > tr > th:first-child,
+    .table-responsive > .table-bordered > tfoot > tr > th:first-child,
+    .table-responsive > .table-bordered > thead > tr > td:first-child,
+    .table-responsive > .table-bordered > tbody > tr > td:first-child,
+    .table-responsive > .table-bordered > tfoot > tr > td:first-child {
+        border-left: 0;
+    }
+    .table-responsive > .table-bordered > thead > tr > th:last-child,
+    .table-responsive > .table-bordered > tbody > tr > th:last-child,
+    .table-responsive > .table-bordered > tfoot > tr > th:last-child,
+    .table-responsive > .table-bordered > thead > tr > td:last-child,
+    .table-responsive > .table-bordered > tbody > tr > td:last-child,
+    .table-responsive > .table-bordered > tfoot > tr > td:last-child {
+        border-right: 0;
+    }
+    .table-responsive > .table-bordered > tbody > tr:last-child > th,
+    .table-responsive > .table-bordered > tfoot > tr:last-child > th,
+    .table-responsive > .table-bordered > tbody > tr:last-child > td,
+    .table-responsive > .table-bordered > tfoot > tr:last-child > td {
+        border-bottom: 0;
+    }
+}
+
+/* Landscape phones and down */
+@media (max-width: 480px) {
+}

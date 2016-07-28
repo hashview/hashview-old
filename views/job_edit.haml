@@ -1,0 +1,85 @@
+!!!
+%html
+  - @taskarray = Hash.new
+  - @tasks.each do |task|
+    - @taskarray[task.id] = task.name
+  /https://jsfiddle.net/vigneshmoha/bbxMe/2/
+  %body
+    %p
+    %script{:type => "text/javascript"}
+      :plain
+        function dateGenerate() {
+        var date = new Date()
+        var dateArray = #{@taskhashforjs};
+        
+        return dateArray;
+        }
+        // The Above function will create an array of five consecutive year from the the current year.
+        function addSelect(divname) {
+        var newDiv=document.createElement('div');
+        var html = '<select name="tasks[]">', dates = dateGenerate(), i;
+        for (var k in dates) {
+          if (dates.hasOwnProperty(k)) {
+            html += "<option value='"+k+"'>"+dates[k]+"</option>";
+          }
+        }
+        html += '</select><p>';
+        newDiv.innerHTML= html;
+        document.getElementById(divname).appendChild(newDiv);
+        }
+    .span15 
+      %br
+      .container
+        - if @jobtasks
+          %h2 Edit Job
+        - else
+          %h2 Create a new Job
+        %br
+        .row
+          .col-md-10
+            - if @jobtasks
+              %form{:class => "form-horizontal", :action => "/job/edit/#{@job.id}", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Job Name
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name", :value => "#{@job.name}"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Assigned Tasks
+                  .col-xs-10
+                    .table
+                      %table{:class => 'table'}
+                        - @jobtasks.each do |jt|
+                          - @tasks.each do |task|
+                            - if jt.task_id == task.id
+                              %tr 
+                                %td #{task.name}  
+                                %td{:class => 'col-md-3'}
+                                  .btn-group.btn-group-xs
+                                    %a.btn.btn-warning{:href => "/job/#{@job.id}/task/delete/#{jt.id}"}
+                                      %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                      %p
+                    .dropdown#dropdown
+                    %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %button.btn.btn-primary{:type => "submit"} Save
+            - else
+              %form{:class => "form-horizontal", :action => "/job/create", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Job Name
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Assigned Tasks
+                  .col-xs-10
+                    .dropdown#dropdown
+                    %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Hash Type
+                  .col-xs-4
+                    %select.form-control{:name => "hashtype"}
+                      - @hashtype.each do |type|
+                        %option{:value => "#{type[1]}", :name => "hashtype", :type => "button"} #{type[0]}
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %button.btn.btn-primary{:type => "submit"} Create

@@ -1,0 +1,39 @@
+!!!
+%html
+  %body
+    %p
+    .span15 
+      %br
+      - if @result
+        #{@result}
+      .container
+        %h2 Wordlists
+        %br
+      .container
+        .row
+          .col-sm-3
+            %a.btn.btn-primary{:href => "/wordlist/add"}
+              Add a New Wordlist
+        %br
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Name
+                    %th
+                      %b Size
+                    %th
+                      %b Action
+                %tbody
+                  - if @wordlists
+                    - @wordlists.each do |wordlist|
+                      %tr
+                        %td #{wordlist.name}
+                        %td #{wordlist.size}
+                        %td
+                          %a.btn.btn-danger{:href => "/wordlist/delete/#{wordlist.id}"}
+                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          

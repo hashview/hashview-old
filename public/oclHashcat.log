@@ -1,0 +1,220 @@
+TOP911baf00	START
+TOP911baf00	attack_mode	3
+TOP911baf00	attack_kern	3
+TOP911baf00	benchmark	0
+TOP911baf00	benchmark_mode	1
+TOP911baf00	bitmap_min	16
+TOP911baf00	bitmap_max	24
+TOP911baf00	debug_mode	0
+TOP911baf00	eula	0
+TOP911baf00	force	0
+TOP911baf00	gpu_accel	0
+TOP911baf00	gpu_async	0
+TOP911baf00	gpu_loops	0
+TOP911baf00	gpu_temp_abort	90
+TOP911baf00	gpu_temp_disable	0
+TOP911baf00	gpu_temp_retain	80
+TOP911baf00	hash_mode	1000
+TOP911baf00	hex_charset	0
+TOP911baf00	hex_salt	0
+TOP911baf00	hex_wordlist	0
+TOP911baf00	increment	0
+TOP911baf00	increment_max	54
+TOP911baf00	increment_min	1
+TOP911baf00	keyspace	0
+TOP911baf00	left	0
+TOP911baf00	logfile_disable	0
+TOP911baf00	loopback	0
+TOP911baf00	markov_classic	0
+TOP911baf00	markov_disable	0
+TOP911baf00	markov_threshold	0
+TOP911baf00	outfile_autohex	1
+TOP911baf00	outfile_check_timer	5
+TOP911baf00	outfile_format	3
+TOP911baf00	potfile_disable	1
+TOP911baf00	powertune_enable	0
+TOP911baf00	scrypt_tmto	0
+TOP911baf00	quiet	0
+TOP911baf00	remove	1
+TOP911baf00	remove_timer	60
+TOP911baf00	restore	0
+TOP911baf00	restore_disable	0
+TOP911baf00	restore_timer	60
+TOP911baf00	rp_gen	0
+TOP911baf00	rp_gen_func_max	4
+TOP911baf00	rp_gen_func_min	1
+TOP911baf00	rp_gen_seed	0
+TOP911baf00	runtime	0
+TOP911baf00	segment_size	32
+TOP911baf00	show	0
+TOP911baf00	status	0
+TOP911baf00	status_automat	0
+TOP911baf00	status_timer	5
+TOP911baf00	usage	0
+TOP911baf00	username	0
+TOP911baf00	version	0
+TOP911baf00	weak_hash_threshold	100
+TOP911baf00	workload_profile	2
+TOP911baf00	limit	0
+TOP911baf00	skip	0
+TOP911baf00	separator	:
+TOP911baf00	gpu_devices	1,2,4
+TOP911baf00	outfile	/home/audit/demo/cracked/demo.txt
+TOP911baf00	rule_buf_l	:
+TOP911baf00	rule_buf_r	:
+TOP911baf00	session	oclHashcat
+TOP911baf00	target	/home/audit/demo/hashes/demo.pwdump-ntlmonly.txt
+TOP911baf00	hashlist_mode	4
+TOP911baf00	hashlist_format	0
+TOP911baf00	SUBd3d9aabb	START
+TOP911baf00	SUBd3d9aabb	mask	?1
+TOP911baf00	SUBd3d9aabb	status-after-work	2
+TOP911baf00	SUBd3d9aabb	runtime_start	1451427531
+TOP911baf00	SUBd3d9aabb	runtime_stop	1451427531
+TOP911baf00	SUBd3d9aabb	STOP
+TOP911baf00	SUBb06f60aa	START
+TOP911baf00	SUBb06f60aa	mask	?1?2
+TOP911baf00	SUBb06f60aa	status-after-work	2
+TOP911baf00	SUBb06f60aa	runtime_start	1451427532
+TOP911baf00	SUBb06f60aa	runtime_stop	1451427532
+TOP911baf00	SUBb06f60aa	STOP
+TOP911baf00	SUB7708d329	START
+TOP911baf00	SUB7708d329	mask	?1?2?2
+TOP911baf00	SUB7708d329	status-after-work	2
+TOP911baf00	SUB7708d329	runtime_start	1451427532
+TOP911baf00	SUB7708d329	runtime_stop	1451427532
+TOP911baf00	SUB7708d329	STOP
+TOP911baf00	SUBbf781ce2	START
+TOP911baf00	SUBbf781ce2	mask	?1?2?2?2
+TOP911baf00	SUBbf781ce2	status-after-work	2
+TOP911baf00	SUBbf781ce2	runtime_start	1451427532
+TOP911baf00	SUBbf781ce2	runtime_stop	1451427532
+TOP911baf00	SUBbf781ce2	STOP
+TOP911baf00	SUBc2ab25f2	START
+TOP911baf00	SUBc2ab25f2	mask	?1?2?2?2?2
+TOP911baf00	SUBc2ab25f2	status-after-work	2
+TOP911baf00	SUBc2ab25f2	runtime_start	1451427532
+TOP911baf00	SUBc2ab25f2	runtime_stop	1451427532
+TOP911baf00	SUBc2ab25f2	STOP
+TOP911baf00	SUB679c3e2e	START
+TOP911baf00	SUB679c3e2e	mask	?1?2?2?2?2?2
+TOP911baf00	SUB679c3e2e	status-after-work	2
+TOP911baf00	SUB679c3e2e	runtime_start	1451427533
+TOP911baf00	SUB679c3e2e	runtime_stop	1451427533
+TOP911baf00	SUB679c3e2e	STOP
+TOP911baf00	SUB8c3f1f03	START
+TOP911baf00	SUB8c3f1f03	mask	?1?2?2?2?2?2?2
+TOP911baf00	SUB8c3f1f03	status-after-work	6
+TOP911baf00	proc_start	1451427527
+TOP911baf00	proc_stop	1451427535
+TOP911baf00	STOP
+TOP5d6e5189	START
+TOP5d6e5189	attack_mode	3
+TOP5d6e5189	attack_kern	3
+TOP5d6e5189	benchmark	0
+TOP5d6e5189	benchmark_mode	1
+TOP5d6e5189	bitmap_min	16
+TOP5d6e5189	bitmap_max	24
+TOP5d6e5189	debug_mode	0
+TOP5d6e5189	eula	0
+TOP5d6e5189	force	0
+TOP5d6e5189	gpu_accel	0
+TOP5d6e5189	gpu_async	0
+TOP5d6e5189	gpu_loops	0
+TOP5d6e5189	gpu_temp_abort	90
+TOP5d6e5189	gpu_temp_disable	0
+TOP5d6e5189	gpu_temp_retain	80
+TOP5d6e5189	hash_mode	1000
+TOP5d6e5189	hex_charset	0
+TOP5d6e5189	hex_salt	0
+TOP5d6e5189	hex_wordlist	0
+TOP5d6e5189	increment	0
+TOP5d6e5189	increment_max	54
+TOP5d6e5189	increment_min	1
+TOP5d6e5189	keyspace	0
+TOP5d6e5189	left	0
+TOP5d6e5189	logfile_disable	0
+TOP5d6e5189	loopback	0
+TOP5d6e5189	markov_classic	0
+TOP5d6e5189	markov_disable	0
+TOP5d6e5189	markov_threshold	0
+TOP5d6e5189	outfile_autohex	1
+TOP5d6e5189	outfile_check_timer	5
+TOP5d6e5189	outfile_format	3
+TOP5d6e5189	potfile_disable	1
+TOP5d6e5189	powertune_enable	0
+TOP5d6e5189	scrypt_tmto	0
+TOP5d6e5189	quiet	0
+TOP5d6e5189	remove	1
+TOP5d6e5189	remove_timer	60
+TOP5d6e5189	restore	0
+TOP5d6e5189	restore_disable	0
+TOP5d6e5189	restore_timer	60
+TOP5d6e5189	rp_gen	0
+TOP5d6e5189	rp_gen_func_max	4
+TOP5d6e5189	rp_gen_func_min	1
+TOP5d6e5189	rp_gen_seed	0
+TOP5d6e5189	runtime	0
+TOP5d6e5189	segment_size	32
+TOP5d6e5189	show	0
+TOP5d6e5189	status	0
+TOP5d6e5189	status_automat	0
+TOP5d6e5189	status_timer	5
+TOP5d6e5189	usage	0
+TOP5d6e5189	username	0
+TOP5d6e5189	version	0
+TOP5d6e5189	weak_hash_threshold	100
+TOP5d6e5189	workload_profile	2
+TOP5d6e5189	limit	0
+TOP5d6e5189	skip	0
+TOP5d6e5189	separator	:
+TOP5d6e5189	gpu_devices	1,2,4
+TOP5d6e5189	outfile	/home/audit/demo/cracked/demo.txt
+TOP5d6e5189	rule_buf_l	:
+TOP5d6e5189	rule_buf_r	:
+TOP5d6e5189	session	oclHashcat
+TOP5d6e5189	target	/home/audit/demo/hashes/demo.pwdump-ntlmonly.txt
+TOP5d6e5189	hashlist_mode	4
+TOP5d6e5189	hashlist_format	0
+TOP5d6e5189	SUB6f3963ed	START
+TOP5d6e5189	SUB6f3963ed	mask	?1
+TOP5d6e5189	SUB6f3963ed	status-after-work	2
+TOP5d6e5189	SUB6f3963ed	runtime_start	1451437540
+TOP5d6e5189	SUB6f3963ed	runtime_stop	1451437540
+TOP5d6e5189	SUB6f3963ed	STOP
+TOP5d6e5189	SUBbe84ad14	START
+TOP5d6e5189	SUBbe84ad14	mask	?1?2
+TOP5d6e5189	SUBbe84ad14	status-after-work	2
+TOP5d6e5189	SUBbe84ad14	runtime_start	1451437540
+TOP5d6e5189	SUBbe84ad14	runtime_stop	1451437540
+TOP5d6e5189	SUBbe84ad14	STOP
+TOP5d6e5189	SUBacec2713	START
+TOP5d6e5189	SUBacec2713	mask	?1?2?2
+TOP5d6e5189	SUBacec2713	status-after-work	2
+TOP5d6e5189	SUBacec2713	runtime_start	1451437540
+TOP5d6e5189	SUBacec2713	runtime_stop	1451437540
+TOP5d6e5189	SUBacec2713	STOP
+TOP5d6e5189	SUBbefd0722	START
+TOP5d6e5189	SUBbefd0722	mask	?1?2?2?2
+TOP5d6e5189	SUBbefd0722	status-after-work	2
+TOP5d6e5189	SUBbefd0722	runtime_start	1451437541
+TOP5d6e5189	SUBbefd0722	runtime_stop	1451437541
+TOP5d6e5189	SUBbefd0722	STOP
+TOP5d6e5189	SUB75479d2d	START
+TOP5d6e5189	SUB75479d2d	mask	?1?2?2?2?2
+TOP5d6e5189	SUB75479d2d	status-after-work	2
+TOP5d6e5189	SUB75479d2d	runtime_start	1451437541
+TOP5d6e5189	SUB75479d2d	runtime_stop	1451437541
+TOP5d6e5189	SUB75479d2d	STOP
+TOP5d6e5189	SUBaca04129	START
+TOP5d6e5189	SUBaca04129	mask	?1?2?2?2?2?2
+TOP5d6e5189	SUBaca04129	status-after-work	2
+TOP5d6e5189	SUBaca04129	runtime_start	1451437541
+TOP5d6e5189	SUBaca04129	runtime_stop	1451437541
+TOP5d6e5189	SUBaca04129	STOP
+TOP5d6e5189	SUBb092bfaf	START
+TOP5d6e5189	SUBb092bfaf	mask	?1?2?2?2?2?2?2
+TOP5d6e5189	SUBb092bfaf	status-after-work	6
+TOP5d6e5189	proc_start	1451437539
+TOP5d6e5189	proc_stop	1451437547
+TOP5d6e5189	STOP

@@ -1,0 +1,37 @@
+!!!
+%html 
+  %body
+    %p    
+      %br
+      .container
+        %h2
+        %h2 Search by hash
+        %br
+        .row
+          .col-md-10
+            %form{:class => "form-horizontal", :action => "/search", :method => "post"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Hash:
+                .col-xs-10
+                  %input{:type => "textbox", :class => "form-control", :name => "hash", :id => "hash"}
+              .form-group
+                .col-xs-offset-2.col-xs-10
+                  %button.btn.btn-primary{:type => "submit"} Search
+        %br
+        .row
+          .col-md-10
+            %div{:id => "data_grid1"}
+              %table.table.table-striped
+                %tr
+                  %th Hash
+                  %th Plaintext
+                %tr 
+                  %td{:id => "hash_td"} "#{params[:hash]}"
+                  %td{:id => "plaintext_td"} "#{@output}"
+            %script{:type => "text/javascript"}
+              var hash_td_value = document.getElementById('hash_td').innerHTML
+              hash_td_value = hash_td_value.replace(/['"]+/g, '')
+              document.getElementById('hash_td').innerHTML = hash_td_value
+              var plaintext_td_value = document.getElementById('plaintext_td').innerHTML
+              plaintext_td_value = plaintext_td_value.split(",")
+              document.getElementById('plaintext_td').innerHTML = plaintext_td_value[2].replace(/['"]+/g, '').replace(/[\[\]']+/g,'')

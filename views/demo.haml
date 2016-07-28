@@ -1,0 +1,33 @@
+.span10
+  %form{:method => 'post'}
+    %br
+    .container
+      .row
+        .col-md-8
+          .panel.panel-primary
+            .panel-heading
+              %h3.panel-title Is your password strong enough?
+            .panel-body
+              %table
+                %tr
+                  - if @result
+                    - if @result == "weak"
+                      .alert.alert-danger{:role => 'alert'}
+                        #{@result} cracked: #{@hcrun}
+                    - elsif @result == "strong"
+                      .alert.alert-success{:role => 'alert'} #{@result} 
+                    - elsif @result == "dict"
+                      .alert.alert-danger{:role => 'alert'} Cracked via dictionary attack!
+                    %br
+                    %a{ :class => "btn btn-default", :href => "/demo"} Try Again
+                  - else
+                    %td
+                      Password &nbsp;
+                    %td
+                      %input{:type => 'text', :name => 'pwd'}
+                      %br
+                    %tr
+                      %td
+                        %br
+                        %input{:type => 'submit', :class => "btn btn-default", :value => 'Submit' }
+                        %button{:value => 'Cancel', :class => "btn btn-default"} Cancel
