@@ -1,5 +1,6 @@
 db/master.db
 cert/*
+!cert/.blank
 cert.pem
 key.pem
 tmp/*
