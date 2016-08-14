@@ -137,17 +137,6 @@ get '/home' do
   @targets.each do | entry |
     @recentcracked.push(entry.cracked)
   end
-  p '========================================'
-  p @recentcracked
-  p '========================================'
-  # this will be replaced later with a db query:
-  #begin
-  #  @recentcracked = `tail \`ls -lt control/outfiles/hc_cracked_* | head -1 | awk '{print $NF}'\``
-  #rescue
-  #  @recentcracked = 'none'
-  #end
-  #@recentcracked = @recentcracked.split("\n")
-
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
   # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
