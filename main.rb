@@ -134,9 +134,19 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
+  @targets.each do | entry |
+    @recentcracked.push(entry.cracked)
+  end
+  p '========================================'
+  p @recentcracked
+  p '========================================'
   # this will be replaced later with a db query:
-  @recentcracked = `tail \`ls -lt control/outfiles/hc_cracked_* | head -1 | awk '{print $NF}'\``
-  @recentcracked = @recentcracked.split("\n")
+  #begin
+  #  @recentcracked = `tail \`ls -lt control/outfiles/hc_cracked_* | head -1 | awk '{print $NF}'\``
+  #rescue
+  #  @recentcracked = 'none'
+  #end
+  #@recentcracked = @recentcracked.split("\n")
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env

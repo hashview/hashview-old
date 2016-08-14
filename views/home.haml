@@ -98,10 +98,13 @@
                 %br
                 %br
                 %tbody
-                  - @recentcracked.each do |cracked|
-                    - prefix, match, suffix = cracked.partition(':')
-                    %tr
-                      %td #{suffix}
+                  -if @recentcracked
+                    - @recentcracked.each do |cracked|
+                      - prefix, match, suffix = cracked.partition(':')
+                      %tr
+                        %td #{suffix}
+                  -else
+                    %b None... lets get cracking!
   %br
   %br
   %br
