@@ -134,8 +134,10 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
+  @recentcracked = []
   @targets.each do | entry |
-    @recentcracked.push(entry.cracked)
+    p entry.plaintext
+    @recentcracked.push(entry.plaintext)
   end
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
@@ -774,15 +776,15 @@ def build_crack_cmd(jobid, taskid)
   attackmode = @task.hc_attackmode.to_s
   wordlist = Wordlists.first(:id => @task.wl_id)
 
-  if targettype == "hashfile"
-    if attackmode == "3"
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + wordlist.path
-    elsif attackmode == "0"
-      if @task.hc_rule == "none"
-        cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + @job.targetfile + " " + wordlist.path
-      else
-        cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " +  " -r " + "control/rules/" + @task.hc_rule + " " + @job.targetfile + " " + wordlist.path
-      end
+  target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
+
+  if attackmode == "3"
+    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + target_file + " " + wordlist.path
+  elsif attackmode == "0"
+    if @task.hc_rule == "none"
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + target_file + " " + wordlist.path
+    else
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " +  " -r " + "control/rules/" + @task.hc_rule + " " + target_file + " " + wordlist.path
     end
   end
   return cmd
