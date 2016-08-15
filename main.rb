@@ -132,7 +132,8 @@ get '/home' do
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @recentcracked = []
-  @targets.each do | entry |
+  @cracked = Targets.all(unique: true, :limit => 10, :cracked => 1, :order => [:id.desc])
+  @cracked.each do | entry |
     p entry.plaintext
     @recentcracked.push(entry.plaintext)
   end
