@@ -91,9 +91,6 @@ post '/register' do
   # validate that no other user account exists
   @users = User.all
   if @users.empty?
-    p params[:password]
-    p params[:confirm]
-    p params[:username]
     if params[:password] != params[:confirm]
       return 'Passwords do not match'
     else
