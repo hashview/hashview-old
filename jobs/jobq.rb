@@ -59,6 +59,9 @@ module Jobq
     jobtasks = Jobtasks.first(:id => id)
     crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
 
+
+    adapter = DataMapper::repository(:default).adapter
+    adapter.select("PRAGMA synchronous = OFF;")
     File.open(crack_file).each do |line|
       hash_pass = line.split(/:/)
       records = Targets.all(:originalhash => hash_pass[0])
