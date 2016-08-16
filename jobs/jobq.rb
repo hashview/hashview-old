@@ -64,8 +64,8 @@ module Jobq
     adapter.select("PRAGMA synchronous = OFF;")
     File.open(crack_file).each do |line|
       hash_pass = line.split(/:/)
-      records = Targets.all(:originalhash => hash_pass[0])
-      records.update(:plaintext => hash_pass[1].tr('\n'))
+      records = Targets.all(:originalhash => hash_pass[0], :cracked => 0)
+      records.update(:plaintext => hash_pass[1].delete("\n"))
       records.update(:cracked => true)
       records.save
     end
