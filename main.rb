@@ -91,9 +91,6 @@ post '/register' do
   # validate that no other user account exists
   @users = User.all
   if @users.empty?
-    p params[:password]
-    p params[:confirm]
-    p params[:username]
     if params[:password] != params[:confirm]
       return 'Passwords do not match'
     else
@@ -134,10 +131,12 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  # this will be replaced later with a db query:
-  @recentcracked = `tail \`ls -lt control/outfiles/hc_cracked_* | head -1 | awk '{print $NF}'\``
-  @recentcracked = @recentcracked.split("\n")
-
+  @recentcracked = []
+  @cracked = Targets.all(unique: true, :limit => 10, :cracked => 1, :order => [:id.desc])
+  @cracked.each do | entry |
+    p entry.plaintext
+    @recentcracked.push(entry.plaintext)
+  end
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
   # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
@@ -775,15 +774,15 @@ def build_crack_cmd(jobid, taskid)
   attackmode = @task.hc_attackmode.to_s
   wordlist = Wordlists.first(:id => @task.wl_id)
 
-  if targettype == "hashfile"
-    if attackmode == "3"
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + wordlist.path
-    elsif attackmode == "0"
-      if @task.hc_rule == "none"
-        cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + @job.targetfile + " " + wordlist.path
-      else
-        cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " +  " -r " + "control/rules/" + @task.hc_rule + " " + @job.targetfile + " " + wordlist.path
-      end
+  target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
+
+  if attackmode == "3"
+    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + target_file + " " + wordlist.path
+  elsif attackmode == "0"
+    if @task.hc_rule == "none"
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + target_file + " " + wordlist.path
+    else
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " +  " -r " + "control/rules/" + @task.hc_rule + " " + target_file + " " + wordlist.path
     end
   end
   return cmd

@@ -98,10 +98,15 @@
                 %br
                 %br
                 %tbody
-                  - @recentcracked.each do |cracked|
-                    - prefix, match, suffix = cracked.partition(':')
-                    %tr
-                      %td #{suffix}
-  %br
-  %br
-  %br
+                  -if @recentcracked
+                    - @recentcracked.each do |cracked|
+                      //%b #{cracked}
+                      //- prefix, match, suffix = cracked.partition(':')
+                      %tr
+                        %td #{cracked}
+                  -else
+                    %b None... lets get cracking!
+%br
+%br
+%br
+%meta{:content => "100", "http-equiv" => "refresh"}
