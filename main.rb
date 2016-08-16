@@ -767,6 +767,7 @@ def build_crack_cmd(jobid, taskid)
   # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
   settings = Settings.first
   hcbinpath = settings.hcbinpath
+  maxtasktime = settings.maxtasktime
   @task = Tasks.first(:id => taskid)
   @job = Jobs.first(:id => jobid)
   @targets = Targets.first(:jobid => jobid)
@@ -777,7 +778,7 @@ def build_crack_cmd(jobid, taskid)
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
   if attackmode == "3"
-    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + target_file + " " + wordlist.path
+    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + "--runtime=" + maxtasktime + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + target_file + " " + wordlist.path
   elsif attackmode == "0"
     if @task.hc_rule == "none"
       cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + target_file + " " + wordlist.path
