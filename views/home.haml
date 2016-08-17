@@ -104,8 +104,6 @@
                     %td 
                       %strong Password
                     - @recentlycracked.each do |cracked|
-                      //%b #{cracked}
-                      //- prefix, match, suffix = cracked.partition(':')
                       %tr
                         %td #{cracked.username}
                         %td #{cracked.plaintext}
