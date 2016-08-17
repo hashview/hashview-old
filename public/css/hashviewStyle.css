@@ -7,3 +7,6 @@
   justify-content: center;
   flex-direction: row;
 }
+/* used for all messages that dissolve in layout template */
+.alertfade{
+}

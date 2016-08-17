@@ -69,4 +69,15 @@
                 %a(href="/logout")Logout
               - else
                 %a(href="/login")Login
+    - if @warnings != nil
+      .container
+        - @warnings.each do |warning|
+          .alertfade.alert.alert-danger{:role => "alert"} #{warning}
+      %script{:type => "text/javascript"}
+        :plain
+          window.setTimeout(function() {
+            $(".alertfade").fadeTo(500, 0).slideUp(500, function(){
+              $(this).remove();
+            });
+          }, 4000);
     = yield

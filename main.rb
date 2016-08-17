@@ -807,6 +807,16 @@ end
 
 helpers do
 
+  def warning(txt)
+    if @warnings != nil
+      @warnings << txt
+    else
+      @warnings = []
+      @warnings << txt
+    end
+    return @warnings
+  end
+
   def login?
     if session[:username].nil?
       return false
