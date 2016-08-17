@@ -153,23 +153,40 @@ get '/home' do
   dict_dir = '/mnt/temp/Dictionaries'
   @dict_available = File.directory?(dict_dir)
 
-  # simple (and temporary) statistics
-  @jobs.each do |j|
+  @jobs.each do | j |
     if j.status
-      # this nonsense will be replaced in the future with sql reads of the targets table
+      p 'Job ID: ' + j.id.to_s
+      @alltargets = Targets.all(:jobid => j.id)
+      @crackedtargets = Targets.all(:jobid => j.id, :cracked => 1)
+      @alltargets = @alltargets.count
+      @crackedtargets = @crackedtargets.count 
+      @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
+    else
+      @alltargets = 0
       @crackedtargets = 0
-      Dir["control/outfiles/hc_cracked_#{j.id}_*"].each do |f|
-        if File.file?(f)
-          cracked = `wc -l #{f} | awk '{print $1}' | tr -d '\n'`
-        else
-          cracked = '0'
-        end
-        @crackedtargets += cracked.to_i
-      end
-      @alltargets = `wc -l control/hashes/hashfile_upload_jobid-"#{j.id}"* | awk '{print $1}' | tr -d '\n'`
-      @progress = @crackedtargets.to_f / @alltargets.to_f * 100
+      @progress = 0
     end
   end
+  p 'ALL TARGETS: ' + @alltargets.to_s
+  p 'CRACKED TARGETS: ' + @crackedtargets.to_s
+  p 'PROGRESS: ' + @progress.to_s
+  # simple (and temporary) statistics
+  #@jobs.each do |j|
+  #  if j.status
+  #    # this nonsense will be replaced in the future with sql reads of the targets table
+  #    @crackedtargets = 0
+  #    Dir["control/outfiles/hc_cracked_#{j.id}_*"].each do |f|
+  #      if File.file?(f)
+  #        cracked = `wc -l #{f} | awk '{print $1}' | tr -d '\n'`
+  #      else
+  #        cracked = '0'
+  #      end
+  #      @crackedtargets += cracked.to_i
+  #    end
+  #    @alltargets = `wc -l control/hashes/hashfile_upload_jobid-"#{j.id}"* | awk '{print $1}' | tr -d '\n'`
+  #    @progress = @crackedtargets.to_f / @alltargets.to_f * 100
+  #  end
+  #end
 
   haml :home
 end
@@ -454,6 +471,7 @@ get '/job/start/:id' do
       @job.save
       cmd = build_crack_cmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      p 'ENQUE CMD: ' + cmd
       Resque.enqueue(Jobq, jt.id, cmd)
     end
   end
@@ -502,8 +520,11 @@ get '/job/stop/:id' do
     if not jt.status == 'Completed'
       jt.status = 'Canceled'
       jt.save
-      cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      Resque::Job.destroy('hashcat', 'Jobq', jt.id, cmd)
+      #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      cmd = build_crack_cmd(@job.id, task.id)
+      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      puts 'STOP CMD: ' + cmd
+      Resque::Job.destroy('hashcat', Jobq, jt.id, cmd)
     end
   end
 
