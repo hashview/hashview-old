@@ -2,7 +2,7 @@
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
         %h2 Tasks
@@ -29,8 +29,8 @@
                   - if @tasks
                     - @tasks.each do |task|
                       %tr
-                        %td #{task.name} 
-                        %td 
+                        %td #{task.name}
+                        %td
                           - if task.hc_attackmode == 3
                             Brute Force
                           - elsif task.hc_attackmode == 0
@@ -46,7 +46,7 @@
                                 .modal-header
                                   %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
                                     %span{"aria-hidden" => "true"} &times;
-                                  %h4.modal-title Task details for: #{task.name} 
+                                  %h4.modal-title Task details for: #{task.name}
                                 .modal-body
                                   .row
                                     .form-group
@@ -68,11 +68,13 @@
                                       .form-group
                                         %label.control-label.col-xs-2{:for => ""} Wordlist
                                         .col-xs-4
-                                          #{task.wl_id}    
+                                          - @wordlists.each do |wl|
+                                            - if wl.id.to_i == task.wl_id.to_i
+                                              #{wl.name}
                                     .row
                                       .form-group
                                         %label.control-label.col-xs-2{:for => ""} Dictionary Rules
-                                        .col-xs-4 
+                                        .col-xs-4
                                           #{task.hc_rule}
                           %a.btn.btn-warning{:href => "/task/edit/#{task.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
