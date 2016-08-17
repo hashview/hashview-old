@@ -46,7 +46,7 @@ module Jobq
     end
 
     puts "===== HashFile Created ======"
-    
+
     puts '===== starting job ======='
     update_db_status(id, 'Running')
     puts id
@@ -59,11 +59,10 @@ module Jobq
     jobtasks = Jobtasks.first(:id => id)
     crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
 
-
     File.open(crack_file).each do |line|
       hash_pass = line.split(/:/)
       plaintext = hash_pass[1]
-      plaintext = plaintext.chomp 
+      plaintext = plaintext.chomp
       # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
       records = Targets.all(:originalhash => hash_pass[0])
       # Yes its slow... we know.
