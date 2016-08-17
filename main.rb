@@ -469,7 +469,7 @@ get '/job/start/:id' do
     return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
   end
 
-  redirect to('/job/list')
+  redirect to('/home')
 end
 
 get '/job/queue' do
