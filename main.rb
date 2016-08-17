@@ -322,6 +322,10 @@ end
 post '/job/create' do
   redirect to('/') if !valid_session?
 
+  if !params[:tasks]
+    return "you must assign tasks to your job"
+  end
+
   # create new job
   job = Jobs.new
   job.name = params[:name]
