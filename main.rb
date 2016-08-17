@@ -671,6 +671,12 @@ get '/wordlist/delete/:id' do
   if not @wordlist
     return "no such wordlist exists"
   else
+    # check if wordlist is in use
+    tasks = Tasks.all(:wl_id => @wordlist.id)
+    if tasks
+      return "This word list is associated with a task, it cannot be deleted"
+    end
+
     # remove from filesystem
     File.delete(@wordlist.path)
 
