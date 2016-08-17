@@ -131,12 +131,13 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentcracked = []
-  @cracked = Targets.all(unique: true, :limit => 10, :cracked => 1, :order => [:id.desc])
-  @cracked.each do | entry |
-    p entry.plaintext
-    @recentcracked.push(entry.plaintext)
-  end
+  #@recentcracked = []
+  #@cracked = Targets.all(:fields => [:plaintext], :unique => true, :limit => 10, :cracked => 1, :order => [:id.desc])
+  @recentlycracked = Targets.all(:limit => 10, :cracked => 1, :order => [:updated_at.desc])
+  #@cracked.each do | entry |
+  #  p entry.plaintext
+  #  @recentcracked.push(entry.plaintext)
+  #end
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
   # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
