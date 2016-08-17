@@ -222,6 +222,11 @@ get '/task/create' do
     return 'You must define hashcat\'s binary path in global settings first.'
   end
 
+  tasks = Tasks.all()
+  if tasks.empty?
+    warning("You need to have tasks before starting a job")
+  end
+
   @rules = []
   # list wordlists that can be used
   Dir.foreach('control/rules/') do |item|
@@ -230,12 +235,6 @@ get '/task/create' do
   end
 
   @wordlists = Wordlists.all()
-
-  #@wordlists = []
-  #Dir.foreach('control/wordlists/') do |item|
-  #  next if item == '.' or item == '..'
-  #    @wordlists << item
-  #end
 
   haml :task_create
 end
@@ -305,6 +304,9 @@ get '/job/create' do
   redirect to('/') if !valid_session?
 
   @tasks = Tasks.all
+  if @tasks.empty?
+    redirect to('/task/create')
+  end
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
