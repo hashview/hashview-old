@@ -132,13 +132,16 @@ get '/home' do
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @recentlycracked = Targets.all(:limit => 10, :cracked => 1, :order => [:updated_at.desc])
-  
+
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
   # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
+  if @gpustatus.empty?
+    @gpustatus = `lspci | grep "VGA compatible controller" | cut -d: -f3 | sed 's/\(rev a1\)//g'`
+  end
   @gpustatus = @gpustatus.split("\n")
   @gpustat = []
   @gpustatus.each do |line|
@@ -607,7 +610,7 @@ get '/download/stats/:jobid' do
    @password_length[password.length] += 1
   end
 
-  file_name = 'control/outfiles/stats' + params[:jobid].to_s + '.txt' 
+  file_name = 'control/outfiles/stats' + params[:jobid].to_s + '.txt'
 
   File.open(file_name, 'w') do |f|
 
@@ -721,15 +724,15 @@ post '/search' do
     key = params[:hash]
     @output = redis.hscan(key, 0)
     haml :search_post
-     
+
 end
 
 post '/search_ajax' do
-    
+
     key = params[:hash]
     output = redis.hscan(key, 0)
     return output.to_json
-    
+
 end
 
 get '/statistics' do
