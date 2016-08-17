@@ -66,9 +66,16 @@ module Jobq
       hash_pass = line.split(/:/)
       plaintext = hash_pass[1]
       plaintext = plaintext.chomp 
-      records = Targets.all(:originalhash => hash_pass[0], :cracked => false)
+      #records = Targets.all(:originalhash => hash_pass[0], :cracked => false)
       #records.update(:plaintext => plaintext, :cracked => true)
-      records.update(:cracked => true)
+      #records.update(:cracked => true)
+      records = Targets.all(:cracked => false)
+      records.each do | entry |
+        if entry.originalhash == hash_pass[0]
+          entry.cracked = true
+          entry.plaintext = plaintext
+        end
+      end
       records.save
     end
 
