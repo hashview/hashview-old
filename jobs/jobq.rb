@@ -60,21 +60,16 @@ module Jobq
     crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
 
 
-    #adapter = DataMapper::repository(:default).adapter
-    #adapter.select("PRAGMA synchronous = ON;")
     File.open(crack_file).each do |line|
       hash_pass = line.split(/:/)
       plaintext = hash_pass[1]
       plaintext = plaintext.chomp 
-      #records = Targets.all(:originalhash => hash_pass[0], :cracked => false)
-      #records.update(:plaintext => plaintext, :cracked => true)
-      #records.update(:cracked => true)
-      records = Targets.all(:cracked => false)
+      # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
+      records = Targets.all(:originalhash => hash_pass[0])
+      # Yes its slow... we know.
       records.each do | entry |
-        if entry.originalhash == hash_pass[0]
-          entry.cracked = true
-          entry.plaintext = plaintext
-        end
+        entry.cracked = 1
+        entry.plaintext = plaintext
       end
       records.save
     end
