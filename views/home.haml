@@ -98,12 +98,15 @@
                 %br
                 %br
                 %tbody
-                  -if @recentcracked
-                    - @recentcracked.each do |cracked|
-                      //%b #{cracked}
-                      //- prefix, match, suffix = cracked.partition(':')
+                  -if @recentlycracked
+                    %td 
+                      %strong Username
+                    %td 
+                      %strong Password
+                    - @recentlycracked.each do |cracked|
                       %tr
-                        %td #{cracked}
+                        %td #{cracked.username}
+                        %td #{cracked.plaintext}
                   -else
                     %b None... lets get cracking!
 %br
