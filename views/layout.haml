@@ -5,12 +5,10 @@
     %script{:src => "/js/bootstrap.js"}
     %meta{:charset => "utf-8"}/
     %title HashView - Password Cracking Management Console
-    %meta{:content => "", :name => "Welcome our new website"}/
+    %meta{:content => "", :name => "All types of crack are welcome"}/
     %link{:href => "/css/bootstrap.css", :rel => "stylesheet"}/
     %link{:href => "/css/bootstrap.min.css", :rel => "stylesheet"}/
-    %link{:href => "/css/bootstrap-responsive.css", :rel => "stylesheet"}/
     %link{:href => "/css/hashviewStyle.css", :rel => "stylesheet"}/
-
 
     :css
       .body {
@@ -28,7 +26,7 @@
     .navbar.navbar-inverse.navbar-static-top
       .container
         %a.navbar-brand(href="/home")
-          HashView
+          Hashview
         %button.navbar-toggle(data-toggle="collapse" data-target=".navHeaderCollapse")
           %span.icon-bar
           %span.icon-bar
@@ -69,4 +67,15 @@
                 %a(href="/logout")Logout
               - else
                 %a(href="/login")Login
+    - if @warnings != nil
+      .container
+        - @warnings.each do |warning|
+          .alertfade.alert.alert-danger{:role => "alert"} #{warning}
+      %script{:type => "text/javascript"}
+        :plain
+          window.setTimeout(function() {
+            $(".alertfade").fadeTo(500, 0).slideUp(500, function(){
+              $(this).remove();
+            });
+          }, 4000);
     = yield
