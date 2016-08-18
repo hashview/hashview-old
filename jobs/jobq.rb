@@ -17,6 +17,8 @@ def update_db_status(id, status)
   done = true
   jobtasks.each do |jt|
     if jt.status == 'Queued' || jt.status == 'Running'
+      job.status_detail = status
+      job.save
       done = false
       break
     end
@@ -24,6 +26,7 @@ def update_db_status(id, status)
   # toggle job status
   if done == true
     job.status = 0
+    job.status_detail = "Completed"
     job.save
   end
 end
@@ -76,5 +79,6 @@ module Jobq
     puts '==== import complete ===='
 
     update_db_status(id, 'Completed')
+
   end
 end
