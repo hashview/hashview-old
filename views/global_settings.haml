@@ -2,7 +2,7 @@
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
         %h2 Global Settings
@@ -19,36 +19,12 @@
                     %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath"}
                   Note: Make sure the user running hashview has the ability to read the hashcat root folder
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Hashcat Global Options
-                .col-xs-10
-                  - if @settings and @settings.hcglobalopts
-                    %input{:type => "textbox", :class => "form-control", :name => "hcglobalopts", :id => "hcglobalopts", :value => @settings.hcglobalopts}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "hcglobalopts", :id => "hcglobalopts"}
-              .form-group
                 %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
                 .col-xs-10
                   - if @settings and @settings.maxtasktime
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
                   - else
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Max Job Runtime
-                .col-xs-10
-                  - if @settings and @settings.maxjobtime
-                    %input{:type => "textbox", :class => "form-control", :name => "maxjobtime", :id => "maxjobtime", :value => @settings.maxjobtime}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "maxjobtime", :id => "maxjobtime"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Client Mode
-                .col-xs-2
-                  %select.form-control{:name => "clientmode"}
-                    - if @settings and not @settings.clientmode
-                      %option{:value => 1, :name => "clientmode", :type => "button"} Enable
-                      %option{:value => 0, :name => "clientmode", :type => "button", :selected => "selected"} Disable
-                    - else
-                      %option{:value => 1, :name => "clientmode", :type => "button", :selected => "selected"} Enable
-                      %option{:value => 0, :name => "clientmode", :type => "button"} Disable
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Save
