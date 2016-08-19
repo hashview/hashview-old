@@ -554,6 +554,10 @@ get '/settings' do
 
   @settings = Settings.first
 
+  if @settings.maxtasktime.nil?
+    warning("Max task time must be defined in seconds (864000 is 10 days)")
+  end
+
   haml :global_settings
 end
 
@@ -566,6 +570,10 @@ post '/settings' do
 
   if @settings == nil
     # create settings for the first time
+    # set max task time if none is provided
+    if @setttings.maxtasktime.nil?
+      values["maxtasktime"] = "864000"
+    end
     @newsettings = Settings.create(values)
     @newsettings.save
   else
