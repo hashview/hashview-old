@@ -731,8 +731,36 @@ end
 ############################
 
 ##### Analysis #############
-get '/analysis' do
-  return 'Analysis page.'
+
+get '/analytics' do
+  jobid = params[:jobid]
+  @jobs = Jobs.all()
+
+  # get results of specific job if jobid is defined
+  if jobid
+    @jobs.each do |job|
+      if job.id == jobid.to_i
+        @cracked_results = Targets.all(:jobid => jobid)
+      end
+    end
+  else
+    @cracked_results = Targets.all()
+  end
+
+  # total passwords cracked
+  @cracked_pw_count = 0
+  @failed_pw_count = 0
+  if ! @cracked_results.nil?
+    @cracked_results.each do |crack|
+      if crack.cracked = true and crack.plaintext
+        @cracked_pw_count = @cracked_pw_count + 1
+      else
+        @failed_pw_count = @failed_pw_count + 1
+      end
+    end
+  end
+
+  haml :analytics
 end
 
 get '/search' do
@@ -755,9 +783,7 @@ post '/search_ajax' do
 
 end
 
-get '/statistics' do
-  return 'Statistics page.'
-end
+############################
 
 # Helper Functions
 
