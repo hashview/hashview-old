@@ -30,30 +30,30 @@
             - else
               .panel.panel-default
                 .panel-heading
-                  %b Total Passwords Cracked
+                  %b Total Hashes Cracked
                 .panel-body
                   %br
-                  %div{:id =>"chart"}
+                  %div{:id =>"chart1", :style => 'text-align:center'}
                   //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
                   :plain
                     <script src= '/js/d3.min.js'></script>
                     <script type= "text/javascript">
                       var data = [{"label":"Cracked", "value":"#{@cracked_pw_count}"},
                         {"label":"Failed", "value":"#{@failed_pw_count}"}];
-                      var w = 250;
-                      var h = 250;
+                      var w = 200;
+                      var h = 200;
                       var r = h/2;
-                      var iw = 60;
+                      var iw = 50;
 
                       //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
                       var color = d3.scaleOrdinal()
-                        .range(['#008C00','#FF2800']);  //'#FFBF00', '#0000FF', '#008C00']);
-                      var vis = d3.select('#chart').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                        .range(['#5cb85c','#d9534f']);  //'#FFBF00', '#0000FF', '#008C00']);
+                      var visual1 = d3.select('#chart1').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
                       var pie = d3.pie().value(function(d){return d.value;});
                       var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
-                      console.log("test")
-                      var arcs = vis.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
-                      console.log("test2")
+
+                      var arcs = visual1.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
+
 
                       arcs.append("svg:path")
                         .attr("fill", function(d, i){
@@ -70,9 +70,9 @@
                         d.outerRadius = r;
                         return "translate(" + arc.centroid(d) + ")";});
 
-                      var legend = d3.select("#chart").append("svg")
+                      var legend = d3.select("#chart1").append("svg")
                         .attr("class", "legend")
-                        .attr("width", r)
+                        .attr("width", r * 2)
                         .attr("height", r * 2)
                         .selectAll("g")
                         .data(color.domain().slice())
@@ -93,3 +93,151 @@
                         .style("font-size","px");
                     </script>
                   %br
+          .col-md-6
+            .panel.panel-default
+              .panel-heading
+                %b Analysis Details
+              .panel-body
+                .table
+                  %table{:class => 'table'}
+                    %tr
+                      - if @jobs.length == 1
+                        %td
+                          Job Name:
+                      %tr
+                        %td
+                          #{@jobs.name}
+          .col-md-12
+            .panel.panel-default
+              .panel-heading
+                %b Password Count by Length
+              .panel-body
+                %div{:id =>"chart2"}
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                  // set the dimensions and margins of the graph
+                  var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                      width = 600 - margin.left - margin.right,
+                      height = 350 - margin.top - margin.bottom;
+
+                  // set the ranges
+                  var x = d3.scaleBand()
+                            .range([0, width])
+                            .padding(0.1);
+                  var y = d3.scaleLinear()
+                            .range([height, 0]);
+
+                  // append the svg object to the body of the page
+                  // append a 'group' element to 'svg'
+                  // moves the 'group' element to the top left margin
+                  var visual2 = d3.select("#chart2").append("svg")
+                      .attr("width", width + margin.left + margin.right)
+                      .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                      .attr("transform",
+                            "translate(" + margin.left + "," + margin.top + ")");
+
+                  // get the data
+                  var url = '/analytics/graph1?jobid=#{@jobid}';
+                  d3.json(url, function(error, data) {
+                    if (error) throw error;
+                    console.log(data)
+
+                    // format the data
+                    data.forEach(function(d) {
+                      d.length = +d.length;
+                    });
+
+                    // Scale the range of the data in the domains
+                    x.domain(data.map(function(d) { return d.length; }));
+                    y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+                    // append the rectangles for the bar chart
+                    visual2.selectAll("#chart3")
+                        .data(data)
+                      .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function(d) { return x(d.length); })
+                        .attr("width", x.bandwidth())
+                        .attr("y", function(d) { return y(d.count); })
+                        .attr("height", function(d) { return height - y(d.count); })
+                        .attr("fill", "#337ab7");
+
+                    // add the x Axis
+                    visual2.append("g")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x));
+
+                    // add the y Axis
+                    visual2.append("g")
+                        .call(d3.axisLeft(y));
+                  });
+                  </script>
+          .col-md-12
+            .panel.panel-default
+              .panel-heading
+                %b Top 10 Passwords
+              .panel-body
+                %div{:id =>"chart3"}
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                  // set the dimensions and margins of the graph
+                  var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                      width = 900 - margin.left - margin.right,
+                      height = 350 - margin.top - margin.bottom;
+
+                  // set the ranges
+                  var x = d3.scaleBand()
+                            .range([0, width])
+                            .padding(0.1);
+                  var y = d3.scaleLinear()
+                            .range([height, 0]);
+
+                  // append the svg object to the body of the page
+                  // append a 'group' element to 'svg'
+                  // moves the 'group' element to the top left margin
+                  var visual3 = d3.select("#chart3").append("svg")
+                      .attr("width", width + margin.left + margin.right)
+                      .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                      .attr("transform",
+                            "translate(" + margin.left + "," + margin.top + ")");
+
+                  // get the data
+                  var url = '/analytics/graph2?jobid=#{@jobid}';
+                  d3.json(url, function(error, data) {
+                    if (error) throw error;
+                    console.log(data)
+
+                    // format the data
+                    data.forEach(function(d) {
+                      d.count = +d.count;
+                    });
+
+                    // Scale the range of the data in the domains
+                    x.domain(data.map(function(d) { return d.password; }));
+                    y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+                    // append the rectangles for the bar chart
+                    visual3.selectAll("#chart4")
+                        .data(data)
+                      .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function(d) { return x(d.password); })
+                        .attr("width", x.bandwidth())
+                        .attr("y", function(d) { return y(d.count); })
+                        .attr("height", function(d) { return height - y(d.count); })
+                        .attr("fill", "#337ab7");
+
+                    // add the x Axis
+                    visual3.append("g")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x));
+
+                    // add the y Axis
+                    visual3.append("g")
+                        .call(d3.axisLeft(y));
+                  });
+                  </script>

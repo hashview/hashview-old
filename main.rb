@@ -732,15 +732,16 @@ end
 
 ##### Analysis #############
 
+# displays analytics for a specific job or all jobs
 get '/analytics' do
-  jobid = params[:jobid]
+  @jobid = params[:jobid]
   @jobs = Jobs.all()
 
   # get results of specific job if jobid is defined
-  if jobid
+  if @jobid
     @jobs.each do |job|
-      if job.id == jobid.to_i
-        @cracked_results = Targets.all(:jobid => jobid)
+      if job.id == @jobid.to_i
+        @cracked_results = Targets.all(:jobid => @jobid)
       end
     end
   else
@@ -760,7 +761,81 @@ get '/analytics' do
     end
   end
 
+  @passwords = @cracked_results.to_json
+
   haml :analytics
+end
+
+# callback for d3 graph displaying passwords by length
+get '/analytics/graph1' do
+  @counts = []
+  @passwords = {}
+
+  if params[:jobid] and ! params[:jobid].empty?
+    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  else
+    @cracked_results = Targets.all(:cracked => true)
+  end
+
+  @cracked_results.each do |crack|
+    if ! crack.plaintext.nil?
+      unless crack.plaintext.length == 0
+        # get password count by length
+        len = crack.plaintext.length
+        if @passwords[len].nil?
+          @passwords[len] = 1
+        else
+          @passwords[len] = @passwords[len].to_i + 1
+        end
+      end
+    end
+  end
+
+  # convert to array of json objects for d3
+  @passwords.each do |key, value|
+    @counts << {:length => key, :count => value}
+  end
+
+  return @counts.to_json
+end
+
+# callback for d3 graph displaying top 10 passwords
+get '/analytics/graph2' do
+  plaintext = []
+  if params[:jobid] and ! params[:jobid].empty?
+    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  else
+    @cracked_results = Targets.all(:cracked => true)
+  end
+  @cracked_results.each do |crack|
+    if ! crack.plaintext.nil?
+      unless crack.plaintext.length == 0
+        plaintext << crack.plaintext
+      end
+    end
+  end
+
+  @toppasswords = []
+  @top10passwords = {}
+  # get top 10 passwords
+  plaintext.each do |pass|
+    if @top10passwords[pass].nil?
+      @top10passwords[pass] = 1
+    else
+      @top10passwords[pass] += 1
+    end
+  end
+
+  # sort and convert to array of json objects for d3
+  @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
+  # we only need top 10
+  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..10]]
+  # convert to array of json objects for d3
+  @top10passwords.each do |key, value|
+    @toppasswords << {:password => key, :count => value}
+  end
+
+  return @toppasswords.to_json
 end
 
 get '/search' do

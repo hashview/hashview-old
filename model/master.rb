@@ -96,6 +96,8 @@ class Jobs
   property :targetfile, String, :length => 2000
   property :targethash, String, :length => 2000
   property :hashtype, Integer
+  property :policy_min_pass_length, Integer
+  property :policy_complexity_default, Boolean
 end
 
 # Jobs will have multiple crack tasks
