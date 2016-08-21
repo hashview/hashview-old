@@ -1,0 +1,95 @@
+!!! 5
+%html
+  %body
+    %p
+    .span15
+      .row
+        .container
+          .col-md-2.pull-right
+            .btn-group
+              .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
+                Choose a Job
+                %span.caret
+              %ul.dropdown-menu
+                %li
+                  %a{:href => "/analytics"} All Jobs
+                %li.divider{:role => "separator"}
+                - @jobs.each do |job|
+                  %li
+                    %a{:href => "/analytics?jobid=#{job.id}"} #{job.name}
+          .col-md-10
+            .page-header
+              %h1
+                Password Analytics
+                .col-md-2.pull-right
+      .container
+        .row
+          .col-md-6
+            - if @cracked_results.nil?
+              No results for this job. Perhaps it was never started?
+            - else
+              .panel.panel-default
+                .panel-heading
+                  %b Total Passwords Cracked
+                .panel-body
+                  %br
+                  %div{:id =>"chart"}
+                  //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
+                  :plain
+                    <script src= '/js/d3.min.js'></script>
+                    <script type= "text/javascript">
+                      var data = [{"label":"Cracked", "value":"#{@cracked_pw_count}"},
+                        {"label":"Failed", "value":"#{@failed_pw_count}"}];
+                      var w = 250;
+                      var h = 250;
+                      var r = h/2;
+                      var iw = 60;
+
+                      //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
+                      var color = d3.scaleOrdinal()
+                        .range(['#008C00','#FF2800']);  //'#FFBF00', '#0000FF', '#008C00']);
+                      var vis = d3.select('#chart').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                      var pie = d3.pie().value(function(d){return d.value;});
+                      var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
+                      console.log("test")
+                      var arcs = vis.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
+                      console.log("test2")
+
+                      arcs.append("svg:path")
+                        .attr("fill", function(d, i){
+                          return color(i);
+                          })
+                        .attr("stroke", "white")
+                        .attr("stroke-width", 2.0)
+                        .attr("d", function (d) {
+                          console.log(arc(d));
+                          return arc(d);
+                        });
+                      arcs.append("svg:text").attr("transform", function(d){
+                        d.innerRadius = 0;
+                        d.outerRadius = r;
+                        return "translate(" + arc.centroid(d) + ")";});
+
+                      var legend = d3.select("#chart").append("svg")
+                        .attr("class", "legend")
+                        .attr("width", r)
+                        .attr("height", r * 2)
+                        .selectAll("g")
+                        .data(color.domain().slice())
+                        .enter().append("g")
+                        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+                      legend.append("rect")
+                        .attr("width", 18)
+                        .attr("height", 18)
+                        .style("fill", color);
+
+                      legend.append("text")
+                        .attr("x", 24)
+                        .attr("y", 9)
+                        .attr("dy", ".35em")
+                        .style("font-family","Calibri")
+                        .text(function( d,i ) {return data[i].label +": " + data[i].value })
+                        .style("font-size","px");
+                    </script>
+                  %br
