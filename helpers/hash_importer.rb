@@ -4,10 +4,10 @@ require './model/master'
 
 def detected_hash_format(hash)
   # Detect if pwdump file format
-  if hash =~ /^.*:\d+:.*:.*:.*:.*:$/
+  if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
     return 'pwdump'
-  # Detect if shadow_md5
-  elsif hash =~ /^\w+:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
+  # Detect if shadow
+  elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
@@ -75,7 +75,7 @@ def import_shadow(hash, job_id, type)
   target.username = data[0]
   target.originalhash = data[1]
   target.hashtype = type
-  target.jobid = jobid
+  target.jobid = job_id
   target.cracked = false
   target.save
 end
