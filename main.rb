@@ -368,8 +368,9 @@ post '/job/:id/upload/hashfile' do
   end
 
   # temporarily save file for testing
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{rand(36**12).to_s(36)}.txt"
-
+  hash = rand(36**8).to_s(36)
+  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+  
   # Parse uploaded file into an array
   hashArray = Array.new
   wholeFileAsStringObject = params[:file][:tempfile].read
@@ -382,15 +383,62 @@ post '/job/:id/upload/hashfile' do
   @job.targetfile = hashfile
   @job.save
 
+  redirect to("/job/#{@job.id}/upload/verify_filetype/#{hash}")
+end
+
+get '/job/:id/upload/verify_filetype/:hash' do
+  redirect to('/') if !valid_session?
+
+  @filetypes = detect_hashfile_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
+  @job = Jobs.first(:id => params[:id])
+  haml :verify_filetypes
+
+end
+
+post '/job/:id/upload/verify_filetype' do
+  redirect to('/') if !valid_session?
+
+  filetype = params[:filetype]
+  hash = params[:hash]
+
+  redirect to("/job/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
+end
+
+get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
+  redirect to('/') if !valid_session?
+
+  @hashtypes = detect_hash_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
+  @job = Jobs.first(:id => params[:id])
+  haml :verify_hashtypes
+
+end
+
+post '/job/:id/upload/verify_hashtype' do
+  redirect to('/') if !valid_session?
+
+  filetype = params[:filetype]
+  hash = params[:hash]
+  hashtype = params[:hashtype]
+
+  hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
+
+  hashArray = []
+  File.open(hashfile, 'r').each do | line |
+      hashArray << line
+  end
+
   # we do this to speed up the inserts for large hash imports
   # http://www.sqlite.org/faq.html#q19
   # for some reason this doesnt persist so it is placed here, closest to the commits/inserts
   adapter = DataMapper::repository(:default).adapter
   adapter.select("PRAGMA synchronous = OFF;")
 
-  if not import_hash(hashArray, params[:id], params[:comment], @job.hashtype)
+  if not import_hash(hashArray, params[:id], filetype, hashtype)
     return "Error importing hash"  # need to better handle errors
   end
+
+  # Delete file, no longer needed
+  File.delete(hashfile)
 
   redirect to('/job/list')
 end
