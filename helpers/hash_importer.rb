@@ -17,9 +17,6 @@ def detected_hash_format(hash)
 end
 
 def import_pwdump(hash, job_id, type)
-  p "HASH: " + hash
-  p "JOB_ID: " + job_id
-  p "TYEP: " + type
 
   data = hash.split(':')
   if machine_acct?(data[0])
@@ -83,16 +80,14 @@ def import_shadow(hash, job_id, type)
   target.save
 end
 
-
-def import_ntlm_only(hash, job_id, type)
-
-  target_ntlm = Targets.new
-  target_ntlm.username = 'NULL'
-  target_ntlm.originalhash = hash.downcase
-  target_ntlm.hashtype = type 
-  target_ntlm.jobid = job_id
-  target_ntlm.cracked = false
-  target_ntlm.save
+def import_raw(hash, job_id, type)
+  target_raw = Targets.new
+  target_raw.username = 'NULL'
+  target_raw.originalhash = hash.downcase
+  target_raw.hashtype = type
+  target_raw.jobid = job_id
+  target_raw.cracked = false
+  target_raw.save
 end
 
 def get_mode(hash)
@@ -155,14 +150,13 @@ def friendly_to_mode(friendly)
 end
 
 def import_hash(hashFile, job_id, filetype, hashtype)
-  p "IMPORT_HASH"
   hashFile.each do |entry|
     if filetype == 'pwdump'
       import_pwdump(entry, job_id, hashtype)
     elsif filetype == 'shadow'
       import_shadow(entry, job_id, hashtype)
-    elsif filetype == 'ntlm_only'
-      import_ntlm_only(entry, job_id, hashtype)
+    elsif filetype == 'raw'
+      import_raw(entry, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
@@ -177,10 +171,8 @@ def detect_hashfile_type(hashFile)
       @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
     elsif detected_hash_format(entry.chomp) == 'shadow'
       @filetypes.push('shadow') unless @filetypes.include?('shadow')
-    elsif detected_hash_format(entry) == 'ntlm_only'
-      @filetypes.push('ntlm_only') unless @filetypes.include?('ntlm_only')
     else
-      @filetypes.push('unknown') unless @filetypes.include?('unknown')
+      @filetypes.push('raw') unless @filetypes.include?('raw')
     end
   end
   return @filetypes
@@ -197,8 +189,6 @@ def detect_hash_type(hashFile, fileType)
     elsif fileType == 'shadow'
       elements = entry.split(':')
       @hashtypes.push(get_mode(elements[1])) unless @hashtypes.include?(get_mode(elements[1]))   
-    elsif fileType == 'ntlm_only'
-      @hashtypes.push(get_mode(entry)) unless @hashtypes.include?(get_mode(entry))
     else
       @hashtypes.push(get_mode(entry)) unless @hashtypes.include?(get_mode(entry))
     end
