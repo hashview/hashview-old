@@ -24,7 +24,8 @@
                   - if ! @settings.maxtasktime.nil?
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
                   - else
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "864000"} 864000
+                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"} 86400
+                  Note: Default value is 86400 seconds (24 hours)
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Save
