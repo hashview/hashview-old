@@ -75,11 +75,5 @@
                     .dropdown#dropdown
                     %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Hash Type
-                  .col-xs-4
-                    %select.form-control{:name => "hashtype"}
-                      - @hashtype.each do |type|
-                        %option{:value => "#{type[1]}", :name => "hashtype", :type => "button"} #{type[0]}
-                .form-group
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Create
