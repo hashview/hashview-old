@@ -2,10 +2,10 @@
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
-        %h2 Add a new wordlist 
+        %h2 Upload Wordlist
         %br
         .row
           .col-md-10
@@ -19,7 +19,6 @@
                 .col-xs-10
                   %input{:type => 'file', :name => 'file'}
               .form-group
-                .col-xs-10
+                .col-xs-offset-2.col-xs-10
                   %br
-                  %input{:type => 'submit', :value => 'Upload' }
-
+                  %button.btn.btn-primary{:type => "submit"} Upload

@@ -2,18 +2,25 @@
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       - if @result
         #{@result}
       .container
-        %h2 Wordlists
-        %br
-      .container
         .row
-          .col-sm-3
-            %a.btn.btn-primary{:href => "/wordlist/add"}
-              Add a New Wordlist
+          .col-md-12
+            .container
+              .row
+                .page-header
+                  %h1
+                    Wordlists
+                .row
+                  .col-md-10.pull-left
+                    Wordlists are used in dictionary attacks. Upload your custom wordlists here.
+                  .col-md-2.pull-right
+                    %a.btn.btn-primary.pull-right{:href => "/wordlist/add"}
+                      Upload Wordlist
+        %br
         %br
         .row
           .col-md-12
@@ -36,4 +43,3 @@
                         %td
                           %a.btn.btn-danger{:href => "/wordlist/delete/#{wordlist.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
-                          

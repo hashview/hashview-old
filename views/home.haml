@@ -1,8 +1,8 @@
-!!!
+!!! 5
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
         .row
@@ -10,7 +10,7 @@
             .table
               .panel.panel-primary
                 .panel-heading
-                  %h3.panel-title 
+                  %h3.panel-title
                     The following hashcat job/s are running:
                 - if @results.length > 1
                   .panel-body
@@ -24,11 +24,11 @@
                     - @jobs.each do |job|
                       - if job.status
                         %h3
-                          Hashes Cracked 
+                          Hashes Cracked
                           .badge #{@crackedtargets} / #{@alltargets}
                         %p
                         .progress
-                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%      
+                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
                 -else
                   .panel-body None
               %br
@@ -85,12 +85,15 @@
                   &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
                   %br
                 - else
-                  - if gpu.split.last.to_i < 65
+                  - if gpu.split.last.to_i == nil
                     .alert.alert-success{:role => "alert"} #{gpu}
-                  - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
-                    .alert.alert-warning{:role => "alert"} #{gpu}
-                  - if gpu.split.last.to_i > 79
-                    .alert.alert-danger{:role => "alert"} #{gpu}
+                  - else
+                    - if gpu.split.last.to_i < 65
+                      .alert.alert-success{:role => "alert"} #{gpu}
+                    - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
+                      .alert.alert-warning{:role => "alert"} #{gpu}
+                    - if gpu.split.last.to_i > 79
+                      .alert.alert-danger{:role => "alert"} #{gpu}
           .col-md-4
             .table
               %table{:class => 'table table-striped'}
@@ -99,9 +102,9 @@
                 %br
                 %tbody
                   -if @recentlycracked
-                    %td 
+                    %td
                       %strong Username
-                    %td 
+                    %td
                       %strong Password
                     - @recentlycracked.each do |cracked|
                       %tr

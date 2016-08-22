@@ -91,10 +91,13 @@ class Jobs
   property :last_updated_by, String, :length => 40
   property :updated_at, DateTime, :default => DateTime.now
   property :status, Boolean
+  property :status_detail, String, :length => 100
   property :targettype, String, :length => 2000
   property :targetfile, String, :length => 2000
   property :targethash, String, :length => 2000
   property :hashtype, Integer
+  property :policy_min_pass_length, Integer
+  property :policy_complexity_default, Boolean
 end
 
 # Jobs will have multiple crack tasks
@@ -153,13 +156,13 @@ end
 
  class Wordlists
    include DataMapper::Resource
- 
+
    property :id, Serial
    property :name, String, :length => 256
    property :path, String, :length => 2000
    property :size, Integer
- 
- end 
+
+ end
 
 DataMapper.finalize
 

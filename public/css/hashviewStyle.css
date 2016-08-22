@@ -7,3 +7,11 @@
   justify-content: center;
   flex-direction: row;
 }
+/* used for all messages that dissolve in layout template */
+.alertfade{
+}
+
+/* used for analytics d3 layouts */
+.bar {
+  fill: '#0000FF';
+}
