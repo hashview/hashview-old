@@ -55,7 +55,7 @@ def import_pwdump(hash, customer_id, job_id, type)
     target_ntlm.originalhash = data[3].downcase
     target_ntlm.hashtype = '1000' 
     target_ntlm.jobid = job_id
-    target_ntlm.jobid = customer_id
+    target_ntlm.customerid = customer_id
     target_ntlm.cracked = false
     target_ntlm.save
   end
@@ -71,7 +71,7 @@ def machine_acct?(username)
 end
 
 
-def import_shadow(hash, job_id, type)
+def import_shadow(hash, customer_id, job_id, type)
 
   data = hash.split(':')
   target = Targets.new
@@ -84,7 +84,7 @@ def import_shadow(hash, job_id, type)
   target.save
 end
 
-def import_raw(hash, job_id, type)
+def import_raw(hash, customer_id, job_id, type)
   target_raw = Targets.new
   target_raw.username = 'NULL'
   target_raw.originalhash = hash.downcase

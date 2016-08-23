@@ -195,12 +195,31 @@ end
 get '/customer/create' do
   redirect to('/') if !valid_session?
 
-  haml :customer_create
+  haml :customer_edit
 end
 
 post '/customer/create' do
 
   customer = Customers.new
+  customer.name = params[:name]
+  customer.description = params[:desc]
+  customer.save
+
+  redirect to ('customer/list')
+end
+
+get '/customer/edit/:id' do
+  redirect to('/') if !valid_session?
+
+  @customer = Customers.first(:id => params[:id])
+
+  haml :customer_edit 
+end
+
+post '/customer/edit/:id' do
+  redirect to('/') if !valid_session?
+
+  customer = Customers.first(:id => params[:id])
   customer.name = params[:name]
   customer.description = params[:desc]
   customer.save
@@ -214,11 +233,15 @@ get '/customer/delete/:id' do
   customer = Customers.first(:id => params[:id])
   customer.destroy
 
-  jobs = Jobs.all(customer_id => params[:id])
-  jobs.destroy
+  jobs = Jobs.all(:customer_id => params[:id])
+  if !jobs.empty?
+    jobs.destroy
+  end
 
-  targets = Targets.all(customerid => params[:id])
-  targets.destroy
+  targets = Targets.all(:customerid => params[:id])
+  if !targets.empty?
+    targets.destroy
+  end
 
   redirect to ('/customer/list')
 end
