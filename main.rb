@@ -282,9 +282,17 @@ end
 get '/job/list' do
   redirect to('/') if !valid_session?
 
+  @targets_cracked = Hash.new  
   @jobs = Jobs.all
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
+  @targets = Targets.all
+  
+  @jobs.each do |entry|
+    @targets_cracked[entry.id] = Targets.count(:jobid => [entry.id], :cracked => 1)
+  end
+
+  p "TARGETS CRACKED: " + @targets_cracked.to_s
 
   haml :job_list
 end
@@ -658,55 +666,6 @@ get '/download/cracked/:jobid' do
   end
   save_name = 'cracked_values_ ' + jobs.name.to_s.tr(' ', '_') + '.txt'
   send_file fileName, :filename => save_name, :type => 'Application/octet-stream'
-  redirect to('/job/list')
-end
-
-get '/download/stats/:jobid' do
-  redirect to('/') unless valid_session?
-
-  jobs = Jobs.first(:id => params[:jobid])
-
-  # This could be changed into a prepared statment
-  # This could also be put into a helper
-  crack_results = Targets.all(:jobid => params[:jobid], :cracked => true)
-  @password_frequency = Hash.new(0)
-  @password_length = Hash.new(0)
-  crack_results.each do |entry|
-   password = entry.plaintext.to_s
-   password.delete!("\n")
-   @password_frequency[password] += 1
-   @password_length[password.length] += 1
-  end
-
-  file_name = 'control/outfiles/stats' + params[:jobid].to_s + '.txt'
-
-  File.open(file_name, 'w') do |f|
-
-    # Top 10 passwords
-    f.puts 'Top 10 passwords'
-    f.puts '================'
-    @password_frequency_sorted = Hash[@password_frequency.sort_by {|k,v| v}.reverse[0..10]]
-    @password_frequency_sorted.each do |key, value|
-      f.puts value.to_s + ":" +  key.to_s
-    end
-
-    # Top Base words
-
-    # Top 10 password lengths
-    f.puts "\n\n\n"
-    f.puts 'Top 10 password lengths'
-    f.puts '======================='
-    f.puts 'Char length: Counts'
-    @password_length_sorted = Hash[@password_length.sort_by {|k,v| k.to_i}[0..10]]
-    @password_length_sorted.each do |key, value|
-      f.puts key.to_s + ":" + value.to_s
-    end
-
-    # Password reuse based off of hashes
-  end
-  save_name = 'cracked_stats_' + jobs.name.to_s.tr(' ', '_') + '.txt'
-  send_file file_name, :filename => save_name, :type => 'Application/octet-stream'
-
   redirect to('/job/list')
 end
 

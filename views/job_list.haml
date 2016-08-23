@@ -56,8 +56,8 @@
                             %a.btn.btn-success{:href => "/job/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}
                           %a.btn.btn-primary{:href => "/download/cracked/#{job.id}"}
-                            %i.glyphicon.glyphicon-download{:title => 'download cracked hashes'}
-                          %a.btn.btn-primary{:href => "/download/stats/#{job.id}"}
+                            %i.glyphicon.glyphicon-download{:title => "Total: #{@targets_cracked[job.id]}"}
+                          %a.btn.btn-primary{:href => "/analytics?jobid=#{job.id}"}
                             %i.glyphicon.glyphicon-stats{:title => 'display crack stats'}
                           %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
