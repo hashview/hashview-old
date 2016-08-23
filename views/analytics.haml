@@ -8,15 +8,15 @@
           .col-md-2.pull-right
             .btn-group
               .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
-                Choose a Job
+                Choose a Customer
                 %span.caret
               %ul.dropdown-menu
                 %li
-                  %a{:href => "/analytics"} All Jobs
+                  %a{:href => "/analytics"} All Customers
                 %li.divider{:role => "separator"}
-                - @jobs.each do |job|
+                - @customers.each do |customer|
                   %li
-                    %a{:href => "/analytics?jobid=#{job.id}"} #{job.name}
+                    %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
           .col-md-10
             .page-header
               %h1
@@ -101,12 +101,12 @@
                 .table
                   %table{:class => 'table'}
                     %tr
-                      - if @jobs.length == 1
+                      - if @customers.length == 1
                         %td
                           Job Name:
                       %tr
                         %td
-                          #{@jobs.name}
+                          #{@customers.name}
           .col-md-12
             .panel.panel-default
               .panel-heading
@@ -139,7 +139,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?jobid=#{@jobid}';
+                  var url = '/analytics/graph1?custid=#{@custid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -206,7 +206,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?jobid=#{@jobid}';
+                  var url = '/analytics/graph2?custid=#{@custid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)

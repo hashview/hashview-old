@@ -16,7 +16,7 @@ def detected_hash_format(hash)
   end
 end
 
-def import_pwdump(hash, job_id, type)
+def import_pwdump(hash, customer_id, job_id, type)
 
   data = hash.split(':')
   if machine_acct?(data[0])
@@ -33,6 +33,7 @@ def import_pwdump(hash, job_id, type)
     target_lm1.originalhash = lm_hashes[0].downcase
     target_lm1.hashtype = '3000'
     target_lm1.jobid = job_id
+    target_lm1.customerid = customer_id 
     target_lm1.cracked = false
     target_lm1.save
 
@@ -41,6 +42,7 @@ def import_pwdump(hash, job_id, type)
     target_lm2.originalhash = lm_hashes[1].downcase
     target_lm2.hashtype = '3000'
     target_lm2.jobid = job_id
+    target_lm2.customerid = customer_id
     target_lm2.cracked = false
     target_lm2.save
   end
@@ -53,6 +55,7 @@ def import_pwdump(hash, job_id, type)
     target_ntlm.originalhash = data[3].downcase
     target_ntlm.hashtype = '1000' 
     target_ntlm.jobid = job_id
+    target_ntlm.customerid = customer_id
     target_ntlm.cracked = false
     target_ntlm.save
   end
@@ -68,7 +71,7 @@ def machine_acct?(username)
 end
 
 
-def import_shadow(hash, job_id, type)
+def import_shadow(hash, customer_id, job_id, type)
 
   data = hash.split(':')
   target = Targets.new
@@ -76,16 +79,18 @@ def import_shadow(hash, job_id, type)
   target.originalhash = data[1]
   target.hashtype = type
   target.jobid = job_id
+  target.customerid = customer_id
   target.cracked = false
   target.save
 end
 
-def import_raw(hash, job_id, type)
+def import_raw(hash, customer_id, job_id, type)
   target_raw = Targets.new
   target_raw.username = 'NULL'
   target_raw.originalhash = hash.downcase
   target_raw.hashtype = type
   target_raw.jobid = job_id
+  target_raw.customerid = customer_id
   target_raw.cracked = false
   target_raw.save
 end
@@ -149,14 +154,14 @@ def friendly_to_mode(friendly)
   end
 end
 
-def import_hash(hashFile, job_id, filetype, hashtype)
+def import_hash(hashFile, customer_id, job_id, filetype, hashtype)
   hashFile.each do |entry|
     if filetype == 'pwdump'
-      import_pwdump(entry.chomp, job_id, hashtype)
+      import_pwdump(entry.chomp, customer_id, job_id, hashtype)
     elsif filetype == 'shadow'
-      import_shadow(entry.chomp, job_id, hashtype)
+      import_shadow(entry.chomp, customer_id, job_id, hashtype)
     elsif filetype == 'raw'
-      import_raw(entry.chomp, job_id, hashtype)
+      import_raw(entry.chomp, customer_id, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
