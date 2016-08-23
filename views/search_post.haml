@@ -24,14 +24,15 @@
               %table.table.table-striped
                 %tr
                   %th Hash
+                  %th Type
                   %th Plaintext
-                %tr 
-                  %td{:id => "hash_td"} "#{params[:hash]}"
-                  %td{:id => "plaintext_td"} "#{@output}"
-            %script{:type => "text/javascript"}
-              var hash_td_value = document.getElementById('hash_td').innerHTML
-              hash_td_value = hash_td_value.replace(/['"]+/g, '')
-              document.getElementById('hash_td').innerHTML = hash_td_value
-              var plaintext_td_value = document.getElementById('plaintext_td').innerHTML
-              plaintext_td_value = plaintext_td_value.split(",")
-              document.getElementById('plaintext_td').innerHTML = plaintext_td_value[2].replace(/['"]+/g, '').replace(/[\[\]']+/g,'')
+                %tr
+                - if @plaintexts
+                  - @plaintexts.each do |entry|
+                    %td #{entry.originalhash}
+                    %td #{mode_to_friendly(entry.hashtype.to_s)}
+                    %td #{entry.plaintext}
+                    %tr
+                - else
+                  %td "none found" 
+                  %tr
