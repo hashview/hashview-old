@@ -1,0 +1,48 @@
+!!!
+%html
+  %body
+    %p
+    .span15
+      %br
+      .container
+        .row
+          .col-md-12
+            .container
+              .row
+                .col-md-12
+                  .page-header
+                    %h1
+                      Purge
+                .row
+                  .col-md-10.pull-left
+                    The following entries contain cracked and uncracked passwords in the master database. You can choose to remove entries for a specific job, or all jobs entirely. This action is non-recoverable. 
+        %br
+        %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Job ID 
+                    %th
+                      %b Cracked/Total
+                    %th
+                      %b Control
+                %tbody
+                  - if @jobs
+                    - @jobs.each do |entry|
+                      %tr
+                        %td #{entry}
+                        %td #{@job_cracked[entry]} / #{@job_total[entry]}
+                        %td
+                          %a.btn.btn-danger{:href => "/purge/#{entry.to_s}"}
+                            %i.glyphicon.glyphicon-trash{:title => 'Purge'}
+                  %tr
+                    %td * 
+                    %td #{@all_cracked} / #{@all_total}
+                    %td 
+                      %a.btn.btn-danger{:href => "/purge/all", :type => "submit"} Purge all Data
+           

@@ -158,7 +158,6 @@ get '/home' do
 
   @jobs.each do | j |
     if j.status
-      p 'Job ID: ' + j.id.to_s
       @alltargets = Targets.all(:jobid => j.id)
       @crackedtargets = Targets.all(:jobid => j.id, :cracked => 1)
       @alltargets = @alltargets.count
@@ -170,26 +169,12 @@ get '/home' do
       @progress = 0
     end
   end
+
   p 'ALL TARGETS: ' + @alltargets.to_s
   p 'CRACKED TARGETS: ' + @crackedtargets.to_s
   p 'PROGRESS: ' + @progress.to_s
-  # simple (and temporary) statistics
-  #@jobs.each do |j|
-  #  if j.status
-  #    # this nonsense will be replaced in the future with sql reads of the targets table
-  #    @crackedtargets = 0
-  #    Dir["control/outfiles/hc_cracked_#{j.id}_*"].each do |f|
-  #      if File.file?(f)
-  #        cracked = `wc -l #{f} | awk '{print $1}' | tr -d '\n'`
-  #      else
-  #        cracked = '0'
-  #      end
-  #      @crackedtargets += cracked.to_i
-  #    end
-  #    @alltargets = `wc -l control/hashes/hashfile_upload_jobid-"#{j.id}"* | awk '{print $1}' | tr -d '\n'`
-  #    @progress = @crackedtargets.to_f / @alltargets.to_f * 100
-  #  end
-  #end
+
+
 
   haml :home
 end
@@ -796,6 +781,51 @@ post '/wordlist/upload/' do
 
   redirect to('/wordlist/list')
 end
+
+############################
+
+##### Purge Data ###########
+
+get '/purge' do
+  redirect to('/') if !valid_session?
+
+  @job_cracked = Hash.new
+  @job_total = Hash.new
+  @jobs = []
+  @all_cracked = 0
+  @all_total = 0
+  @target_job_ids = Targets.all(:fields => [:jobid], :unique => true) 
+  @target_job_ids.each do | entry |
+    @jobs.push(entry.jobid)
+  end
+
+  @jobs.each do | entry |
+    @job_cracked[entry] = Targets.count(:jobid => [entry], :cracked => 1)
+    @all_cracked = @all_cracked + @job_cracked[entry]
+    #p "ALL CRACKED: " + @all_cracked.to_s
+    @job_total[entry] = Targets.count(:jobid => [entry])
+    @all_total = @all_total + @job_total[entry]
+    #p "ALL TOTAL: " + @all_total.to_s
+  end
+    
+  haml :purge
+
+end
+
+get '/purge/:id' do
+  redirect to('/') if !valid_session?
+
+  if params[:id] == 'all'
+    @targets = Targets.all()
+    @targets.destroy
+  else
+    @targets = Targets.all(:jobid => params[:id])
+    @targets.destroy
+  end
+
+  redirect to('/purge')
+end
+
 
 ############################
 

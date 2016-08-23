@@ -29,3 +29,13 @@
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Save
+
+        %h2 Global Actions
+        %br
+        .row
+          .col-md-10
+            %form{:class => "form-horizontal", :action => "/purge", :method => "GET"}
+              .form-group
+                .col-xs-offset-2.col-xs-10
+                  %button.btn.btn-danger{:type => "submit"} Purge Data
+
