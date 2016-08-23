@@ -282,9 +282,17 @@ end
 get '/job/list' do
   redirect to('/') if !valid_session?
 
+  @targets_cracked = Hash.new  
   @jobs = Jobs.all
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
+  @targets = Targets.all
+  
+  @jobs.each do |entry|
+    @targets_cracked[entry.id] = Targets.count(:jobid => [entry.id], :cracked => 1)
+  end
+
+  p "TARGETS CRACKED: " + @targets_cracked.to_s
 
   haml :job_list
 end
