@@ -2,12 +2,12 @@ require 'rubygems'
 require 'sinatra'
 require './model/master'
 
-def detected_hash(hash)
+def detected_hash_format(hash)
   # Detect if pwdump file format
-  if hash =~ /^.*:\d+:.*:.*:.*:.*:$/
+  if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
     return 'pwdump'
-  # Detect if shadow_md5
-  elsif hash =~ /^\w+:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
+  # Detect if shadow
+  elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
@@ -16,7 +16,7 @@ def detected_hash(hash)
   end
 end
 
-def import_pwdump(hash, job_id, description, type)
+def import_pwdump(hash, job_id, type)
 
   data = hash.split(':')
   if machine_acct?(data[0])
@@ -24,38 +24,35 @@ def import_pwdump(hash, job_id, description, type)
   end
 
   # if hashtype is lm
-  if type == 3000
+  if type == '3000'
     # import LM
     lm_hashes = data[2].scan(/.{16}/)
 
     target_lm1 = Targets.new
     target_lm1.username = data[0]
     target_lm1.originalhash = lm_hashes[0].downcase
-    target_lm1.hashtype = get_mode(lm_hashes[0])
+    target_lm1.hashtype = '3000'
     target_lm1.jobid = job_id
-    target_lm1.description = description
     target_lm1.cracked = false
     target_lm1.save
 
     target_lm2 = Targets.new
     target_lm2.username = data[0]
     target_lm2.originalhash = lm_hashes[1].downcase
-    target_lm2.hashtype = get_mode(lm_hashes[1])
+    target_lm2.hashtype = '3000'
     target_lm2.jobid = job_id
-    target_lm2.description = description
     target_lm2.cracked = false
     target_lm2.save
   end
   
   # if hashtype is ntlm
-  if type == 1000
+  if type == '1000'
     # import NTLM
     target_ntlm = Targets.new
     target_ntlm.username = data[0]
     target_ntlm.originalhash = data[3].downcase
-    target_ntlm.hashtype = get_mode(data[3])
+    target_ntlm.hashtype = '1000' 
     target_ntlm.jobid = job_id
-    target_ntlm.description = description
     target_ntlm.cracked = false
     target_ntlm.save
   end
@@ -71,29 +68,26 @@ def machine_acct?(username)
 end
 
 
-def import_shadow(hash, job_id, description)
+def import_shadow(hash, job_id, type)
 
   data = hash.split(':')
   target = Targets.new
   target.username = data[0]
   target.originalhash = data[1]
-  target.hashtype = get_mode(data[1])
-  target.jobid = jobid
+  target.hashtype = type
+  target.jobid = job_id
   target.cracked = false
   target.save
 end
 
-
-def import_ntlm_only(hash, job_id, description)
-
-  target_ntlm = Targets.new
-  target_ntlm.username = 'NULL'
-  target_ntlm.originalhash = hash.downcase
-  target_ntlm.hashtype = get_mode(hash)
-  target_ntlm.jobid = job_id
-  target_ntlm.description = description
-  target_ntlm.cracked = false
-  target_ntlm.save
+def import_raw(hash, job_id, type)
+  target_raw = Targets.new
+  target_raw.username = 'NULL'
+  target_raw.originalhash = hash.downcase
+  target_raw.hashtype = type
+  target_raw.jobid = job_id
+  target_raw.cracked = false
+  target_raw.save
 end
 
 def get_mode(hash)
@@ -117,17 +111,87 @@ def get_mode(hash)
   end
 end
 
-def import_hash(hashFile, job_id, description, hashtype)
-  hashFile.each do |entry|
+def mode_to_friendly(mode)
+  if mode == '1000'
+    return 'NTLM'
+  elsif mode == '3000'
+    return 'LM'
+  elsif mode == '500'
+    return 'md5crypt'
+  elsif mode == '3200'
+    return 'bcrypt'
+  elsif mode == '7400'
+    return 'sha256crypt'
+  elsif mode == '1800'
+    return 'sha512crypt'
+  elsif mode == '1500'
+    return 'descrypt'
+  else
+    return 'unknown'
+  end
+end
 
-    if detected_hash(entry.chomp) == 'pwdump'
-      import_pwdump(entry, job_id, description, hashtype)
-    elsif detected_hash(entry.chomp) == 'shadow'
-      import_shadow(entry, job_id, description)
-    elsif detected_hash(entry) == 'ntlm_only'
-      import_ntlm_only(entry, job_id, description)
+def friendly_to_mode(friendly)
+  if friendly == 'NTLM'
+    return '1000'
+  elsif friendly == 'LM'
+    return '500'
+  elsif friendly == 'md5crypt'
+    return '3200'
+  elsif friendly == 'bcrypt'
+    return '7400'
+  elsif friendly == 'sha256crypt'
+    return '1800'
+  elsif friendly == 'descrypt'
+    return '1500'
+  else 
+    return '99999'
+  end
+end
+
+def import_hash(hashFile, job_id, filetype, hashtype)
+  hashFile.each do |entry|
+    if filetype == 'pwdump'
+      import_pwdump(entry.chomp, job_id, hashtype)
+    elsif filetype == 'shadow'
+      import_shadow(entry.chomp, job_id, hashtype)
+    elsif filetype == 'raw'
+      import_raw(entry.chomp, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
   end
+end
+
+def detect_hashfile_type(hashFile)
+
+  @filetypes = []
+  File.readlines(hashFile).each do | entry |
+    if detected_hash_format(entry.chomp) == 'pwdump'
+      @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
+    elsif detected_hash_format(entry.chomp) == 'shadow'
+      @filetypes.push('shadow') unless @filetypes.include?('shadow')
+    else
+      @filetypes.push('raw') unless @filetypes.include?('raw')
+    end
+  end
+  return @filetypes
+end
+
+def detect_hash_type(hashFile, fileType)
+
+  @hashtypes = []
+  File.readlines(hashFile).each do | entry |
+    if fileType == 'pwdump'
+      elements = entry.split(':')
+      @hashtypes.push(get_mode(elements[2])) unless @hashtypes.include?(get_mode(elements[2])) # LM
+      @hashtypes.push(get_mode(elements[3])) unless @hashtypes.include?(get_mode(elements[3])) # NTLM
+    elsif fileType == 'shadow'
+      elements = entry.split(':')
+      @hashtypes.push(get_mode(elements[1])) unless @hashtypes.include?(get_mode(elements[1]))   
+    else
+      @hashtypes.push(get_mode(entry)) unless @hashtypes.include?(get_mode(entry))
+    end
+  end
+  return @hashtypes
 end

@@ -131,18 +131,17 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentcracked = []
-  @cracked = Targets.all(unique: true, :limit => 10, :cracked => 1, :order => [:id.desc])
-  @cracked.each do | entry |
-    p entry.plaintext
-    @recentcracked.push(entry.plaintext)
-  end
+  @recentlycracked = Targets.all(:limit => 10, :cracked => 1, :order => [:updated_at.desc])
+
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
   # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
+  if @gpustatus.empty?
+    @gpustatus = `lspci | grep "VGA compatible controller" | cut -d: -f3 | sed 's/\(rev a1\)//g'`
+  end
   @gpustatus = @gpustatus.split("\n")
   @gpustat = []
   @gpustatus.each do |line|
@@ -157,23 +156,25 @@ get '/home' do
   dict_dir = '/mnt/temp/Dictionaries'
   @dict_available = File.directory?(dict_dir)
 
-  # simple (and temporary) statistics
-  @jobs.each do |j|
+  @jobs.each do | j |
     if j.status
-      # this nonsense will be replaced in the future with sql reads of the targets table
+      @alltargets = Targets.all(:jobid => j.id)
+      @crackedtargets = Targets.all(:jobid => j.id, :cracked => 1)
+      @alltargets = @alltargets.count
+      @crackedtargets = @crackedtargets.count 
+      @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
+    else
+      @alltargets = 0
       @crackedtargets = 0
-      Dir["control/outfiles/hc_cracked_#{j.id}_*"].each do |f|
-        if File.file?(f)
-          cracked = `wc -l #{f} | awk '{print $1}' | tr -d '\n'`
-        else
-          cracked = '0'
-        end
-        @crackedtargets += cracked.to_i
-      end
-      @alltargets = `wc -l control/hashes/hashfile_upload_jobid-"#{j.id}"* | awk '{print $1}' | tr -d '\n'`
-      @progress = @crackedtargets.to_f / @alltargets.to_f * 100
+      @progress = 0
     end
   end
+
+  p 'ALL TARGETS: ' + @alltargets.to_s
+  p 'CRACKED TARGETS: ' + @crackedtargets.to_s
+  p 'PROGRESS: ' + @progress.to_s
+
+
 
   haml :home
 end
@@ -223,6 +224,11 @@ get '/task/create' do
     return 'You must define hashcat\'s binary path in global settings first.'
   end
 
+  tasks = Tasks.all()
+  if tasks.empty?
+    warning("You need to have tasks before starting a job")
+  end
+
   @rules = []
   # list wordlists that can be used
   Dir.foreach('control/rules/') do |item|
@@ -231,12 +237,6 @@ get '/task/create' do
   end
 
   @wordlists = Wordlists.all()
-
-  #@wordlists = []
-  #Dir.foreach('control/wordlists/') do |item|
-  #  next if item == '.' or item == '..'
-  #    @wordlists << item
-  #end
 
   haml :task_create
 end
@@ -306,6 +306,9 @@ get '/job/create' do
   redirect to('/') if !valid_session?
 
   @tasks = Tasks.all
+  if @tasks.empty?
+    redirect to('/task/create')
+  end
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -322,6 +325,10 @@ end
 
 post '/job/create' do
   redirect to('/') if !valid_session?
+
+  if !params[:tasks]
+    return "you must assign tasks to your job"
+  end
 
   # create new job
   job = Jobs.new
@@ -355,8 +362,9 @@ post '/job/:id/upload/hashfile' do
   end
 
   # temporarily save file for testing
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{rand(36**12).to_s(36)}.txt"
-
+  hash = rand(36**8).to_s(36)
+  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+  
   # Parse uploaded file into an array
   hashArray = Array.new
   wholeFileAsStringObject = params[:file][:tempfile].read
@@ -369,15 +377,62 @@ post '/job/:id/upload/hashfile' do
   @job.targetfile = hashfile
   @job.save
 
+  redirect to("/job/#{@job.id}/upload/verify_filetype/#{hash}")
+end
+
+get '/job/:id/upload/verify_filetype/:hash' do
+  redirect to('/') if !valid_session?
+
+  @filetypes = detect_hashfile_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
+  @job = Jobs.first(:id => params[:id])
+  haml :verify_filetypes
+
+end
+
+post '/job/:id/upload/verify_filetype' do
+  redirect to('/') if !valid_session?
+
+  filetype = params[:filetype]
+  hash = params[:hash]
+
+  redirect to("/job/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
+end
+
+get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
+  redirect to('/') if !valid_session?
+
+  @hashtypes = detect_hash_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
+  @job = Jobs.first(:id => params[:id])
+  haml :verify_hashtypes
+
+end
+
+post '/job/:id/upload/verify_hashtype' do
+  redirect to('/') if !valid_session?
+
+  filetype = params[:filetype]
+  hash = params[:hash]
+  hashtype = params[:hashtype]
+
+  hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
+
+  hashArray = []
+  File.open(hashfile, 'r').each do | line |
+      hashArray << line
+  end
+
   # we do this to speed up the inserts for large hash imports
   # http://www.sqlite.org/faq.html#q19
   # for some reason this doesnt persist so it is placed here, closest to the commits/inserts
   adapter = DataMapper::repository(:default).adapter
   adapter.select("PRAGMA synchronous = OFF;")
 
-  if not import_hash(hashArray, params[:id], params[:comment], @job.hashtype)
+  if not import_hash(hashArray, params[:id], filetype, hashtype)
     return "Error importing hash"  # need to better handle errors
   end
+
+  # Delete file, no longer needed
+  File.delete(hashfile)
 
   redirect to('/job/list')
 end
@@ -458,6 +513,7 @@ get '/job/start/:id' do
       @job.save
       cmd = build_crack_cmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      p 'ENQUE CMD: ' + cmd
       Resque.enqueue(Jobq, jt.id, cmd)
     end
   end
@@ -466,7 +522,7 @@ get '/job/start/:id' do
     return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
   end
 
-  redirect to('/job/list')
+  redirect to('/home')
 end
 
 get '/job/queue' do
@@ -506,8 +562,11 @@ get '/job/stop/:id' do
     if not jt.status == 'Completed'
       jt.status = 'Canceled'
       jt.save
-      cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      Resque::Job.destroy('hashcat', 'Jobq', jt.id, cmd)
+      #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      cmd = build_crack_cmd(@job.id, task.id)
+      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+      puts 'STOP CMD: ' + cmd
+      Resque::Job.destroy('hashcat', Jobq, jt.id, cmd)
     end
   end
 
@@ -549,6 +608,10 @@ get '/settings' do
 
   @settings = Settings.first
 
+  if @settings.maxtasktime.nil?
+    warning("Max task time must be defined in seconds (864000 is 10 days)")
+  end
+
   haml :global_settings
 end
 
@@ -561,6 +624,10 @@ post '/settings' do
 
   if @settings == nil
     # create settings for the first time
+    # set max task time if none is provided
+    if @setttings.maxtasktime.nil?
+      values["maxtasktime"] = "864000"
+    end
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -611,7 +678,7 @@ get '/download/stats/:jobid' do
    @password_length[password.length] += 1
   end
 
-  file_name = 'control/outfiles/stats' + params[:jobid].to_s + '.txt' 
+  file_name = 'control/outfiles/stats' + params[:jobid].to_s + '.txt'
 
   File.open(file_name, 'w') do |f|
 
@@ -668,6 +735,12 @@ get '/wordlist/delete/:id' do
   if not @wordlist
     return "no such wordlist exists"
   else
+    # check if wordlist is in use
+    tasks = Tasks.all(:wl_id => @wordlist.id)
+    if tasks
+      return "This word list is associated with a task, it cannot be deleted"
+    end
+
     # remove from filesystem
     File.delete(@wordlist.path)
 
@@ -711,9 +784,163 @@ end
 
 ############################
 
+##### Purge Data ###########
+
+get '/purge' do
+  redirect to('/') if !valid_session?
+
+  @job_cracked = Hash.new
+  @job_total = Hash.new
+  @job_id_name = Hash.new
+  @target_jobids = []
+  @all_cracked = 0
+  @all_total = 0
+  @targets = Targets.all(:fields => [:jobid], :unique => true) 
+  @targets.each do | entry |
+    @target_jobids.push(entry.jobid)
+  end
+
+  @jobs = Jobs.all()
+  @jobs.each do | entry |
+    @job_id_name[entry.id] = entry.name
+  end
+
+  @target_jobids.each do | entry |
+    @job_cracked[entry] = Targets.count(:jobid => [entry], :cracked => 1)
+    @all_cracked = @all_cracked + @job_cracked[entry]
+    #p "ALL CRACKED: " + @all_cracked.to_s
+    @job_total[entry] = Targets.count(:jobid => [entry])
+    @all_total = @all_total + @job_total[entry]
+    #p "ALL TOTAL: " + @all_total.to_s
+  end
+    
+  haml :purge
+
+end
+
+get '/purge/:id' do
+  redirect to('/') if !valid_session?
+
+  if params[:id] == 'all'
+    @targets = Targets.all()
+    @targets.destroy
+  else
+    @targets = Targets.all(:jobid => params[:id])
+    @targets.destroy
+  end
+
+  redirect to('/purge')
+end
+
+
+############################
+
 ##### Analysis #############
-get '/analysis' do
-  return 'Analysis page.'
+
+# displays analytics for a specific job or all jobs
+get '/analytics' do
+  @jobid = params[:jobid]
+  @jobs = Jobs.all()
+
+  # get results of specific job if jobid is defined
+  if @jobid
+    @jobs.each do |job|
+      if job.id == @jobid.to_i
+        @cracked_results = Targets.all(:jobid => @jobid)
+      end
+    end
+  else
+    @cracked_results = Targets.all()
+  end
+
+  # total passwords cracked
+  @cracked_pw_count = 0
+  @failed_pw_count = 0
+  if ! @cracked_results.nil?
+    @cracked_results.each do |crack|
+      if crack.cracked = true and crack.plaintext
+        @cracked_pw_count = @cracked_pw_count + 1
+      else
+        @failed_pw_count = @failed_pw_count + 1
+      end
+    end
+  end
+
+  @passwords = @cracked_results.to_json
+
+  haml :analytics
+end
+
+# callback for d3 graph displaying passwords by length
+get '/analytics/graph1' do
+  @counts = []
+  @passwords = {}
+
+  if params[:jobid] and ! params[:jobid].empty?
+    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  else
+    @cracked_results = Targets.all(:cracked => true)
+  end
+
+  @cracked_results.each do |crack|
+    if ! crack.plaintext.nil?
+      unless crack.plaintext.length == 0
+        # get password count by length
+        len = crack.plaintext.length
+        if @passwords[len].nil?
+          @passwords[len] = 1
+        else
+          @passwords[len] = @passwords[len].to_i + 1
+        end
+      end
+    end
+  end
+
+  # convert to array of json objects for d3
+  @passwords.each do |key, value|
+    @counts << {:length => key, :count => value}
+  end
+
+  return @counts.to_json
+end
+
+# callback for d3 graph displaying top 10 passwords
+get '/analytics/graph2' do
+  plaintext = []
+  if params[:jobid] and ! params[:jobid].empty?
+    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  else
+    @cracked_results = Targets.all(:cracked => true)
+  end
+  @cracked_results.each do |crack|
+    if ! crack.plaintext.nil?
+      unless crack.plaintext.length == 0
+        plaintext << crack.plaintext
+      end
+    end
+  end
+
+  @toppasswords = []
+  @top10passwords = {}
+  # get top 10 passwords
+  plaintext.each do |pass|
+    if @top10passwords[pass].nil?
+      @top10passwords[pass] = 1
+    else
+      @top10passwords[pass] += 1
+    end
+  end
+
+  # sort and convert to array of json objects for d3
+  @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
+  # we only need top 10
+  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..10]]
+  # convert to array of json objects for d3
+  @top10passwords.each do |key, value|
+    @toppasswords << {:password => key, :count => value}
+  end
+
+  return @toppasswords.to_json
 end
 
 get '/search' do
@@ -725,20 +952,18 @@ post '/search' do
     key = params[:hash]
     @output = redis.hscan(key, 0)
     haml :search_post
-     
+
 end
 
 post '/search_ajax' do
-    
+
     key = params[:hash]
     output = redis.hscan(key, 0)
     return output.to_json
-    
+
 end
 
-get '/statistics' do
-  return 'Statistics page.'
-end
+############################
 
 # Helper Functions
 
@@ -777,13 +1002,19 @@ def build_crack_cmd(jobid, taskid)
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
+  # we assign and write output file before hashcat.
+  # if hashcat creates its own output it does so with
+  # elvated permissions and we wont be able to read it
+  crack_file = "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt"
+  File.open(crack_file, "w")
+
   if attackmode == "3"
-    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --runtime=" + maxtasktime + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + " -a " + attackmode + " " + target_file
+    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --runtime=" + maxtasktime + " --outfile-format 3 " + " --outfile " + crack_file + " " + " -a " + attackmode + " " + target_file
   elsif attackmode == "0"
     if @task.hc_rule == "none"
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " + target_file + " " + wordlist.path
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + crack_file + " " + target_file + " " + wordlist.path
     else
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt " +  " -r " + "control/rules/" + @task.hc_rule + " " + target_file + " " + wordlist.path
+      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + crack_file + " " +  " -r " + "control/rules/" + @task.hc_rule + " " + target_file + " " + wordlist.path
     end
   end
   p cmd
@@ -807,6 +1038,16 @@ def assign_tasks_to_job(tasks, job_id)
 end
 
 helpers do
+
+  def warning(txt)
+    if @warnings != nil
+      @warnings << txt
+    else
+      @warnings = []
+      @warnings << txt
+    end
+    return @warnings
+  end
 
   def login?
     if session[:username].nil?

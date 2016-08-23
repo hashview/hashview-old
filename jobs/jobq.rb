@@ -17,6 +17,8 @@ def update_db_status(id, status)
   done = true
   jobtasks.each do |jt|
     if jt.status == 'Queued' || jt.status == 'Running'
+      job.status_detail = status
+      job.save
       done = false
       break
     end
@@ -24,6 +26,7 @@ def update_db_status(id, status)
   # toggle job status
   if done == true
     job.status = 0
+    job.status_detail = "Completed"
     job.save
   end
 end
@@ -36,7 +39,7 @@ module Jobq
     jobtasks = Jobtasks.first(:id => id)
 
     puts "===== creating hashFile ======="
-    targets = Targets.all(:jobid => jobtasks.job_id, :cracked => 'f')
+    targets = Targets.all(:jobid => jobtasks.job_id, :cracked => false)
     hashFile = "control/hashes/hashfile_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
     File.open(hashFile, 'w') do |f|
       targets.each do | entry |
@@ -46,7 +49,7 @@ module Jobq
     end
 
     puts "===== HashFile Created ======"
-    
+
     puts '===== starting job ======='
     update_db_status(id, 'Running')
     puts id
@@ -55,21 +58,29 @@ module Jobq
     puts 'job completed'
 
     # this assumes a job completed successfully. we need to add check for failures or killed processes
-    puts 'Importing completed hashes'
+    puts '==== Importing cracked hashes ====='
     jobtasks = Jobtasks.first(:id => id)
     crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
 
-
-    adapter = DataMapper::repository(:default).adapter
-    adapter.select("PRAGMA synchronous = OFF;")
     File.open(crack_file).each do |line|
       hash_pass = line.split(/:/)
-      records = Targets.all(:originalhash => hash_pass[0], :cracked => 0)
-      records.update(:plaintext => hash_pass[1].delete("\n"))
-      records.update(:cracked => true)
+      plaintext = hash_pass[1]
+      plaintext = plaintext.chomp
+      #adapter = DataMapper::repository(:default).adapter
+      #adapter.select("PRAGMA synchronous = OFF;")
+      # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
+      records = Targets.all(:originalhash => hash_pass[0])
+      # Yes its slow... we know.
+      records.each do | entry |
+        entry.cracked = 1
+        entry.plaintext = plaintext
+      end
       records.save
     end
 
+    puts '==== import complete ===='
+
     update_db_status(id, 'Completed')
+
   end
 end
