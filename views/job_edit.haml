@@ -66,6 +66,13 @@
             - else
               %form{:class => "form-horizontal", :action => "/job/create", :method => "post"}
                 .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer
+                  .col-xs-10
+                    %select.form-control{:name => "customer"}
+                      - @customers.each do |customer|
+                        %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+
+                .form-group
                   %label.control-label.col-xs-2{:for => ""} Job Name
                   .col-xs-10
                     %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}

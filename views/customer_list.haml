@@ -1,0 +1,52 @@
+!!!
+%html
+  %body
+    %p
+    .span15
+      %br
+      .container
+        .row
+          .col-md-12
+            .container
+              .row
+                .col-md-12
+                  .page-header
+                    %h1
+                      Customers 
+                .row
+                  .col-md-10.pull-left
+                    The following are a list of customers currently configured in Hashview. All Jobs, passwords and hashes will be assigned to a single customer. Deleting a customer will remove ALL data from the system.
+                %br
+                .row  
+                  .col-md-2.pull-left
+                    %a.btn.btn-primary.pull-left{:href => "/customer/create"}
+                      Add a new Customer
+        %br
+        %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Name
+                    %th
+                      %b Description
+                    %th
+                      %b Total Jobs
+                    %th
+                      %b Control
+                %tbody
+                  - if @customers
+                    - @customers.each do |customer|
+                      %tr
+                        %td #{customer.name}
+                        %td #{customer.description}
+                        %td TO DO
+                        %td
+                          %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
+                            %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                          %a.btn.btn-danger{:href => "/customer/delete/#{customer.id}"}
+                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}

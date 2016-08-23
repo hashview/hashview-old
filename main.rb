@@ -123,7 +123,10 @@ get '/' do
   end
 end
 
-# dashboard
+############################
+
+##### Home controllers #####
+
 get '/home' do
   redirect to('/') if !valid_session?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)" | grep -v sudo`
@@ -170,12 +173,6 @@ get '/home' do
     end
   end
 
-  p 'ALL TARGETS: ' + @alltargets.to_s
-  p 'CRACKED TARGETS: ' + @crackedtargets.to_s
-  p 'PROGRESS: ' + @progress.to_s
-
-
-
   haml :home
 end
 
@@ -183,6 +180,41 @@ get '/register' do
   haml :register
 end
 
+############################
+
+### customer controllers ###
+
+get '/customer/list' do
+  redirect to('/') if !valid_session?
+
+  @customers = Customers.all
+
+  haml :customer_list
+end
+
+get '/customer/create' do
+  redirect to('/') if !valid_session?
+
+  haml :customer_create
+end
+
+post '/customer/create' do
+
+  customer = Customers.new
+  customer.name = params[:name]
+  customer.description = params[:desc]
+  customer.save
+
+  redirect to ('customer/list')
+end
+
+get '/customer/delete/:id' do
+  redirect to('/') if !valid_session?
+
+  redirect to ('/customer/list')
+end
+
+############################
 
 ##### task controllers #####
 
@@ -283,16 +315,23 @@ get '/job/list' do
   redirect to('/') if !valid_session?
 
   @targets_cracked = Hash.new  
+  @customer_names = Hash.new
+
   @jobs = Jobs.all
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
-  @targets = Targets.all
+  # @targets = Targets.all
+  # @customers = Customers.all
   
   @jobs.each do |entry|
     @targets_cracked[entry.id] = Targets.count(:jobid => [entry.id], :cracked => 1)
   end
-
-  p "TARGETS CRACKED: " + @targets_cracked.to_s
+ 
+  @jobs.each do |entry|
+    @customers = Customers.first(:id => [entry.customer_id])
+    p "CUSTOMERS: " + @customers.to_s
+    @customer_names[entry.customer_id] = @customers.name
+  end
 
   haml :job_list
 end
@@ -302,7 +341,7 @@ get '/job/delete/:id' do
 
   @job = Jobs.first(:id => params[:id])
   if !@job
-    return 'No such task exists.'
+    return 'No such job exists.'
   else
     @job.destroy
   end
@@ -312,6 +351,11 @@ end
 
 get '/job/create' do
   redirect to('/') if !valid_session?
+
+  @customers = Customers.all
+  if @customers.empty?
+    redirect to('/customer/create')
+  end
 
   @tasks = Tasks.all
   if @tasks.empty?
@@ -325,8 +369,6 @@ get '/job/create' do
     taskhashforjs[task.id] = task.name
   end
   @taskhashforjs = taskhashforjs.to_json
-  @hashtype = Hash.new
-  @hashtype = { 'ntlm' => 1000, 'lm' => 3000 }
 
   haml :job_edit
 end
@@ -341,8 +383,8 @@ post '/job/create' do
   # create new job
   job = Jobs.new
   job.name = params[:name]
-  job.hashtype = params[:hashtype]
   job.last_updated_by = get_username
+  job.customer_id = params[:customer]
   job.save
 
   # assign tasks to the job
@@ -429,13 +471,16 @@ post '/job/:id/upload/verify_hashtype' do
       hashArray << line
   end
 
+  @job = Jobs.first(:id => params[:id])
+  customer_id = @job.customer_id
+
   # we do this to speed up the inserts for large hash imports
   # http://www.sqlite.org/faq.html#q19
   # for some reason this doesnt persist so it is placed here, closest to the commits/inserts
   adapter = DataMapper::repository(:default).adapter
   adapter.select("PRAGMA synchronous = OFF;")
 
-  if not import_hash(hashArray, params[:id], filetype, hashtype)
+  if not import_hash(hashArray, customer_id, params[:id], filetype, hashtype)
     return "Error importing hash"  # need to better handle errors
   end
 

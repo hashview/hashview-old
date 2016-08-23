@@ -31,6 +31,8 @@
                 %thead
                   %tr
                     %th
+                      %b Customer
+                    %th
                       %b Name
                     %th
                       %b Status
@@ -42,6 +44,7 @@
                   - if @jobs
                     - @jobs.each do |job|
                       %tr
+                        %td #{@customer_names[job.customer_id]}
                         %td #{job.name}
                         - if job.status
                           %td Running
