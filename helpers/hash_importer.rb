@@ -152,11 +152,11 @@ end
 def import_hash(hashFile, job_id, filetype, hashtype)
   hashFile.each do |entry|
     if filetype == 'pwdump'
-      import_pwdump(entry, job_id, hashtype)
+      import_pwdump(entry.chomp, job_id, hashtype)
     elsif filetype == 'shadow'
-      import_shadow(entry, job_id, hashtype)
+      import_shadow(entry.chomp, job_id, hashtype)
     elsif filetype == 'raw'
-      import_raw(entry, job_id, hashtype)
+      import_raw(entry.chomp, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
