@@ -211,6 +211,15 @@ end
 get '/customer/delete/:id' do
   redirect to('/') if !valid_session?
 
+  customer = Customers.first(:id => params[:id])
+  customer.destroy
+
+  jobs = Jobs.all(customer_id => params[:id])
+  jobs.destroy
+
+  targets = Targets.all(customerid => params[:id])
+  targets.destroy
+
   redirect to ('/customer/list')
 end
 
@@ -843,19 +852,30 @@ end
 
 # displays analytics for a specific job or all jobs
 get '/analytics' do
-  @jobid = params[:jobid]
-  @jobs = Jobs.all()
+
+  @custid = params[:custid]
+  @customers = Customers.all()
 
   # get results of specific job if jobid is defined
-  if @jobid
-    @jobs.each do |job|
-      if job.id == @jobid.to_i
-        @cracked_results = Targets.all(:jobid => @jobid)
-      end
-    end
+  if @custid
+    @cracked_results = Targets.all(:customerid => params[:custid])  
   else
     @cracked_results = Targets.all()
   end
+
+#  @jobid = params[:jobid]
+#  @jobs = Jobs.all()
+
+#  # get results of specific job if jobid is defined
+#  if @jobid
+#    @jobs.each do |job|
+#      if job.id == @jobid.to_i
+#        @cracked_results = Targets.all(:jobid => @jobid)
+#      end
+#    end
+#  else
+#    @cracked_results = Targets.all()
+#  end
 
   # total passwords cracked
   @cracked_pw_count = 0
@@ -880,8 +900,8 @@ get '/analytics/graph1' do
   @counts = []
   @passwords = {}
 
-  if params[:jobid] and ! params[:jobid].empty?
-    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  if params[:custid]  and ! params[:custid].empty?
+    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
   else
     @cracked_results = Targets.all(:cracked => true)
   end
@@ -911,8 +931,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
   plaintext = []
-  if params[:jobid] and ! params[:jobid].empty?
-    @cracked_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  if params[:custid] and ! params[:custid].empty?
+    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
   else
     @cracked_results = Targets.all(:cracked => true)
   end
