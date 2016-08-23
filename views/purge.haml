@@ -32,10 +32,14 @@
                     %th
                       %b Control
                 %tbody
-                  - if @jobs
-                    - @jobs.each do |entry|
+                  - if @target_jobids
+                    - @target_jobids.each do |entry|
                       %tr
-                        %td #{entry}
+                        %td 
+                          - if @job_id_name[entry]
+                            #{@job_id_name[entry]}
+                          - else
+                            Deleted Job: #{entry}
                         %td #{@job_cracked[entry]} / #{@job_total[entry]}
                         %td
                           %a.btn.btn-danger{:href => "/purge/#{entry.to_s}"}

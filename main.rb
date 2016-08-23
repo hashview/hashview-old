@@ -791,15 +791,21 @@ get '/purge' do
 
   @job_cracked = Hash.new
   @job_total = Hash.new
-  @jobs = []
+  @job_id_name = Hash.new
+  @target_jobids = []
   @all_cracked = 0
   @all_total = 0
-  @target_job_ids = Targets.all(:fields => [:jobid], :unique => true) 
-  @target_job_ids.each do | entry |
-    @jobs.push(entry.jobid)
+  @targets = Targets.all(:fields => [:jobid], :unique => true) 
+  @targets.each do | entry |
+    @target_jobids.push(entry.jobid)
   end
 
+  @jobs = Jobs.all()
   @jobs.each do | entry |
+    @job_id_name[entry.id] = entry.name
+  end
+
+  @target_jobids.each do | entry |
     @job_cracked[entry] = Targets.count(:jobid => [entry], :cracked => 1)
     @all_cracked = @all_cracked + @job_cracked[entry]
     #p "ALL CRACKED: " + @all_cracked.to_s
