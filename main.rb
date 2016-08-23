@@ -902,23 +902,20 @@ get '/analytics/graph2' do
   return @toppasswords.to_json
 end
 
+############################
+
+##### search ###############
+
 get '/search' do
-   haml :search
+  redirect to('/') if !valid_session?
+  haml :search
 end
 
 post '/search' do
-
-    key = params[:hash]
-    @output = redis.hscan(key, 0)
-    haml :search_post
-
-end
-
-post '/search_ajax' do
-
-    key = params[:hash]
-    output = redis.hscan(key, 0)
-    return output.to_json
+  redirect to('/') if !valid_session?
+ 
+  @plaintexts = Targets.all(:originalhash => params[:hash])   
+  haml :search_post
 
 end
 
