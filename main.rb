@@ -929,6 +929,9 @@ get '/analytics/graph1' do
     end
   end
 
+  # Sort on key
+  @passwords = @passwords.sort.to_h
+
   # convert to array of json objects for d3
   @passwords.each do |key, value|
     @counts << {:length => key, :count => value}
