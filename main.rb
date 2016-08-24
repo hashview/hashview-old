@@ -982,7 +982,11 @@ get '/analytics/graph1' do
   @passwords = {}
 
   if params[:custid]  and ! params[:custid].empty?
-    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    end
   else
     @cracked_results = Targets.all(:cracked => true)
   end
@@ -1016,7 +1020,11 @@ end
 get '/analytics/graph2' do
   plaintext = []
   if params[:custid] and ! params[:custid].empty?
-    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    end
   else
     @cracked_results = Targets.all(:cracked => true)
   end

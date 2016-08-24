@@ -159,7 +159,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}';
+                  var url = '/analytics/graph1?custid=#{@custid}&jobid=#{@jobid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -226,7 +226,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}';
+                  var url = '/analytics/graph2?custid=#{@custid}&jobid=#{@jobid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
