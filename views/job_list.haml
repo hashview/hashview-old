@@ -17,10 +17,12 @@
                       Jobs
                 .row
                   .col-md-10.pull-left
-                    Jobs contain a series of hashcat commands called tasks. Jobs also have an associated target list of hashes to crack.
-                  .col-md-2.pull-right
+                    Jobs contain a series tasks. Each task is an individual hashcat command.  Jobs also have an associated target list of hashes to crack.
+                .row
+                  %br
+                  .col-md-2.pull-left
                     %a.btn.btn-primary.pull-right{:href => "/job/create"}
-                      Start a New Job
+                      Creat a New Job
         %br
         %br
       .container
