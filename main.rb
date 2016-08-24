@@ -886,20 +886,6 @@ get '/analytics' do
     @cracked_results = Targets.all()
   end
 
-#  @jobid = params[:jobid]
-#  @jobs = Jobs.all()
-
-#  # get results of specific job if jobid is defined
-#  if @jobid
-#    @jobs.each do |job|
-#      if job.id == @jobid.to_i
-#        @cracked_results = Targets.all(:jobid => @jobid)
-#      end
-#    end
-#  else
-#    @cracked_results = Targets.all()
-#  end
-
   # total passwords cracked
   @cracked_pw_count = 0
   @failed_pw_count = 0
