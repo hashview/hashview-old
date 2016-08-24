@@ -873,32 +873,42 @@ end
 
 ##### Analysis #############
 
-# displays analytics for a specific job or all jobs
+# displays analytics for a specific client, job
 get '/analytics' do
 
   @custid = params[:custid]
-  @customers = Customers.all()
+  @jobid = params[:jobid]
+  @button_select_customers = Customers.all
 
-  # get results of specific job if jobid is defined
-  if @custid
-    @cracked_results = Targets.all(:customerid => params[:custid])  
+  if params[:custid] and ! params[:custid].empty?
+    @button_select_jobs = Jobs.all(:customer_id => params[:custid])
+  end
+
+  if params[:custid] and ! params[:custid].empty?
+    @customers = Customers.first(:id => params[:custid])
+  else
+    @customers = Customers.all
+  end
+
+  if params[:custid] and ! params[:custid].empty?
+    if params[:jobid] and ! params[:jobid].empty?
+      @jobs = Jobs.first(:id => params[:jobid])
+    else
+      @jobs = Jobs.all
+    end
+  end
+
+  # get results of specific customer if custid is defined
+  if params[:custid] and ! params[:custid].empty?
+    # if we have a job
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid])  
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid])
+    end
   else
     @cracked_results = Targets.all()
   end
-
-#  @jobid = params[:jobid]
-#  @jobs = Jobs.all()
-
-#  # get results of specific job if jobid is defined
-#  if @jobid
-#    @jobs.each do |job|
-#      if job.id == @jobid.to_i
-#        @cracked_results = Targets.all(:jobid => @jobid)
-#      end
-#    end
-#  else
-#    @cracked_results = Targets.all()
-#  end
 
   # total passwords cracked
   @cracked_pw_count = 0
@@ -915,6 +925,54 @@ get '/analytics' do
 
   @passwords = @cracked_results.to_json
 
+  # Analysis Details
+  # Total Accounts
+  if params[:custid] and ! params[:custid].empty?
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
+    else
+      @total_accounts = Targets.count(:customerid => params[:custid])
+    end
+  else
+    @total_accounts = Targets.count
+  end
+
+  # Unique Usernames
+  @total_unique_users_count = Set.new
+
+  if params[:custid] and ! params[:custid].empty?
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid], :jobid => params[:jobid])
+    else
+      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
+    end
+  else
+    @total_users = Targets.all(:fields => [:username])
+  end 
+
+  @total_users.each do | entry |
+    @total_unique_users_count.add(entry.username)    
+  end
+
+  # Unique Passwords
+  @total_unique_originalhash_count = Set.new
+
+  if params[:custid] and ! params[:custid].empty?
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid], :jobid => params[:jobid])
+    else  
+      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid])
+    end
+  else
+    @total_originalhash = Targets.all(:fields => [:originalhash])
+  end
+
+  @total_originalhash.each do | entry |
+    @total_unique_originalhash_count.add(entry.originalhash)
+  end
+
+  # Total Crack Time
+
   haml :analytics
 end
 
@@ -924,7 +982,11 @@ get '/analytics/graph1' do
   @passwords = {}
 
   if params[:custid]  and ! params[:custid].empty?
-    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    end
   else
     @cracked_results = Targets.all(:cracked => true)
   end
@@ -943,6 +1005,9 @@ get '/analytics/graph1' do
     end
   end
 
+  # Sort on key
+  @passwords = @passwords.sort.to_h
+
   # convert to array of json objects for d3
   @passwords.each do |key, value|
     @counts << {:length => key, :count => value}
@@ -955,7 +1020,11 @@ end
 get '/analytics/graph2' do
   plaintext = []
   if params[:custid] and ! params[:custid].empty?
-    @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+    end
   else
     @cracked_results = Targets.all(:cracked => true)
   end
@@ -981,7 +1050,7 @@ get '/analytics/graph2' do
   # sort and convert to array of json objects for d3
   @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..10]]
+  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
     @toppasswords << {:password => key, :count => value}

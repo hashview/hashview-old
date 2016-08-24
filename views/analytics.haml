@@ -8,19 +8,40 @@
           .col-md-2.pull-right
             .btn-group
               .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
-                Choose a Customer
+                - if @custid.nil?
+                  All Customers
+                - else
+                  #{@customers.name}
                 %span.caret
               %ul.dropdown-menu
                 %li
                   %a{:href => "/analytics"} All Customers
                 %li.divider{:role => "separator"}
-                - @customers.each do |customer|
+                - @button_select_customers.each do |customer|
                   %li
                     %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
+            - if @custid
+              .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
+                - if @jobid.nil?
+                  All Jobs
+                - else
+                  #{@jobs.name}
+                %span.caret
+              %ul.dropdown-menu
+                %li
+                  %a{:href => "/analytics?custid=#{@custid}"} All Jobs
+                %li.divider{:role => "separator"}
+                - @button_select_jobs.each do |job|
+                  %li
+                    %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}             
           .col-md-10
             .page-header
               %h1
-                Password Analytics
+                Password Analysis: 
+                - if @custid.nil?
+                  All Customers
+                - else
+                  #{@customers.name}
                 .col-md-2.pull-right
       .container
         .row
@@ -101,12 +122,18 @@
                 .table
                   %table{:class => 'table'}
                     %tr
-                      - if @customers.length == 1
-                        %td
-                          Job Name:
-                      %tr
-                        %td
-                          #{@customers.name}
+                      - if @jobid.nil?
+                        %td 
+                          %b Job: All Jobs
+                      -else
+                        %td 
+                          %b Job: #{@jobs.name}
+                    %tr
+                      %td Total Accounts: #{@total_accounts}
+                    %tr
+                      %td Total Unique Users: #{@total_unique_users_count.size}
+                    %tr
+                      %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
           .col-md-12
             .panel.panel-default
               .panel-heading
@@ -139,7 +166,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}';
+                  var url = '/analytics/graph1?custid=#{@custid}&jobid=#{@jobid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -185,7 +212,7 @@
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = 900 - margin.left - margin.right,
+                      width = 600 - margin.left - margin.right,
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -206,7 +233,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}';
+                  var url = '/analytics/graph2?custid=#{@custid}&jobid=#{@jobid}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
