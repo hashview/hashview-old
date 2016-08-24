@@ -66,8 +66,8 @@ module Jobq
       hash_pass = line.split(/:/)
       plaintext = hash_pass[1]
       plaintext = plaintext.chomp
-      #adapter = DataMapper::repository(:default).adapter
-      #adapter.select("PRAGMA synchronous = OFF;")
+      adapter = DataMapper::repository(:default).adapter
+      adapter.select("PRAGMA synchronous = OFF;")
       # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
       records = Targets.all(:originalhash => hash_pass[0])
       # Yes its slow... we know.

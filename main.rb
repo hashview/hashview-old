@@ -1067,7 +1067,7 @@ end
 
 # Check if kraken has a job running
 def is_krakenbusy?
-  @results = `ps awwux | grep Hashcat | egrep -v "(grep|^$)" | grep -v sudo`
+  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|^$)" | grep -v sudo`
   return true if @results.length > 1
 end
 

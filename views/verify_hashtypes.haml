@@ -11,7 +11,7 @@
           .col-md-10
             %form{:class => "form-horizontal", :action => "/job/#{@job.id}/upload/verify_hashtype", :method => "post"}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Detected Hash Type: 
+                %label.control-label.col-xs-2{:for => ""} Detected Hash Type(s): 
                 .col-xs-4
                   %select.form-control{:name => "hashtype"}
                     - @hashtypes.each do |type|
