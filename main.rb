@@ -164,7 +164,7 @@ get '/home' do
       @alltargets = Targets.all(:jobid => j.id)
       @crackedtargets = Targets.all(:jobid => j.id, :cracked => 1)
       @alltargets = @alltargets.count
-      @crackedtargets = @crackedtargets.count 
+      @crackedtargets = @crackedtargets.count
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
     else
       @alltargets = 0
@@ -213,7 +213,7 @@ get '/customer/edit/:id' do
 
   @customer = Customers.first(:id => params[:id])
 
-  haml :customer_edit 
+  haml :customer_edit
 end
 
 post '/customer/edit/:id' do
@@ -346,7 +346,7 @@ end
 get '/job/list' do
   redirect to('/') if !valid_session?
 
-  @targets_cracked = Hash.new  
+  @targets_cracked = Hash.new
   @customer_names = Hash.new
 
   @jobs = Jobs.all
@@ -354,11 +354,11 @@ get '/job/list' do
   @jobtasks = Jobtasks.all
   # @targets = Targets.all
   # @customers = Customers.all
-  
+
   @jobs.each do |entry|
     @targets_cracked[entry.id] = Targets.count(:jobid => [entry.id], :cracked => 1)
   end
- 
+
   @jobs.each do |entry|
     @customers = Customers.first(:id => [entry.customer_id])
     p "CUSTOMERS: " + @customers.to_s
@@ -446,7 +446,7 @@ post '/job/:id/upload/hashfile' do
   # temporarily save file for testing
   hash = rand(36**8).to_s(36)
   hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
-  
+
   # Parse uploaded file into an array
   hashArray = Array.new
   wholeFileAsStringObject = params[:file][:tempfile].read
@@ -693,7 +693,7 @@ get '/settings' do
 
   @settings = Settings.first
 
-  if @settings.maxtasktime.nil?
+  if @settings and @settings.maxtasktime.nil?
     warning("Max task time must be defined in seconds (864000 is 10 days)")
   end
 
@@ -710,7 +710,7 @@ post '/settings' do
   if @settings == nil
     # create settings for the first time
     # set max task time if none is provided
-    if @setttings.maxtasktime.nil?
+    if @settings and @setttings.maxtasktime.nil?
       values["maxtasktime"] = "864000"
     end
     @newsettings = Settings.create(values)
@@ -831,7 +831,7 @@ get '/purge' do
   @target_jobids = []
   @all_cracked = 0
   @all_total = 0
-  @targets = Targets.all(:fields => [:jobid], :unique => true) 
+  @targets = Targets.all(:fields => [:jobid], :unique => true)
   @targets.each do | entry |
     @target_jobids.push(entry.jobid)
   end
@@ -849,7 +849,7 @@ get '/purge' do
     @all_total = @all_total + @job_total[entry]
     #p "ALL TOTAL: " + @all_total.to_s
   end
-    
+
   haml :purge
 
 end
@@ -881,7 +881,7 @@ get '/analytics' do
 
   # get results of specific job if jobid is defined
   if @custid
-    @cracked_results = Targets.all(:customerid => params[:custid])  
+    @cracked_results = Targets.all(:customerid => params[:custid])
   else
     @cracked_results = Targets.all()
   end
@@ -1001,8 +1001,8 @@ end
 
 post '/search' do
   redirect to('/') if !valid_session?
- 
-  @plaintexts = Targets.all(:originalhash => params[:hash])   
+
+  @plaintexts = Targets.all(:originalhash => params[:hash])
   haml :search_post
 
 end
