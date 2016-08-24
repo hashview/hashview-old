@@ -122,6 +122,13 @@
                 .table
                   %table{:class => 'table'}
                     %tr
+                      - if @jobid.nil?
+                        %td 
+                          %b Job: All Jobs
+                      -else
+                        %td 
+                          %b Job: #{@jobs.name}
+                    %tr
                       %td Total Accounts: #{@total_accounts}
                     %tr
                       %td Total Unique Users: #{@total_unique_users_count.size}
