@@ -20,7 +20,11 @@
           .col-md-10
             .page-header
               %h1
-                Password Analytics
+                Password Analyticis: 
+                - if @custid.nil?
+                  All
+                - else
+                  All
                 .col-md-2.pull-right
       .container
         .row
@@ -101,6 +105,11 @@
                 .table
                   %table{:class => 'table'}
                     %tr
+                      %td Total Accounts: #{@total_accounts}
+                    %tr
+                      %td Total Unique Users: #{@total_unique_users_count.size}
+                    %tr
+                      %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
                       - if @customers.length == 1
                         %td
                           Job Name:

@@ -877,10 +877,16 @@ end
 get '/analytics' do
 
   @custid = params[:custid]
-  @customers = Customers.all()
+  
+  if params[:custid] and ! params[:custid].empty?
+    @customers = Customers.first(:id => params[:custid])
+    p @customers.name
+  else
+    @customers = Customers.all()
+  end
 
   # get results of specific job if jobid is defined
-  if @custid
+  if params[:custid] and ! params[:custid].empty?
     @cracked_results = Targets.all(:customerid => params[:custid])  
   else
     @cracked_results = Targets.all()
@@ -900,6 +906,44 @@ get '/analytics' do
   end
 
   @passwords = @cracked_results.to_json
+
+  # Analysis Details
+  # Total Accounts
+  if params[:custid] and ! params[:custid].empty?
+    @total_accounts = Targets.count(:customerid => params[:custid])
+  else
+    @total_accounts = Targets.count
+  end
+
+  # Unique Usernames
+  @total_unique_users_count = Set.new
+
+  if params[:custid] and ! params[:custid].empty?
+    @total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
+  else
+    @total_users = Targets.all(:fields => [:username])
+  end 
+
+  @total_users.each do | entry |
+    @total_unique_users_count.add(entry.username)    
+  end
+
+  # Unique Passwords
+  @total_unique_originalhash_count = Set.new
+
+  if params[:custid] and ! params[:custid].empty?
+    @total_originalhash = Targets.all(:fields => [:originalhash], :unique => true, :customerid => params[:custid])
+  else
+    @total_originalhash = Targets.all(:fields => [:originalhash])
+  end
+
+  @total_originalhash.each do | entry |
+    @total_unique_originalhash_count.add(entry.originalhash)
+  end
+
+  p "TOTAL UNIQUE ORIGINALHASH COUNT: " + @total_unique_originalhash_count.size.to_s
+
+  # Total Crack Time
 
   haml :analytics
 end
@@ -970,7 +1014,7 @@ get '/analytics/graph2' do
   # sort and convert to array of json objects for d3
   @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..10]]
+  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
     @toppasswords << {:password => key, :count => value}
