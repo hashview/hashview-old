@@ -96,28 +96,36 @@ def import_raw(hash, customer_id, job_id, type)
 end
 
 def get_mode(hash)
-  # matches ntlm
+  @modes = []
   if hash =~ /^\w{32}$/
-    return '1000'	# NTLM
-  elsif hash =~ /^\w{16}$/
-    return '3000'	# LM
+    @modes.push('0')	# MD5
+    @modes.push('1000')	# NTLM
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
-    return '500' 	# md5crypt
-  elsif hash =~ /^\$2a\$\d?\$.{53}$/
-    return '3200'	# bcrypt, Blowfish(OpenBSD)
-  elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
-    return '7400'	# sha256crypt, SHA256(Unix)
+    @modes.push('500') 	# md5crypt
+  elsif hash =~ /^[0-9A-Za-z]{16}$/
+    @modes.push('3000') # LM
+  elsif hash =~ /\$\d+\$.{53}$/
+    @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
+  elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
+    @modes.push('7400')	# sha256crypt, SHA256(Unix)
   elsif hash =~ %r{^\$6\$[\.\/0-9A-Za-z]{4,9}\$[\.\/0-9A-Za-z]{86}$}
-    return '1800'	# sha512crypt, SHA512(Unix)
+    @modes.push('1800')	# sha512crypt, SHA512(Unix)
   elsif hash =~ %r{^[\.\/0-9A-Za-z]{13}$}
-    return '1500'	# descrypt, DES(Unix), Traditional DES
+    @modes.push('1500')	# descrypt, DES(Unix), Traditional DES
+  elsif hash =~ /^[^\\\/:*?"<>|]{1,20}[:]{2,3}[^\\\/:*?"<>|]{1,20}?:[a-f0-9]{48}:[a-f0-9]{48}:[a-f0-9]{16}$/
+    @modes.push('5500')	# NetNTLMv1-VANILLA / NetNTLMv1+ESS
+  elsif hash =~ /^[^\\\/:*?"<>|]{1,20}\\?[^\\\/:*?"<>|]{1,20}[:]{2,3}[^\\\/:*?"<>|]{1,20}:?[^\\\/:*?"<>|]{1,20}:[a-f0-9]{32}:[a-f0-9]+$/
+    @modes.push('5600')	# NetNTLMv2
   else
-    return '99999'	# Plain text
+    @modes.push('99999')	# Plain text
   end
+  return @modes
 end
 
 def mode_to_friendly(mode)
-  if mode == '1000'
+  if mode == '0'
+    return 'MD5'
+  elsif mode == '1000'
     return 'NTLM'
   elsif mode == '3000'
     return 'LM'
@@ -131,24 +139,36 @@ def mode_to_friendly(mode)
     return 'sha512crypt'
   elsif mode == '1500'
     return 'descrypt'
+  elsif mode == '5500'
+    return 'NetNTLMv1'
+  elsif mode == '5600'
+    return 'NetNTLMv2'
   else
     return 'unknown'
   end
 end
 
 def friendly_to_mode(friendly)
-  if friendly == 'NTLM'
+  if friendly == 'MD5'
+    return '0'
+  elsif friendly == 'NTLM'
     return '1000'
   elsif friendly == 'LM'
-    return '500'
+    return '3000'
   elsif friendly == 'md5crypt'
-    return '3200'
+    return '500'
   elsif friendly == 'bcrypt'
+    return '3200'
+  elsif friendly == 'sha512crypt'
     return '7400'
   elsif friendly == 'sha256crypt'
     return '1800'
   elsif friendly == 'descrypt'
     return '1500'
+  elsif friendly == 'NetNTLMv1'
+    return '5500'
+  elsif friendly == 'NetNTLMv2'
+    return '5600'
   else 
     return '99999'
   end
@@ -189,13 +209,25 @@ def detect_hash_type(hashFile, fileType)
   File.readlines(hashFile).each do | entry |
     if fileType == 'pwdump'
       elements = entry.split(':')
-      @hashtypes.push(get_mode(elements[2])) unless @hashtypes.include?(get_mode(elements[2])) # LM
-      @hashtypes.push(get_mode(elements[3])) unless @hashtypes.include?(get_mode(elements[3])) # NTLM
+      @modes = get_mode(elements[2])
+      @modes.each do | mode |
+        @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
+      end
+      @modes = get_mode(elements[3])
+      @modes.each do | mode |
+        @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
+      end
     elsif fileType == 'shadow'
       elements = entry.split(':')
-      @hashtypes.push(get_mode(elements[1])) unless @hashtypes.include?(get_mode(elements[1]))   
+      @modes = get_mode(elements[1])
+      @modes.each do | mode |
+        @hashtypes.push(mode) unless @hashtypes.include?(mode)
+      end   
     else
-      @hashtypes.push(get_mode(entry)) unless @hashtypes.include?(get_mode(entry))
+      @modes = get_mode(entry)
+      @modes.each do | mode |
+        @hashtypes.push(mode) unless @hashtypes.include?(mode)
+      end
     end
   end
   return @hashtypes
