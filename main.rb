@@ -873,21 +873,39 @@ end
 
 ##### Analysis #############
 
-# displays analytics for a specific job or all jobs
+# displays analytics for a specific client, job
 get '/analytics' do
 
   @custid = params[:custid]
-  
+  @jobid = params[:jobid]
+  @button_select_customers = Customers.all
+
   if params[:custid] and ! params[:custid].empty?
-    @customers = Customers.first(:id => params[:custid])
-    p @customers.name
-  else
-    @customers = Customers.all()
+    @button_select_jobs = Jobs.all(:customer_id => params[:custid])
   end
 
-  # get results of specific job if jobid is defined
   if params[:custid] and ! params[:custid].empty?
-    @cracked_results = Targets.all(:customerid => params[:custid])  
+    @customers = Customers.first(:id => params[:custid])
+  else
+    @customers = Customers.all
+  end
+
+  if params[:custid] and ! params[:custid].empty?
+    if params[:jobid] and ! params[:jobid].empty?
+      @jobs = Jobs.first(:id => params[:jobid])
+    else
+      @jobs = Jobs.all
+    end
+  end
+
+  # get results of specific customer if custid is defined
+  if params[:custid] and ! params[:custid].empty?
+    # if we have a job
+    if params[:jobid] and ! params[:jobid].empty?
+      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid])  
+    else
+      @cracked_results = Targets.all(:customerid => params[:custid])
+    end
   else
     @cracked_results = Targets.all()
   end
@@ -910,7 +928,11 @@ get '/analytics' do
   # Analysis Details
   # Total Accounts
   if params[:custid] and ! params[:custid].empty?
-    @total_accounts = Targets.count(:customerid => params[:custid])
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
+    else
+      @total_accounts = Targets.count(:customerid => params[:custid])
+    end
   else
     @total_accounts = Targets.count
   end
@@ -919,7 +941,11 @@ get '/analytics' do
   @total_unique_users_count = Set.new
 
   if params[:custid] and ! params[:custid].empty?
-    @total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid], :jobid => params[:jobid])
+    else
+      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
+    end
   else
     @total_users = Targets.all(:fields => [:username])
   end 
@@ -932,7 +958,11 @@ get '/analytics' do
   @total_unique_originalhash_count = Set.new
 
   if params[:custid] and ! params[:custid].empty?
-    @total_originalhash = Targets.all(:fields => [:originalhash], :unique => true, :customerid => params[:custid])
+    if params[:jobid] and ! params[:jobid].empty?
+      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid], :jobid => params[:jobid])
+    else  
+      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid])
+    end
   else
     @total_originalhash = Targets.all(:fields => [:originalhash])
   end
@@ -940,8 +970,6 @@ get '/analytics' do
   @total_originalhash.each do | entry |
     @total_unique_originalhash_count.add(entry.originalhash)
   end
-
-  p "TOTAL UNIQUE ORIGINALHASH COUNT: " + @total_unique_originalhash_count.size.to_s
 
   # Total Crack Time
 
