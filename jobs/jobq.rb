@@ -68,7 +68,7 @@ module Jobq
       plaintext = plaintext.chomp
 
       # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
-      records = Targets.all(:originalhash => hash_pass[0], :cracked => false, :fields => [:id, :plaintext, :cracked])
+      records = Targets.all(:originalhash => hash_pass[0])
       # Yes its slow... we know.
       records.each do | entry |
         entry.cracked = 1

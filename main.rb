@@ -875,9 +875,9 @@ get '/analytics' do
 
   # get results of specific job if jobid is defined
   if @custid
-    @cracked_results = Targets.all(:customerid => params[:custid], :fields => [:id, :cracked, :plaintext])
+    @cracked_results = Targets.all(:customerid => params[:custid])
   else
-    @cracked_results = Targets.all(:fields => [:id, :cracked, :plaintext])
+    @cracked_results = Targets.all()
   end
 
 #  @jobid = params[:jobid]
