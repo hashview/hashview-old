@@ -134,7 +134,7 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentlycracked = Targets.all(:limit => 10, :cracked => 1, :order => [:updated_at.desc])
+  @recentlycracked = Targets.all(:limit => 10, :cracked => 1)
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
@@ -506,12 +506,6 @@ post '/job/:id/upload/verify_hashtype' do
   @job = Jobs.first(:id => params[:id])
   customer_id = @job.customer_id
 
-  # we do this to speed up the inserts for large hash imports
-  # http://www.sqlite.org/faq.html#q19
-  # for some reason this doesnt persist so it is placed here, closest to the commits/inserts
-  adapter = DataMapper::repository(:default).adapter
-  adapter.select("PRAGMA synchronous = OFF;")
-
   if not import_hash(hashArray, customer_id, params[:id], filetype, hashtype)
     return "Error importing hash"  # need to better handle errors
   end
@@ -881,9 +875,9 @@ get '/analytics' do
 
   # get results of specific job if jobid is defined
   if @custid
-    @cracked_results = Targets.all(:customerid => params[:custid])
+    @cracked_results = Targets.all(:customerid => params[:custid], :fields => [:id, :cracked, :plaintext])
   else
-    @cracked_results = Targets.all()
+    @cracked_results = Targets.all(:fields => [:id, :cracked, :plaintext])
   end
 
 #  @jobid = params[:jobid]
@@ -905,7 +899,7 @@ get '/analytics' do
   @failed_pw_count = 0
   if ! @cracked_results.nil?
     @cracked_results.each do |crack|
-      if crack.cracked = true and crack.plaintext
+      if crack.cracked == true and crack.plaintext
         @cracked_pw_count = @cracked_pw_count + 1
       else
         @failed_pw_count = @failed_pw_count + 1

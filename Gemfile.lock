@@ -66,9 +66,6 @@ GEM
       json (~> 1.6)
       json_pure (~> 1.6)
       multi_json (~> 1.0)
-    dm-sqlite-adapter (1.2.0)
-      dm-do-adapter (~> 1.2.0)
-      do_sqlite3 (~> 0.10.6)
     dm-timestamps (1.2.0)
       dm-core (~> 1.2.0)
     dm-transactions (1.2.0)
@@ -84,8 +81,6 @@ GEM
     dm-validations (1.2.0)
       dm-core (~> 1.2.0)
     do_mysql (0.10.16)
-      data_objects (= 0.10.16)
-    do_sqlite3 (0.10.16)
       data_objects (= 0.10.16)
     erubis (2.7.0)
     execjs (2.6.0)
@@ -186,8 +181,8 @@ PLATFORMS
 
 DEPENDENCIES
   data_mapper
+  data_objects
   dm-mysql-adapter
-  dm-sqlite-adapter
   haml
   json
   redis
