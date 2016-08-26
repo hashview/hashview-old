@@ -46,7 +46,7 @@
       .container
         .row
           .col-md-6
-            - if @cracked_results.nil?
+            - if !@cracked_pw_count && !@uncracked_pw_count #@cracked_results.nil?
               No results for this job. Perhaps it was never started?
             - else
               .panel.panel-default
@@ -60,7 +60,7 @@
                     <script src= '/js/d3.min.js'></script>
                     <script type= "text/javascript">
                       var data = [{"label":"Cracked", "value":"#{@cracked_pw_count}"},
-                        {"label":"Failed", "value":"#{@failed_pw_count}"}];
+                        {"label":"Uncracked", "value":"#{@uncracked_pw_count}"}];
                       var w = 200;
                       var h = 200;
                       var r = h/2;
