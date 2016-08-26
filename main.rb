@@ -130,7 +130,7 @@ end
 get '/home' do
   redirect to('/') if !valid_session?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)" | grep -v sudo`
-  @targets = Targets.all(:cracked => 1)
+  #@targets = Targets.all(:fields => ['username', 'plaintext'], :cracked => 1)
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
