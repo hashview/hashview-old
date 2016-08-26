@@ -959,12 +959,12 @@ get '/analytics/graph1' do
 
   if params[:custid]  and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
     else
-      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
     end
   else
-    @cracked_results = Targets.all(:cracked => true)
+    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
   end
 
   @cracked_results.each do |crack|
@@ -997,12 +997,12 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:custid] and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
     else
-      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
     end
   else
-    @cracked_results = Targets.all(:cracked => true)
+    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
   end
   @cracked_results.each do |crack|
     if ! crack.plaintext.nil?
