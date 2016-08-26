@@ -908,12 +908,9 @@ get '/analytics' do
       # Used for Total Accounts table: Customer: Job
       @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
 
-      # Used for Total Unique Users Table: Customer: Job
+      # Used for Total Unique Users and originalhashes Table: Customer: Job
       @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid], :jobid => params[:jobid])
-      #@total_users = Targets.all(:fields => [:username], :customerid => params[:custid], :jobid => params[:jobid])
 
-      # Used for Total Unique Passwords Tables: Customer: Job
-      #@total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid], :jobid => params[:jobid])
     else
       # Used for Total Hashes Cracked doughnut: Customer
       @cracked_pw_count = Targets.count(:customerid => params[:custid], :cracked => 1)
@@ -922,12 +919,8 @@ get '/analytics' do
       # Used for Total Accounts Table: Customer
       @total_accounts = Targets.count(:customerid => params[:custid])
 
-      # Used for Total Unique Users Table: Customer
+      # Used for Total Unique Users and original hashes Table: Customer
       @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid])
-      #@total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
-
-      # Used for Total Unique Passwords Table: Customer
-      #@total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid])
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -937,12 +930,8 @@ get '/analytics' do
     # Used for Total Accounts Table: Total
     @total_accounts = Targets.count
 
-    # Used for Total Unique Users Tables: Total
+    # Used for Total Unique Users and originalhashes Tables: Total
     @total_users_originalhash = Targets.all(:fields => [:username, :originalhash])
-    #@total_users = Targets.all(:fields => [:username])
-
-    # Used for Total Unique Passwords Table: Total
-    #@total_originalhash = Targets.all(:fields => [:originalhash])
   end
 
   @passwords = @cracked_results.to_json
@@ -950,16 +939,8 @@ get '/analytics' do
   # Unique Usernames
   @total_unique_users_count = Set.new
 
-  #@total_users.each do | entry |
-  #  @total_unique_users_count.add(entry.username)    
-  #end
-
   # Unique Passwords
   @total_unique_originalhash_count = Set.new
-
-  #@total_originalhash.each do | entry |
-  #  @total_unique_originalhash_count.add(entry.originalhash)
-  #end
   
   @total_users_originalhash.each do | entry |
     @total_unique_users_count.add(entry.username)
