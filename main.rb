@@ -130,7 +130,6 @@ end
 get '/home' do
   redirect to('/') if !valid_session?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)" | grep -v sudo`
-  @targets = Targets.all(:cracked => 1)
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
@@ -902,72 +901,49 @@ get '/analytics' do
   if params[:custid] and ! params[:custid].empty?
     # if we have a job
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid])  
+      # Used for Total Hashes Cracked doughnut: Customer: Job
+      @cracked_pw_count = Targets.count(:customerid => params[:custid], :jobid => params[:jobid], :cracked => 1)
+      @uncracked_pw_count = Targets.count(:customerid => params[:custid], :jobid => params[:jobid], :cracked => 0)
+      
+      # Used for Total Accounts table: Customer: Job
+      @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
+
+      # Used for Total Unique Users and originalhashes Table: Customer: Job
+      @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid], :jobid => params[:jobid])
+
     else
-      @cracked_results = Targets.all(:customerid => params[:custid])
+      # Used for Total Hashes Cracked doughnut: Customer
+      @cracked_pw_count = Targets.count(:customerid => params[:custid], :cracked => 1)
+      @uncracked_pw_count = Targets.count(:customerid => params[:custid], :cracked => 0)
+
+      # Used for Total Accounts Table: Customer
+      @total_accounts = Targets.count(:customerid => params[:custid])
+
+      # Used for Total Unique Users and original hashes Table: Customer
+      @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid])
     end
   else
-    @cracked_results = Targets.all()
-  end
+    # Used for Total Hash Cracked Doughnut: Total
+    @cracked_pw_count = Targets.count(:cracked => 't')
+    @uncracked_pw_count = Targets.count(:cracked => 'f')
 
-  # total passwords cracked
-  @cracked_pw_count = 0
-  @failed_pw_count = 0
-  if ! @cracked_results.nil?
-    @cracked_results.each do |crack|
-      if crack.cracked = true and crack.plaintext
-        @cracked_pw_count = @cracked_pw_count + 1
-      else
-        @failed_pw_count = @failed_pw_count + 1
-      end
-    end
+    # Used for Total Accounts Table: Total
+    @total_accounts = Targets.count
+
+    # Used for Total Unique Users and originalhashes Tables: Total
+    @total_users_originalhash = Targets.all(:fields => [:username, :originalhash])
   end
 
   @passwords = @cracked_results.to_json
 
-  # Analysis Details
-  # Total Accounts
-  if params[:custid] and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
-      @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
-    else
-      @total_accounts = Targets.count(:customerid => params[:custid])
-    end
-  else
-    @total_accounts = Targets.count
-  end
-
   # Unique Usernames
   @total_unique_users_count = Set.new
 
-  if params[:custid] and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
-      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid], :jobid => params[:jobid])
-    else
-      @total_users = Targets.all(:fields => [:username], :customerid => params[:custid])
-    end
-  else
-    @total_users = Targets.all(:fields => [:username])
-  end 
-
-  @total_users.each do | entry |
-    @total_unique_users_count.add(entry.username)    
-  end
-
   # Unique Passwords
   @total_unique_originalhash_count = Set.new
-
-  if params[:custid] and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
-      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid], :jobid => params[:jobid])
-    else  
-      @total_originalhash = Targets.all(:fields => [:originalhash], :customerid => params[:custid])
-    end
-  else
-    @total_originalhash = Targets.all(:fields => [:originalhash])
-  end
-
-  @total_originalhash.each do | entry |
+  
+  @total_users_originalhash.each do | entry |
+    @total_unique_users_count.add(entry.username)
     @total_unique_originalhash_count.add(entry.originalhash)
   end
 
@@ -983,12 +959,12 @@ get '/analytics/graph1' do
 
   if params[:custid]  and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
     else
-      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
     end
   else
-    @cracked_results = Targets.all(:cracked => true)
+    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
   end
 
   @cracked_results.each do |crack|
@@ -1021,12 +997,12 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:custid] and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
     else
-      @cracked_results = Targets.all(:customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
     end
   else
-    @cracked_results = Targets.all(:cracked => true)
+    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
   end
   @cracked_results.each do |crack|
     if ! crack.plaintext.nil?
