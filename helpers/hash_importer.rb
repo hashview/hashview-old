@@ -19,9 +19,7 @@ end
 def import_pwdump(hash, customer_id, job_id, type)
 
   data = hash.split(':')
-  if machine_acct?(data[0])
-    return
-  end
+  return if machine_acct?(data[0])
 
   # if hashtype is lm
   if type == '3000'
@@ -118,7 +116,8 @@ def get_mode(hash)
   elsif hash =~ /^[^\\\/:*?"<>|]{1,20}\\?[^\\\/:*?"<>|]{1,20}[:]{2,3}[^\\\/:*?"<>|]{1,20}:?[^\\\/:*?"<>|]{1,20}:[a-f0-9]{32}:[a-f0-9]+$/
     @modes.push('5600')	# NetNTLMv2
   end
-  return @modes
+
+  @modes
 end
 
 def mode_to_friendly(mode)
@@ -188,7 +187,7 @@ end
 def detect_hashfile_type(hashFile)
 
   @filetypes = []
-  File.readlines(hashFile).each do | entry |
+  File.readlines(hashFile).each do |entry|
     if detected_hash_format(entry.chomp) == 'pwdump'
       @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
     elsif detected_hash_format(entry.chomp) == 'shadow'
@@ -197,35 +196,37 @@ def detect_hashfile_type(hashFile)
       @filetypes.push('raw') unless @filetypes.include?('raw')
     end
   end
-  return @filetypes
+
+  @filetypes
 end
 
 def detect_hash_type(hashFile, fileType)
 
   @hashtypes = []
-  File.readlines(hashFile).each do | entry |
+  File.readlines(hashFile).each do |entry|
     if fileType == 'pwdump'
       elements = entry.split(':')
       @modes = get_mode(elements[2])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
       end
       @modes = get_mode(elements[3])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
     elsif fileType == 'shadow'
       elements = entry.split(':')
       @modes = get_mode(elements[1])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
     else
       @modes = get_mode(entry)
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
     end
   end
-  return @hashtypes
+  
+  @hashtypes
 end
