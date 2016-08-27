@@ -116,7 +116,8 @@ def get_mode(hash)
   elsif hash =~ /^[^\\\/:*?"<>|]{1,20}\\?[^\\\/:*?"<>|]{1,20}[:]{2,3}[^\\\/:*?"<>|]{1,20}:?[^\\\/:*?"<>|]{1,20}:[a-f0-9]{32}:[a-f0-9]+$/
     @modes.push('5600')	# NetNTLMv2
   end
-  return @modes
+
+  @modes
 end
 
 def mode_to_friendly(mode)
@@ -195,7 +196,8 @@ def detect_hashfile_type(hashFile)
       @filetypes.push('raw') unless @filetypes.include?('raw')
     end
   end
-  return @filetypes
+
+  @filetypes
 end
 
 def detect_hash_type(hashFile, fileType)
@@ -225,5 +227,6 @@ def detect_hash_type(hashFile, fileType)
       end
     end
   end
-  return @hashtypes
+  
+  @hashtypes
 end
