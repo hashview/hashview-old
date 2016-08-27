@@ -7,11 +7,11 @@
         var Index = document.hashTypeForm.hashtype.options[document.hashTypeForm.hashtype.selectedIndex].value
         if(Index == "99999")
         {
-          document.getElementById('state_div').style.display = 'inline';
+          document.getElementById('manual_div').style.display = 'inline';
         }
         else
         { 
-          document.getElementById('state_div').style.display = 'none';
+          document.getElementById('manual_div').style.display = 'none';
         }
       }
     .span15 
@@ -31,13 +31,12 @@
                 .col-md-12
                   .page-header
                     %h1
-                      Confirm the hash Type
+                      Confirm the hash type
                 .row
                   .col-md-10.pull-left
                     Hashview will attempt to automatically detect the hash type found in the file, however there maybe instances where this is wrong, or you'd like to override the detected values. To do this, select other and enter the hash cat attack mode value. Note if you select an invalid option, your crack will not complete successfully.
                 %br
                 .row
-                  //.col-md-2.pull-left
                   %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/job/#{@job.id}/upload/verify_hashtype", :method => "post"}
                     .form-group
                       %label.control-label.col-xs-2{:for => ""} Detected Hash(s): 
@@ -50,7 +49,7 @@
                         %input{:type=>"hidden", :value=>"#{params[:filetype].to_s}", :name=>:filetype}
                       .section
                         %div{:class => "label_leftalign field"}
-                          #state_div{:style => "display:none"}
+                          #manual_div{:style => "display:none"}
                             %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
                             .col-xs-4
                               <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
