@@ -42,7 +42,7 @@ module Jobq
     targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
     hashFile = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
     File.open(hashFile, 'w') do |f|
-      targets.each do | entry |
+      targets.each do |entry|
         f.puts entry.originalhash
       end
       f.close
@@ -70,7 +70,7 @@ module Jobq
       # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
       records = Targets.all(originalhash: hash_pass[0])
       # Yes its slow... we know.
-      records.each do | entry |
+      records.each do |entry|
         entry.cracked = 1
         entry.plaintext = plaintext
       end
