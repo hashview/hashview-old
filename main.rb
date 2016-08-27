@@ -115,9 +115,9 @@ end
 get '/' do
   @users = User.all
   if @users.empty?
-    redirect to("/register")
+    redirect to('/register')
   elsif !valid_session?
-    redirect to("/login")
+    redirect to('/login')
   else
     redirect to('/home')
   end
@@ -289,7 +289,7 @@ get '/task/create' do
 
   tasks = Tasks.all()
   if tasks.empty?
-    warning("You need to have tasks before starting a job")
+    warning('You need to have tasks before starting a job')
   end
 
   @rules = []
@@ -358,7 +358,6 @@ get '/job/list' do
 
   @jobs.each do |entry|
     @customers = Customers.first(id: [entry.customer_id])
-    p "CUSTOMERS: " + @customers.to_s
     @customer_names[entry.customer_id] = @customers.name
   end
 
@@ -406,7 +405,7 @@ post '/job/create' do
   redirect to('/') if !valid_session?
 
   if !params[:tasks]
-    return "you must assign tasks to your job"
+    return 'you must assign tasks to your job'
   end
 
   # create new job
@@ -508,7 +507,7 @@ post '/job/:id/upload/verify_hashtype' do
   customer_id = @job.customer_id
 
   if not import_hash(hashArray, customer_id, params[:id], filetype, hashtype)
-    return "Error importing hash"  # need to better handle errors
+    return 'Error importing hash'  # need to better handle errors
   end
 
   # Delete file, no longer needed
@@ -551,9 +550,9 @@ post '/job/edit/:id' do
     # update job
     # assign tasks to the job before
     p values
-    if values["tasks"] != nil
+    if values['tasks'] != nil
       assign_tasks_to_job(params[:tasks], @job.id)
-      values.delete("tasks")
+      values.delete('tasks')
     end
     @job.update(values)
 
@@ -584,9 +583,9 @@ get '/job/start/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
-    if not jt.status == "Completed"
+    if not jt.status == 'Completed'
       # set jobtask status to queued
-      jt.status = "Queued"
+      jt.status = 'Queued'
       jt.save
       # toggle the job status to run
       @job.status = 1
@@ -615,7 +614,7 @@ get '/job/queue' do
 end
 
 get '/job/stop/:id' do
-  redirect to("/") if !valid_session?
+  redirect to('/') if !valid_session?
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -654,7 +653,7 @@ get '/job/stop/:id' do
 end
 
 get '/process/kill/:id' do
-  redirect to("/") if !valid_session?
+  redirect to('/') if !valid_session?
 
   @result = `sudo kill -9 #{params[:id]}`
   p @result
@@ -689,7 +688,7 @@ get '/settings' do
   @settings = Settings.first
 
   if @settings and @settings.maxtasktime.nil?
-    warning("Max task time must be defined in seconds (864000 is 10 days)")
+    warning('Max task time must be defined in seconds (864000 is 10 days)')
   end
 
   haml :global_settings
@@ -706,7 +705,7 @@ post '/settings' do
     # create settings for the first time
     # set max task time if none is provided
     if @settings and @setttings.maxtasktime.nil?
-      values["maxtasktime"] = "864000"
+      values['maxtasktime'] = '864000'
     end
     @newsettings = Settings.create(values)
     @newsettings.save
@@ -746,7 +745,7 @@ end
 ##### Word Lists ###########
 
 get '/wordlist/list' do
-  redirect to("/") if not valid_session?
+  redirect to('/') if not valid_session?
 
   @wordlists = Wordlists.all()
 
@@ -760,16 +759,16 @@ get '/wordlist/add' do
 end
 
 get '/wordlist/delete/:id' do
-  redirect to("/") if not valid_session?
+  redirect to('/') if not valid_session?
 
   @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
-    return "no such wordlist exists"
+    return 'no such wordlist exists'
   else
     # check if wordlist is in use
     tasks = Tasks.all(wl_id: @wordlist.id)
     if tasks
-      return "This word list is associated with a task, it cannot be deleted"
+      return 'This word list is associated with a task, it cannot be deleted'
     end
 
     # remove from filesystem
@@ -783,16 +782,16 @@ get '/wordlist/delete/:id' do
 end
 
 post '/wordlist/upload/' do
-  redirect to("/") if not valid_session?
+  redirect to('/') if not valid_session?
 
   # require param name && file
   if params[:name].size == 0
-    return "File Name Required"
+    return 'File Name Required'
   end
 
   # Replace white space with underscore.  We need more filtering here too
   uploadname = params[:name]
-  uploadname = uploadname.downcase.tr(" ", "_")
+  uploadname = uploadname.downcase.tr(' ', '_')
 
   # Change to date/time ?
   rand_str = rand(36**36).to_s(36)
@@ -1088,16 +1087,16 @@ def build_crack_cmd(jobid, taskid)
   # we assign and write output file before hashcat.
   # if hashcat creates its own output it does so with
   # elvated permissions and we wont be able to read it
-  crack_file = "control/outfiles/hc_cracked_" + @job.id.to_s + "_" + @task.id.to_s + ".txt"
-  File.open(crack_file, "w")
+  crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
+  File.open(crack_file, 'w')
 
-  if attackmode == "3"
-    cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --runtime=" + maxtasktime + " --outfile-format 3 " + " --outfile " + crack_file + " " + " -a " + attackmode + " " + target_file
-  elsif attackmode == "0"
-    if @task.hc_rule == "none"
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + crack_file + " " + target_file + " " + wordlist.path
+  if attackmode == '3'
+    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a ' + attackmode + ' ' + target_file
+  elsif attackmode == '0'
+    if @task.hc_rule == 'none'
+      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
-      cmd = "sudo " + hcbinpath + " -m " + hashtype + " --potfile-disable" + " --outfile-format 3 " + " --outfile " + crack_file + " " +  " -r " + "control/rules/" + @task.hc_rule + " " + target_file + " " + wordlist.path
+      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' +  ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
   end
   p cmd
