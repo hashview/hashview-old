@@ -303,7 +303,7 @@ post '/task/create' do
   wordlist = Wordlists.first(id: params[:wordlist])
   puts wordlist.path
 
-  if settings && ! settings.hcbinpath
+  if settings && !settings.hcbinpath
     return 'No hashcat binary path is defined in global settings.'
   end
 
@@ -853,18 +853,18 @@ get '/analytics' do
   @jobid = params[:jobid]
   @button_select_customers = Customers.all
 
-  if params[:custid] and ! params[:custid].empty?
+  if params[:custid] and !params[:custid].empty?
     @button_select_jobs = Jobs.all(customer_id: params[:custid])
   end
 
-  if params[:custid] and ! params[:custid].empty?
+  if params[:custid] and !params[:custid].empty?
     @customers = Customers.first(id: params[:custid])
   else
     @customers = Customers.all
   end
 
-  if params[:custid] and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
+  if params[:custid] and !params[:custid].empty?
+    if params[:jobid] and !params[:jobid].empty?
       @jobs = Jobs.first(id: params[:jobid])
     else
       @jobs = Jobs.all
@@ -872,9 +872,9 @@ get '/analytics' do
   end
 
   # get results of specific customer if custid is defined
-  if params[:custid] and ! params[:custid].empty?
+  if params[:custid] and !params[:custid].empty?
     # if we have a job
-    if params[:jobid] and ! params[:jobid].empty?
+    if params[:jobid] and !params[:jobid].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Job
       @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
       @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
@@ -931,8 +931,8 @@ get '/analytics/graph1' do
   @counts = []
   @passwords = {}
 
-  if params[:custid]  and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
+  if params[:custid]  and !params[:custid].empty?
+    if params[:jobid] and !params[:jobid].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
@@ -942,7 +942,7 @@ get '/analytics/graph1' do
   end
 
   @cracked_results.each do |crack|
-    if ! crack.plaintext.nil?
+    if !crack.plaintext.nil?
       unless crack.plaintext.length == 0
         # get password count by length
         len = crack.plaintext.length
@@ -969,8 +969,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
   plaintext = []
-  if params[:custid] and ! params[:custid].empty?
-    if params[:jobid] and ! params[:jobid].empty?
+  if params[:custid] and !params[:custid].empty?
+    if params[:jobid] and !params[:jobid].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
@@ -979,7 +979,7 @@ get '/analytics/graph2' do
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
-    if ! crack.plaintext.nil?
+    if !crack.plaintext.nil?
       plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
