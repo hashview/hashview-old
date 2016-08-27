@@ -33,7 +33,7 @@ class User
   end
 
   def self.encrypt(pass)
-    return BCrypt::Password.create(pass)
+    BCrypt::Password.create(pass)
   end
 
   def self.authenticate(username, pass)
