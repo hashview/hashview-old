@@ -44,7 +44,7 @@ end
 ## We use a persistent session table, one session per user; no end date
 get '/logout' do
   if session[:session_id]
-    sess = Sessions.first(:session_key => session[:session_id])
+    sess = Sessions.first(session_key: session[:session_id])
     if sess
       sess.destroy
     end
@@ -53,7 +53,7 @@ get '/logout' do
 end
 
 post '/login' do
-  @user = User.first(:username => params[:username])
+  @user = User.first(username: params[:username])
 
   if @user
     usern = User.authenticate(params['username'], params['password'])
@@ -64,11 +64,11 @@ post '/login' do
       if session[:session_id]
         # replace the session in the session table
         # TODO : This needs an expiration, session fixation
-        @del_session = Sessions.first(:username => "#{usern}")
+        @del_session = Sessions.first(username: "#{usern}")
         @del_session.destroy if @del_session
       end
       # Create new session
-      @curr_session = Sessions.create(:username => "#{usern}", :session_key => "#{session[:session_id]}")
+      @curr_session = Sessions.create(username: "#{usern}", session_key: "#{session[:session_id]}")
       @curr_session.save
 
       redirect to('/home')
@@ -133,7 +133,7 @@ get '/home' do
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentlycracked = Targets.all(:limit => 10, :cracked => 1)
+  @recentlycracked = Targets.all(limit: 10, cracked: 1)
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
@@ -160,8 +160,8 @@ get '/home' do
 
   @jobs.each do | j |
     if j.status
-      @alltargets = Targets.all(:jobid => j.id)
-      @crackedtargets = Targets.all(:jobid => j.id, :cracked => 1)
+      @alltargets = Targets.all(jobid: j.id)
+      @crackedtargets = Targets.all(jobid: j.id, cracked: 1)
       @alltargets = @alltargets.count
       @crackedtargets = @crackedtargets.count
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
@@ -210,7 +210,7 @@ end
 get '/customer/edit/:id' do
   redirect to('/') if !valid_session?
 
-  @customer = Customers.first(:id => params[:id])
+  @customer = Customers.first(id: params[:id])
 
   haml :customer_edit
 end
@@ -218,7 +218,7 @@ end
 post '/customer/edit/:id' do
   redirect to('/') if !valid_session?
 
-  customer = Customers.first(:id => params[:id])
+  customer = Customers.first(id: params[:id])
   customer.name = params[:name]
   customer.description = params[:desc]
   customer.save
@@ -229,15 +229,15 @@ end
 get '/customer/delete/:id' do
   redirect to('/') if !valid_session?
 
-  customer = Customers.first(:id => params[:id])
+  customer = Customers.first(id: params[:id])
   customer.destroy
 
-  jobs = Jobs.all(:customer_id => params[:id])
+  jobs = Jobs.all(customer_id: params[:id])
   if !jobs.empty?
     jobs.destroy
   end
 
-  targets = Targets.all(:customerid => params[:id])
+  targets = Targets.all(customerid: params[:id])
   if !targets.empty?
     targets.destroy
   end
@@ -261,7 +261,7 @@ end
 get '/task/delete/:id' do
   redirect to('/') if !valid_session?
 
-  @task = Tasks.first(:id => params[:id])
+  @task = Tasks.first(id: params[:id])
   if @task
     @task.destroy
   else
@@ -308,7 +308,7 @@ post '/task/create' do
   redirect to('/') if !valid_session?
 
   settings = Settings.first()
-  wordlist = Wordlists.first(:id => params[:wordlist])
+  wordlist = Wordlists.first(id: params[:wordlist])
   puts wordlist.path
 
   if settings && ! settings.hcbinpath
@@ -351,15 +351,13 @@ get '/job/list' do
   @jobs = Jobs.all
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
-  # @targets = Targets.all
-  # @customers = Customers.all
 
   @jobs.each do |entry|
-    @targets_cracked[entry.id] = Targets.count(:jobid => [entry.id], :cracked => 1)
+    @targets_cracked[entry.id] = Targets.count(jobid: [entry.id], cracked: 1)
   end
 
   @jobs.each do |entry|
-    @customers = Customers.first(:id => [entry.customer_id])
+    @customers = Customers.first(id: [entry.customer_id])
     p "CUSTOMERS: " + @customers.to_s
     @customer_names[entry.customer_id] = @customers.name
   end
@@ -370,7 +368,7 @@ end
 get '/job/delete/:id' do
   redirect to('/') if !valid_session?
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
   else
@@ -427,7 +425,7 @@ end
 get '/job/:id/upload/hashfile' do
   redirect to('/') if !valid_session?
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists'
   end
@@ -437,7 +435,7 @@ end
 post '/job/:id/upload/hashfile' do
   redirect to('/') if !valid_session?
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists'
   end
@@ -465,7 +463,7 @@ get '/job/:id/upload/verify_filetype/:hash' do
   redirect to('/') if !valid_session?
 
   @filetypes = detect_hashfile_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   haml :verify_filetypes
 
 end
@@ -483,7 +481,7 @@ get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   redirect to('/') if !valid_session?
 
   @hashtypes = detect_hash_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   haml :verify_hashtypes
 
 end
@@ -506,7 +504,7 @@ post '/job/:id/upload/verify_hashtype' do
       hashArray << line
   end
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   customer_id = @job.customer_id
 
   if not import_hash(hashArray, customer_id, params[:id], filetype, hashtype)
@@ -522,12 +520,12 @@ end
 get '/job/edit/:id' do
   redirect to('/') if !valid_session?
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
   else
     @tasks = Tasks.all
-    @jobtasks = Jobtasks.all(:job_id => params[:id])
+    @jobtasks = Jobtasks.all(job_id: params[:id])
   end
 
   # we do this so we can embedded ruby into js easily
@@ -546,7 +544,7 @@ post '/job/edit/:id' do
 
   values = request.POST
 
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
   else
@@ -568,22 +566,22 @@ get '/job/start/:id' do
   redirect to('/') if !valid_session?
 
   tasks = []
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
   else
-    @jobtasks = Jobtasks.all(:job_id => params[:id])
+    @jobtasks = Jobtasks.all(job_id: params[:id])
     if !@jobtasks
       return 'This job has no tasks to run.'
     else
       @jobtasks.each do |jt|
-        tasks << Tasks.first(:id => jt.task_id)
+        tasks << Tasks.first(id: jt.task_id)
       end
     end
   end
 
   tasks.each do |task|
-    jt = Jobtasks.first(:task_id => task.id, :job_id => @job.id)
+    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
     if not jt.status == "Completed"
@@ -620,16 +618,16 @@ get '/job/stop/:id' do
   redirect to("/") if !valid_session?
 
   tasks = []
-  @job = Jobs.first(:id => params[:id])
+  @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
   else
-    @jobtasks = Jobtasks.all(:job_id => params[:id])
+    @jobtasks = Jobtasks.all(job_id: params[:id])
     if !@jobtasks
       return 'This job has no tasks to stop.'
     else
       @jobtasks.each do |jt|
-        tasks << Tasks.first(:id => jt.task_id)
+        tasks << Tasks.first(id: jt.task_id)
       end
     end
   end
@@ -638,7 +636,7 @@ get '/job/stop/:id' do
   @job.save
 
   tasks.each do |task|
-    jt = Jobtasks.first(:task_id => task.id, :job_id => @job.id)
+    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
     if not jt.status == 'Completed'
@@ -670,11 +668,11 @@ end
 get '/job/:jobid/task/delete/:jobtaskid' do
   redirect to('/') if !valid_session?
 
-  @job = Jobs.first(:id => params[:jobid])
+  @job = Jobs.first(id: params[:jobid])
   if !@job
     return 'No such job exists.'
   else
-    @jobtask = Jobtasks.first(:id => params[:jobtaskid])
+    @jobtask = Jobtasks.first(id: params[:jobtaskid])
     @jobtask.destroy
   end
 
@@ -728,9 +726,9 @@ get '/download/cracked/:jobid' do
   redirect to('/') if !valid_session?
 
   # Write temp output file
-  jobs = Jobs.first(:id => params[:jobid])
+  jobs = Jobs.first(id: params[:jobid])
   fileName = 'control/outfiles/found_' + params[:jobid].to_s + '.txt'
-  crack_results = Targets.all(:jobid => params[:jobid], :cracked => true)
+  crack_results = Targets.all(jobid: params[:jobid], cracked: true)
 
   File.open(fileName, 'w') do |f|
     crack_results.each do |entry|
@@ -739,7 +737,7 @@ get '/download/cracked/:jobid' do
     end
   end
   save_name = 'cracked_values_ ' + jobs.name.to_s.tr(' ', '_') + '.txt'
-  send_file fileName, :filename => save_name, :type => 'Application/octet-stream'
+  send_file fileName, filename: save_name, type: 'Application/octet-stream'
   redirect to('/job/list')
 end
 
@@ -764,12 +762,12 @@ end
 get '/wordlist/delete/:id' do
   redirect to("/") if not valid_session?
 
-  @wordlist = Wordlists.first(:id => params[:id])
+  @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
     return "no such wordlist exists"
   else
     # check if wordlist is in use
-    tasks = Tasks.all(:wl_id => @wordlist.id)
+    tasks = Tasks.all(wl_id: @wordlist.id)
     if tasks
       return "This word list is associated with a task, it cannot be deleted"
     end
@@ -828,7 +826,7 @@ get '/purge' do
   @target_jobids = []
   @all_cracked = 0
   @all_total = 0
-  @targets = Targets.all(:fields => [:jobid], :unique => true)
+  @targets = Targets.all(fields: [:jobid], unique: true)
   @targets.each do | entry |
     @target_jobids.push(entry.jobid)
   end
@@ -839,12 +837,10 @@ get '/purge' do
   end
 
   @target_jobids.each do | entry |
-    @job_cracked[entry] = Targets.count(:jobid => [entry], :cracked => 1)
+    @job_cracked[entry] = Targets.count(jobid: [entry], cracked: 1)
     @all_cracked = @all_cracked + @job_cracked[entry]
-    #p "ALL CRACKED: " + @all_cracked.to_s
-    @job_total[entry] = Targets.count(:jobid => [entry])
+    @job_total[entry] = Targets.count(jobid: [entry])
     @all_total = @all_total + @job_total[entry]
-    #p "ALL TOTAL: " + @all_total.to_s
   end
 
   haml :purge
@@ -858,7 +854,7 @@ get '/purge/:id' do
     @targets = Targets.all()
     @targets.destroy
   else
-    @targets = Targets.all(:jobid => params[:id])
+    @targets = Targets.all(jobid: params[:id])
     @targets.destroy
   end
 
@@ -878,18 +874,18 @@ get '/analytics' do
   @button_select_customers = Customers.all
 
   if params[:custid] and ! params[:custid].empty?
-    @button_select_jobs = Jobs.all(:customer_id => params[:custid])
+    @button_select_jobs = Jobs.all(customer_id: params[:custid])
   end
 
   if params[:custid] and ! params[:custid].empty?
-    @customers = Customers.first(:id => params[:custid])
+    @customers = Customers.first(id: params[:custid])
   else
     @customers = Customers.all
   end
 
   if params[:custid] and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @jobs = Jobs.first(:id => params[:jobid])
+      @jobs = Jobs.first(id: params[:jobid])
     else
       @jobs = Jobs.all
     end
@@ -900,36 +896,36 @@ get '/analytics' do
     # if we have a job
     if params[:jobid] and ! params[:jobid].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Job
-      @cracked_pw_count = Targets.count(:customerid => params[:custid], :jobid => params[:jobid], :cracked => 1)
-      @uncracked_pw_count = Targets.count(:customerid => params[:custid], :jobid => params[:jobid], :cracked => 0)
+      @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
+      @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
       
       # Used for Total Accounts table: Customer: Job
-      @total_accounts = Targets.count(:customerid => params[:custid], :jobid => params[:jobid])
+      @total_accounts = Targets.count(customerid: params[:custid], jobid: params[:jobid])
 
       # Used for Total Unique Users and originalhashes Table: Customer: Job
-      @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid], :jobid => params[:jobid])
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid], jobid: params[:jobid])
 
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = Targets.count(:customerid => params[:custid], :cracked => 1)
-      @uncracked_pw_count = Targets.count(:customerid => params[:custid], :cracked => 0)
+      @cracked_pw_count = Targets.count(customerid: params[:custid], cracked: 1)
+      @uncracked_pw_count = Targets.count(customerid: params[:custid], cracked: 0)
 
       # Used for Total Accounts Table: Customer
-      @total_accounts = Targets.count(:customerid => params[:custid])
+      @total_accounts = Targets.count(customerid: params[:custid])
 
       # Used for Total Unique Users and original hashes Table: Customer
-      @total_users_originalhash = Targets.all(:fields => [:username, :originalhash], :customerid => params[:custid])
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
-    @cracked_pw_count = Targets.count(:cracked => 't')
-    @uncracked_pw_count = Targets.count(:cracked => 'f')
+    @cracked_pw_count = Targets.count(cracked: 't')
+    @uncracked_pw_count = Targets.count(cracked: 'f')
 
     # Used for Total Accounts Table: Total
     @total_accounts = Targets.count
 
     # Used for Total Unique Users and originalhashes Tables: Total
-    @total_users_originalhash = Targets.all(:fields => [:username, :originalhash])
+    @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
   end
 
   @passwords = @cracked_results.to_json
@@ -957,12 +953,12 @@ get '/analytics/graph1' do
 
   if params[:custid]  and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
-      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
     end
   else
-    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
+    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
 
   @cracked_results.each do |crack|
@@ -984,7 +980,7 @@ get '/analytics/graph1' do
 
   # convert to array of json objects for d3
   @passwords.each do |key, value|
-    @counts << {:length => key, :count => value}
+    @counts << {length: key, count: value}
   end
 
   return @counts.to_json
@@ -995,12 +991,12 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:custid] and ! params[:custid].empty?
     if params[:jobid] and ! params[:jobid].empty?
-      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :jobid => params[:jobid], :cracked => true)
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
-      @cracked_results = Targets.all(:fields => [:plaintext], :customerid => params[:custid], :cracked => true)
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
     end
   else
-    @cracked_results = Targets.all(:fields => [:plaintext], :cracked => true)
+    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
     if ! crack.plaintext.nil?
@@ -1027,7 +1023,7 @@ get '/analytics/graph2' do
   @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
-    @toppasswords << {:password => key, :count => value}
+    @toppasswords << {password: key, count: value}
   end
 
   return @toppasswords.to_json
@@ -1045,7 +1041,7 @@ end
 post '/search' do
   redirect to('/') if !valid_session?
 
-  @plaintexts = Targets.all(:originalhash => params[:hash])
+  @plaintexts = Targets.all(originalhash: params[:hash])
   haml :search_post
 
 end
@@ -1080,12 +1076,12 @@ def build_crack_cmd(jobid, taskid)
   settings = Settings.first
   hcbinpath = settings.hcbinpath
   maxtasktime = settings.maxtasktime
-  @task = Tasks.first(:id => taskid)
-  @job = Jobs.first(:id => jobid)
-  @targets = Targets.first(:jobid => jobid)
+  @task = Tasks.first(id: taskid)
+  @job = Jobs.first(id: jobid)
+  @targets = Targets.first(jobid: jobid)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
-  wordlist = Wordlists.first(:id => @task.wl_id)
+  wordlist = Wordlists.first(id: @task.wl_id)
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
@@ -1115,7 +1111,7 @@ def is_krakenbusy?
 end
 
 def assign_tasks_to_job(tasks, job_id)
-  job = Jobs.first(:id => job_id)
+  job = Jobs.first(id: job_id)
   tasks.each do |task_id|
     jobtask = Jobtasks.new
     jobtask.job_id = job_id
