@@ -670,7 +670,7 @@ get '/settings' do
 
   @settings = Settings.first
 
-  if @settings and @settings.maxtasktime.nil?
+  if @settings && @settings.maxtasktime.nil?
     warning('Max task time must be defined in seconds (864000 is 10 days)')
   end
 
@@ -687,7 +687,7 @@ post '/settings' do
   if @settings == nil
     # create settings for the first time
     # set max task time if none is provided
-    if @settings and @setttings.maxtasktime.nil?
+    if @settings && @setttings.maxtasktime.nil?
       values['maxtasktime'] = '864000'
     end
     @newsettings = Settings.create(values)
@@ -853,18 +853,18 @@ get '/analytics' do
   @jobid = params[:jobid]
   @button_select_customers = Customers.all
 
-  if params[:custid] and !params[:custid].empty?
+  if params[:custid] && !params[:custid].empty?
     @button_select_jobs = Jobs.all(customer_id: params[:custid])
   end
 
-  if params[:custid] and !params[:custid].empty?
+  if params[:custid] && !params[:custid].empty?
     @customers = Customers.first(id: params[:custid])
   else
     @customers = Customers.all
   end
 
-  if params[:custid] and !params[:custid].empty?
-    if params[:jobid] and !params[:jobid].empty?
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
       @jobs = Jobs.first(id: params[:jobid])
     else
       @jobs = Jobs.all
@@ -872,9 +872,9 @@ get '/analytics' do
   end
 
   # get results of specific customer if custid is defined
-  if params[:custid] and !params[:custid].empty?
+  if params[:custid] && !params[:custid].empty?
     # if we have a job
-    if params[:jobid] and !params[:jobid].empty?
+    if params[:jobid] && !params[:jobid].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Job
       @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
       @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
@@ -931,8 +931,8 @@ get '/analytics/graph1' do
   @counts = []
   @passwords = {}
 
-  if params[:custid]  and !params[:custid].empty?
-    if params[:jobid] and !params[:jobid].empty?
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
@@ -969,8 +969,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
   plaintext = []
-  if params[:custid] and !params[:custid].empty?
-    if params[:jobid] and !params[:jobid].empty?
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
     else
       @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
