@@ -188,7 +188,7 @@ end
 def detect_hashfile_type(hashFile)
 
   @filetypes = []
-  File.readlines(hashFile).each do | entry |
+  File.readlines(hashFile).each do |entry|
     if detected_hash_format(entry.chomp) == 'pwdump'
       @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
     elsif detected_hash_format(entry.chomp) == 'shadow'
@@ -203,26 +203,26 @@ end
 def detect_hash_type(hashFile, fileType)
 
   @hashtypes = []
-  File.readlines(hashFile).each do | entry |
+  File.readlines(hashFile).each do |entry|
     if fileType == 'pwdump'
       elements = entry.split(':')
       @modes = get_mode(elements[2])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
       end
       @modes = get_mode(elements[3])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
     elsif fileType == 'shadow'
       elements = entry.split(':')
       @modes = get_mode(elements[1])
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
     else
       @modes = get_mode(entry)
-      @modes.each do | mode |
+      @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
     end
