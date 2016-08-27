@@ -196,7 +196,6 @@ get '/customer/create' do
 end
 
 post '/customer/create' do
-
   customer = Customers.new
   customer.name = params[:name]
   customer.description = params[:desc]
@@ -447,7 +446,6 @@ get '/job/:id/upload/verify_filetype/:hash' do
   @filetypes = detect_hashfile_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
   @job = Jobs.first(id: params[:id])
   haml :verify_filetypes
-
 end
 
 post '/job/:id/upload/verify_filetype' do
@@ -465,7 +463,6 @@ get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   @hashtypes = detect_hash_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
   @job = Jobs.first(id: params[:id])
   haml :verify_hashtypes
-
 end
 
 post '/job/:id/upload/verify_hashtype' do
@@ -733,7 +730,6 @@ get '/wordlist/list' do
   @wordlists = Wordlists.all()
 
   haml :wordlist_list
-
 end
 
 get '/wordlist/add' do
@@ -761,7 +757,6 @@ get '/wordlist/delete/:id' do
     @wordlist.destroy
   end
   redirect to('/wordlist/list')
-
 end
 
 post '/wordlist/upload/' do
@@ -824,7 +819,6 @@ get '/purge' do
   end
 
   haml :purge
-
 end
 
 get '/purge/:id' do
@@ -848,7 +842,6 @@ end
 
 # displays analytics for a specific client, job
 get '/analytics' do
-
   @custid = params[:custid]
   @jobid = params[:jobid]
   @button_select_customers = Customers.all
@@ -1021,7 +1014,6 @@ post '/search' do
 
   @plaintexts = Targets.all(originalhash: params[:hash])
   haml :search_post
-
 end
 
 ############################
@@ -1099,7 +1091,6 @@ def assign_tasks_to_job(tasks, job_id)
 end
 
 helpers do
-
   def warning(txt)
     if @warnings != nil
       @warnings << txt
