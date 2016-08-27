@@ -1022,17 +1022,17 @@ end
 
 # Are we in development mode?
 def is_development?
-  return Sinatra::Base.development?
+  Sinatra::Base.development?
 end
 
 # Return if the user has a valid session or not
 def valid_session?
-  return Sessions.is_valid?(session[:session_id])
+  Sessions.is_valid?(session[:session_id])
 end
 
 # Get the current users, username
 def get_username
-  return Sessions.get_username(session[:session_id])
+  Sessions.get_username(session[:session_id])
 end
 
 # Check if the user is an administrator
@@ -1071,7 +1071,7 @@ def build_crack_cmd(jobid, taskid)
     end
   end
   p cmd
-  return cmd
+  cmd
 end
 
 # Check if kraken has a job running
@@ -1098,7 +1098,7 @@ helpers do
       @warnings = []
       @warnings << txt
     end
-    return @warnings
+    @warnings
   end
 
   def login?
@@ -1110,6 +1110,6 @@ helpers do
   end
 
   def username
-    return session[:username]
+    session[:username]
   end
 end
