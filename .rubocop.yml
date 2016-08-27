@@ -9,10 +9,24 @@ inherit_from:
 AllCops:
   # Include common Ruby source files.
   Include:
+    - '**/*.gemspec'
+    - '**/*.podspec'
+    - '**/*.jbuilder'
     - '**/*.rake'
+    - '**/*.opal'
     - '**/config.ru'
     - '**/Gemfile'
     - '**/Rakefile'
+    - '**/Capfile'
+    - '**/Guardfile'
+    - '**/Podfile'
+    - '**/Thorfile'
+    - '**/Vagrantfile'
+    - '**/Berksfile'
+    - '**/Cheffile'
+    - '**/Vagabondfile'
+    - '**/Fastfile'
+    - '**/*Fastfile'
   Exclude:
     - 'vendor/**/*'
   # Default formatter will be used if no -f/--format option is given.
