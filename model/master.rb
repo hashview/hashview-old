@@ -73,9 +73,7 @@ class Sessions
   def self.get_username(session_key)
     sess = Sessions.first(session_key: session_key)
 
-    if sess
-      return sess.username
-    end
+    return sess.username if sess
   end
 end
 
