@@ -26,7 +26,7 @@ def update_db_status(id, status)
   # toggle job status
   if done == true
     job.status = 0
-    job.status_detail = "Completed"
+    job.status_detail = 'Completed'
     job.save
   end
 end
@@ -38,9 +38,9 @@ module Jobq
 
     jobtasks = Jobtasks.first(id: id)
 
-    puts "===== creating hashFile ======="
+    puts '===== creating hashFile ======='
     targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
-    hashFile = "control/hashes/hashfile_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
+    hashFile = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
     File.open(hashFile, 'w') do |f|
       targets.each do | entry |
         f.puts entry.originalhash
@@ -48,7 +48,7 @@ module Jobq
       f.close
     end
 
-    puts "===== HashFile Created ======"
+    puts '===== HashFile Created ======'
 
     puts '===== starting job ======='
     update_db_status(id, 'Running')
@@ -60,7 +60,7 @@ module Jobq
     # this assumes a job completed successfully. we need to add check for failures or killed processes
     puts '==== Importing cracked hashes ====='
     jobtasks = Jobtasks.first(id: id)
-    crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
+    crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 
     File.open(crack_file).each_line do |line|
       hash_pass = line.split(/:/)
