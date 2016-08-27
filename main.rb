@@ -493,7 +493,11 @@ post '/job/:id/upload/verify_hashtype' do
 
   filetype = params[:filetype]
   hash = params[:hash]
-  hashtype = params[:hashtype]
+  if params[:manualHash] == '99999'
+    hashtype = params[:manualHash]
+  else
+    hashtype = params[:hashtype]
+  end
 
   hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
