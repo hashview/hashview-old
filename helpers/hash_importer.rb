@@ -116,8 +116,8 @@ def get_mode(hash)
     @modes.push('5500')	# NetNTLMv1-VANILLA / NetNTLMv1+ESS
   elsif hash =~ /^[^\\\/:*?"<>|]{1,20}\\?[^\\\/:*?"<>|]{1,20}[:]{2,3}[^\\\/:*?"<>|]{1,20}:?[^\\\/:*?"<>|]{1,20}:[a-f0-9]{32}:[a-f0-9]+$/
     @modes.push('5600')	# NetNTLMv2
-  else
-    @modes.push('99999')	# Plain text
+  #else
+  #  @modes.push('99999')	# Plain text
   end
   return @modes
 end
@@ -169,8 +169,8 @@ def friendly_to_mode(friendly)
     return '5500'
   elsif friendly == 'NetNTLMv2'
     return '5600'
-  else 
-    return '99999'
+  #else 
+  #  return '99999'
   end
 end
 
