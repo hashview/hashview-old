@@ -158,7 +158,7 @@ get '/home' do
   dict_dir = '/mnt/temp/Dictionaries'
   @dict_available = File.directory?(dict_dir)
 
-  @jobs.each do | j |
+  @jobs.each do |j|
     if j.status
       @alltargets = Targets.all(jobid: j.id)
       @crackedtargets = Targets.all(jobid: j.id, cracked: 1)
@@ -499,7 +499,7 @@ post '/job/:id/upload/verify_hashtype' do
   hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
   hashArray = []
-  File.open(hashfile, 'r').each do | line |
+  File.open(hashfile, 'r').each do |line|
       hashArray << line
   end
 
@@ -826,16 +826,16 @@ get '/purge' do
   @all_cracked = 0
   @all_total = 0
   @targets = Targets.all(fields: [:jobid], unique: true)
-  @targets.each do | entry |
+  @targets.each do |entry|
     @target_jobids.push(entry.jobid)
   end
 
   @jobs = Jobs.all()
-  @jobs.each do | entry |
+  @jobs.each do |entry|
     @job_id_name[entry.id] = entry.name
   end
 
-  @target_jobids.each do | entry |
+  @target_jobids.each do |entry|
     @job_cracked[entry] = Targets.count(jobid: [entry], cracked: 1)
     @all_cracked = @all_cracked + @job_cracked[entry]
     @job_total[entry] = Targets.count(jobid: [entry])
@@ -935,7 +935,7 @@ get '/analytics' do
   # Unique Passwords
   @total_unique_originalhash_count = Set.new
   
-  @total_users_originalhash.each do | entry |
+  @total_users_originalhash.each do |entry|
     @total_unique_users_count.add(entry.username)
     @total_unique_originalhash_count.add(entry.originalhash)
   end
