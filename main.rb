@@ -45,9 +45,7 @@ end
 get '/logout' do
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
-    if sess
-      sess.destroy
-    end
+    sess.destroy if sess
   end
   redirect to('/')
 end
@@ -233,14 +231,10 @@ get '/customer/delete/:id' do
   customer.destroy
 
   jobs = Jobs.all(customer_id: params[:id])
-  if !jobs.empty?
-    jobs.destroy
-  end
+  jobs.destroy unless targets.empty?
 
   targets = Targets.all(customerid: params[:id])
-  if !targets.empty?
-    targets.destroy
-  end
+  targets.destry unless targets.empty?
 
   redirect to ('/customer/list')
 end
@@ -288,9 +282,7 @@ get '/task/create' do
   end
 
   tasks = Tasks.all()
-  if tasks.empty?
-    warning('You need to have tasks before starting a job')
-  end
+  warning('You need to have tasks before starting a job') if tasks.empty?
 
   @rules = []
   # list wordlists that can be used
@@ -381,14 +373,10 @@ get '/job/create' do
   redirect to('/') unless valid_session?
 
   @customers = Customers.all
-  if @customers.empty?
-    redirect to('/customer/create')
-  end
+  redirect to ('/customer/create') if @customers.empty?
 
   @tasks = Tasks.all
-  if @tasks.empty?
-    redirect to('/task/create')
-  end
+  redirect to ('/task/create') if @tasks.empty?
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -404,9 +392,7 @@ end
 post '/job/create' do
   redirect to('/') unless valid_session?
 
-  if !params[:tasks]
-    return 'you must assign tasks to your job'
-  end
+  return 'You must assign a task to your job' unless params[:tasks]
 
   # create new job
   job = Jobs.new
@@ -425,9 +411,8 @@ get '/job/:id/upload/hashfile' do
   redirect to('/') unless valid_session?
 
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists'
-  end
+  return 'No such job exists' unless @job
+
   haml :upload_hashfile
 end
 
@@ -435,9 +420,7 @@ post '/job/:id/upload/hashfile' do
   redirect to('/') unless valid_session?
 
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists'
-  end
+  return 'No such job exists' unless @job
 
   # temporarily save file for testing
   hash = rand(36**8).to_s(36)
@@ -785,9 +768,7 @@ post '/wordlist/upload/' do
   redirect to('/') unless valid_session?
 
   # require param name && file
-  if params[:name].size == 0
-    return 'File Name Required'
-  end
+  return 'File Name Required.' if params[:name].size == 0
 
   # Replace white space with underscore.  We need more filtering here too
   uploadname = params[:name]
@@ -999,9 +980,7 @@ get '/analytics/graph2' do
   end
   @cracked_results.each do |crack|
     if ! crack.plaintext.nil?
-      unless crack.plaintext.length == 0
-        plaintext << crack.plaintext
-      end
+      plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
 
