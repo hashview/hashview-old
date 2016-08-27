@@ -6,14 +6,11 @@ require 'bcrypt'
 DataMapper::Logger.new($stdout, :debug)
 
 # use for mysql
-# DataMapper.setup(:default, 'mysql://USER:PASS@localhost/DB')
+DataMapper.setup(:default, 'mysql://USER:CHANGEME@localhost/hashview')
+# it would be nice to use a yaml file but the associations are not working, specifically "adapter"
+#DataMapper.setup(:default, YAML.load_file("#{Dir.pwd}/config/database.yml"))
 # use for sqlite db
-DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
-
-# we do this to speed up the inserts for large hash imports
-# http://www.sqlite.org/faq.html#q19
-adapter = DataMapper::repository(:default).adapter
-adapter.select('PRAGMA synchronous = OFF;')
+# DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
 
 # User class object to handle user account credentials
 class User
@@ -139,7 +136,7 @@ class Targets
   include DataMapper::Resource
 
   property :id, Serial
-  property :updated_at, DateTime, :default => DateTime.now
+  #property :updated_at, DateTime, :default => DateTime.now
   property :username, String, :length => 2000
   property :originalhash, String, :length => 4000
   property :hashtype, Integer

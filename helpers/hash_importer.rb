@@ -33,7 +33,7 @@ def import_pwdump(hash, customer_id, job_id, type)
     target_lm1.originalhash = lm_hashes[0].downcase
     target_lm1.hashtype = '3000'
     target_lm1.jobid = job_id
-    target_lm1.customerid = customer_id 
+    target_lm1.customerid = customer_id
     target_lm1.cracked = false
     target_lm1.save
 
@@ -46,14 +46,14 @@ def import_pwdump(hash, customer_id, job_id, type)
     target_lm2.cracked = false
     target_lm2.save
   end
-  
+
   # if hashtype is ntlm
   if type == '1000'
     # import NTLM
     target_ntlm = Targets.new
     target_ntlm.username = data[0]
     target_ntlm.originalhash = data[3].downcase
-    target_ntlm.hashtype = '1000' 
+    target_ntlm.hashtype = '1000'
     target_ntlm.jobid = job_id
     target_ntlm.customerid = customer_id
     target_ntlm.cracked = false
@@ -85,6 +85,7 @@ def import_shadow(hash, customer_id, job_id, type)
 end
 
 def import_raw(hash, customer_id, job_id, type)
+
   target_raw = Targets.new
   target_raw.username = 'NULL'
   target_raw.originalhash = hash.downcase
@@ -218,7 +219,7 @@ def detect_hash_type(hashFile, fileType)
       @modes = get_mode(elements[1])
       @modes.each do | mode |
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
-      end   
+      end
     else
       @modes = get_mode(entry)
       @modes.each do | mode |

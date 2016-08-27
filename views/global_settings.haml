@@ -21,7 +21,7 @@
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
                 .col-xs-10
-                  - if ! @settings.maxtasktime.nil?
+                  - if @settings and ! @settings.maxtasktime.nil?
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
                   - else
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"} 86400
@@ -38,4 +38,3 @@
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-danger{:type => "submit"} Purge Data
-

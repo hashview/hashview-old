@@ -1,5 +1,5 @@
 require 'resque'
-require 'dm-sqlite-adapter'
+require 'dm-mysql-adapter'
 require 'data_mapper'
 require './model/master.rb'
 
@@ -39,7 +39,7 @@ module Jobq
     jobtasks = Jobtasks.first(:id => id)
 
     puts "===== creating hashFile ======="
-    targets = Targets.all(:jobid => jobtasks.job_id, :cracked => false)
+    targets = Targets.all(:jobid => jobtasks.job_id, :cracked => false, :fields => [:originalhash])
     hashFile = "control/hashes/hashfile_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
     File.open(hashFile, 'w') do |f|
       targets.each do | entry |
@@ -62,12 +62,11 @@ module Jobq
     jobtasks = Jobtasks.first(:id => id)
     crack_file = "control/outfiles/hc_cracked_" + jobtasks.job_id.to_s + "_" + jobtasks.task_id.to_s + ".txt"
 
-    File.open(crack_file).each do |line|
+    File.open(crack_file).each_line do |line|
       hash_pass = line.split(/:/)
       plaintext = hash_pass[1]
       plaintext = plaintext.chomp
-      #adapter = DataMapper::repository(:default).adapter
-      #adapter.select("PRAGMA synchronous = OFF;")
+      
       # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
       records = Targets.all(:originalhash => hash_pass[0])
       # Yes its slow... we know.
