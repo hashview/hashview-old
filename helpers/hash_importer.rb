@@ -19,9 +19,7 @@ end
 def import_pwdump(hash, customer_id, job_id, type)
 
   data = hash.split(':')
-  if machine_acct?(data[0])
-    return
-  end
+  return if machine_acct?(data[0])
 
   # if hashtype is lm
   if type == '3000'
