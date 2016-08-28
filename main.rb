@@ -1000,6 +1000,51 @@ get '/analytics/graph2' do
   return @toppasswords.to_json
 end
 
+# callback for d3 graph displaying top 10 base words
+get '/analytics/graph3' do
+  plaintext = []
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+    else
+      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+    end
+  else
+    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
+  end
+  @cracked_results.each do |crack|
+    if !crack.plaintext.nil?
+      plaintext << crack.plaintext unless crack.plaintext.length == 0
+    end
+  end
+
+  @topbasewords = []
+  @top10basewords = {}
+  # get top 10 basewords
+  plaintext.each do |pass|
+    word_just_alpha = pass.gsub(/^[^a-z]*/i, "").gsub(/[^a-z]*$/i, '')
+    if @top10basewords[word_just_alpha].nil?
+      @top10basewords[word_just_alpha] = 1
+    else
+      @top10basewords[word_just_alpha] += 1
+    end
+  end
+
+  # sort and convert to array of json objects for d3
+  @top10basewords = @top10basewords.sort_by {|key, value| value}.reverse.to_h
+  # we only need top 10
+  @top10basewords = Hash[@top10basewords.sort_by { |k,v| -v}[0..9]]
+  # convert to array of json objects for d3
+  @top10basewords.each do |key, value|
+    @topbasewords << {password: key, count: value}
+  end
+
+  p @topbasewords.to_s
+
+  return @topbasewords.to_json
+end
+
+
 ############################
 
 ##### search ###############
