@@ -273,3 +273,72 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
+          .col-md-12
+            .panel.panel-default
+              .panel-heading
+                %b Top 10 Base Words
+              .panel-body
+                %div{:id =>"chart4"}
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                  // set the dimensions and margins of the graph
+                  var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                      width = 600 - margin.left - margin.right,
+                      height = 350 - margin.top - margin.bottom;
+
+                  // set the ranges
+                  var x = d3.scaleBand()
+                            .range([0, width])
+                            .padding(0.1);
+                  var y = d3.scaleLinear()
+                            .range([height, 0]);
+
+                  // append the svg object to the body of the page
+                  // append a 'group' element to 'svg'
+                  // moves the 'group' element to the top left margin
+                  var visual4 = d3.select("#chart4").append("svg")
+                      .attr("width", width + margin.left + margin.right)
+                      .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                      .attr("transform",
+                            "translate(" + margin.left + "," + margin.top + ")");
+
+                  // get the data
+                  var url = '/analytics/graph3?custid=#{@custid}&jobid=#{@jobid}';
+                  d3.json(url, function(error, data) {
+                    if (error) throw error;
+                    console.log(data)
+
+                    // format the data
+                    data.forEach(function(d) {
+                      d.count = +d.count;
+                    });
+
+                    // Scale the range of the data in the domains
+                    x.domain(data.map(function(d) { return d.password; }));
+                    y.domain([0, d3.max(data, function(d) { return d.count; })]);
+
+                    // append the rectangles for the bar chart
+                    visual4.selectAll("#chart5")
+                        .data(data)
+                      .enter().append("rect")
+                        .attr("class", "bar")
+                        .attr("x", function(d) { return x(d.password); })
+                        .attr("width", x.bandwidth())
+                        .attr("y", function(d) { return y(d.count); })
+                        .attr("height", function(d) { return height - y(d.count); })
+                        .attr("fill", "#337ab7");
+
+                    // add the x Axis
+                    visual4.append("g")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(d3.axisBottom(x));
+
+                    // add the y Axis
+                    visual4.append("g")
+                        .call(d3.axisLeft(y));
+                  });
+                  </script>
+
+
