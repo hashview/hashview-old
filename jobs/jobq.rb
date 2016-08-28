@@ -74,7 +74,6 @@ module Jobq
           entry.cracked = 1
           entry.plaintext = plaintext
         end
-        puts '==== Actually importing ====='
         records.save
       end
   
