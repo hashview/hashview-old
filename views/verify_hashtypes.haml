@@ -49,10 +49,16 @@
                         %input{:type=>"hidden", :value=>"#{params[:filetype].to_s}", :name=>:filetype}
                       .section
                         %div{:class => "label_leftalign field"}
-                          #manual_div{:style => "display:none"}
-                            %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
-                            .col-xs-4
-                              <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
+                          - if @hashtypes.size == 0
+                            #manual_div{:style => "display:inline"}
+                              %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                              .col-xs-4
+                                <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
+                          - else  
+                            #manual_div{:style => "display:none"}
+                              %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                              .col-xs-4
+                                <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
                     .form-group
                       .col-xs-offset-2.col-xs-10
                         %button.btn.btn-primary{:type => "submit"} Confirm

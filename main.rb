@@ -470,7 +470,7 @@ post '/job/:id/upload/verify_hashtype' do
 
   filetype = params[:filetype]
   hash = params[:hash]
-  if params[:manualHash] == '99999'
+  if params[:hashtype] == '99999'
     hashtype = params[:manualHash]
   else
     hashtype = params[:hashtype]
