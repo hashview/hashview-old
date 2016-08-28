@@ -5,39 +5,44 @@
     .span15
       .row
         .container
-          .col-md-2.pull-right
-            .btn-group
-              .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
-                - if @custid.nil?
-                  All Customers
-                - else
-                  #{@customers.name}
-                %span.caret
-              %ul.dropdown-menu
-                %li
-                  %a{:href => "/analytics"} All Customers
-                %li.divider{:role => "separator"}
-                - @button_select_customers.each do |customer|
+          .col-md-12
+            .form-group.text-right
+              %label.control-label{:for => ""} Customer:
+              .btn-group
+                .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
+                  - if @custid.nil?
+                    All
+                  - else
+                    #{@customers.name}
+                  %span.caret
+                %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
-            - if @custid
-              .btn.btn-primary.dropdown-toggle{"data-toggle" => "dropdown"}
-                - if @jobid.nil?
-                  All Jobs
-                - else
-                  #{@jobs.name}
-                %span.caret
-              %ul.dropdown-menu
-                %li
-                  %a{:href => "/analytics?custid=#{@custid}"} All Jobs
-                %li.divider{:role => "separator"}
-                - @button_select_jobs.each do |job|
+                    %a{:href => "/analytics"} All
+                  %li.divider{:role => "separator"}
+                  - @button_select_customers.each do |customer|
+                    %li
+                      %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
+              - if @custid
+                &nbsp
+                %label.control-label.text-right{:for => ""} Job:
+                .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
+                  - if @jobid.nil?
+                    All Jobs
+                  - else
+                    #{@jobs.name}
+                  %span.caret
+                %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}             
-          .col-md-10
+                    %a{:href => "/analytics?custid=#{@custid}"} All
+                  %li.divider{:role => "separator"}
+                  - @button_select_jobs.each do |job|
+                    %li
+                      %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}
+                &nbsp
+          .col-md-12
             .page-header
               %h1
-                Password Analysis: 
+                Password Analysis:
                 - if @custid.nil?
                   All Customers
                 - else
@@ -123,10 +128,10 @@
                   %table{:class => 'table'}
                     %tr
                       - if @jobid.nil?
-                        %td 
+                        %td
                           %b Job: All Jobs
                       -else
-                        %td 
+                        %td
                           %b Job: #{@jobs.name}
                     %tr
                       %td Total Accounts: #{@total_accounts}
