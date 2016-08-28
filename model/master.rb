@@ -6,9 +6,9 @@ require 'bcrypt'
 DataMapper::Logger.new($stdout, :debug)
 
 # use for mysql
-DataMapper.setup(:default, 'mysql://root:password@localhost/hashview')
-# it would be nice to use a yaml file but the associations are not working, specifically "adapter"
-#DataMapper.setup(:default, YAML.load_file("#{Dir.pwd}/config/database.yml"))
+options = YAML.load_file('config/database.yml')
+DataMapper.setup(:default, options['default'])
+
 # use for sqlite db
 # DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
 

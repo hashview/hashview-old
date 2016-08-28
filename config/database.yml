@@ -1,0 +1,7 @@
+default:
+  adapter: mysql
+  hostname: "localhost"
+  port: 3306
+  user: "root"
+  password: "password"
+  database: "hashview"
