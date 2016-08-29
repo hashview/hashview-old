@@ -641,7 +641,7 @@ get '/job/stop/:jobid/:taskid' do
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v sudo | awk '{print $2}'`
+  pid = `sudo ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v sudo | awk '{print $2}'`
   pid = pid.chomp
 
   # update jobtasks to "canceled"
@@ -649,7 +649,7 @@ get '/job/stop/:jobid/:taskid' do
   jt.save
 
   # Kill jobtask
-  `kill -9 #{pid}`
+  `sudo kill -9 #{pid}`
 
   redirect to ('/home')
 end

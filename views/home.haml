@@ -11,12 +11,9 @@
               .panel.panel-primary
                 .panel-heading
                   %h3.panel-title
-                    The following hashcat job/s are running:
                 - if @results.length > 1
                   .panel-body
-                    %a.btn.btn-danger{:href => "/process/kill/#{@results.to_s.split()[1]}"}
-                      %i.glyphicon.glyphicon-remove{:title => 'Delete'}
-                      %b Stop Current Job
+                    The following hashcat job/s are running:
                     %p
                     #{@results}
                     %br
