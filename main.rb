@@ -226,14 +226,14 @@ end
 get '/customer/delete/:id' do
   redirect to('/') unless valid_session?
 
-  customer = Customers.first(id: params[:id])
-  customer.destroy
+  @customer = Customers.first(id: params[:id])
+  @customer.destroy unless @customer.nil?
 
-  jobs = Jobs.all(customer_id: params[:id])
-  jobs.destroy unless targets.empty?
+  @jobs = Jobs.all(customer_id: params[:id])
+  @jobs.destroy unless @jobs.nil?
 
-  targets = Targets.all(customerid: params[:id])
-  targets.destry unless targets.empty?
+  @targets = Targets.all(customerid: params[:id])
+  @targets.destroy unless @targets.nil?
 
   redirect to ('/customer/list')
 end
