@@ -143,13 +143,13 @@
                       %td
                         - if @custid.nil? 
                           %a.btn.btn-primary.pull-left{:href => "/download"}
-                            Cracked Results
+                            Download Cracked File
                         - elsif @custid && @jobid.nil?
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                            Cracked Results 
+                            Download Cracked File 
                         - elsif @custid && @jobid
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&jobid=#{@jobid}"}
-                            Cracked Results 
+                            Download Cracked File 
                         - else
                           You shouldnt see me
                         
