@@ -731,22 +731,40 @@ end
 
 ##### Downloads ############
 
-get '/download/cracked/:jobid' do
+get '/download' do
   redirect to('/') unless valid_session?
 
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
+      @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], customerid: params[:custid], jobid: params[:jobid], cracked: '1')
+    else
+      @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], customerid: params[:custid], cracked: 1)
+    end
+  else
+    @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], cracked: 1)
+  end
+  
   # Write temp output file
-  jobs = Jobs.first(id: params[:jobid])
-  fileName = 'control/outfiles/found_' + params[:jobid].to_s + '.txt'
-  crack_results = Targets.all(jobid: params[:jobid], cracked: true)
+  if params[:custid] && !params[:custid].empty?
+    if params[:jobid] && !params[:jobid].empty?
+      fileName = "found_#{params[:custid]}_#{params[:jobid]}.txt"
+    else
+      fileName = "found_#{params[:custid]}.txt"
+    end
+  else
+    fileName = "found_all.txt"
+  end
+
+  fileName = 'control/outfiles/' + fileName
 
   File.open(fileName, 'w') do |f|
-    crack_results.each do |entry|
+    @cracked_results.each do |entry|
       line = entry.username + ':' + entry.originalhash + ':' + entry.plaintext
       f.puts line
     end
   end
-  save_name = 'cracked_values_ ' + jobs.name.to_s.tr(' ', '_') + '.txt'
-  send_file fileName, filename: save_name, type: 'Application/octet-stream'
+  send_file fileName, filename: fileName, type: 'Application/octet-stream'
+
   redirect to('/job/list')
 end
 
