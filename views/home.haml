@@ -70,6 +70,10 @@
                                       %span.label.label-success #{jt.status}
                                     - else
                                       %span.label.label-default #{jt.status}
+                                %td
+                                  - if jt.status == "Running"
+                                    %a.btn.btn-danger{:href => "/job/stop/#{job.id}/#{task.id}"}
+                                      %b Stop
                   %br
           .col-md-4
             .table

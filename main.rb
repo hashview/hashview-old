@@ -632,6 +632,28 @@ get '/job/stop/:id' do
   redirect to('/job/list')
 end
 
+get '/job/stop/:jobid/:taskid' do
+  redirect to ('/') unless valid_session?
+
+  # validate if running
+  jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
+  if not jt.status == 'Running'
+    return 'That specific Job and Task is not currently running.'
+  end
+  # find pid
+  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v sudo | awk '{print $2}'`
+  pid = pid.chomp
+
+  # update jobtasks to "canceled"
+  jt.status = 'Canceled'
+  jt.save
+
+  # Kill jobtask
+  `kill -9 #{pid}`
+
+  redirect to ('/home')
+end
+
 get '/process/kill/:id' do
   redirect to('/') unless valid_session?
 
