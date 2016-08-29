@@ -654,14 +654,6 @@ get '/job/stop/:jobid/:taskid' do
   redirect to ('/home')
 end
 
-get '/process/kill/:id' do
-  redirect to('/') unless valid_session?
-
-  @result = `sudo kill -9 #{params[:id]}`
-  p @result
-  redirect to('/home')
-end
-
 ############################
 
 ##### job controllers #####
