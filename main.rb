@@ -764,6 +764,7 @@ get '/download' do
     end
   end
   send_file fileName, filename: fileName, type: 'Application/octet-stream'
+
   redirect to('/job/list')
 end
 
