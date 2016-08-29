@@ -139,6 +139,21 @@
                       %td Total Unique Users: #{@total_unique_users_count.size}
                     %tr
                       %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
+                    %tr
+                      %td
+                        - if @custid.nil? 
+                          %a.btn.btn-primary.pull-left{:href => "/download"}
+                            Cracked Results
+                        - elsif @custid && @jobid.nil?
+                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
+                            Cracked Results 
+                        - elsif @custid && @jobid
+                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&jobid=#{@jobid}"}
+                            Cracked Results 
+                        - else
+                          You shouldnt see me
+                        
+
           .col-md-12
             .panel.panel-default
               .panel-heading
