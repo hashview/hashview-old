@@ -618,7 +618,7 @@ get '/job/stop/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if not jt.status == 'Completed'
+    if not jt.status == 'Completed' and not jt.status == 'Running'
       jt.status = 'Canceled'
       jt.save
       #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
@@ -626,6 +626,13 @@ get '/job/stop/:id' do
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
       Resque::Job.destroy('hashcat', Jobq, jt.id, cmd)
+    end
+  end
+
+  tasks.each do |task|
+    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+    if jt.status == 'Running'
+      redirect to ("/job/stop/#{jt.job_id}/#{jt.task_id}")
     end
   end
 
@@ -651,7 +658,16 @@ get '/job/stop/:jobid/:taskid' do
   # Kill jobtask
   `sudo kill -9 #{pid}`
 
-  redirect to ('/home')
+  referer = request.referer.split('/')
+ 
+
+  p "REFERER: " + referer[3]
+
+  if referer[3] == 'home'
+    redirect to('/home')
+  elsif referer[3] == '/job'
+    redirect to('/job/list')
+  end
 end
 
 ############################
