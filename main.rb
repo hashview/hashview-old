@@ -618,7 +618,7 @@ get '/job/stop/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if not jt.status == 'Completed'
+    if not jt.status == 'Completed' and not jt.status == 'Running'
       jt.status = 'Canceled'
       jt.save
       #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
@@ -629,15 +629,45 @@ get '/job/stop/:id' do
     end
   end
 
+  tasks.each do |task|
+    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+    if jt.status == 'Running'
+      redirect to ("/job/stop/#{jt.job_id}/#{jt.task_id}")
+    end
+  end
+
   redirect to('/job/list')
 end
 
-get '/process/kill/:id' do
-  redirect to('/') unless valid_session?
+get '/job/stop/:jobid/:taskid' do
+  redirect to ('/') unless valid_session?
 
-  @result = `sudo kill -9 #{params[:id]}`
-  p @result
-  redirect to('/home')
+  # validate if running
+  jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
+  if not jt.status == 'Running'
+    return 'That specific Job and Task is not currently running.'
+  end
+  # find pid
+  pid = `sudo ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v sudo | awk '{print $2}'`
+  pid = pid.chomp
+
+  # update jobtasks to "canceled"
+  jt.status = 'Canceled'
+  jt.save
+
+  # Kill jobtask
+  `sudo kill -9 #{pid}`
+
+  referer = request.referer.split('/')
+ 
+
+  p "REFERER: " + referer[3]
+
+  if referer[3] == 'home'
+    redirect to('/home')
+  elsif referer[3] == '/job'
+    redirect to('/job/list')
+  end
 end
 
 ############################
