@@ -84,25 +84,47 @@ end
 
 def import_raw(hash, customer_id, job_id, type)
 
-  target_raw = Targets.new
-  target_raw.username = 'NULL'
-  target_raw.originalhash = hash.downcase
-  target_raw.hashtype = type
-  target_raw.jobid = job_id
-  target_raw.customerid = customer_id
-  target_raw.cracked = false
-  target_raw.save
+  if type == '3000'
+  # import LM
+    lm_hashes = hash.scan(/.{16}/)
+
+    target_lm1 = Targets.new
+    target_lm1.originalhash = lm_hashes[0].downcase
+    target_lm1.hashtype = '3000'
+    target_lm1.jobid = job_id
+    target_lm1.customerid = customer_id
+    target_lm1.cracked = false
+    target_lm1.save
+
+    target_lm2 = Targets.new
+    target_lm2.originalhash = lm_hashes[1].downcase
+    target_lm2.hashtype = '3000'
+    target_lm2.jobid = job_id
+    target_lm2.customerid = customer_id
+    target_lm2.cracked = false
+    target_lm2.save
+
+  else
+    target_raw = Targets.new
+    target_raw.originalhash = hash.downcase
+    target_raw.hashtype = type
+    target_raw.jobid = job_id
+    target_raw.customerid = customer_id
+    target_raw.cracked = false
+    target_raw.save
+  end
 end
 
 def get_mode(hash)
   @modes = []
   if hash =~ /^\w{32}$/
     @modes.push('1000') # NTLM
+    @modes.push('3000') # LM (in pwdump format)
     @modes.push('0')	# MD5
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
-    @modes.push('3000') # LM
+    @modes.push('3000') # LM 
   elsif hash =~ /\$\d+\$.{53}$/
     @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
   elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
