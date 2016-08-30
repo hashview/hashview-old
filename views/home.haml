@@ -107,11 +107,16 @@
                 %tbody
                   -if @recentlycracked
                     %td
+                      %strong Company
+                    %td
                       %strong Username
                     %td
                       %strong Password
                     - @recentlycracked.each do |cracked|
                       %tr
+                      - @customers.each do | customer |
+                        - if customer.id == cracked.customerid
+                          %td #{customer.name}
                         %td #{cracked.username}
                         %td #{cracked.plaintext}
                   -else
