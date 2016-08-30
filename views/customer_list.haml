@@ -46,10 +46,8 @@
                         %td
                           %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/customer/delete/#{customer.id}"}
+                          %a.btn.btn-danger{:href => "#modal#{customer.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
-                          %a.btn.btn-info{:href => "#modal#{customer.id}", "data-toggle" => 'modal'}
-                            %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
                           .modal.fade.modal{:id => "modal#{customer.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
                             .modal-dialog.modal-lg
                               .modal-content
