@@ -33,8 +33,6 @@
                     %th
                       %b Description
                     %th
-                      %b Total Jobs
-                    %th
                       %b Control
                 %tbody
                   - if @customers
@@ -42,9 +40,31 @@
                       %tr
                         %td #{customer.name}
                         %td #{customer.description}
-                        %td TO DO
                         %td
                           %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/customer/delete/#{customer.id}"}
+                          %a.btn.btn-danger{:href => "#modal#{customer.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          .modal.fade.modal{:id => "modal#{customer.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                            .modal-dialog.modal-lg
+                              .modal-content
+                                .modal-header
+                                  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+                                    %span{"aria-hidden" => "true"} &times;
+                                  %h4.modal-title Remove #{customer.name}?
+                                .modal-body
+                                  %p 
+                                    By confirming, you will delete all instances related to this customer including the following: 
+                                  %br
+                                  .table
+                                    %table{:class => 'table'}
+                                      %tr
+                                        %td Total Associated Jobs: #{@total_jobs[customer.id]}
+                                      %tr
+                                        %td Total Associated Hashes: #{@total_hashes[customer.id]}
+                                      %tr 
+                                        %td
+                                .modal-footer
+                                  %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+                                  %a.btn.btn-danger{:type => "button", :href => "/customer/delete/#{customer.id}"} Confirm
+
