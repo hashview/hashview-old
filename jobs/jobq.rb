@@ -76,16 +76,19 @@ module Jobq
         end
         records.save
       end
-  
-      File.close(crack_file)
     end
 
     puts '==== import complete ===='
 
-    File.delete(crack_file)
- 
-    puts '==== deleting old hashfile ===='
+    begin
+      File.delete(crack_file)
+      File.delete(hashFile)
 
+    rescue SystemCallError
+      p "ERROR: " + $!
+    end
+
+    puts '==== Crack File Deleted ===='
 
     update_db_status(id, 'Completed')
 
