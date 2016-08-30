@@ -132,6 +132,7 @@ get '/home' do
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
+  @customers = Customers.all
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env

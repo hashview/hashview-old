@@ -38,7 +38,10 @@
                   - @jobs.each do |job|
                     - if job.status
                       - activejob = true
-                      active job: #{job.name} (id: #{job.id})
+                      Active job for: 
+                      - @customers.each do | customer |
+                        - if customer.id == job.customer_id
+                          #{customer.name}                      
                   %br
                   - if not activejob
                     %br
