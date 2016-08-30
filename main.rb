@@ -665,7 +665,7 @@ get '/job/stop/:jobid/:taskid' do
 
   if referer[3] == 'home'
     redirect to('/home')
-  elsif referer[3] == '/job'
+  elsif referer[3] == 'job'
     redirect to('/job/list')
   end
 end
@@ -765,7 +765,6 @@ get '/download' do
   end
   send_file fileName, filename: fileName, type: 'Application/octet-stream'
 
-  redirect to('/job/list')
 end
 
 ############################
