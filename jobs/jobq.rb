@@ -2,6 +2,7 @@ require 'resque'
 require 'dm-mysql-adapter'
 require 'data_mapper'
 require './model/master.rb'
+require 'benchmark'
 
 def updateDbStatus(id, status)
   jobtask = Jobtasks.first(id: id)
@@ -54,8 +55,11 @@ module Jobq
     updateDbStatus(id, 'Running')
     puts id
     puts cmd
-    system(cmd)
+    time = Benchmark.realtime do
+      system(cmd)
+    end
     puts 'job completed'
+    puts "And it only took: #{time*1000*60} seconds"
 
     # this assumes a job completed successfully. we need to add check for failures or killed processes
     puts '==== Importing cracked hashes ====='
