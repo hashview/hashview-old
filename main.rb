@@ -744,12 +744,12 @@ get '/download' do
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], customerid: params[:custid], jobid: params[:jobid], cracked: '1')
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], jobid: params[:jobid], cracked: '1')
     else
-      @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], customerid: params[:custid], cracked: 1)
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], cracked: 1)
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext,:originalhash,:username], cracked: 1)
+    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
   end
   
   # Write temp output file
@@ -1046,7 +1046,7 @@ get '/analytics/graph2' do
   # sort and convert to array of json objects for d3
   @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k,v| -v}[0..9]]
+  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v}[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
     @toppasswords << {password: key, count: value}
@@ -1088,7 +1088,7 @@ get '/analytics/graph3' do
   # sort and convert to array of json objects for d3
   @top10basewords = @top10basewords.sort_by {|key, value| value}.reverse.to_h
   # we only need top 10
-  @top10basewords = Hash[@top10basewords.sort_by { |k,v| -v}[0..9]]
+  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v}[0..9]]
   # convert to array of json objects for d3
   @top10basewords.each do |key, value|
     @topbasewords << {password: key, count: value}
