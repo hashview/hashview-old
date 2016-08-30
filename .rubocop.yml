@@ -664,7 +664,7 @@ Style/MethodDefParentheses:
     - require_no_parentheses_except_multiline
 
 Style/MethodName:
-  EnforcedStyle: snake_case
+  EnforcedStyle: camelCase
   SupportedStyles:
     - snake_case
     - camelCase

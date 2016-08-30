@@ -2,7 +2,7 @@ require 'rubygems'
 require 'sinatra'
 require './model/master'
 
-def detected_hash_format(hash)
+def detectedHashFormat(hash)
   # Detect if pwdump file format
   if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
     return 'pwdump'
@@ -16,10 +16,10 @@ def detected_hash_format(hash)
   end
 end
 
-def import_pwdump(hash, customer_id, job_id, type)
+def importPwdump(hash, customer_id, job_id, type)
 
   data = hash.split(':')
-  return if machine_acct?(data[0])
+  return if machineAcct?(data[0])
 
   # if hashtype is lm
   if type == '3000'
@@ -60,7 +60,7 @@ def import_pwdump(hash, customer_id, job_id, type)
   #return 0
 end
 
-def machine_acct?(username)
+def machineAcct?(username)
   if username =~ /\$/
     return true
   else
@@ -69,7 +69,7 @@ def machine_acct?(username)
 end
 
 
-def import_shadow(hash, customer_id, job_id, type)
+def importShadow(hash, customer_id, job_id, type)
 
   data = hash.split(':')
   target = Targets.new
@@ -82,7 +82,7 @@ def import_shadow(hash, customer_id, job_id, type)
   target.save
 end
 
-def import_raw(hash, customer_id, job_id, type)
+def importRaw(hash, customer_id, job_id, type)
 
   if type == '3000'
   # import LM
@@ -115,7 +115,7 @@ def import_raw(hash, customer_id, job_id, type)
   end
 end
 
-def get_mode(hash)
+def getMode(hash)
   @modes = []
   if hash =~ /^\w{32}$/
     @modes.push('1000') # NTLM
@@ -142,7 +142,7 @@ def get_mode(hash)
   @modes
 end
 
-def mode_to_friendly(mode)
+def modeToFriendly(mode)
   if mode == '0'
     return 'MD5'
   elsif mode == '1000'
@@ -168,7 +168,7 @@ def mode_to_friendly(mode)
   end
 end
 
-def friendly_to_mode(friendly)
+def friendlyToMode(friendly)
   if friendly == 'MD5'
     return '0'
   elsif friendly == 'NTLM'
@@ -192,27 +192,27 @@ def friendly_to_mode(friendly)
   end
 end
 
-def import_hash(hashFile, customer_id, job_id, filetype, hashtype)
+def importHash(hashFile, customer_id, job_id, filetype, hashtype)
   hashFile.each do |entry|
     if filetype == 'pwdump'
-      import_pwdump(entry.chomp, customer_id, job_id, hashtype)
+      importPwdump(entry.chomp, customer_id, job_id, hashtype)
     elsif filetype == 'shadow'
-      import_shadow(entry.chomp, customer_id, job_id, hashtype)
+      importShadow(entry.chomp, customer_id, job_id, hashtype)
     elsif filetype == 'raw'
-      import_raw(entry.chomp, customer_id, job_id, hashtype)
+      importRaw(entry.chomp, customer_id, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
   end
 end
 
-def detect_hashfile_type(hashFile)
+def detectHashfileType(hashFile)
 
   @filetypes = []
   File.readlines(hashFile).each do |entry|
-    if detected_hash_format(entry.chomp) == 'pwdump'
+    if detectedHashFormat(entry.chomp) == 'pwdump'
       @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
-    elsif detected_hash_format(entry.chomp) == 'shadow'
+    elsif detectedHashFormat(entry.chomp) == 'shadow'
       @filetypes.push('shadow') unless @filetypes.include?('shadow')
     else
       @filetypes.push('raw') unless @filetypes.include?('raw')
@@ -222,28 +222,28 @@ def detect_hashfile_type(hashFile)
   @filetypes
 end
 
-def detect_hash_type(hashFile, fileType)
+def detectHashType(hashFile, fileType)
 
   @hashtypes = []
   File.readlines(hashFile).each do |entry|
     if fileType == 'pwdump'
       elements = entry.split(':')
-      @modes = get_mode(elements[2])
+      @modes = getMode(elements[2])
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
       end
-      @modes = get_mode(elements[3])
+      @modes = getMode(elements[3])
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
     elsif fileType == 'shadow'
       elements = entry.split(':')
-      @modes = get_mode(elements[1])
+      @modes = getMode(elements[1])
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
     else
-      @modes = get_mode(entry)
+      @modes = getMode(entry)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end

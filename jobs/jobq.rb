@@ -3,7 +3,7 @@ require 'dm-mysql-adapter'
 require 'data_mapper'
 require './model/master.rb'
 
-def update_db_status(id, status)
+def updateDbStatus(id, status)
   jobtask = Jobtasks.first(id: id)
   jobtask.status = status
   jobtask.save
@@ -51,7 +51,7 @@ module Jobq
     puts '===== HashFile Created ======'
 
     puts '===== starting job ======='
-    update_db_status(id, 'Running')
+    updateDbStatus(id, 'Running')
     puts id
     puts cmd
     system(cmd)
@@ -90,7 +90,7 @@ module Jobq
 
     puts '==== Crack File Deleted ===='
 
-    update_db_status(id, 'Completed')
+    updateDbStatus(id, 'Completed')
 
   end
 end
