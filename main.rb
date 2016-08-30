@@ -253,8 +253,8 @@ end
 get '/task/list' do
   redirect to('/') unless validSession?
 
-  @tasks = Tasks.all()
-  @wordlists = Wordlists.all()
+  @tasks = Tasks.all
+  @wordlists = Wordlists.all
 
   haml :task_list
 end
@@ -288,7 +288,7 @@ get '/task/create' do
     return 'You must define hashcat\'s binary path in global settings first.'
   end
 
-  tasks = Tasks.all()
+  tasks = Tasks.all
   warning('You need to have tasks before starting a job') if tasks.empty?
 
   @rules = []
@@ -298,7 +298,7 @@ get '/task/create' do
       @rules << item
   end
 
-  @wordlists = Wordlists.all()
+  @wordlists = Wordlists.all
 
   haml :task_create
 end
@@ -306,7 +306,7 @@ end
 post '/task/create' do
   redirect to('/') unless validSession?
 
-  settings = Settings.first()
+  settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
   puts wordlist.path
 
@@ -717,7 +717,7 @@ post '/settings' do
 
   values = request.POST
 
-  @settings = Settings.first()
+  @settings = Settings.first
 
   if @settings == nil
     # create settings for the first time
@@ -782,7 +782,7 @@ end
 get '/wordlist/list' do
   redirect to('/') unless validSession?
 
-  @wordlists = Wordlists.all()
+  @wordlists = Wordlists.all
 
   haml :wordlist_list
 end
@@ -861,7 +861,7 @@ get '/purge' do
     @target_jobids.push(entry.jobid)
   end
 
-  @jobs = Jobs.all()
+  @jobs = Jobs.all
   @jobs.each do |entry|
     @job_id_name[entry.id] = entry.name
   end
@@ -880,7 +880,7 @@ get '/purge/:id' do
   redirect to('/') unless validSession?
 
   if params[:id] == 'all'
-    @targets = Targets.all()
+    @targets = Targets.all
     @targets.destroy
   else
     @targets = Targets.all(jobid: params[:id])
