@@ -140,6 +140,8 @@
                     %tr
                       %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
                     %tr
+                      %td Total Run time: #{@total_run_time} Seconds
+                    %tr
                       %td
                         - if @custid.nil? 
                           %a.btn.btn-primary.pull-left{:href => "/download"}

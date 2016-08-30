@@ -113,6 +113,7 @@ class Jobtasks
   property :build_cmd, String, length: 5000
   # status options should be "Running", "Paused", "Not Started", "Completed", "Queued", "Failed", "Canceled"
   property :status, String
+  property :run_time, Integer
 end
 
 # Task definitions
