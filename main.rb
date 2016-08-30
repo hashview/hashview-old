@@ -933,6 +933,8 @@ get '/analytics' do
       # Used for Total Unique Users and originalhashes Table: Customer: Job
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid], jobid: params[:jobid])
 
+      # Used for Total Run Time: Customer: Job
+      @total_run_time = Jobtasks.sum(:run_time, :conditions => ["job_id = #{params[:jobid]}"])
     else
       # Used for Total Hashes Cracked doughnut: Customer
       @cracked_pw_count = Targets.count(customerid: params[:custid], cracked: 1)
@@ -943,6 +945,15 @@ get '/analytics' do
 
       # Used for Total Unique Users and original hashes Table: Customer
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
+ 
+      # Used for Total Run Time: Customer:
+      # I'm ashamed of the code below
+      @jobs = Jobs.all(customer_id: params[:custid])
+      @total_run_time = 0
+      @jobs.each do |job|
+        @query_results = Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
+        @total_run_time = @total_run_time + @query_results
+      end
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -954,6 +965,9 @@ get '/analytics' do
 
     # Used for Total Unique Users and originalhashes Tables: Total
     @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
+
+    # Used for Total Run Time:
+    @total_run_time = Jobtasks.sum(:run_time)
   end
 
   @passwords = @cracked_results.to_json
@@ -1181,7 +1195,6 @@ def isKrakenBusy?
 end
 
 def assignTasksToJob(tasks, job_id)
-  job = Jobs.first(id: job_id)
   tasks.each do |task_id|
     jobtask = Jobtasks.new
     jobtask.job_id = job_id

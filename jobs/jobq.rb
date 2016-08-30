@@ -2,6 +2,7 @@ require 'resque'
 require 'dm-mysql-adapter'
 require 'data_mapper'
 require './model/master.rb'
+require 'benchmark'
 
 def updateDbStatus(id, status)
   jobtask = Jobtasks.first(id: id)
@@ -31,6 +32,12 @@ def updateDbStatus(id, status)
   end
 end
 
+def updateDbRunTime(id, run_time)
+  jobtask = Jobtasks.first(id: id)
+  jobtask.run_time = run_time
+  jobtask.save
+end
+
 module Jobq
   @queue = :hashcat
 
@@ -54,8 +61,11 @@ module Jobq
     updateDbStatus(id, 'Running')
     puts id
     puts cmd
-    system(cmd)
+    run_time = Benchmark.realtime do
+      system(cmd)
+    end
     puts 'job completed'
+    puts "And it only took: #{run_time} seconds"
 
     # this assumes a job completed successfully. we need to add check for failures or killed processes
     puts '==== Importing cracked hashes ====='
@@ -91,6 +101,7 @@ module Jobq
     puts '==== Crack File Deleted ===='
 
     updateDbStatus(id, 'Completed')
+    updateDbRunTime(id, run_time)
 
   end
 end
