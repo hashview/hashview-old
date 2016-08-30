@@ -97,8 +97,8 @@ end
 def get_mode(hash)
   @modes = []
   if hash =~ /^\w{32}$/
+    @modes.push('1000') # NTLM
     @modes.push('0')	# MD5
-    @modes.push('1000')	# NTLM
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
