@@ -71,23 +71,33 @@ module Jobq
     puts '==== Importing cracked hashes ====='
     jobtasks = Jobtasks.first(id: id)
     crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+
+    results = []
     if !File.zero?(crack_file)
       File.open(crack_file).each_line do |line|
-        hash_pass = line.split(/:/)
-        plaintext = hash_pass[1]
-        plaintext = plaintext.chomp
-      
-        # This will pull all hashes from DB regardless of job id, or if previously cracked from another job
-        records = Targets.all(originalhash: hash_pass[0])
-        # Yes its slow... we know.
-        records.each do |entry|
-          entry.cracked = 1
-          entry.plaintext = plaintext
+        results << line
+      end
+
+      @records = Targets.all(fields: [:id, :cracked, :originalhash])
+      @records.each do |records_entry|
+        if results.size == 0
+          break
         end
-        records.save
+        results.each do |results_entry|
+          hash_pass = results_entry.split(/:/)
+          if records_entry.originalhash == hash_pass[0]
+            records_entry.cracked = 1
+            plaintext = hash_pass[1]
+            plaintext = plaintext.chomp
+            records_entry.plaintext = plaintext
+            records_entry.save
+            results.delete(results_entry)
+            break
+          end
+        end
       end
     end
-
+    
     puts '==== import complete ===='
 
     begin
