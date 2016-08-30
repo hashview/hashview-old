@@ -43,7 +43,7 @@
                       .col-xs-3
                         %select.form-control{:id => "hashtype", :name => "hashtype", :onchange => "showDiv()"}
                           - @hashtypes.each do |type|
-                            %option{:value => "#{type}", :name => "hashtype", :type => "button"} #{mode_to_friendly(type)}
+                            %option{:value => "#{type}", :name => "hashtype", :type => "button"} #{modeToFriendly(type)}
                           %option{:value => "99999", :name => "hashtype", :type => "button"} Other
                         %input{:type=>"hidden", :value=>"#{params[:hash].to_s}", :name=>:hash}
                         %input{:type=>"hidden", :value=>"#{params[:filetype].to_s}", :name=>:filetype}

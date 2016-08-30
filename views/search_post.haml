@@ -30,7 +30,7 @@
                 - if @plaintexts
                   - @plaintexts.each do |entry|
                     %td #{entry.originalhash}
-                    %td #{mode_to_friendly(entry.hashtype.to_s)}
+                    %td #{modeiToFriendly(entry.hashtype.to_s)}
                     %td #{entry.plaintext}
                     %tr
                 - else

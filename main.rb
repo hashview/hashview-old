@@ -451,7 +451,7 @@ end
 get '/job/:id/upload/verify_filetype/:hash' do
   redirect to('/') unless valid_session?
 
-  @filetypes = detect_hashfile_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
+  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
   @job = Jobs.first(id: params[:id])
   haml :verify_filetypes
 end
@@ -468,7 +468,7 @@ end
 get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   redirect to('/') unless valid_session?
 
-  @hashtypes = detect_hash_type("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
+  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
   @job = Jobs.first(id: params[:id])
   haml :verify_hashtypes
 end
@@ -494,7 +494,7 @@ post '/job/:id/upload/verify_hashtype' do
   @job = Jobs.first(id: params[:id])
   customer_id = @job.customer_id
 
-  if not import_hash(hashArray, customer_id, params[:id], filetype, hashtype)
+  if not importHash(hashArray, customer_id, params[:id], filetype, hashtype)
     return 'Error importing hash'  # need to better handle errors
   end
 
