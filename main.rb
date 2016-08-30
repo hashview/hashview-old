@@ -185,6 +185,13 @@ get '/customer/list' do
   redirect to('/') unless valid_session?
 
   @customers = Customers.all
+  @total_jobs = Array.new
+  @total_hashes = Array.new
+
+  @customers.each do | customer |
+    @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
+    @total_hashes[customer.id] = Targets.count(customerid: customer.id)
+  end
 
   haml :customer_list
 end
