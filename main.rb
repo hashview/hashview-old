@@ -949,8 +949,11 @@ get '/analytics' do
       # Used for Total Run Time: Customer:
       # I'm ashamed of the code below
       @jobs = Jobs.all(customer_id: params[:custid])
+      @total_run_time = 0
       @jobs.each do |job|
-        @total_run_time =+ Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
+        @query_results = Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
+        p "QUERY_RESULTS: " + @query_results.class.to_s
+        @total_run_time = @total_run_time + @query_results
       end
     end
   else
