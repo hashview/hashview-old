@@ -34,11 +34,11 @@
         .collapse.navbar-collapse.navHeaderCollapse
           %ul.nav.navbar-nav.navbar-right.vCenter
             %li
-              - if is_krakenbusy?
+              - if isKrakenBusy?
                 %span.label.label-danger Busy eating
               - else
                 %span.label.label-success Feed me nom nom
-            - if valid_session?
+            - if validSession?
               %li.dropdown
                 %a.dropdown-toggle(data-toggle="dropdown" href="#")
                   Controls
@@ -53,7 +53,7 @@
                   %li.divider{:role => "separator"}
                   %li.dropdown-header
                     Additional Functions
-                  - if is_development?
+                  - if isDevelopment?
                     %li
                       %a(href="/job/queue")Job Queue
                   %li
@@ -65,7 +65,7 @@
                   %li
                     %a(href="/settings")Global Settings
             %li
-              - if valid_session?
+              - if validSession?
                 %a(href="/logout")Logout
               - else
                 %a(href="/login")Login
