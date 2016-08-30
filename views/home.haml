@@ -38,7 +38,10 @@
                   - @jobs.each do |job|
                     - if job.status
                       - activejob = true
-                      active job: #{job.name} (id: #{job.id})
+                      Active job for: 
+                      - @customers.each do | customer |
+                        - if customer.id == job.customer_id
+                          #{customer.name}                      
                   %br
                   - if not activejob
                     %br
@@ -104,11 +107,16 @@
                 %tbody
                   -if @recentlycracked
                     %td
+                      %strong Company
+                    %td
                       %strong Username
                     %td
                       %strong Password
                     - @recentlycracked.each do |cracked|
                       %tr
+                      - @customers.each do | customer |
+                        - if customer.id == cracked.customerid
+                          %td #{customer.name}
                         %td #{cracked.username}
                         %td #{cracked.plaintext}
                   -else
