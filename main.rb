@@ -404,7 +404,7 @@ post '/job/create' do
   # create new job
   job = Jobs.new
   job.name = params[:name]
-  job.last_updated_by = get_username
+  job.last_updated_by = getUsername
   job.customer_id = params[:customer]
   job.save
 
@@ -1127,12 +1127,12 @@ end
 
 # Return if the user has a valid session or not
 def valid_session?
-  Sessions.is_valid?(session[:session_id])
+  Sessions.isValid?(session[:session_id])
 end
 
 # Get the current users, username
-def get_username
-  Sessions.get_username(session[:session_id])
+def getUsername
+  Sessions.getUsername(session[:session_id])
 end
 
 # Check if the user is an administrator

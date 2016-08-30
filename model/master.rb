@@ -52,7 +52,7 @@ class Sessions
   property :session_key, String, length: 128
   property :username, String, length: (3..40), required: true
 
-  def self.is_valid?(session_key)
+  def self.isValid?(session_key)
     sessions = Sessions.first(session_key: session_key)
 
     return true if sessions
@@ -70,7 +70,7 @@ class Sessions
     end
   end
 
-  def self.get_username(session_key)
+  def self.getUsername(session_key)
     sess = Sessions.first(session_key: session_key)
 
     return sess.username if sess
