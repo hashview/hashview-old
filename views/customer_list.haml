@@ -33,8 +33,6 @@
                     %th
                       %b Description
                     %th
-                      %b Total Jobs
-                    %th
                       %b Control
                 %tbody
                   - if @customers
@@ -42,7 +40,6 @@
                       %tr
                         %td #{customer.name}
                         %td #{customer.description}
-                        %td TO DO
                         %td
                           %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
