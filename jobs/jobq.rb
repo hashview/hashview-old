@@ -96,8 +96,8 @@ module Jobq
         end
       end
     end
-    
-    puts '==== import complete ===='
+
+   puts '==== import complete ===='
 
     begin
       File.delete(crack_file)
