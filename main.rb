@@ -434,11 +434,11 @@ post '/job/:id/upload/hashfile' do
   hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
 
   # Parse uploaded file into an array
-  hashArray = Array.new
-  wholeFileAsStringObject = params[:file][:tempfile].read
-  File.open(hashfile, 'w') { |f| f.write(wholeFileAsStringObject) }
-  wholeFileAsStringObject.each_line do |line|
-    hashArray << line
+  hash_array = Array.new
+  whole_file_as_string_object = params[:file][:tempfile].read
+  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
+  whole_file_as_string_object.each_line do |line|
+    hash_array << line
   end
 
   # save location of tmp hash file
@@ -484,22 +484,22 @@ post '/job/:id/upload/verify_hashtype' do
     hashtype = params[:hashtype]
   end
 
-  hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
+  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
-  hashArray = []
-  File.open(hashfile, 'r').each do |line|
-      hashArray << line
+  hash_array = []
+  File.open(hash_file, 'r').each do |line|
+      hash_array << line
   end
 
   @job = Jobs.first(id: params[:id])
   customer_id = @job.customer_id
 
-  if not importHash(hashArray, customer_id, params[:id], filetype, hashtype)
+  if not importHash(hash_array, customer_id, params[:id], filetype, hashtype)
     return 'Error importing hash'  # need to better handle errors
   end
 
   # Delete file, no longer needed
-  File.delete(hashfile)
+  File.delete(hash_file)
 
   redirect to('/job/list')
 end
@@ -755,23 +755,23 @@ get '/download' do
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
-      fileName = "found_#{params[:custid]}_#{params[:jobid]}.txt"
+      file_name = "found_#{params[:custid]}_#{params[:jobid]}.txt"
     else
-      fileName = "found_#{params[:custid]}.txt"
+      file_name = "found_#{params[:custid]}.txt"
     end
   else
-    fileName = "found_all.txt"
+    file_name = "found_all.txt"
   end
 
-  fileName = 'control/outfiles/' + fileName
+  file_name = 'control/outfiles/' + file_name
 
-  File.open(fileName, 'w') do |f|
+  File.open(file_name, 'w') do |f|
     @cracked_results.each do |entry|
       line = entry.username + ':' + entry.originalhash + ':' + entry.plaintext
       f.puts line
     end
   end
-  send_file fileName, filename: fileName, type: 'Application/octet-stream'
+  send_file file_name, filename: file_name, type: 'Application/octet-stream'
 
 end
 
@@ -821,22 +821,22 @@ post '/wordlist/upload/' do
   return 'File Name Required.' if params[:name].size == 0
 
   # Replace white space with underscore.  We need more filtering here too
-  uploadname = params[:name]
-  uploadname = uploadname.downcase.tr(' ', '_')
+  upload_name = params[:name]
+  upload_name = upload_name.downcase.tr(' ', '_')
 
   # Change to date/time ?
   rand_str = rand(36**36).to_s(36)
 
   # Save to file
-  filename = "control/wordlists/wordlist-#{uploadname}-#{rand_str}.txt"
-  File.open(filename, 'wb') {|f| f.write(params[:file][:tempfile].read) }
+  file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
+  File.open(file_name, 'wb') {|f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(filename).inject(0){|c, line| c+1}
+  size = File.foreach(file_name).inject(0){|c, line| c+1}
 
   wordlist = Wordlists.new
-  wordlist.name = uploadname # what XSS?
-  wordlist.path = filename
+  wordlist.name = upload_name # what XSS?
+  wordlist.path = file_name
   wordlist.size = size
   wordlist.save
 
