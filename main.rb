@@ -186,8 +186,8 @@ get '/customer/list' do
   redirect to('/') unless validSession?
 
   @customers = Customers.all
-  @total_jobs = Array.new
-  @total_hashes = Array.new
+  @total_jobs = []
+  @total_hashes = []
 
   @customers.each do | customer |
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
@@ -344,8 +344,8 @@ end
 get '/job/list' do
   redirect to('/') unless validSession?
 
-  @targets_cracked = Hash.new
-  @customer_names = Hash.new
+  @targets_cracked = {}
+  @customer_names = {}
 
   @jobs = Jobs.all
   @tasks = Tasks.all
@@ -434,7 +434,7 @@ post '/job/:id/upload/hashfile' do
   hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
 
   # Parse uploaded file into an array
-  hash_array = Array.new
+  hash_array = []
   whole_file_as_string_object = params[:file][:tempfile].read
   File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
   whole_file_as_string_object.each_line do |line|
@@ -847,9 +847,9 @@ end
 get '/purge' do
   redirect to('/') unless validSession?
 
-  @job_cracked = Hash.new
-  @job_total = Hash.new
-  @job_id_name = Hash.new
+  @job_cracked = {}
+  @job_total = {}
+  @job_id_name = {}
   @target_jobids = []
   @all_cracked = 0
   @all_total = 0
