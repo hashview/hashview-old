@@ -192,13 +192,13 @@ def friendlyToMode(friendly)
   end
 end
 
-def importHash(hash_file, customer_id, job_id, file_type, hashtype)
+def importHash(hash_file, customer_id, job_id, filetype, hashtype)
   hash_file.each do |entry|
-    if file_type == 'pwdump'
+    if filetype == 'pwdump'
       importPwdump(entry.chomp, customer_id, job_id, hashtype)
-    elsif file_type == 'shadow'
+    elsif filetype == 'shadow'
       importShadow(entry.chomp, customer_id, job_id, hashtype)
-    elsif file_type == 'raw'
+    elsif filetype == 'raw'
       importRaw(entry.chomp, customer_id, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
@@ -208,25 +208,25 @@ end
 
 def detectHashfileType(hash_file)
 
-  @file_types = []
+  @filetypes = []
   File.readlines(hash_file).each do |entry|
     if detectedHashFormat(entry.chomp) == 'pwdump'
-      @file_types.push('pwdump') unless @file_types.include?('pwdump')
+      @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
     elsif detectedHashFormat(entry.chomp) == 'shadow'
-      @file_types.push('shadow') unless @file_types.include?('shadow')
+      @filetypes.push('shadow') unless @filetypes.include?('shadow')
     else
-      @file_types.push('raw') unless @file_types.include?('raw')
+      @filetypes.push('raw') unless @filetypes.include?('raw')
     end
   end
 
-  @file_types
+  @filetypes
 end
 
-def detectHashType(hash_file, file_type)
+def detectHashType(hash_file, fileType)
 
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
-    if file_type == 'pwdump'
+    if fileType == 'pwdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
       @modes.each do |mode|
@@ -236,7 +236,7 @@ def detectHashType(hash_file, file_type)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
-    elsif file_type == 'shadow'
+    elsif fileType == 'shadow'
       elements = entry.split(':')
       @modes = getMode(elements[1])
       @modes.each do |mode|
