@@ -120,7 +120,7 @@ def getMode(hash)
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
-    @modes.push('3000') # LM 
+    @modes.push('3000') # LM
   elsif hash =~ /\$\d+\$.{53}$/
     @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
   elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
@@ -243,6 +243,6 @@ def detectHashType(hash_file, file_type)
       end
     end
   end
-  
+
   @hashtypes
 end
