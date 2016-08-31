@@ -950,7 +950,9 @@ get '/analytics' do
       @total_run_time = 0
       @jobs.each do |job|
         @query_results = Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
-        @total_run_time = @total_run_time + @query_results
+        unless @query_results.nil?
+          @total_run_time = @total_run_time + @query_results
+        end
       end
     end
   else
