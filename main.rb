@@ -629,7 +629,6 @@ get '/job/stop/:id' do
     if not jt.status == 'Completed' and not jt.status == 'Running'
       jt.status = 'Canceled'
       jt.save
-      #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
