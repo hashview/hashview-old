@@ -667,9 +667,6 @@ get '/job/stop/:jobid/:taskid' do
   `sudo kill -9 #{pid}`
 
   referer = request.referer.split('/')
- 
-
-  p "REFERER: " + referer[3]
 
   if referer[3] == 'home'
     redirect to('/home')
@@ -760,7 +757,7 @@ get '/download' do
       file_name = "found_#{params[:custid]}.txt"
     end
   else
-    file_name = "found_all.txt"
+    file_name = 'found_all.txt'
   end
 
   file_name = 'control/outfiles/' + file_name
@@ -1091,7 +1088,7 @@ get '/analytics/graph3' do
   @top10basewords = {}
   # get top 10 basewords
   plaintext.each do |pass|
-    word_just_alpha = pass.gsub(/^[^a-z]*/i, "").gsub(/[^a-z]*$/i, '')
+    word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
     if @top10basewords[word_just_alpha].nil?
       @top10basewords[word_just_alpha] = 1
     else
