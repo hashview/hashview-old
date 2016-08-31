@@ -45,17 +45,17 @@ module Jobq
 
     jobtasks = Jobtasks.first(id: id)
 
-    puts '===== creating hash_file ======='
+    puts '===== creating hashFile ======='
     targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
-    hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-    File.open(hash_file, 'w') do |f|
+    hashFile = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+    File.open(hashFile, 'w') do |f|
       targets.each do |entry|
         f.puts entry.originalhash
       end
       f.close
     end
 
-    puts '===== Hash_File Created ======'
+    puts '===== HashFile Created ======'
 
     puts '===== starting job ======='
     updateDbStatus(id, 'Running')
@@ -102,7 +102,7 @@ module Jobq
 
     begin
       File.delete(crack_file)
-      File.delete(hash_file)
+      File.delete(hashFile)
 
     rescue SystemCallError
       p "ERROR: " + $!
