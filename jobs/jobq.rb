@@ -42,7 +42,6 @@ module Jobq
   @queue = :hashcat
 
   def self.perform(id, cmd)
-
     jobtasks = Jobtasks.first(id: id)
 
     puts '===== creating hash_file ======='
@@ -112,6 +111,5 @@ module Jobq
 
     updateDbStatus(id, 'Completed')
     updateDbRunTime(id, run_time)
-
   end
 end
