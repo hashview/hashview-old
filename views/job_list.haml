@@ -48,6 +48,10 @@
                         %td #{job.name}
                         - if job.status == 'Running'
                           %td Running
+                        - elsif job.status == 'Queued'
+                          %td Queued
+                        - elsif job.status == 'Completed'
+                          %td Completed
                         - else
                           %td Stopped
                         %td #{job.last_updated_by}

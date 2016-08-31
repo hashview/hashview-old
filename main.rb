@@ -160,17 +160,20 @@ get '/home' do
 
   @jobs.each do |j|
     if j.status == 'Running'
-      @alltargets = Targets.all(jobid: j.id)
-      @crackedtargets = Targets.all(jobid: j.id, cracked: 1)
-      @alltargets = @alltargets.count
-      @crackedtargets = @crackedtargets.count
+      @alltargets = Targets.count(jobid: j.id)
+      @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
-    else
-      @alltargets = 0
-      @crackedtargets = 0
-      @progress = 0
+#      p "JOB ID: " + j.id.to_s
+#      p "ALL TARGETS: " + @alltargets.to_s
+#      p "CRACKED TARGETS: " + @crackedtargets.to_s
+#      p "PROGRESS: " + @progress.to_s
+#    else
+#      @alltargets = 5
+#      @crackedtargets = 5
+#      @progress = 5
     end
   end
+
 
   haml :home
 end
