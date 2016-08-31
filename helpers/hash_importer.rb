@@ -17,7 +17,6 @@ def detectedHashFormat(hash)
 end
 
 def importPwdump(hash, customer_id, job_id, type)
-
   data = hash.split(':')
   return if machineAcct?(data[0])
 
@@ -57,7 +56,6 @@ def importPwdump(hash, customer_id, job_id, type)
     target_ntlm.cracked = false
     target_ntlm.save
   end
-  #return 0
 end
 
 def machineAcct?(username)
@@ -70,7 +68,6 @@ end
 
 
 def importShadow(hash, customer_id, job_id, type)
-
   data = hash.split(':')
   target = Targets.new
   target.username = data[0]
@@ -83,7 +80,6 @@ def importShadow(hash, customer_id, job_id, type)
 end
 
 def importRaw(hash, customer_id, job_id, type)
-
   if type == '3000'
   # import LM
     lm_hashes = hash.scan(/.{16}/)
@@ -124,7 +120,7 @@ def getMode(hash)
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
-    @modes.push('3000') # LM 
+    @modes.push('3000') # LM
   elsif hash =~ /\$\d+\$.{53}$/
     @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
   elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
@@ -192,13 +188,13 @@ def friendlyToMode(friendly)
   end
 end
 
-def importHash(hashFile, customer_id, job_id, filetype, hashtype)
-  hashFile.each do |entry|
-    if filetype == 'pwdump'
+def importHash(hash_file, customer_id, job_id, file_type, hashtype)
+  hash_file.each do |entry|
+    if file_type == 'pwdump'
       importPwdump(entry.chomp, customer_id, job_id, hashtype)
-    elsif filetype == 'shadow'
+    elsif file_type == 'shadow'
       importShadow(entry.chomp, customer_id, job_id, hashtype)
-    elsif filetype == 'raw'
+    elsif file_type == 'raw'
       importRaw(entry.chomp, customer_id, job_id, hashtype)
     else
       return 'Unsupported hash format detected'
@@ -206,27 +202,25 @@ def importHash(hashFile, customer_id, job_id, filetype, hashtype)
   end
 end
 
-def detectHashfileType(hashFile)
-
-  @filetypes = []
-  File.readlines(hashFile).each do |entry|
+def detectHashfileType(hash_file)
+  @file_types = []
+  File.readlines(hash_file).each do |entry|
     if detectedHashFormat(entry.chomp) == 'pwdump'
-      @filetypes.push('pwdump') unless @filetypes.include?('pwdump')
+      @file_types.push('pwdump') unless @file_types.include?('pwdump')
     elsif detectedHashFormat(entry.chomp) == 'shadow'
-      @filetypes.push('shadow') unless @filetypes.include?('shadow')
+      @file_types.push('shadow') unless @file_types.include?('shadow')
     else
-      @filetypes.push('raw') unless @filetypes.include?('raw')
+      @file_types.push('raw') unless @file_types.include?('raw')
     end
   end
 
-  @filetypes
+  @file_types
 end
 
-def detectHashType(hashFile, fileType)
-
+def detectHashType(hash_file, file_type)
   @hashtypes = []
-  File.readlines(hashFile).each do |entry|
-    if fileType == 'pwdump'
+  File.readlines(hash_file).each do |entry|
+    if file_type == 'pwdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
       @modes.each do |mode|
@@ -236,7 +230,7 @@ def detectHashType(hashFile, fileType)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
-    elsif fileType == 'shadow'
+    elsif file_type == 'shadow'
       elements = entry.split(':')
       @modes = getMode(elements[1])
       @modes.each do |mode|
@@ -249,6 +243,6 @@ def detectHashType(hashFile, fileType)
       end
     end
   end
-  
+
   @hashtypes
 end

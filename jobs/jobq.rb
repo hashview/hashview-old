@@ -42,20 +42,19 @@ module Jobq
   @queue = :hashcat
 
   def self.perform(id, cmd)
-
     jobtasks = Jobtasks.first(id: id)
 
-    puts '===== creating hashFile ======='
+    puts '===== creating hash_file ======='
     targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
-    hashFile = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-    File.open(hashFile, 'w') do |f|
+    hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+    File.open(hash_file, 'w') do |f|
       targets.each do |entry|
         f.puts entry.originalhash
       end
       f.close
     end
 
-    puts '===== HashFile Created ======'
+    puts '===== Hash_File Created ======'
 
     puts '===== starting job ======='
     updateDbStatus(id, 'Running')
@@ -73,7 +72,7 @@ module Jobq
     crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 
     results = []
-    if !File.zero?(crack_file)
+    unless File.zero?(crack_file)
       File.open(crack_file).each_line do |line|
         results << line
       end
@@ -97,21 +96,20 @@ module Jobq
         end
       end
     end
-    
-    puts '==== import complete ===='
+
+   puts '==== import complete ===='
 
     begin
       File.delete(crack_file)
-      File.delete(hashFile)
+      File.delete(hash_file)
 
     rescue SystemCallError
-      p "ERROR: " + $!
+      p 'ERROR: ' + $!
     end
 
     puts '==== Crack File Deleted ===='
 
     updateDbStatus(id, 'Completed')
     updateDbRunTime(id, run_time)
-
   end
 end

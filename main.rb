@@ -15,7 +15,7 @@ set :environment, :development
 # set :environment, :production
 
 # Check to see if SSL cert is present, if not generate
-if !File.exist?('cert/server.crt')
+unless File.exist?('cert/server.crt')
   # Generate Cert
   system('openssl req -x509 -nodes -days 365 -newkey RSA:2048 -subj "/CN=US/ST=Minnesota/L=Duluth/O=potatoFactory/CN=hashview" -keyout cert/server.key -out cert/server.crt')
 end
@@ -57,7 +57,7 @@ post '/login' do
     usern = User.authenticate(params['username'], params['password'])
 
     # if usern and session[:session_id]
-    if !usern.nil?
+    unless usern.nil?
       # only delete session if one exists
       if session[:session_id]
         # replace the session in the session table
@@ -186,8 +186,8 @@ get '/customer/list' do
   redirect to('/') unless validSession?
 
   @customers = Customers.all
-  @total_jobs = Array.new
-  @total_hashes = Array.new
+  @total_jobs = []
+  @total_hashes = []
 
   @customers.each do | customer |
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
@@ -209,7 +209,7 @@ post '/customer/create' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to ('customer/list')
+  redirect to('customer/list')
 end
 
 get '/customer/edit/:id' do
@@ -228,7 +228,7 @@ post '/customer/edit/:id' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to ('customer/list')
+  redirect to('customer/list')
 end
 
 get '/customer/delete/:id' do
@@ -243,7 +243,7 @@ get '/customer/delete/:id' do
   @targets = Targets.all(customerid: params[:id])
   @targets.destroy unless @targets.nil?
 
-  redirect to ('/customer/list')
+  redirect to('/customer/list')
 end
 
 ############################
@@ -344,8 +344,8 @@ end
 get '/job/list' do
   redirect to('/') unless validSession?
 
-  @targets_cracked = Hash.new
-  @customer_names = Hash.new
+  @targets_cracked = {}
+  @customer_names = {}
 
   @jobs = Jobs.all
   @tasks = Tasks.all
@@ -380,10 +380,10 @@ get '/job/create' do
   redirect to('/') unless validSession?
 
   @customers = Customers.all
-  redirect to ('/customer/create') if @customers.empty?
+  redirect to('/customer/create') if @customers.empty?
 
   @tasks = Tasks.all
-  redirect to ('/task/create') if @tasks.empty?
+  redirect to('/task/create') if @tasks.empty?
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -434,11 +434,11 @@ post '/job/:id/upload/hashfile' do
   hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
 
   # Parse uploaded file into an array
-  hashArray = Array.new
-  wholeFileAsStringObject = params[:file][:tempfile].read
-  File.open(hashfile, 'w') { |f| f.write(wholeFileAsStringObject) }
-  wholeFileAsStringObject.each_line do |line|
-    hashArray << line
+  hash_array = []
+  whole_file_as_string_object = params[:file][:tempfile].read
+  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
+  whole_file_as_string_object.each_line do |line|
+    hash_array << line
   end
 
   # save location of tmp hash file
@@ -484,22 +484,22 @@ post '/job/:id/upload/verify_hashtype' do
     hashtype = params[:hashtype]
   end
 
-  hashfile = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
+  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
-  hashArray = []
-  File.open(hashfile, 'r').each do |line|
-      hashArray << line
+  hash_array = []
+  File.open(hash_file, 'r').each do |line|
+    hash_array << line
   end
 
   @job = Jobs.first(id: params[:id])
   customer_id = @job.customer_id
 
-  if not importHash(hashArray, customer_id, params[:id], filetype, hashtype)
+  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
     return 'Error importing hash'  # need to better handle errors
   end
 
   # Delete file, no longer needed
-  File.delete(hashfile)
+  File.delete(hash_file)
 
   redirect to('/job/list')
 end
@@ -571,7 +571,7 @@ get '/job/start/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
-    if not jt.status == 'Completed'
+    unless jt.status == 'Completed'
       # set jobtask status to queued
       jt.status = 'Queued'
       jt.save
@@ -585,7 +585,7 @@ get '/job/start/:id' do
     end
   end
 
-  if !@job.status
+  unless @job.status
     return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
   end
 
@@ -629,7 +629,6 @@ get '/job/stop/:id' do
     if not jt.status == 'Completed' and not jt.status == 'Running'
       jt.status = 'Canceled'
       jt.save
-      #cmd = task.command + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
@@ -640,7 +639,7 @@ get '/job/stop/:id' do
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     if jt.status == 'Running'
-      redirect to ("/job/stop/#{jt.job_id}/#{jt.task_id}")
+      redirect to("/job/stop/#{jt.job_id}/#{jt.task_id}")
     end
   end
 
@@ -648,11 +647,11 @@ get '/job/stop/:id' do
 end
 
 get '/job/stop/:jobid/:taskid' do
-  redirect to ('/') unless validSession?
+  redirect to('/') unless validSession?
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
-  if not jt.status == 'Running'
+  unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
@@ -667,9 +666,6 @@ get '/job/stop/:jobid/:taskid' do
   `sudo kill -9 #{pid}`
 
   referer = request.referer.split('/')
- 
-
-  p "REFERER: " + referer[3]
 
   if referer[3] == 'home'
     redirect to('/home')
@@ -729,7 +725,7 @@ post '/settings' do
     @newsettings.save
   else
     # update settings
-  @settings.update(values)
+    @settings.update(values)
   end
 
   redirect to('/settings')
@@ -751,27 +747,27 @@ get '/download' do
   else
     @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
   end
-  
+
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
-      fileName = "found_#{params[:custid]}_#{params[:jobid]}.txt"
+      file_name = "found_#{params[:custid]}_#{params[:jobid]}.txt"
     else
-      fileName = "found_#{params[:custid]}.txt"
+      file_name = "found_#{params[:custid]}.txt"
     end
   else
-    fileName = "found_all.txt"
+    file_name = 'found_all.txt'
   end
 
-  fileName = 'control/outfiles/' + fileName
+  file_name = 'control/outfiles/' + file_name
 
-  File.open(fileName, 'w') do |f|
+  File.open(file_name, 'w') do |f|
     @cracked_results.each do |entry|
       line = entry.username + ':' + entry.originalhash + ':' + entry.plaintext
       f.puts line
     end
   end
-  send_file fileName, filename: fileName, type: 'Application/octet-stream'
+  send_file file_name, filename: file_name, type: 'Application/octet-stream'
 
 end
 
@@ -821,22 +817,22 @@ post '/wordlist/upload/' do
   return 'File Name Required.' if params[:name].size == 0
 
   # Replace white space with underscore.  We need more filtering here too
-  uploadname = params[:name]
-  uploadname = uploadname.downcase.tr(' ', '_')
+  upload_name = params[:name]
+  upload_name = upload_name.downcase.tr(' ', '_')
 
   # Change to date/time ?
   rand_str = rand(36**36).to_s(36)
 
   # Save to file
-  filename = "control/wordlists/wordlist-#{uploadname}-#{rand_str}.txt"
-  File.open(filename, 'wb') {|f| f.write(params[:file][:tempfile].read) }
+  file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
+  File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(filename).inject(0){|c, line| c+1}
+  size = File.foreach(file_name).inject(0){ |c, line| c + 1 }
 
   wordlist = Wordlists.new
-  wordlist.name = uploadname # what XSS?
-  wordlist.path = filename
+  wordlist.name = upload_name # what XSS?
+  wordlist.path = file_name
   wordlist.size = size
   wordlist.save
 
@@ -850,9 +846,9 @@ end
 get '/purge' do
   redirect to('/') unless validSession?
 
-  @job_cracked = Hash.new
-  @job_total = Hash.new
-  @job_id_name = Hash.new
+  @job_cracked = {}
+  @job_total = {}
+  @job_id_name = {}
   @target_jobids = []
   @all_cracked = 0
   @all_total = 0
@@ -926,7 +922,7 @@ get '/analytics' do
       # Used for Total Hashes Cracked doughnut: Customer: Job
       @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
       @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
-      
+
       # Used for Total Accounts table: Customer: Job
       @total_accounts = Targets.count(customerid: params[:custid], jobid: params[:jobid])
 
@@ -945,7 +941,7 @@ get '/analytics' do
 
       # Used for Total Unique Users and original hashes Table: Customer
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
- 
+
       # Used for Total Run Time: Customer:
       # I'm ashamed of the code below
       @jobs = Jobs.all(customer_id: params[:custid])
@@ -977,7 +973,7 @@ get '/analytics' do
 
   # Unique Passwords
   @total_unique_originalhash_count = Set.new
-  
+
   @total_users_originalhash.each do |entry|
     @total_unique_users_count.add(entry.username)
     @total_unique_originalhash_count.add(entry.originalhash)
@@ -1004,7 +1000,7 @@ get '/analytics/graph1' do
   end
 
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       unless crack.plaintext.length == 0
         # get password count by length
         len = crack.plaintext.length
@@ -1041,7 +1037,7 @@ get '/analytics/graph2' do
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
@@ -1058,12 +1054,12 @@ get '/analytics/graph2' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
+  @top10passwords = @top10passwords.sort_by { |key, value| value }.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v}[0..9]]
+  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
-    @toppasswords << {password: key, count: value}
+    @toppasswords << { password: key, count: value }
   end
 
   return @toppasswords.to_json
@@ -1082,7 +1078,7 @@ get '/analytics/graph3' do
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
@@ -1091,7 +1087,7 @@ get '/analytics/graph3' do
   @top10basewords = {}
   # get top 10 basewords
   plaintext.each do |pass|
-    word_just_alpha = pass.gsub(/^[^a-z]*/i, "").gsub(/[^a-z]*$/i, '')
+    word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
     if @top10basewords[word_just_alpha].nil?
       @top10basewords[word_just_alpha] = 1
     else
@@ -1100,12 +1096,12 @@ get '/analytics/graph3' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10basewords = @top10basewords.sort_by {|key, value| value}.reverse.to_h
+  @top10basewords = @top10basewords.sort_by { |key, value| value }.reverse.to_h
   # we only need top 10
-  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v}[0..9]]
+  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10basewords.each do |key, value|
-    @topbasewords << {password: key, count: value}
+    @topbasewords << { password: key, count: value }
   end
 
   p @topbasewords.to_s
@@ -1181,7 +1177,7 @@ def buildCrackCmd(jobid, taskid)
     if @task.hc_rule == 'none'
       cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
-      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' +  ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
   end
   p cmd
