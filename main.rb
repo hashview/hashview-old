@@ -828,7 +828,7 @@ post '/wordlist/upload/' do
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0){ |c, line| c+1 }
+  size = File.foreach(file_name).inject(0){ |c, line| c + 1 }
 
   wordlist = Wordlists.new
   wordlist.name = upload_name # what XSS?
@@ -1177,7 +1177,7 @@ def buildCrackCmd(jobid, taskid)
     if @task.hc_rule == 'none'
       cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
-      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' +  ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
   end
   p cmd
