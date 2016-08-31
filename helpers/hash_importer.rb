@@ -57,7 +57,6 @@ def importPwdump(hash, customer_id, job_id, type)
     target_ntlm.cracked = false
     target_ntlm.save
   end
-  #return 0
 end
 
 def machineAcct?(username)
