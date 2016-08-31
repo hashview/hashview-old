@@ -488,7 +488,7 @@ post '/job/:id/upload/verify_hashtype' do
 
   hash_array = []
   File.open(hash_file, 'r').each do |line|
-      hash_array << line
+    hash_array << line
   end
 
   @job = Jobs.first(id: params[:id])
@@ -725,7 +725,7 @@ post '/settings' do
     @newsettings.save
   else
     # update settings
-  @settings.update(values)
+    @settings.update(values)
   end
 
   redirect to('/settings')
