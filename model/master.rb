@@ -93,8 +93,8 @@ class Jobs
   property :name, String
   property :last_updated_by, String, length: 40
   property :updated_at, DateTime, default: DateTime.now
-  property :status, Boolean
-  property :status_detail, String, length: 100
+  # status options should be "Running", "Paused", "Completed", "Queued", "Canceled"
+  property :status, String, length: 100
   property :targettype, String, length: 2000
   property :targetfile, String, length: 2000
   property :targethash, String, length: 2000

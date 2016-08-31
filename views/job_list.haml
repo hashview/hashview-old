@@ -46,15 +46,21 @@
                       %tr
                         %td #{@customer_names[job.customer_id]}
                         %td #{job.name}
-                        - if job.status
+                        - if job.status == 'Running'
                           %td Running
                         - else
                           %td Stopped
                         %td #{job.last_updated_by}
                         %td
-                          - if job.status
+                          - if job.status == 'Running'
                             %a.btn.btn-danger{:href => "/job/stop/#{job.id}"}
                               %i.glyphicon.glyphicon-stop{:title => 'Running'}
+                          - elsif job.status == 'Queued'
+                            %a.btn.btn-default{:href => "/job/stop/#{job.id}"}
+                              %i.glyphicon.glyphicon-ok-circle{:title => 'Queued'}
+                          - elsif job.status == 'Completed'
+                            %a.btn.btn-success{:href => ""}
+                              %i.glyphicon.glyphicon-ok{:title => 'Completed'}
                           - else
                             %a.btn.btn-success{:href => "/job/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}

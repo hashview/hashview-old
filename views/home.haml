@@ -19,7 +19,7 @@
                     %br
                     %br
                     - @jobs.each do |job|
-                      - if job.status
+                      - if job.status == 'Running'
                         %h3
                           Hashes Cracked
                           .badge #{@crackedtargets} / #{@alltargets}
@@ -34,16 +34,13 @@
               %table{:class => 'table'}
                 %thead
                   %b Job Status:
-                  - activejob = false
-                  - @jobs.each do |job|
-                    - if job.status
-                      - activejob = true
-                      Active job for: 
-                      - @customers.each do | customer |
-                        - if customer.id == job.customer_id
-                          #{customer.name}                      
+                  - if not @active_jobs.nil?
+                    Active job for
+                    - @customers.each do | customer |
+                      - if customer.id = @active_jobs.id
+                        #{customer.name}
                   %br
-                  - if not activejob
+                  - if @active_jobs.nil?
                     %br
                     No HashView jobs are running
                     %br
@@ -52,7 +49,7 @@
                       Create a New Job
                 %tbody
                   - @jobs.each do |job|
-                    - if job.status
+                    - if job.status == 'Running' || job.status == 'Queued'
                       - @jobtasks.each do |jt|
                         - if job.id == jt.job_id
                           - @tasks.each do |task|
