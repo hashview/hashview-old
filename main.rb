@@ -15,7 +15,7 @@ set :environment, :development
 # set :environment, :production
 
 # Check to see if SSL cert is present, if not generate
-if !File.exist?('cert/server.crt')
+unless File.exist?('cert/server.crt')
   # Generate Cert
   system('openssl req -x509 -nodes -days 365 -newkey RSA:2048 -subj "/CN=US/ST=Minnesota/L=Duluth/O=potatoFactory/CN=hashview" -keyout cert/server.key -out cert/server.crt')
 end
@@ -57,7 +57,7 @@ post '/login' do
     usern = User.authenticate(params['username'], params['password'])
 
     # if usern and session[:session_id]
-    if !usern.nil?
+    unless usern.nil?
       # only delete session if one exists
       if session[:session_id]
         # replace the session in the session table
@@ -494,7 +494,7 @@ post '/job/:id/upload/verify_hashtype' do
   @job = Jobs.first(id: params[:id])
   customer_id = @job.customer_id
 
-  if not importHash(hash_array, customer_id, params[:id], filetype, hashtype)
+  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
     return 'Error importing hash'  # need to better handle errors
   end
 
@@ -571,7 +571,7 @@ get '/job/start/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
-    if not jt.status == 'Completed'
+    unless jt.status == 'Completed'
       # set jobtask status to queued
       jt.status = 'Queued'
       jt.save
@@ -585,7 +585,7 @@ get '/job/start/:id' do
     end
   end
 
-  if !@job.status
+  unless @job.status
     return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
   end
 
@@ -652,7 +652,7 @@ get '/job/stop/:jobid/:taskid' do
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
-  if not jt.status == 'Running'
+  unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
@@ -1001,7 +1001,7 @@ get '/analytics/graph1' do
   end
 
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       unless crack.plaintext.length == 0
         # get password count by length
         len = crack.plaintext.length
@@ -1038,7 +1038,7 @@ get '/analytics/graph2' do
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
@@ -1079,7 +1079,7 @@ get '/analytics/graph3' do
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
   end
   @cracked_results.each do |crack|
-    if !crack.plaintext.nil?
+    unless crack.plaintext.nil?
       plaintext << crack.plaintext unless crack.plaintext.length == 0
     end
   end
