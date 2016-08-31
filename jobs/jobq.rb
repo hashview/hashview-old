@@ -73,7 +73,7 @@ module Jobq
     crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 
     results = []
-    if !File.zero?(crack_file)
+    unless File.zero?(crack_file)
       File.open(crack_file).each_line do |line|
         results << line
       end
