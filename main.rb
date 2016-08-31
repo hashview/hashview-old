@@ -826,10 +826,10 @@ post '/wordlist/upload/' do
 
   # Save to file
   file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
-  File.open(file_name, 'wb') {|f| f.write(params[:file][:tempfile].read) }
+  File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0){|c, line| c+1}
+  size = File.foreach(file_name).inject(0){ |c, line| c+1 }
 
   wordlist = Wordlists.new
   wordlist.name = upload_name # what XSS?
@@ -1055,12 +1055,12 @@ get '/analytics/graph2' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10passwords = @top10passwords.sort_by {|key, value| value}.reverse.to_h
+  @top10passwords = @top10passwords.sort_by { |key, value| value }.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v}[0..9]]
+  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
-    @toppasswords << {password: key, count: value}
+    @toppasswords << { password: key, count: value }
   end
 
   return @toppasswords.to_json
@@ -1097,12 +1097,12 @@ get '/analytics/graph3' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10basewords = @top10basewords.sort_by {|key, value| value}.reverse.to_h
+  @top10basewords = @top10basewords.sort_by { |key, value| value }.reverse.to_h
   # we only need top 10
-  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v}[0..9]]
+  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10basewords.each do |key, value|
-    @topbasewords << {password: key, count: value}
+    @topbasewords << { password: key, count: value }
   end
 
   p @topbasewords.to_s
