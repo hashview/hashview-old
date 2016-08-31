@@ -747,7 +747,7 @@ get '/download' do
   else
     @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
   end
-  
+
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -922,7 +922,7 @@ get '/analytics' do
       # Used for Total Hashes Cracked doughnut: Customer: Job
       @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
       @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
-      
+
       # Used for Total Accounts table: Customer: Job
       @total_accounts = Targets.count(customerid: params[:custid], jobid: params[:jobid])
 
@@ -941,7 +941,7 @@ get '/analytics' do
 
       # Used for Total Unique Users and original hashes Table: Customer
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
- 
+
       # Used for Total Run Time: Customer:
       # I'm ashamed of the code below
       @jobs = Jobs.all(customer_id: params[:custid])
@@ -973,7 +973,7 @@ get '/analytics' do
 
   # Unique Passwords
   @total_unique_originalhash_count = Set.new
-  
+
   @total_users_originalhash.each do |entry|
     @total_unique_users_count.add(entry.username)
     @total_unique_originalhash_count.add(entry.originalhash)
