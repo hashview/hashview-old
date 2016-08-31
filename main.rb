@@ -478,11 +478,12 @@ post '/job/:id/upload/verify_hashtype' do
 
   filetype = params[:filetype]
   hash = params[:hash]
+
   if params[:hashtype] == '99999'
     hashtype = params[:manualHash]
   else
     hashtype = params[:hashtype]
-  end
+  end  
 
   hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
@@ -948,7 +949,9 @@ get '/analytics' do
       @total_run_time = 0
       @jobs.each do |job|
         @query_results = Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
-        @total_run_time = @total_run_time + @query_results
+        unless @query_results.nil?
+          @total_run_time = @total_run_time + @query_results
+        end
       end
     end
   else
