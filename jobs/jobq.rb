@@ -105,7 +105,7 @@ module Jobq
       File.delete(hash_file)
 
     rescue SystemCallError
-      p "ERROR: " + $!
+      p 'ERROR: ' + $!
     end
 
     puts '==== Crack File Deleted ===='
