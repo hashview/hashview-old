@@ -17,7 +17,6 @@ def detectedHashFormat(hash)
 end
 
 def importPwdump(hash, customer_id, job_id, type)
-
   data = hash.split(':')
   return if machineAcct?(data[0])
 
@@ -69,7 +68,6 @@ end
 
 
 def importShadow(hash, customer_id, job_id, type)
-
   data = hash.split(':')
   target = Targets.new
   target.username = data[0]
@@ -82,7 +80,6 @@ def importShadow(hash, customer_id, job_id, type)
 end
 
 def importRaw(hash, customer_id, job_id, type)
-
   if type == '3000'
   # import LM
     lm_hashes = hash.scan(/.{16}/)
@@ -206,7 +203,6 @@ def importHash(hash_file, customer_id, job_id, file_type, hashtype)
 end
 
 def detectHashfileType(hash_file)
-
   @file_types = []
   File.readlines(hash_file).each do |entry|
     if detectedHashFormat(entry.chomp) == 'pwdump'
@@ -222,7 +218,6 @@ def detectHashfileType(hash_file)
 end
 
 def detectHashType(hash_file, file_type)
-
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     if file_type == 'pwdump'
