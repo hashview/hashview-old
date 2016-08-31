@@ -12,13 +12,17 @@ def updateDbStatus(id, status)
   # if this is the last task for this current job, then set the job to be completed
   # find the job of the jobtask id:
   job = Jobs.first(id: jobtask.job_id)
+  if job.status == 'Queued'
+    job.status = 'Running'
+    job.save
+  end
   # find all tasks for current job:
   jobtasks = Jobtasks.all(job_id: job.id)
   # if no more jobs are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
     if jt.status == 'Queued' || jt.status == 'Running'
-      job.status_detail = status
+      job.status = status
       job.save
       done = false
       break
@@ -26,8 +30,7 @@ def updateDbStatus(id, status)
   end
   # toggle job status
   if done == true
-    job.status = 0
-    job.status_detail = 'Completed'
+    job.status = 'Completed'
     job.save
   end
 end

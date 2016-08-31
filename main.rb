@@ -133,6 +133,7 @@ get '/home' do
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
   @customers = Customers.all
+  @active_jobs = Jobs.first(fields: [:id, :status], status: 'Running')
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
@@ -158,18 +159,21 @@ get '/home' do
   @dict_available = File.directory?(dict_dir)
 
   @jobs.each do |j|
-    if j.status
-      @alltargets = Targets.all(jobid: j.id)
-      @crackedtargets = Targets.all(jobid: j.id, cracked: 1)
-      @alltargets = @alltargets.count
-      @crackedtargets = @crackedtargets.count
+    if j.status == 'Running'
+      @alltargets = Targets.count(jobid: j.id)
+      @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
-    else
-      @alltargets = 0
-      @crackedtargets = 0
-      @progress = 0
+#      p "JOB ID: " + j.id.to_s
+#      p "ALL TARGETS: " + @alltargets.to_s
+#      p "CRACKED TARGETS: " + @crackedtargets.to_s
+#      p "PROGRESS: " + @progress.to_s
+#    else
+#      @alltargets = 5
+#      @crackedtargets = 5
+#      @progress = 5
     end
   end
+
 
   haml :home
 end
@@ -577,7 +581,7 @@ get '/job/start/:id' do
       jt.status = 'Queued'
       jt.save
       # toggle the job status to run
-      @job.status = 1
+      @job.status = 'Queued'
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
@@ -586,9 +590,7 @@ get '/job/start/:id' do
     end
   end
 
-  unless @job.status
-    return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
-  end
+  return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.' if @job.status == 'Completed'
 
   redirect to('/home')
 end
@@ -620,7 +622,7 @@ get '/job/stop/:id' do
     end
   end
 
-  @job.status = 0
+  @job.status = 'Paused'
   @job.save
 
   tasks.each do |task|
