@@ -209,7 +209,7 @@ post '/customer/create' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to ('customer/list')
+  redirect to('customer/list')
 end
 
 get '/customer/edit/:id' do
@@ -228,7 +228,7 @@ post '/customer/edit/:id' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to ('customer/list')
+  redirect to('customer/list')
 end
 
 get '/customer/delete/:id' do
@@ -243,7 +243,7 @@ get '/customer/delete/:id' do
   @targets = Targets.all(customerid: params[:id])
   @targets.destroy unless @targets.nil?
 
-  redirect to ('/customer/list')
+  redirect to('/customer/list')
 end
 
 ############################
@@ -380,10 +380,10 @@ get '/job/create' do
   redirect to('/') unless validSession?
 
   @customers = Customers.all
-  redirect to ('/customer/create') if @customers.empty?
+  redirect to('/customer/create') if @customers.empty?
 
   @tasks = Tasks.all
-  redirect to ('/task/create') if @tasks.empty?
+  redirect to('/task/create') if @tasks.empty?
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -640,7 +640,7 @@ get '/job/stop/:id' do
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     if jt.status == 'Running'
-      redirect to ("/job/stop/#{jt.job_id}/#{jt.task_id}")
+      redirect to("/job/stop/#{jt.job_id}/#{jt.task_id}")
     end
   end
 
@@ -648,7 +648,7 @@ get '/job/stop/:id' do
 end
 
 get '/job/stop/:jobid/:taskid' do
-  redirect to ('/') unless validSession?
+  redirect to('/') unless validSession?
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
