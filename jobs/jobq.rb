@@ -74,31 +74,48 @@ module Jobq
     jobtasks = Jobtasks.first(id: id)
     crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 
-    results = []
     unless File.zero?(crack_file)
       File.open(crack_file).each_line do |line|
-        results << line
-      end
-
-      @records = Targets.all(fields: [:id, :cracked, :originalhash])
-      @records.each do |records_entry|
-        if results.size == 0
-          break
-        end
-        results.each do |results_entry|
-          hash_pass = results_entry.split(/:/)
-          if records_entry.originalhash == hash_pass[0]
-            records_entry.cracked = 1
-            plaintext = hash_pass[1]
-            plaintext = plaintext.chomp
-            records_entry.plaintext = plaintext
-            records_entry.save
-            results.delete(results_entry)
-            break
-          end
-        end
+        hash_pass = line.split(/:/)
+        plaintext = hash_pass[1]
+        plaintext = plaintext.chomp
+      
+        # This will pull all hashes from DB regardless of job id
+        records = Targets.all(fields: [:id, :cracked, :originalhash], originalhash: hash_pass[0], cracked: 0)
+        # Yes its slow... we know.
+        records.each do |entry|
+          entry.cracked = 1
+          entry.plaintext = plaintext
+          entry.save
+       end
+       #records.save
       end
     end
+    #results = []
+    #unless File.zero?(crack_file)
+    #  File.open(crack_file).each_line do |line|
+    #    results << line
+    #  end
+#
+#      @records = Targets.all(fields: [:id, :cracked, :originalhash])
+#      @records.each do |records_entry|
+#        if results.size == 0
+#          break
+#        end
+#        results.each do |results_entry|
+#          hash_pass = results_entry.split(/:/)
+#          if records_entry.originalhash == hash_pass[0]
+#            records_entry.cracked = 1
+#            plaintext = hash_pass[1]
+#            plaintext = plaintext.chomp
+#            records_entry.plaintext = plaintext
+#            records_entry.save
+#            results.delete(results_entry)
+#            #break
+#          end
+#        end
+#      end
+#    end
 
    puts '==== import complete ===='
 
