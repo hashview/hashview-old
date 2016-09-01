@@ -111,13 +111,14 @@
                       %strong Username
                     %td
                       %strong Password
+                    %tr
                     - @recentlycracked.each do |cracked|
-                      %tr
                       - @customers.each do | customer |
                         - if customer.id == cracked.customerid
                           %td #{customer.name}
-                        %td #{cracked.username}
-                        %td #{cracked.plaintext}
+                          %td #{cracked.username}
+                          %td #{cracked.plaintext}
+                        %tr
                   -else
                     %b None... lets get cracking!
 %br
