@@ -9,6 +9,7 @@ require 'redis'
 require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
+require './helpers/hc_stdout_parser.rb'
 
 set :bind, '0.0.0.0'
 set :environment, :development
@@ -160,17 +161,12 @@ get '/home' do
 
   @jobs.each do |j|
     if j.status == 'Running'
+      # gather info for statistics
       @alltargets = Targets.count(jobid: j.id)
       @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
-#      p "JOB ID: " + j.id.to_s
-#      p "ALL TARGETS: " + @alltargets.to_s
-#      p "CRACKED TARGETS: " + @crackedtargets.to_s
-#      p "PROGRESS: " + @progress.to_s
-#    else
-#      @alltargets = 5
-#      @crackedtargets = 5
-#      @progress = 5
+      # parse a hashcat status file
+      @hashcat_status = hashcatParser("control/outfiles/hcoutput_" + j.id.to_s + ".txt")
     end
   end
 
@@ -487,7 +483,7 @@ post '/job/:id/upload/verify_hashtype' do
     hashtype = params[:manualHash]
   else
     hashtype = params[:hashtype]
-  end  
+  end
 
   hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
 
