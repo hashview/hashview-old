@@ -9,7 +9,6 @@ require 'redis'
 require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
-require 'erb'
 
 set :bind, '0.0.0.0'
 set :environment, :development
@@ -44,6 +43,7 @@ end
 
 ## We use a persistent session table, one session per user; no end date
 get '/logout' do
+  session[:session_id] = clean(session[:session_id])
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
     sess.destroy if sess
@@ -52,8 +52,8 @@ get '/logout' do
 end
 
 post '/login' do
-  clean(params[:username])
-  clean(params[:password])
+  session[:username] = clean(params[:username])
+  session[:password] = clean(params[:password])
 
   @user = User.first(username: params[:username])
 
@@ -90,9 +90,9 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  clean(params[:username])
-  clean(params[:password])
-  clean(params[:confirm])
+  params[:username] = clean(params[:username])
+  params[:password] = clean(params[:password])
+  params[:confirm] = clean(params[:confirm])
 
   # validate that no other user account exists
   @users = User.all
@@ -210,8 +210,8 @@ end
 post '/customer/create' do
   redirect to('/') unless validSession?
 
-  clean(params[:name])
-  clean(params[:desc])
+  params[:name] = clean(params[:name])
+  params[:desc] = clean(params[:desc])
 
   customer = Customers.new
   customer.name = params[:name]
@@ -232,9 +232,9 @@ end
 post '/customer/edit/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
-  clean(params[:name])
-  clean(params[:desc])
+  params[:id] = clean(params[:id])
+  params[:name] = clean(params[:name])
+  params[:desc] = clean(params[:desc])
 
   customer = Customers.first(id: params[:id])
   customer.name = params[:name]
@@ -246,7 +246,7 @@ end
 
 get '/customer/delete/:id' do
   redirect to('/') unless validSession?
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
@@ -276,7 +276,7 @@ end
 get '/task/delete/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @task = Tasks.first(id: params[:id])
   if @task
@@ -322,10 +322,10 @@ end
 post '/task/create' do
   redirect to('/') unless validSession?
 
-  clean(params[:wordlist])
-  clean(params[:attackmode])
-  clean(params[:rule])
-  clean(params[:name])
+  params[:wordlist] = clean(params[:wordlist])
+  params[:attackmode] = clean(params[:attackmode])
+  params[:rule] = clean(params[:rule])
+  params[:name] = clean(params[:name])
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -387,7 +387,7 @@ end
 get '/job/delete/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
   if !@job
@@ -422,9 +422,9 @@ end
 post '/job/create' do
   redirect to('/') unless validSession?
 
-  clean(params[:tasks])
-  clean(params[:name])
-  clean(params[:customer])
+  #params[:tasks] = clean(params[:tasks])
+  params[:name] = clean(params[:name])
+  params[:customer] = clean(params[:customer])
 
   return 'You must assign a task to your job' unless params[:tasks]
 
@@ -444,7 +444,7 @@ end
 get '/job/:id/upload/hashfile' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
@@ -455,8 +455,8 @@ end
 post '/job/:id/upload/hashfile' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
-  clean(params[:file])
+  params[:id] = clean(params[:id])
+  #params[:file] = clean(params[:file])
 
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
@@ -483,8 +483,8 @@ end
 get '/job/:id/upload/verify_filetype/:hash' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
-  clean(params[:hash])
+  params[:id] = clean(params[:id])
+  params[:hash] = clean(params[:hash])
 
   @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
   @job = Jobs.first(id: params[:id])
@@ -494,8 +494,8 @@ end
 post '/job/:id/upload/verify_filetype' do
   redirect to('/') unless validSession?
 
-  clean(params[:filetype])
-  clean(params[:hash])
+  params[:filetype] = clean(params[:filetype])
+  params[:hash] = clean(params[:hash])
 
   filetype = params[:filetype]
   hash = params[:hash]
@@ -506,9 +506,9 @@ end
 get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
-  clean(params[:hash])
-  clean(params[:filetype])
+  params[:id] = clean(params[:id])
+  params[:hash] = clean(params[:hash])
+  params[:filetype] = clean(params[:filetype])
 
   @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
   @job = Jobs.first(id: params[:id])
@@ -518,11 +518,11 @@ end
 post '/job/:id/upload/verify_hashtype' do
   redirect to('/') unless validSession?
 
-  clean(params[:filetype])
-  clean(params[:hash])
-  clean(params[:hashtype])
-  clean(params[:manualHash])
-  clean(params[:id])
+  params[:filetype] = clean(params[:filetype])
+  params[:hash] = clean(params[:hash])
+  params[:hashtype] = clean(params[:hashtype])
+  params[:manualHash] = clean(params[:manualHash])
+  params[:id] = clean(params[:id])
 
   filetype = params[:filetype]
   hash = params[:hash]
@@ -556,7 +556,7 @@ end
 get '/job/edit/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
   if !@job
@@ -580,8 +580,8 @@ end
 post '/job/edit/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
-  clean(params[:tasks])
+  params[:id] = clean(params[:id])
+  params[:tasks] = clean(params[:tasks])
 
   values = request.POST
 
@@ -606,7 +606,7 @@ end
 get '/job/start/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -658,7 +658,7 @@ end
 get '/job/stop/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -705,8 +705,8 @@ end
 get '/job/stop/:jobid/:taskid' do
   redirect to('/') unless validSession?
 
-  clean(params[:jobid])
-  clean(params[:taskid])
+  params[:jobid] = clean(params[:jobid])
+  params[:taskid] = clean(params[:taskid])
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
@@ -740,8 +740,8 @@ end
 get '/job/:jobid/task/delete/:jobtaskid' do
   redirect to('/') unless validSession?
 
-  clean(params[:jobid])
-  clean(params[:jobtaskid])
+  params[:jobid] = clean(params[:jobid])
+  params[:jobtaskid] = clean(params[:jobtaskid])
 
   @job = Jobs.first(id: params[:jobid])
   if !@job
@@ -773,7 +773,7 @@ end
 post '/settings' do
   redirect to('/') unless validSession?
 
-  clean(params[:maxtime])
+  #params[:maxtime] = clean(params[:maxtime])
 
   values = request.POST
 
@@ -802,8 +802,8 @@ end
 get '/download' do
   redirect to('/') unless validSession?
 
-  clean(params[:custid])
-  clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+  params[:jobid] = clean(params[:jobid])
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -860,7 +860,7 @@ end
 get '/wordlist/delete/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
@@ -884,8 +884,8 @@ end
 post '/wordlist/upload/' do
   redirect to('/') unless validSession?
 
-  clean(params[:name])
-  clean(params[:file])
+  params[:name] = clean(params[:name])
+  #params[:file] = clean(params[:file])
 
   # require param name && file
   return 'File Name Required.' if params[:name].size == 0
@@ -920,7 +920,7 @@ end
 get '/purge' do
   redirect to('/') unless validSession?
 
-  clean(params[:jobid])
+  params[:jobid] = clean(params[:jobid])
 
   @job_cracked = {}
   @job_total = {}
@@ -951,7 +951,7 @@ end
 get '/purge/:id' do
   redirect to('/') unless validSession?
 
-  clean(params[:id])
+  params[:id] = clean(params[:id])
 
   if params[:id] == 'all'
     @targets = Targets.all
@@ -972,8 +972,13 @@ end
 # displays analytics for a specific client, job
 get '/analytics' do
 
-  clean(params[:custid])
-  clean(params[:jobid])
+  if params[:custid]
+    params[:custid] = clean(params[:custid])
+  end
+
+  if params[:jobid]
+    params[:jobid] = clean(params[:jobid])
+  end
 
   @custid = params[:custid]
   @jobid = params[:jobid]
@@ -1071,8 +1076,12 @@ end
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
 
-  clean(params[:custid])
-  clean(params[:jobid])
+  if params[:custid]
+    params[:custid] = clean(params[:custid])
+  end
+  if params[:custid]
+    params[:jobid] = clean(params[:jobid])
+  end
 
   @counts = []
   @passwords = {}
@@ -1115,8 +1124,12 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
 
-  clean(params[:custid])
-  clean(params[:jobid])
+  if params[:custid]
+    params[:custid] = clean(params[:custid])
+  end
+  if params[:jobid]
+    params[:jobid] = clean(params[:jobid])
+  end
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1160,8 +1173,12 @@ end
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
 
-  clean(params[:custid])
-  clean(params[:jobid])
+  if params[:custid]
+    params[:custid] = clean(params[:custid])
+  end
+  if params[:jobid]
+    params[:jobid] = clean(params[:jobid])
+  end
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1200,8 +1217,6 @@ get '/analytics/graph3' do
     @topbasewords << { password: key, count: value }
   end
 
-  p @topbasewords.to_s
-
   return @topbasewords.to_json
 end
 
@@ -1218,7 +1233,7 @@ end
 post '/search' do
   redirect to('/') unless validSession?
 
-  clean(params[:hash])
+  params[:hash] = clean(params[:hash])
 
   @plaintexts = Targets.all(originalhash: params[:hash])
   haml :search_post
@@ -1321,6 +1336,6 @@ helpers do
   end
 
   def clean(text)
-    ERB::Utils.escape_html(text)
+    return text.gsub(/[<>'"()\/\\]*/i, '')
   end
 end
