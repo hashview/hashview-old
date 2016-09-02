@@ -38,8 +38,8 @@
                   - if @customers
                     - @customers.each do |customer|
                       %tr
-                        %td #{customer.name}
-                        %td #{customer.description}
+                        %td #{clean(customer.name)}
+                        %td #{clean(customer.description)}
                         %td
                           %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
@@ -51,7 +51,7 @@
                                 .modal-header
                                   %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
                                     %span{"aria-hidden" => "true"} &times;
-                                  %h4.modal-title Remove #{customer.name}?
+                                  %h4.modal-title Remove #{clean(customer.name)}?
                                 .modal-body
                                   %p 
                                     By confirming, you will delete all instances related to this customer including the following: 
