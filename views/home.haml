@@ -11,13 +11,15 @@
               .panel.panel-primary
                 .panel-heading
                   %h3.panel-title
+                    - if @active_jobs
+                      - @customers.each do |customer|
+                        - if @active_jobs.customer_id == customer.id
+                          %b Customer:
+                          #{customer.name}
+                          %b Job:
+                          #{@active_jobs.name}
                 - if @results.length > 1
                   .panel-body
-                    The following hashcat job is running:
-                    %p
-                    #{@results}
-                    %br
-                    %br
                     - @jobs.each do |job|
                       - if job.status == 'Running'
                         %h3
@@ -26,8 +28,20 @@
                         %p
                         .progress
                           .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                    .row
+                      .col-md-12
+                        %h3 Job Status
+                        .table
+                          %table{:class => 'table'}
+                            - if @hashcat_status
+                              - @hashcat_status.each do |k,v|
+                                %tr
+                                  %td.col-md-4
+                                    #{k}
+                                  %td
+                                    #{v}
                 -else
-                  .panel-body None
+                  .panel-body You must be slacking if you dont have any hashes to crack!
               %br
           .col-md-4
             .table
@@ -44,19 +58,18 @@
                   - @jobs.each do |job|
                     - if job.status == 'Running' || job.status == 'Queued'
                       %tr
-                        %td 
+                        %td
                           - @customers.each do |customer|
                             - if customer.id == job.customer_id
-                              %strong #{customer.name}
-                        %td  
-                        %td 
+                              %strong #{customer.name}:#{job.name}
+                        %td
+                        %td
                       %tr
                       - @jobtasks.each do |jt|
                         - if job.id == jt.job_id
                           - @tasks.each do |task|
                             - if task.id == jt.task_id
                               %tr
-                                %td
                                 %td
                                   #{task.name}
                                 %td
@@ -71,7 +84,7 @@
                                       %span.label.label-default #{jt.status}
                                 %td
                                   - if jt.status == "Running"
-                                    %a.btn.btn-danger{:href => "/job/stop/#{job.id}/#{task.id}"}
+                                    %a.label.label-danger{:href => "/job/stop/#{job.id}/#{task.id}"}
                                       %b Stop
                   %br
           .col-md-4
