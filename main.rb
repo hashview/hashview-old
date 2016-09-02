@@ -327,6 +327,7 @@ post '/task/create' do
   clean(params[:wordlist])
   clean(params[:attackmode])
   clean(params[:rule])
+  clean(params[:name])
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -816,6 +817,8 @@ get '/download' do
     @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
   end
 
+  return 'No Results available.' if @cracked_results.nil?
+
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -884,6 +887,7 @@ post '/wordlist/upload/' do
   redirect to('/') unless validSession?
 
   clean(params[:name])
+  clean(params[:file])
 
   # require param name && file
   return 'File Name Required.' if params[:name].size == 0
