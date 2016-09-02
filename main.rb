@@ -9,9 +9,7 @@ require 'redis'
 require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
-require 'erubis'
-
-set :erb, :escape_html => true
+require 'erb'
 
 set :bind, '0.0.0.0'
 set :environment, :development
@@ -1323,6 +1321,6 @@ helpers do
   end
 
   def clean(text)
-    Rack::Utils.escape_html(text)
+    ERB::Utils.escape_html(text)
   end
 end
