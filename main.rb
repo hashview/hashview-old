@@ -9,6 +9,9 @@ require 'redis'
 require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
+require 'erubis'
+
+set :erb, :escape_html => true
 
 set :bind, '0.0.0.0'
 set :environment, :development
@@ -51,6 +54,9 @@ get '/logout' do
 end
 
 post '/login' do
+  clean(params[:username])
+  clean(params[:password])
+
   @user = User.first(username: params[:username])
 
   if @user
@@ -86,6 +92,10 @@ get '/not_authorized' do
 end
 
 post '/register' do
+  clean(params[:username])
+  clean(params[:password])
+  clean(params[:confirm])
+
   # validate that no other user account exists
   @users = User.all
   if @users.empty?
@@ -163,14 +173,6 @@ get '/home' do
       @alltargets = Targets.count(jobid: j.id)
       @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
-#      p "JOB ID: " + j.id.to_s
-#      p "ALL TARGETS: " + @alltargets.to_s
-#      p "CRACKED TARGETS: " + @crackedtargets.to_s
-#      p "PROGRESS: " + @progress.to_s
-#    else
-#      @alltargets = 5
-#      @crackedtargets = 5
-#      @progress = 5
     end
   end
 
@@ -208,6 +210,11 @@ get '/customer/create' do
 end
 
 post '/customer/create' do
+  redirect to('/') unless validSession?
+
+  clean(params[:name])
+  clean(params[:desc])
+
   customer = Customers.new
   customer.name = params[:name]
   customer.description = params[:desc]
@@ -227,6 +234,10 @@ end
 post '/customer/edit/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+  clean(params[:name])
+  clean(params[:desc])
+
   customer = Customers.first(id: params[:id])
   customer.name = params[:name]
   customer.description = params[:desc]
@@ -237,6 +248,7 @@ end
 
 get '/customer/delete/:id' do
   redirect to('/') unless validSession?
+  clean(params[:id])
 
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
@@ -265,6 +277,8 @@ end
 
 get '/task/delete/:id' do
   redirect to('/') unless validSession?
+
+  clean(params[:id])
 
   @task = Tasks.first(id: params[:id])
   if @task
@@ -309,6 +323,10 @@ end
 
 post '/task/create' do
   redirect to('/') unless validSession?
+
+  clean(params[:wordlist])
+  clean(params[:attackmode])
+  clean(params[:rule])
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -370,6 +388,8 @@ end
 get '/job/delete/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
@@ -403,6 +423,10 @@ end
 post '/job/create' do
   redirect to('/') unless validSession?
 
+  clean(params[:tasks])
+  clean(params[:name])
+  clean(params[:customer])
+
   return 'You must assign a task to your job' unless params[:tasks]
 
   # create new job
@@ -421,6 +445,8 @@ end
 get '/job/:id/upload/hashfile' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
 
@@ -429,6 +455,9 @@ end
 
 post '/job/:id/upload/hashfile' do
   redirect to('/') unless validSession?
+
+  clean(params[:id])
+  clean(params[:file])
 
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
@@ -455,6 +484,9 @@ end
 get '/job/:id/upload/verify_filetype/:hash' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+  clean(params[:hash])
+
   @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
   @job = Jobs.first(id: params[:id])
   haml :verify_filetypes
@@ -462,6 +494,9 @@ end
 
 post '/job/:id/upload/verify_filetype' do
   redirect to('/') unless validSession?
+
+  clean(params[:filetype])
+  clean(params[:hash])
 
   filetype = params[:filetype]
   hash = params[:hash]
@@ -472,6 +507,10 @@ end
 get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+  clean(params[:hash])
+  clean(params[:filetype])
+
   @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
   @job = Jobs.first(id: params[:id])
   haml :verify_hashtypes
@@ -479,6 +518,12 @@ end
 
 post '/job/:id/upload/verify_hashtype' do
   redirect to('/') unless validSession?
+
+  clean(params[:filetype])
+  clean(params[:hash])
+  clean(params[:hashtype])
+  clean(params[:manualHash])
+  clean(params[:id])
 
   filetype = params[:filetype]
   hash = params[:hash]
@@ -512,6 +557,8 @@ end
 get '/job/edit/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   @job = Jobs.first(id: params[:id])
   if !@job
     return 'No such job exists.'
@@ -533,6 +580,9 @@ end
 
 post '/job/edit/:id' do
   redirect to('/') unless validSession?
+
+  clean(params[:id])
+  clean(params[:tasks])
 
   values = request.POST
 
@@ -556,6 +606,8 @@ end
 
 get '/job/start/:id' do
   redirect to('/') unless validSession?
+
+  clean(params[:id])
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -607,6 +659,8 @@ end
 get '/job/stop/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   tasks = []
   @job = Jobs.first(id: params[:id])
   if !@job
@@ -652,6 +706,9 @@ end
 get '/job/stop/:jobid/:taskid' do
   redirect to('/') unless validSession?
 
+  clean(params[:jobid])
+  clean(params[:taskid])
+
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
   unless jt.status == 'Running'
@@ -684,6 +741,9 @@ end
 get '/job/:jobid/task/delete/:jobtaskid' do
   redirect to('/') unless validSession?
 
+  clean(params[:jobid])
+  clean(params[:jobtaskid])
+
   @job = Jobs.first(id: params[:jobid])
   if !@job
     return 'No such job exists.'
@@ -714,6 +774,8 @@ end
 post '/settings' do
   redirect to('/') unless validSession?
 
+  clean(params[:maxtime])
+
   values = request.POST
 
   @settings = Settings.first
@@ -740,6 +802,9 @@ end
 
 get '/download' do
   redirect to('/') unless validSession?
+
+  clean(params[:custid])
+  clean(params[:jobid])
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -794,6 +859,8 @@ end
 get '/wordlist/delete/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
     return 'no such wordlist exists'
@@ -815,6 +882,8 @@ end
 
 post '/wordlist/upload/' do
   redirect to('/') unless validSession?
+
+  clean(params[:name])
 
   # require param name && file
   return 'File Name Required.' if params[:name].size == 0
@@ -849,6 +918,8 @@ end
 get '/purge' do
   redirect to('/') unless validSession?
 
+  clean(params[:jobid])
+
   @job_cracked = {}
   @job_total = {}
   @job_id_name = {}
@@ -878,6 +949,8 @@ end
 get '/purge/:id' do
   redirect to('/') unless validSession?
 
+  clean(params[:id])
+
   if params[:id] == 'all'
     @targets = Targets.all
     @targets.destroy
@@ -896,6 +969,10 @@ end
 
 # displays analytics for a specific client, job
 get '/analytics' do
+
+  clean(params[:custid])
+  clean(params[:jobid])
+
   @custid = params[:custid]
   @jobid = params[:jobid]
   @button_select_customers = Customers.all
@@ -933,7 +1010,7 @@ get '/analytics' do
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid], jobid: params[:jobid])
 
       # Used for Total Run Time: Customer: Job
-      @total_run_time = Jobtasks.sum(:run_time, :conditions => ["job_id = #{params[:jobid]}"])
+      @total_run_time = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
     else
       # Used for Total Hashes Cracked doughnut: Customer
       @cracked_pw_count = Targets.count(customerid: params[:custid], cracked: 1)
@@ -950,7 +1027,7 @@ get '/analytics' do
       @jobs = Jobs.all(customer_id: params[:custid])
       @total_run_time = 0
       @jobs.each do |job|
-        @query_results = Jobtasks.sum(:run_time, :conditions => ["job_id = #{job.id}"])
+        @query_results = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
         unless @query_results.nil?
           @total_run_time = @total_run_time + @query_results
         end
@@ -991,6 +1068,10 @@ end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
+
+  clean(params[:custid])
+  clean(params[:jobid])
+
   @counts = []
   @passwords = {}
 
@@ -1031,6 +1112,10 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
+
+  clean(params[:custid])
+  clean(params[:jobid])
+
   plaintext = []
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -1072,6 +1157,10 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
+
+  clean(params[:custid])
+  clean(params[:jobid])
+
   plaintext = []
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -1126,6 +1215,8 @@ end
 
 post '/search' do
   redirect to('/') unless validSession?
+
+  clean(params[:hash])
 
   @plaintexts = Targets.all(originalhash: params[:hash])
   haml :search_post
@@ -1225,5 +1316,9 @@ helpers do
 
   def username
     session[:username]
+  end
+
+  def clean(text)
+    Rack::Utils.escape_html(text)
   end
 end
