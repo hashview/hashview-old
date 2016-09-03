@@ -33,6 +33,14 @@ redis = Redis.new
 # to start the rake task do: TERM_CHILD=1 QUEUE=* rake resque:work
 # ^^^ should probably make an upstart for that
 
+# validate every session
+before /^(?!\/(login|register|logout))/ do
+  unless validSession?
+    redirect to('/login')
+  end
+end
+
+
 get '/login' do
   @users = User.all
   if @users.empty?
@@ -42,7 +50,6 @@ get '/login' do
   end
 end
 
-## We use a persistent session table, one session per user; no end date
 get '/logout' do
   session[:session_id] = clean(session[:session_id])
   if session[:session_id]
@@ -82,7 +89,6 @@ post '/login' do
 end
 
 get '/protected' do
-  redirect to('/') unless validSession?
   return 'This is a protected page, you must be logged in.'
 end
 
@@ -135,7 +141,6 @@ end
 ##### Home controllers #####
 
 get '/home' do
-  redirect to('/') unless validSession?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)" | grep -v sudo`
   @jobs = Jobs.all
   @jobtasks = Jobtasks.all
@@ -191,8 +196,6 @@ end
 ### customer controllers ###
 
 get '/customer/list' do
-  redirect to('/') unless validSession?
-
   @customers = Customers.all
   @total_jobs = []
   @total_hashes = []
@@ -206,14 +209,10 @@ get '/customer/list' do
 end
 
 get '/customer/create' do
-  redirect to('/') unless validSession?
-
   haml :customer_edit
 end
 
 post '/customer/create' do
-  redirect to('/') unless validSession?
-
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc])
 
@@ -226,16 +225,12 @@ post '/customer/create' do
 end
 
 get '/customer/edit/:id' do
-  redirect to('/') unless validSession?
-
   @customer = Customers.first(id: params[:id])
 
   haml :customer_edit
 end
 
 post '/customer/edit/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc])
@@ -249,7 +244,6 @@ post '/customer/edit/:id' do
 end
 
 get '/customer/delete/:id' do
-  redirect to('/') unless validSession?
   params[:id] = clean(params[:id])
 
   @customer = Customers.first(id: params[:id])
@@ -269,8 +263,6 @@ end
 ##### task controllers #####
 
 get '/task/list' do
-  redirect to('/') unless validSession?
-
   @tasks = Tasks.all
   @wordlists = Wordlists.all
 
@@ -278,8 +270,6 @@ get '/task/list' do
 end
 
 get '/task/delete/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   @task = Tasks.first(id: params[:id])
@@ -293,14 +283,10 @@ get '/task/delete/:id' do
 end
 
 get '/task/edit/:id' do
-  redirect to('/') unless validSession?
-
   return 'Page under contruction.'
 end
 
 get '/task/create' do
-  redirect to('/') unless validSession?
-
   settings = Settings.first
 
   # TODO present better error msg
@@ -324,8 +310,6 @@ get '/task/create' do
 end
 
 post '/task/create' do
-  redirect to('/') unless validSession?
-
   params[:wordlist] = clean(params[:wordlist])
   params[:attackmode] = clean(params[:attackmode])
   params[:rule] = clean(params[:rule])
@@ -367,8 +351,6 @@ end
 ##### job controllers #####
 
 get '/job/list' do
-  redirect to('/') unless validSession?
-
   @targets_cracked = {}
   @customer_names = {}
 
@@ -389,8 +371,6 @@ get '/job/list' do
 end
 
 get '/job/delete/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -404,8 +384,6 @@ get '/job/delete/:id' do
 end
 
 get '/job/create' do
-  redirect to('/') unless validSession?
-
   @customers = Customers.all
   redirect to('/customer/create') if @customers.empty?
 
@@ -424,8 +402,6 @@ get '/job/create' do
 end
 
 post '/job/create' do
-  redirect to('/') unless validSession?
-
   #params[:tasks] = clean(params[:tasks])
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
@@ -446,8 +422,6 @@ post '/job/create' do
 end
 
 get '/job/:id/upload/hashfile' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -457,8 +431,6 @@ get '/job/:id/upload/hashfile' do
 end
 
 post '/job/:id/upload/hashfile' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
   #params[:file] = clean(params[:file])
 
@@ -485,8 +457,6 @@ post '/job/:id/upload/hashfile' do
 end
 
 get '/job/:id/upload/verify_filetype/:hash' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
   params[:hash] = clean(params[:hash])
 
@@ -496,8 +466,6 @@ get '/job/:id/upload/verify_filetype/:hash' do
 end
 
 post '/job/:id/upload/verify_filetype' do
-  redirect to('/') unless validSession?
-
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash])
 
@@ -508,8 +476,6 @@ post '/job/:id/upload/verify_filetype' do
 end
 
 get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
   params[:hash] = clean(params[:hash])
   params[:filetype] = clean(params[:filetype])
@@ -520,8 +486,6 @@ get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
 end
 
 post '/job/:id/upload/verify_hashtype' do
-  redirect to('/') unless validSession?
-
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash])
   params[:hashtype] = clean(params[:hashtype])
@@ -558,8 +522,6 @@ post '/job/:id/upload/verify_hashtype' do
 end
 
 get '/job/edit/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -582,8 +544,6 @@ get '/job/edit/:id' do
 end
 
 post '/job/edit/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
   params[:tasks] = clean(params[:tasks])
 
@@ -608,8 +568,6 @@ post '/job/edit/:id' do
 end
 
 get '/job/start/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   tasks = []
@@ -651,7 +609,6 @@ get '/job/start/:id' do
 end
 
 get '/job/queue' do
-  redirect to('/') unless validSession?
   if isDevelopment?
     redirect to('http://192.168.15.244:5678')
   else
@@ -660,8 +617,6 @@ get '/job/queue' do
 end
 
 get '/job/stop/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   tasks = []
@@ -707,8 +662,6 @@ get '/job/stop/:id' do
 end
 
 get '/job/stop/:jobid/:taskid' do
-  redirect to('/') unless validSession?
-
   params[:jobid] = clean(params[:jobid])
   params[:taskid] = clean(params[:taskid])
 
@@ -742,8 +695,6 @@ end
 ##### job controllers #####
 
 get '/job/:jobid/task/delete/:jobtaskid' do
-  redirect to('/') unless validSession?
-
   params[:jobid] = clean(params[:jobid])
   params[:jobtaskid] = clean(params[:jobtaskid])
 
@@ -763,8 +714,6 @@ end
 ##### Global Settings ######
 
 get '/settings' do
-  redirect to('/') unless validSession?
-
   @settings = Settings.first
 
   if @settings && @settings.maxtasktime.nil?
@@ -775,8 +724,6 @@ get '/settings' do
 end
 
 post '/settings' do
-  redirect to('/') unless validSession?
-
   #params[:maxtime] = clean(params[:maxtime])
 
   values = request.POST
@@ -804,8 +751,6 @@ end
 ##### Downloads ############
 
 get '/download' do
-  redirect to('/') unless validSession?
-
   params[:custid] = clean(params[:custid])
   params[:jobid] = clean(params[:jobid])
 
@@ -849,21 +794,16 @@ end
 ##### Word Lists ###########
 
 get '/wordlist/list' do
-  redirect to('/') unless validSession?
-
   @wordlists = Wordlists.all
 
   haml :wordlist_list
 end
 
 get '/wordlist/add' do
-  redirect to('/') unless validSession?
   haml :wordlist_add
 end
 
 get '/wordlist/delete/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   @wordlist = Wordlists.first(id: params[:id])
@@ -886,8 +826,6 @@ get '/wordlist/delete/:id' do
 end
 
 post '/wordlist/upload/' do
-  redirect to('/') unless validSession?
-
   params[:name] = clean(params[:name])
   #params[:file] = clean(params[:file])
 
@@ -922,8 +860,6 @@ end
 ##### Purge Data ###########
 
 get '/purge' do
-  redirect to('/') unless validSession?
-
   params[:jobid] = clean(params[:jobid])
 
   @job_cracked = {}
@@ -953,8 +889,6 @@ get '/purge' do
 end
 
 get '/purge/:id' do
-  redirect to('/') unless validSession?
-
   params[:id] = clean(params[:id])
 
   if params[:id] == 'all'
@@ -1230,13 +1164,10 @@ end
 ##### search ###############
 
 get '/search' do
-  redirect to('/') unless validSession?
   haml :search
 end
 
 post '/search' do
-  redirect to('/') unless validSession?
-
   params[:hash] = clean(params[:hash])
 
   @plaintexts = Targets.all(originalhash: params[:hash])
