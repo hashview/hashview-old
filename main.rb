@@ -751,8 +751,12 @@ end
 ##### Downloads ############
 
 get '/download' do
-  params[:custid] = clean(params[:custid])
-  params[:jobid] = clean(params[:jobid])
+  if params[:custid]
+    params[:custid] = clean(params[:custid])
+  end
+  if params[:jobid]
+    params[:jobid] = clean(params[:jobid])
+  end
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -1168,7 +1172,10 @@ get '/search' do
 end
 
 post '/search' do
-  params[:hash] = clean(params[:hash])
+  if params[:hash]
+    params[:hash] = clean(params[:hash])
+  end
+  @customers = Customers.all()
 
   @plaintexts = Targets.all(originalhash: params[:hash])
   haml :search_post

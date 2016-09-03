@@ -1,19 +1,20 @@
 !!!
 %html
   %body
-    %p
-      %br
+    .span15
       .container
-        %h2
-        %h2 Search by hash
-        %br
+        .row
+          .page-header
+            %h1
+              Search by Hash
+      .container
         .row
           .col-md-10
             %form{:class => "form-horizontal", :action => "/search", :method => "post"}
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Hash:
                 .col-xs-10
-                  %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                  %input{:type => "textbox", :class => "form-control", :name => "hash", :id => "hash"}
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Search

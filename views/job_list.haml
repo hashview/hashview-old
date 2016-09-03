@@ -9,18 +9,15 @@
       .container
         .row
           .col-md-12
-            .container
-              .row
-                .col-md-12
-                  .page-header
-                    %h1
-                      Jobs
-                .row
-                  .col-md-10.pull-left
-                    Jobs contain a series tasks. Each task is an individual hashcat command.  Jobs also have an associated target list of hashes to crack.
-                  .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-right{:href => "/job/create"}
-                      Create a New Job
+            .page-header
+              %h1
+                Jobs
+          .row
+            .col-md-10
+              Jobs contain a series tasks. Each task is an individual hashcat command.  Jobs also have an associated target list of hashes to crack.
+            .col-md-2.pull-right
+              %a.btn.btn-primary.pull-right{:href => "/job/create"}
+                Create a New Job
         %br
         %br
       .container
