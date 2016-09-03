@@ -1,12 +1,13 @@
 !!!
-%html 
+%html
   %body
-    %p    
-      %br
+    .span15
       .container
-        %h2
-        %h2 Search by hash
-        %br
+        .row
+          .page-header
+            %h1
+              Search by Hash
+      .container
         .row
           .col-md-10
             %form{:class => "form-horizontal", :action => "/search", :method => "post"}
@@ -18,21 +19,30 @@
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Search
         %br
+        %br
         .row
-          .col-md-10
-            %div{:id => "data_grid1"}
-              %table.table.table-striped
-                %tr
-                  %th Hash
-                  %th Type
-                  %th Plaintext
-                %tr
-                - if @plaintexts
-                  - @plaintexts.each do |entry|
-                    %td #{entry.originalhash}
-                    %td #{modeiToFriendly(entry.hashtype.to_s)}
-                    %td #{entry.plaintext}
-                    %tr
-                - else
-                  %td "none found" 
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
                   %tr
+                    %th Username
+                    %th Plaintext
+                    %th Type
+                    %th Hash
+                    %th Customer
+                %tbody
+                  %tr
+                  - if @plaintexts
+                    - @plaintexts.each do |entry|
+                      %td #{entry.username}
+                      %td #{entry.plaintext}
+                      %td #{modeToFriendly(entry.hashtype.to_s)}
+                      %td #{entry.originalhash}
+                      - @customers.each do |customer|
+                        - if entry.customerid == customer.id
+                          %td #{customer.name}
+                      %tr
+                  - else
+                    %td "No Results"
+                    %tr
