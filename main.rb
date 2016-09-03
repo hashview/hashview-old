@@ -1172,12 +1172,29 @@ get '/search' do
 end
 
 post '/search' do
-  if params[:hash]
-    params[:hash] = clean(params[:hash])
-  end
   @customers = Customers.all()
 
-  @plaintexts = Targets.all(originalhash: params[:hash])
+  if params[:value].empty?
+    warning('Please provide a search term')
+    redirect to('/search')
+  else
+    value = clean(params[:value])
+  end
+
+  if params[:search_type] == "hash"
+    hash = clean(params[:value])
+  elsif params[:search_type] == "username"
+    username = clean(params[:value])
+  else
+    return "you need to provide a search type"
+  end
+
+  if username
+    @results = Targets.all(username: username)
+  elsif hash
+    @results = Targets.all(originalhash: hash)
+  end
+
   haml :search_post
 end
 

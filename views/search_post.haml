@@ -9,15 +9,16 @@
               Search by Hash
       .container
         .row
-          .col-md-10
-            %form{:class => "form-horizontal", :action => "/search", :method => "post"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Hash:
-                .col-xs-10
-                  %input{:type => "textbox", :class => "form-control", :name => "hash", :id => "hash"}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Search
+          .col-md-12
+            %form{:action => "/search", :method => "post"}
+              .form-group.col-xs-2
+                %select.form-control{:name => "search_type"}
+                  %option{:value => "username", :name => "search_type", :type => "button"} Username
+                  %option{:value => "hash", :name => "search_type", :type => "button"} Hash
+              .form-group.col-md-8
+                %input{:type => "textbox", :class => "form-control", :name => "value", :id => "value", :placeholder => "Search for..."}
+              .form-group.col-xs-2
+                %button.btn.btn-primary{:type => "submit"} Search
         %br
         %br
         .row
@@ -33,8 +34,8 @@
                     %th Customer
                 %tbody
                   %tr
-                  - if @plaintexts
-                    - @plaintexts.each do |entry|
+                  - if @results
+                    - @results.each do |entry|
                       %td #{entry.username}
                       %td #{entry.plaintext}
                       %td #{modeToFriendly(entry.hashtype.to_s)}
