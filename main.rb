@@ -35,9 +35,7 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  unless validSession?
-    redirect to('/login')
-  end
+  redirect to ('/login') unless validSession?
 end
 
 
@@ -316,21 +314,10 @@ get '/task/create' do
 end
 
 post '/task/create' do
-  if params[:wordslist] and !params[:wordlist].empty?
-    params[:wordlist] = clean(params[:wordlist])
-  end
-
-  if params[:attackmode] and !params[:attackmode].empty?
-    params[:attackmode] = clean(params[:attackmode])
-  end
-
-  if params[:rule] and params[:rule].empty?
-    params[:rule] = clean(params[:rule])
-  end
-
-  if params[:name] and params[:name].empty?
-    params[:name] = clean(params[:name])
-  end
+  params[:wordlist] = clean(params[:wordlist]) unless params[:wordlist] && !params[:wordlist].empty?
+  params[:attackmode] = clean(params[:attackmode]) unless params[:attackmode] && !params[:attackmode].empty
+  params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] &&!params[:rule].empty?
+  params[:name] = clean(params[:name]) unless params[:rule] && !params[:name].empty
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -389,9 +376,7 @@ get '/job/delete/:id' do
   else
     @jobtasks = Jobtasks.all(job_id: params[:id])
     @jobtasks.each do |jobtask|
-      unless jobtask.nil?
-        jobtask.destroy
-      end
+      jobtask.destroy unless jobtask.nil?
     end
     @job.destroy
   end
@@ -749,9 +734,7 @@ post '/settings' do
   if @settings == nil
     # create settings for the first time
     # set max task time if none is provided
-    if @settings && @setttings.maxtasktime.nil?
-      values['maxtasktime'] = '864000'
-    end
+    values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -767,12 +750,8 @@ end
 ##### Downloads ############
 
 get '/download' do
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) unless !params[:custid]
+  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -931,13 +910,8 @@ end
 # displays analytics for a specific client, job
 get '/analytics' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) unless !params[:custid]
+  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
 
   @custid = params[:custid]
   @jobid = params[:jobid]
@@ -1035,12 +1009,8 @@ end
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:custid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) unless !params[:custid]
+  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
 
   @counts = []
   @passwords = {}
@@ -1083,12 +1053,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) unless !params[:custid]
+  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1132,12 +1098,8 @@ end
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) unless !params[:custid]
+  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
