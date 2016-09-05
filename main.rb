@@ -38,7 +38,6 @@ before /^(?!\/(login|register|logout))/ do
   redirect to ('/login') unless validSession?
 end
 
-
 get '/login' do
   @users = User.all
   if @users.empty?
@@ -122,7 +121,6 @@ post '/register' do
   redirect to('/home')
 end
 
-
 get '/' do
   @users = User.all
   if @users.empty?
@@ -180,7 +178,6 @@ get '/home' do
       @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
     end
   end
-
 
   haml :home
 end
@@ -897,7 +894,6 @@ get '/purge/:id' do
   redirect to('/purge')
 end
 
-
 ############################
 
 ##### Analysis #############
@@ -1136,7 +1132,6 @@ get '/analytics/graph3' do
   return @topbasewords.to_json
 end
 
-
 ############################
 
 ##### search ###############
@@ -1209,7 +1204,6 @@ def buildCrackCmd(jobid, taskid)
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
   wordlist = Wordlists.first(id: @task.wl_id)
-
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
