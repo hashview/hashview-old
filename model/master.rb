@@ -157,15 +157,15 @@ class Settings
   property :clientmode, Boolean
 end
 
- class Wordlists
-   include DataMapper::Resource
+# Wordlist Class
+class Wordlists
+  include DataMapper::Resource
 
-   property :id, Serial
-   property :name, String, length: 256
-   property :path, String, length: 2000
-   property :size, Integer
-
- end
+  property :id, Serial
+  property :name, String, length: 256
+  property :path, String, length: 2000
+  property :size, Integer
+end
 
 DataMapper.finalize
 

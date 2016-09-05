@@ -87,7 +87,7 @@ module Jobq
           entry.cracked = 1
           entry.plaintext = plaintext
           entry.save
-       end
+        end
       end
     end
 
