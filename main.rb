@@ -35,7 +35,7 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  redirect to ('/login') unless validSession?
+  redirect to('/login') unless validSession?
 end
 
 get '/login' do
@@ -363,7 +363,7 @@ end
 post '/tasks/create' do
   params[:wordlist] = clean(params[:wordlist]) unless params[:wordlist] && !params[:wordlist].empty?
   params[:attackmode] = clean(params[:attackmode]) unless params[:attackmode] && !params[:attackmode].empty
-  params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] &&!params[:rule].empty?
+  params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] && !params[:rule].empty?
   params[:name] = clean(params[:name]) unless params[:rule] && !params[:name].empty
 
   settings = Settings.first
@@ -558,7 +558,7 @@ post '/jobs/:id/upload/verify_hashtype' do
   customer_id = @job.customer_id
 
   unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
-    return 'Error importing hash'  # need to better handle errors
+    return 'Error importing hash' # need to better handle errors
   end
 
   # Delete file, no longer needed
@@ -774,7 +774,7 @@ post '/settings' do
 
   @settings = Settings.first
 
-  if @settings == nil
+  if @settings.nil?
     # create settings for the first time
     # set max task time if none is provided
     values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
@@ -886,7 +886,7 @@ post '/wordlists/upload/' do
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0){ |c, line| c + 1 }
+  size = File.foreach(file_name).inject(0) { |c, line| c + 1 }
 
   wordlist = Wordlists.new
   wordlist.name = upload_name # what XSS?
@@ -1191,7 +1191,7 @@ get '/search' do
 end
 
 post '/search' do
-  @customers = Customers.all()
+  @customers = Customers.all
 
   if params[:value].empty?
     warning('Please provide a search term')
