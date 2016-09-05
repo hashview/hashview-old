@@ -250,7 +250,13 @@ get '/customer/delete/:id' do
   @customer.destroy unless @customer.nil?
 
   @jobs = Jobs.all(customer_id: params[:id])
-  @jobs.destroy unless @jobs.nil?
+  unless @jobs.nil?
+    @jobs.each do |job|
+      @jobtasks = Jobtasks.all(job_id: job.id)
+      @jobtasks.destroy unless @jobtasks.nil?
+    end
+    @jobs.destroy unless @jobs.nil?
+  end
 
   @targets = Targets.all(customerid: params[:id])
   @targets.destroy unless @targets.nil?
@@ -377,6 +383,12 @@ get '/job/delete/:id' do
   if !@job
     return 'No such job exists.'
   else
+    @jobtasks = Jobtasks.all(job_id: params[:id])
+    @jobtasks.each do |jobtask|
+      unless jobtask.nil?
+        jobtask.destroy
+      end
+    end
     @job.destroy
   end
 
@@ -789,6 +801,7 @@ get '/download' do
       f.puts line
     end
   end
+
   send_file file_name, filename: file_name, type: 'Application/octet-stream'
 
 end
