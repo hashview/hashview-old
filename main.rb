@@ -403,7 +403,6 @@ get '/job/create' do
 end
 
 post '/job/create' do
-  #params[:tasks] = clean(params[:tasks])
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
 
@@ -433,7 +432,6 @@ end
 
 post '/job/:id/upload/hashfile' do
   params[:id] = clean(params[:id])
-  #params[:file] = clean(params[:file])
 
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
@@ -725,8 +723,6 @@ get '/settings' do
 end
 
 post '/settings' do
-  #params[:maxtime] = clean(params[:maxtime])
-
   values = request.POST
 
   @settings = Settings.first
@@ -827,7 +823,6 @@ end
 
 post '/wordlist/upload/' do
   params[:name] = clean(params[:name])
-  #params[:file] = clean(params[:file])
 
   # require param name && file
   return 'File Name Required.' if params[:name].size == 0
