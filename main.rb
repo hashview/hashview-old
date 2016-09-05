@@ -316,10 +316,21 @@ get '/task/create' do
 end
 
 post '/task/create' do
-  params[:wordlist] = clean(params[:wordlist])
-  params[:attackmode] = clean(params[:attackmode])
-  params[:rule] = clean(params[:rule])
-  params[:name] = clean(params[:name])
+  if params[:wordslist] and !params[:wordlist].empty?
+    params[:wordlist] = clean(params[:wordlist])
+  end
+
+  if params[:attackmode] and !params[:attackmode].empty?
+    params[:attackmode] = clean(params[:attackmode])
+  end
+
+  if params[:rule] and params[:rule].empty?
+    params[:rule] = clean(params[:rule])
+  end
+
+  if params[:name] and params[:name].empty?
+    params[:name] = clean(params[:name])
+  end
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -332,21 +343,14 @@ post '/task/create' do
   task = Tasks.new
   task.name = params[:name]
 
-  if settings && !settings.hcglobalopts
-    task.command = 'sudo ' + settings.hcbinpath + ' '
-  else
-    task.command = 'sudo ' + settings.hcbinpath + ' ' + settings.hcglobalopts + ' '
-  end
-  puts params
-  if params[:attackmode] == 'dictionary'
-    attackmode = 0
-  elsif params[:attackmode] == 'bruteforce'
-    attackmode = 3
-  end
+  task.hc_attackmode = params[:attackmode]  
 
-  task.hc_attackmode = attackmode
-  task.wl_id = wordlist.id
-  task.hc_rule = params[:rule]
+  if params[:attackmode] == 'dictionary'
+    task.wl_id = wordlist.id
+    task.hc_rule = params[:rule]
+  elsif params[:attackmode] == 'maskmode'
+    task.hc_mask = params[:mask]
+  end 
   task.save
 
   redirect to('/task/list')
@@ -1246,7 +1250,9 @@ def buildCrackCmd(jobid, taskid)
   @targets = Targets.first(jobid: jobid)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
+  mask = @task.hc_mask
   wordlist = Wordlists.first(id: @task.wl_id)
+
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
@@ -1256,9 +1262,11 @@ def buildCrackCmd(jobid, taskid)
   crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
   File.open(crack_file, 'w')
 
-  if attackmode == '3'
-    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a ' + attackmode + ' ' + target_file
-  elsif attackmode == '0'
+  if attackmode == 'bruteforce'
+    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+  elsif attackmode == 'maskmode'
+    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+  elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
       cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
