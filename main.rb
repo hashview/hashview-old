@@ -746,8 +746,8 @@ end
 ##### Downloads ############
 
 get '/download' do
-  params[:custid] = clean(params[:custid]) unless !params[:custid]
-  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -905,8 +905,8 @@ end
 # displays analytics for a specific client, job
 get '/analytics' do
 
-  params[:custid] = clean(params[:custid]) unless !params[:custid]
-  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   @custid = params[:custid]
   @jobid = params[:jobid]
@@ -1004,8 +1004,8 @@ end
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
 
-  params[:custid] = clean(params[:custid]) unless !params[:custid]
-  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   @counts = []
   @passwords = {}
@@ -1048,8 +1048,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
 
-  params[:custid] = clean(params[:custid]) unless !params[:custid]
-  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1093,8 +1093,8 @@ end
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
 
-  params[:custid] = clean(params[:custid]) unless !params[:custid]
-  params[:jobid] = clean(params[:jobid]) unless !params[:jobid]
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
