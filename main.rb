@@ -177,7 +177,7 @@ get '/home' do
       @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
-      @hashcat_status = hashcatParser("control/outfiles/hcoutput_" + j.id.to_s + ".txt")
+      @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
     end
   end
 
@@ -1160,12 +1160,12 @@ post '/search' do
     value = clean(params[:value])
   end
 
-  if params[:search_type] == "hash"
+  if params[:search_type] == 'hash'
     hash = clean(params[:value])
-  elsif params[:search_type] == "username"
+  elsif params[:search_type] == 'username'
     username = clean(params[:value])
   else
-    return "you need to provide a search type"
+    return 'You need to provide a search type'
   end
 
   if username
