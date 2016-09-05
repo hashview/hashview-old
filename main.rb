@@ -268,10 +268,6 @@ end
 get '/accounts/list' do
   @users = User.all
 
-  @users.each do |user|
-    p "USER: " + user.username.to_s
-  end
-
   haml :account_list
 end
 
