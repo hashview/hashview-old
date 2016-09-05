@@ -18,7 +18,7 @@
                   .col-md-10.pull-left
                     Wordlists are used in dictionary attacks. Upload your custom wordlists here.
                   .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-right{:href => "/wordlist/add"}
+                    %a.btn.btn-primary.pull-right{:href => "/wordlists/add"}
                       Upload Wordlist
         %br
         %br
@@ -41,5 +41,5 @@
                         %td #{wordlist.name}
                         %td #{wordlist.size}
                         %td
-                          %a.btn.btn-danger{:href => "/wordlist/delete/#{wordlist.id}"}
+                          %a.btn.btn-danger{:href => "/wordlists/delete/#{wordlist.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}

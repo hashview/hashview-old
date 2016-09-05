@@ -16,7 +16,7 @@
                   .col-md-10.pull-left
                     Task are predefined hashcat commands. Any number of tasks can be assigned to a Job.
                   .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-right{:href => "/task/create"}
+                    %a.btn.btn-primary.pull-right{:href => "/tasks/create"}
                       Create Task
         %br
         %br
@@ -83,7 +83,7 @@
                                         %label.control-label.col-xs-2{:for => ""} Dictionary Rules
                                         .col-xs-4
                                           #{task.hc_rule}
-                          %a.btn.btn-warning{:href => "/task/edit/#{task.id}"}
+                          %a.btn.btn-warning{:href => "/tasks/edit/#{task.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/task/delete/#{task.id}"}
+                          %a.btn.btn-danger{:href => "/tasks/delete/#{task.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
