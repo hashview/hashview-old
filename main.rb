@@ -383,6 +383,12 @@ get '/job/delete/:id' do
   if !@job
     return 'No such job exists.'
   else
+    @jobtasks = Jobtasks.all(job_id: params[:id])
+    @jobtasks.each do |jobtask|
+      unless jobtask.nil?
+        jobtask.destroy
+      end
+    end
     @job.destroy
   end
 
