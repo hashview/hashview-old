@@ -94,9 +94,11 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password])
-  params[:confirm] = clean(params[:confirm])
+  return 'You must have a username.' if !params[:username] || params[:username].nil?
+  return 'You must have a password.' if !params[:password] || params[:password].nil?
+  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?  
+
+  params[:username] = clean(params[:username]) if params[:username]
 
   # validate that no other user account exists
   @users = User.all
@@ -190,7 +192,7 @@ end
 
 ### customer controllers ###
 
-get '/customer/list' do
+get '/customers/list' do
   @customers = Customers.all
   @total_jobs = []
   @total_hashes = []
@@ -203,11 +205,11 @@ get '/customer/list' do
   haml :customer_list
 end
 
-get '/customer/create' do
+get '/customers/create' do
   haml :customer_edit
 end
 
-post '/customer/create' do
+post '/customers/create' do
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc])
 
@@ -216,16 +218,16 @@ post '/customer/create' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to('customer/list')
+  redirect to('customers/list')
 end
 
-get '/customer/edit/:id' do
+get '/customers/edit/:id' do
   @customer = Customers.first(id: params[:id])
 
   haml :customer_edit
 end
 
-post '/customer/edit/:id' do
+post '/customers/edit/:id' do
   params[:id] = clean(params[:id])
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc])
@@ -235,10 +237,10 @@ post '/customer/edit/:id' do
   customer.description = params[:desc]
   customer.save
 
-  redirect to('customer/list')
+  redirect to('customers/list')
 end
 
-get '/customer/delete/:id' do
+get '/customers/delete/:id' do
   params[:id] = clean(params[:id])
 
   @customer = Customers.first(id: params[:id])
@@ -256,21 +258,73 @@ get '/customer/delete/:id' do
   @targets = Targets.all(customerid: params[:id])
   @targets.destroy unless @targets.nil?
 
-  redirect to('/customer/list')
+  redirect to('/customers/list')
+end
+
+############################
+
+### Account controllers ####
+
+get '/accounts/list' do
+  @users = User.all
+
+  @users.each do |user|
+    p "USER: " + user.username.to_s
+  end
+
+  haml :account_list
+end
+
+get '/accounts/create' do
+  haml :account_edit
+end
+
+post '/accounts/create' do
+  return 'You must have a username.' if !params[:username] || params[:username].nil?
+  return 'You must have a password.' if !params[:password] || params[:password].nil?
+  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+
+  params[:username] = clean(params[:username]) if params[:username]
+
+  # validate that no other user account exists
+  @users = User.all(username: params[:username])
+  if @users.empty?
+    if params[:password] != params[:confirm]
+      return 'Passwords do not match'
+    else
+      new_user = User.new
+      new_user.username = params[:username]
+      new_user.password = params[:password]
+      new_user.admin = 't'
+      new_user.save
+    end
+  else
+    return 'User already exists.'
+  end
+  redirect to('/accounts/list')
+end
+
+get '/accounts/delete/:id' do
+  params[:id] = clean(params[:id])
+
+  @user = User.first(id: params[:id])
+  @user.destroy unless @user.nil?
+
+  redirect to('/accounts/list')
 end
 
 ############################
 
 ##### task controllers #####
 
-get '/task/list' do
+get '/tasks/list' do
   @tasks = Tasks.all
   @wordlists = Wordlists.all
 
   haml :task_list
 end
 
-get '/task/delete/:id' do
+get '/tasks/delete/:id' do
   params[:id] = clean(params[:id])
 
   @task = Tasks.first(id: params[:id])
@@ -280,14 +334,14 @@ get '/task/delete/:id' do
     return 'No such task exists.'
   end
 
-  redirect to('/task/list')
+  redirect to('/tasks/list')
 end
 
-get '/task/edit/:id' do
+get '/tasks/edit/:id' do
   return 'Page under contruction.'
 end
 
-get '/task/create' do
+get '/tasks/create' do
   settings = Settings.first
 
   # TODO present better error msg
@@ -310,7 +364,7 @@ get '/task/create' do
   haml :task_create
 end
 
-post '/task/create' do
+post '/tasks/create' do
   params[:wordlist] = clean(params[:wordlist]) unless params[:wordlist] && !params[:wordlist].empty?
   params[:attackmode] = clean(params[:attackmode]) unless params[:attackmode] && !params[:attackmode].empty
   params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] &&!params[:rule].empty?
@@ -337,14 +391,14 @@ post '/task/create' do
   end 
   task.save
 
-  redirect to('/task/list')
+  redirect to('/tasks/list')
 end
 
 ############################
 
 ##### job controllers #####
 
-get '/job/list' do
+get '/jobs/list' do
   @targets_cracked = {}
   @customer_names = {}
 
@@ -364,7 +418,7 @@ get '/job/list' do
   haml :job_list
 end
 
-get '/job/delete/:id' do
+get '/jobs/delete/:id' do
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -378,15 +432,15 @@ get '/job/delete/:id' do
     @job.destroy
   end
 
-  redirect to('/job/list')
+  redirect to('/jobs/list')
 end
 
-get '/job/create' do
+get '/jobs/create' do
   @customers = Customers.all
-  redirect to('/customer/create') if @customers.empty?
+  redirect to('/customers/create') if @customers.empty?
 
   @tasks = Tasks.all
-  redirect to('/task/create') if @tasks.empty?
+  redirect to('/tasks/create') if @tasks.empty?
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -399,7 +453,7 @@ get '/job/create' do
   haml :job_edit
 end
 
-post '/job/create' do
+post '/jobs/create' do
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
 
@@ -415,10 +469,10 @@ post '/job/create' do
   # assign tasks to the job
   assignTasksToJob(params[:tasks], job.id)
 
-  redirect to("/job/#{job.id}/upload/hashfile")
+  redirect to("/jobs/#{job.id}/upload/hashfile")
 end
 
-get '/job/:id/upload/hashfile' do
+get '/jobs/:id/upload/hashfile' do
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -427,7 +481,7 @@ get '/job/:id/upload/hashfile' do
   haml :upload_hashfile
 end
 
-post '/job/:id/upload/hashfile' do
+post '/jobs/:id/upload/hashfile' do
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -449,10 +503,10 @@ post '/job/:id/upload/hashfile' do
   @job.targetfile = hashfile
   @job.save
 
-  redirect to("/job/#{@job.id}/upload/verify_filetype/#{hash}")
+  redirect to("/jobs/#{@job.id}/upload/verify_filetype/#{hash}")
 end
 
-get '/job/:id/upload/verify_filetype/:hash' do
+get '/jobs/:id/upload/verify_filetype/:hash' do
   params[:id] = clean(params[:id])
   params[:hash] = clean(params[:hash])
 
@@ -461,17 +515,17 @@ get '/job/:id/upload/verify_filetype/:hash' do
   haml :verify_filetypes
 end
 
-post '/job/:id/upload/verify_filetype' do
+post '/jobs/:id/upload/verify_filetype' do
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash])
 
   filetype = params[:filetype]
   hash = params[:hash]
 
-  redirect to("/job/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
+  redirect to("/jobs/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
 end
 
-get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
+get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
   params[:id] = clean(params[:id])
   params[:hash] = clean(params[:hash])
   params[:filetype] = clean(params[:filetype])
@@ -481,7 +535,7 @@ get '/job/:id/upload/verify_hashtype/:hash/:filetype' do
   haml :verify_hashtypes
 end
 
-post '/job/:id/upload/verify_hashtype' do
+post '/jobs/:id/upload/verify_hashtype' do
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash])
   params[:hashtype] = clean(params[:hashtype])
@@ -517,7 +571,7 @@ post '/job/:id/upload/verify_hashtype' do
   redirect to('/job/list')
 end
 
-get '/job/edit/:id' do
+get '/jobs/edit/:id' do
   params[:id] = clean(params[:id])
 
   @job = Jobs.first(id: params[:id])
@@ -539,7 +593,7 @@ get '/job/edit/:id' do
   haml :job_edit
 end
 
-post '/job/edit/:id' do
+post '/jobs/edit/:id' do
   params[:id] = clean(params[:id])
   params[:tasks] = clean(params[:tasks])
 
@@ -560,10 +614,10 @@ post '/job/edit/:id' do
 
   end
 
-  redirect to('/job/list')
+  redirect to('/jobs/list')
 end
 
-get '/job/start/:id' do
+get '/jobs/start/:id' do
   params[:id] = clean(params[:id])
 
   tasks = []
@@ -604,7 +658,7 @@ get '/job/start/:id' do
   redirect to('/home')
 end
 
-get '/job/queue' do
+get '/jobs/queue' do
   if isDevelopment?
     redirect to('http://192.168.15.244:5678')
   else
@@ -612,7 +666,7 @@ get '/job/queue' do
   end
 end
 
-get '/job/stop/:id' do
+get '/jobs/stop/:id' do
   params[:id] = clean(params[:id])
 
   tasks = []
@@ -654,10 +708,10 @@ get '/job/stop/:id' do
     end
   end
 
-  redirect to('/job/list')
+  redirect to('/jobs/list')
 end
 
-get '/job/stop/:jobid/:taskid' do
+get '/jobs/stop/:jobid/:taskid' do
   params[:jobid] = clean(params[:jobid])
   params[:taskid] = clean(params[:taskid])
 
@@ -682,15 +736,15 @@ get '/job/stop/:jobid/:taskid' do
   if referer[3] == 'home'
     redirect to('/home')
   elsif referer[3] == 'job'
-    redirect to('/job/list')
+    redirect to('/jobs/list')
   end
 end
 
 ############################
 
-##### job controllers #####
+##### job task controllers #####
 
-get '/job/:jobid/task/delete/:jobtaskid' do
+get '/jobs/:jobid/task/delete/:jobtaskid' do
   params[:jobid] = clean(params[:jobid])
   params[:jobtaskid] = clean(params[:jobtaskid])
 
@@ -786,17 +840,17 @@ end
 
 ##### Word Lists ###########
 
-get '/wordlist/list' do
+get '/wordlists/list' do
   @wordlists = Wordlists.all
 
   haml :wordlist_list
 end
 
-get '/wordlist/add' do
+get '/wordlists/add' do
   haml :wordlist_add
 end
 
-get '/wordlist/delete/:id' do
+get '/wordlists/delete/:id' do
   params[:id] = clean(params[:id])
 
   @wordlist = Wordlists.first(id: params[:id])
@@ -815,10 +869,10 @@ get '/wordlist/delete/:id' do
     # delete from db
     @wordlist.destroy
   end
-  redirect to('/wordlist/list')
+  redirect to('/wordlists/list')
 end
 
-post '/wordlist/upload/' do
+post '/wordlists/upload/' do
   params[:name] = clean(params[:name])
 
   # require param name && file
@@ -844,7 +898,7 @@ post '/wordlist/upload/' do
   wordlist.size = size
   wordlist.save
 
-  redirect to('/wordlist/list')
+  redirect to('/wordlists/list')
 end
 
 ############################

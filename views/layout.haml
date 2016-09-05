@@ -45,23 +45,25 @@
                   %b.caret
                 %ul.dropdown-menu
                   %li
-                    %a(href="/customer/list") Customers
+                    %a(href="/customers/list") Customers
                   %li
-                    %a(href="/job/list") Jobs
+                    %a(href="/jobs/list") Jobs
                   %li
-                    %a(href="/task/list") Tasks
+                    %a(href="/tasks/list") Tasks
                   %li.divider{:role => "separator"}
                   %li.dropdown-header
                     Additional Functions
                   - if isDevelopment?
                     %li
-                      %a(href="/job/queue")Job Queue
+                      %a(href="/jobs/queue")Job Queue
                   %li
                     %a(href="/analytics")Analytics
                   %li
-                    %a(href="/wordlist/list")Wordlists
+                    %a(href="/wordlists/list")Wordlists
                   %li
                     %a(href="/search")Search
+                  %li
+                    %a(href='/accounts/list')User Accounts
                   %li
                     %a(href="/settings")Global Settings
             %li

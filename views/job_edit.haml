@@ -38,7 +38,7 @@
         .row
           .col-md-10
             - if @jobtasks
-              %form{:class => "form-horizontal", :action => "/job/edit/#{@job.id}", :method => "post"}
+              %form{:class => "form-horizontal", :action => "/jobs/edit/#{@job.id}", :method => "post"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Job Name
                   .col-xs-10
@@ -55,7 +55,7 @@
                                 %td #{task.name}  
                                 %td{:class => 'col-md-3'}
                                   .btn-group.btn-group-xs
-                                    %a.btn.btn-warning{:href => "/job/#{@job.id}/task/delete/#{jt.id}"}
+                                    %a.btn.btn-warning{:href => "/jobs/#{@job.id}/task/delete/#{jt.id}"}
                                       %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                       %p
                     .dropdown#dropdown
@@ -64,7 +64,7 @@
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Save
             - else
-              %form{:class => "form-horizontal", :action => "/job/create", :method => "post"}
+              %form{:class => "form-horizontal", :action => "/jobs/create", :method => "post"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer
                   .col-xs-10

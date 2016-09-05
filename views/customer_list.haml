@@ -17,7 +17,7 @@
                   .col-md-10.pull-left
                     The following are a list of customers currently configured in Hashview. All Jobs, passwords and hashes will be assigned to a single customer. Deleting a customer will remove ALL data from the system.
                   .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-left{:href => "/customer/create"}
+                    %a.btn.btn-primary.pull-left{:href => "/customers/create"}
                       Add a New Customer
         %br
         %br
@@ -41,7 +41,7 @@
                         %td #{clean(customer.name)}
                         %td #{clean(customer.description)}
                         %td
-                          %a.btn.btn-warning{:href => "/customer/edit/#{customer.id}"}
+                          %a.btn.btn-warning{:href => "/customers/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                           %a.btn.btn-danger{:href => "#modal#{customer.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
@@ -66,5 +66,5 @@
                                         %td
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
-                                  %a.btn.btn-danger{:type => "button", :href => "/customer/delete/#{customer.id}"} Confirm
+                                  %a.btn.btn-danger{:type => "button", :href => "/customers/delete/#{customer.id}"} Confirm
 
