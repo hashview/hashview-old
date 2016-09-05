@@ -1,18 +1,57 @@
 !!!
-/ hash File (option to import)
-/ dictionary (option to import)
-/ company name
 %html
   %body
     %p
-    .span15 
+    :javascript
+      function showDiv(obj) {
+        var Index = document.taskForm.attackmode.options[document.taskForm.attackmode.selectedIndex].value
+        if(Index == "dictionary")
+        {
+          document.getElementById('dictionary_div').style.display = 'inline';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'none';
+        }
+        else if(Index == "maskmode")
+        {
+          document.getElementById('dictionary_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'inline';
+          document.getElementById('bruteforce_div').style.display = 'none';
+        }
+        else if(Index == "bruteforce")
+        {
+          document.getElementById('dictionary_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'inline';
+        }
+        else
+        {
+          document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'none';
+        }
+      }
+    .span15
       %br
       .container
-        %h2 Create a new task
-        %br
         .row
-          .col-md-10
-            %form{:class => "form-horizontal", :action => "/task/create", :method => "post"}
+          .col-md-12
+            .container
+              .row
+                .col-md-12
+                  .page-header
+                    %h1
+                      Create a new task
+                .row
+                  .col-md-10.pull-left
+                    Select from the following options to create a new task to be run.
+        %br
+        %br
+      .container
+        .row
+          .col-md-12
+            .table
+
+            %form{:name => "taskForm", :id => "taskForm", :class => "form-horizontal", :action => "/task/create", :method => "post"}
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Task Name
                 .col-xs-10
@@ -20,22 +59,42 @@
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Attack Mode
                 .col-xs-4
-                  %select.form-control{:name => "attackmode"}
+                  %select.form-control{:id => "attackmode",  :name => "attackmode", :onchange => "showDiv()"}
+                    %option{:value => "", :name => "attackmode", :type => "button"} Select a Mode
                     %option{:value => "dictionary", :name => "attackmode", :type => "button"} Dictionary
+                    %option{:value => "maskmode", :name => "attackmode", :type => "button"} Mask Mode
                     %option{:value => "bruteforce", :name => "attackmode", :type => "button"} Brute Force
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Wordlist
-                .col-xs-4
-                  %select.form-control{:name => "wordlist"}
-                    - @wordlists.each do |wordlist|
-                      %option{:value => "#{wordlist.id}", :name => "wl_id", :type => "button"} #{wordlist.name} (#{wordlist.size} words)    
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Dictionary Rules
-                .col-xs-4
-                  %select.form-control{:name => "rule"}
-                    %option{:value => "none", :name => "rule", :type => "button", :selected => "selected"} None                  
-                    - @rules.each do |rule|
-                      %option{:value => "#{rule}", :name => "rule", :type => "button"} #{rule}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Create
+
+              .section
+                %div{:class => "label_leftalign field"}
+                  #dictionary_div{:style => "display:none"}
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} Wordlist:
+                      .col-xs-4
+                        %select.form-control{:name => "wordlist"}
+                          - @wordlists.each do |wordlist|
+                            %option{:value => "#{wordlist.id}", :name => "wl_id", :type => "button"} #{wordlist.name} (#{wordlist.size} words)
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} Dictionary Rules
+                      .col-xs-4
+                        %select.form-control{:name => "rule"}
+                          %option{:value => "none", :name => "rule", :type => "button", :selected => "selected"} None
+                          - @rules.each do |rule|
+                            %option{:value => "#{rule}", :name => "rule", :type => "button"} #{rule}
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %button.btn.btn-primary{:type => "submit"} Create
+                  #maskmode_div{:style => "display:none"}
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} Hashcat Mask:
+                      .col-xs-4
+                        <input class='form-control' id='mask' name='mask' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %button.btn.btn-primary{:type => "submit"} Create
+                  #bruteforce_div{:style => "display:none"}
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %button.btn.btn-primary{:type => "submit"} Create
+
+

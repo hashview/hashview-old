@@ -35,11 +35,8 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  unless validSession?
-    redirect to('/login')
-  end
+  redirect to ('/login') unless validSession?
 end
-
 
 get '/login' do
   @users = User.all
@@ -124,7 +121,6 @@ post '/register' do
   redirect to('/home')
 end
 
-
 get '/' do
   @users = User.all
   if @users.empty?
@@ -179,10 +175,9 @@ get '/home' do
       @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
-      @hashcat_status = hashcatParser("control/outfiles/hcoutput_" + j.id.to_s + ".txt")
+      @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
     end
   end
-
 
   haml :home
 end
@@ -316,10 +311,10 @@ get '/task/create' do
 end
 
 post '/task/create' do
-  params[:wordlist] = clean(params[:wordlist])
-  params[:attackmode] = clean(params[:attackmode])
-  params[:rule] = clean(params[:rule])
-  params[:name] = clean(params[:name])
+  params[:wordlist] = clean(params[:wordlist]) unless params[:wordlist] && !params[:wordlist].empty?
+  params[:attackmode] = clean(params[:attackmode]) unless params[:attackmode] && !params[:attackmode].empty
+  params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] &&!params[:rule].empty?
+  params[:name] = clean(params[:name]) unless params[:rule] && !params[:name].empty
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -332,21 +327,14 @@ post '/task/create' do
   task = Tasks.new
   task.name = params[:name]
 
-  if settings && !settings.hcglobalopts
-    task.command = 'sudo ' + settings.hcbinpath + ' '
-  else
-    task.command = 'sudo ' + settings.hcbinpath + ' ' + settings.hcglobalopts + ' '
-  end
-  puts params
-  if params[:attackmode] == 'dictionary'
-    attackmode = 0
-  elsif params[:attackmode] == 'bruteforce'
-    attackmode = 3
-  end
+  task.hc_attackmode = params[:attackmode]  
 
-  task.hc_attackmode = attackmode
-  task.wl_id = wordlist.id
-  task.hc_rule = params[:rule]
+  if params[:attackmode] == 'dictionary'
+    task.wl_id = wordlist.id
+    task.hc_rule = params[:rule]
+  elsif params[:attackmode] == 'maskmode'
+    task.hc_mask = params[:mask]
+  end 
   task.save
 
   redirect to('/task/list')
@@ -385,9 +373,7 @@ get '/job/delete/:id' do
   else
     @jobtasks = Jobtasks.all(job_id: params[:id])
     @jobtasks.each do |jobtask|
-      unless jobtask.nil?
-        jobtask.destroy
-      end
+      jobtask.destroy unless jobtask.nil?
     end
     @job.destroy
   end
@@ -414,7 +400,6 @@ get '/job/create' do
 end
 
 post '/job/create' do
-  #params[:tasks] = clean(params[:tasks])
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
 
@@ -444,7 +429,6 @@ end
 
 post '/job/:id/upload/hashfile' do
   params[:id] = clean(params[:id])
-  #params[:file] = clean(params[:file])
 
   @job = Jobs.first(id: params[:id])
   return 'No such job exists' unless @job
@@ -736,8 +720,6 @@ get '/settings' do
 end
 
 post '/settings' do
-  #params[:maxtime] = clean(params[:maxtime])
-
   values = request.POST
 
   @settings = Settings.first
@@ -745,9 +727,7 @@ post '/settings' do
   if @settings == nil
     # create settings for the first time
     # set max task time if none is provided
-    if @settings && @setttings.maxtasktime.nil?
-      values['maxtasktime'] = '864000'
-    end
+    values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -763,12 +743,8 @@ end
 ##### Downloads ############
 
 get '/download' do
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   if params[:custid] && !params[:custid].empty?
     if params[:jobid] && !params[:jobid].empty?
@@ -844,7 +820,6 @@ end
 
 post '/wordlist/upload/' do
   params[:name] = clean(params[:name])
-  #params[:file] = clean(params[:file])
 
   # require param name && file
   return 'File Name Required.' if params[:name].size == 0
@@ -919,7 +894,6 @@ get '/purge/:id' do
   redirect to('/purge')
 end
 
-
 ############################
 
 ##### Analysis #############
@@ -927,13 +901,8 @@ end
 # displays analytics for a specific client, job
 get '/analytics' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   @custid = params[:custid]
   @jobid = params[:jobid]
@@ -1031,12 +1000,8 @@ end
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:custid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   @counts = []
   @passwords = {}
@@ -1079,12 +1044,8 @@ end
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1128,12 +1089,8 @@ end
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
 
-  if params[:custid]
-    params[:custid] = clean(params[:custid])
-  end
-  if params[:jobid]
-    params[:jobid] = clean(params[:jobid])
-  end
+  params[:custid] = clean(params[:custid]) if params[:custid]
+  params[:jobid] = clean(params[:jobid]) if params[:jobid]
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1175,7 +1132,6 @@ get '/analytics/graph3' do
   return @topbasewords.to_json
 end
 
-
 ############################
 
 ##### search ###############
@@ -1194,12 +1150,12 @@ post '/search' do
     value = clean(params[:value])
   end
 
-  if params[:search_type] == "hash"
+  if params[:search_type] == 'hash'
     hash = clean(params[:value])
-  elsif params[:search_type] == "username"
+  elsif params[:search_type] == 'username'
     username = clean(params[:value])
   else
-    return "you need to provide a search type"
+    return 'You need to provide a search type'
   end
 
   if username
@@ -1246,6 +1202,7 @@ def buildCrackCmd(jobid, taskid)
   @targets = Targets.first(jobid: jobid)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
+  mask = @task.hc_mask
   wordlist = Wordlists.first(id: @task.wl_id)
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
@@ -1256,9 +1213,11 @@ def buildCrackCmd(jobid, taskid)
   crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
   File.open(crack_file, 'w')
 
-  if attackmode == '3'
-    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a ' + attackmode + ' ' + target_file
-  elsif attackmode == '0'
+  if attackmode == 'bruteforce'
+    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+  elsif attackmode == 'maskmode'
+    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+  elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
       cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else

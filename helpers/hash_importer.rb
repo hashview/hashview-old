@@ -68,7 +68,6 @@ def machineAcct?(username)
   end
 end
 
-
 def importShadow(hash, customer_id, job_id, type)
   data = hash.split(':')
   target = Targets.new
