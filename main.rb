@@ -573,7 +573,7 @@ post '/jobs/:id/upload/verify_hashtype' do
   # Delete file, no longer needed
   File.delete(hash_file)
 
-  redirect to('/job/list')
+  redirect to('/jobs/list')
 end
 
 get '/jobs/edit/:id' do
@@ -602,7 +602,7 @@ post '/jobs/edit/:id' do
   return 'You must specify task you want to edit' if !params[:tasks] || params[:tasks].nil?
 
   params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
-  params[:tasks] = clean(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
+  params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
 
   values = request.POST
 
@@ -1328,5 +1328,13 @@ helpers do
 
   def clean(text)
     return text.gsub(/[<>'"()\/\\]*/i, '')
+  end
+
+  def clean_array(array)
+    clean_array = []
+    array.each do |entry|
+      clean_array.push(clean(entry))
+    end
+    return clean_array
   end
 end

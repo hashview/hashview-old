@@ -9,7 +9,7 @@
         %br
         .row
           .col-md-10
-            %form{:class => "form-horizontal", :action => "/job/#{@job.id}/upload/verify_filetype", :method => "post"}
+            %form{:class => "form-horizontal", :action => "/jobs/#{@job.id}/upload/verify_filetype", :method => "post"}
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Detected Hash File Type: 
                 .col-xs-4

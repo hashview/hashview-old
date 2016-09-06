@@ -4,7 +4,7 @@
   .row
     .col-md-10
       %br
-      %form{:method => 'post', :action => "/job/#{@job.id}/upload/hashfile", :enctype=>"multipart/form-data"}
+      %form{:method => 'post', :action => "/jobs/#{@job.id}/upload/hashfile", :enctype=>"multipart/form-data"}
         .form-group
           %label.control-label.col-xs-2 Hash File:
           .col-xs-10
