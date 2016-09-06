@@ -37,7 +37,7 @@
                     Hashview will attempt to automatically detect the hash type found in the file, however there maybe instances where this is wrong, or you'd like to override the detected values. To do this, select other and enter the hash cat attack mode value. Note if you select an invalid option, your crack will not complete successfully.
                 %br
                 .row
-                  %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/job/#{@job.id}/upload/verify_hashtype", :method => "post"}
+                  %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/jobs/#{@job.id}/upload/verify_hashtype", :method => "post"}
                     .form-group
                       %label.control-label.col-xs-2{:for => ""} Detected Hash(s): 
                       .col-xs-3
