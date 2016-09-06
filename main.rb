@@ -57,6 +57,8 @@ get '/logout' do
 end
 
 post '/login' do
+  return 'You must supply a username.' if !params[:username] || params[:username].nil?
+  return 'You must supply a password.' if !params[:password] || params[:password].nil?
   session[:username] = clean(params[:username])
   session[:password] = clean(params[:password])
 
@@ -98,7 +100,9 @@ post '/register' do
   return 'You must have a password.' if !params[:password] || params[:password].nil?
   return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?  
 
-  params[:username] = clean(params[:username]) if params[:username]
+  params[:username] = clean(params[:username]) 
+  params[:password] = clean(params[:password])
+  params[:confirm] = clean(params[:confirm])
 
   # validate that no other user account exists
   @users = User.all
@@ -112,13 +116,6 @@ post '/register' do
       new_user.admin = 't'
       new_user.save
     end
-  else
-    user = User.new
-    user.username = params[:username]
-    user.password = params[:password]
-    user.type = params[:type]
-    user.auth_type = params[:auth_type]
-    user.save
   end
   redirect to('/home')
 end
@@ -210,8 +207,10 @@ get '/customers/create' do
 end
 
 post '/customers/create' do
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc])
+  return 'You must provide a Customer Name.' if !params[:name] || params[:name].nil?
+
+  params[:name] = clean(params[:name]) 
+  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.new
   customer.name = params[:name]
@@ -228,9 +227,11 @@ get '/customers/edit/:id' do
 end
 
 post '/customers/edit/:id' do
-  params[:id] = clean(params[:id])
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc])
+  return 'You must provide Customer Name.' if !params[:name] || params[:name].nil?
+
+  params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
+  params[:name] = clean(params[:name]) 
+  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.first(id: params[:id])
   customer.name = params[:name]
@@ -280,7 +281,9 @@ post '/accounts/create' do
   return 'You must have a password.' if !params[:password] || params[:password].nil?
   return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
 
-  params[:username] = clean(params[:username]) if params[:username]
+  params[:username] = clean(params[:username]) 
+  params[:password] = clean(params[:password])
+  params[:confirm] = clean(params[:confirm])
 
   # validate that no other user account exists
   @users = User.all(username: params[:username])
@@ -361,10 +364,12 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
-  params[:wordlist] = clean(params[:wordlist]) unless params[:wordlist] && !params[:wordlist].empty?
-  params[:attackmode] = clean(params[:attackmode]) unless params[:attackmode] && !params[:attackmode].empty
-  params[:rule] = clean(params[:rule]) unless params[:rule] && !params[:rule] && !params[:rule].empty?
-  params[:name] = clean(params[:name]) unless params[:rule] && !params[:name].empty
+  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
+
+  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
+  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
+  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
+  params[:name] = clean(params[:name]) 
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -450,10 +455,12 @@ get '/jobs/create' do
 end
 
 post '/jobs/create' do
+  return 'You must provide a name for your job.' if !params[:name] || params[:name].nil?
+  return 'You must provide a customer for your job.' if !params[:customer] || params[:customer].nil?
+  return 'You must provide a task to your job' if !params[:tasks] || params[:tasks].nil?
+
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
-
-  return 'You must assign a task to your job' unless params[:tasks]
 
   # create new job
   job = Jobs.new
@@ -532,10 +539,12 @@ get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
 end
 
 post '/jobs/:id/upload/verify_hashtype' do
+  return 'You must specify a valid hashfile type' if !params[:filetype] || params[:filetype].nil?
+
   params[:filetype] = clean(params[:filetype])
-  params[:hash] = clean(params[:hash])
-  params[:hashtype] = clean(params[:hashtype])
-  params[:manualHash] = clean(params[:manualHash])
+  params[:hash] = clean(params[:hash]) if params[:hash] && !params[:hash].nil?
+  params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
+  params[:manualHash] = clean(params[:manualHash]) if params[:hashtype] && !params[:hashtype].nil?
   params[:id] = clean(params[:id])
 
   filetype = params[:filetype]
@@ -590,8 +599,10 @@ get '/jobs/edit/:id' do
 end
 
 post '/jobs/edit/:id' do
-  params[:id] = clean(params[:id])
-  params[:tasks] = clean(params[:tasks])
+  return 'You must specify task you want to edit' if !params[:tasks] || params[:tasks].nil?
+
+  params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
+  params[:tasks] = clean(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
 
   values = request.POST
 
@@ -869,10 +880,9 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
-  params[:name] = clean(params[:name])
+  return 'You must specify a name for your word list' if !params[:name] || params[:name].nil?
 
-  # require param name && file
-  return 'File Name Required.' if params[:name].size == 0
+  params[:name] = clean(params[:name])
 
   # Replace white space with underscore.  We need more filtering here too
   upload_name = params[:name]
@@ -1193,7 +1203,7 @@ end
 post '/search' do
   @customers = Customers.all
 
-  if params[:value].empty?
+  if params[:value].nil? || !params[:value]
     warning('Please provide a search term')
     redirect to('/search')
   else
