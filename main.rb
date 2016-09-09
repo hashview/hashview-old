@@ -1,7 +1,6 @@
 require 'sinatra'
 require './helpers/sinatra_ssl.rb'
 require 'haml'
-require 'dm-sqlite-adapter'
 require 'data_mapper'
 require './model/master.rb'
 require 'json'
