@@ -85,6 +85,8 @@ GEM
       data_objects (= 0.10.16)
     erubis (2.7.0)
     execjs (2.6.0)
+    factory_girl (4.7.0)
+      activesupport (>= 3.0.0)
     fastercsv (1.5.5)
     haml (4.0.6)
       tilt
@@ -196,6 +198,7 @@ DEPENDENCIES
   data_mapper
   data_objects
   dm-mysql-adapter
+  factory_girl
   haml
   json
   redis
