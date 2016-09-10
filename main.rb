@@ -1288,11 +1288,9 @@ def buildCrackCmd(jobid, taskid)
   cmd
 end
 
-# Check if kraken has a job running
-def isKrakenBusy?
+# Check if a job running
+def isBusy?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  p "RESULTS" + @results
-  p "true" if @results.length > 1
   return true if @results.length > 1
 end
 

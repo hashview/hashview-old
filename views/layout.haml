@@ -34,7 +34,7 @@
         .collapse.navbar-collapse.navHeaderCollapse
           %ul.nav.navbar-nav.navbar-right.vCenter
             %li
-              - if isKrakenBusy?
+              - if isBusy?
                 %span.label.label-danger Busy eating
               - else
                 %span.label.label-success Feed me nom nom
