@@ -1,15 +1,29 @@
-.container
-  %h2 Upload Hash file for job: #{@job.name}
-  %br
-  .row
-    .col-md-10
+!!!
+%html
+  %body
+    %p
+    .span15
       %br
-      %form{:method => 'post', :action => "/jobs/#{@job.id}/upload/hashfile", :enctype=>"multipart/form-data"}
-        .form-group
-          %label.control-label.col-xs-2 Hash File:
-          .col-xs-10
-            %input{:type => 'file', :name => 'file'}
-        .form-group
-          .col-xs-offset-2.col-xs-10
-            %br
-            %button.btn.btn-primary{:type => 'submit'} Upload
+      .container
+        .row
+          .col-md-12
+            .container
+              .row
+                .col-md-12
+                  .page-header
+                    %h1
+                      Upload hash file for: #{@job.name}
+                .row
+                  .col-md-10.pull-left
+                    Hashview will attempt to automatically detect and import the hashes you upload. Currently Hashview supports, pwdump, shadow and newline seperated hash files. 
+                %br
+                .row
+                  %form{:method => 'post', :action => "/jobs/#{@job.id}/upload/hashfile", :enctype=>"multipart/form-data"}
+                    .form-group
+                      %label.control-label.col-xs-2 Hash File:
+                      .col-xs-10
+                        %input{:type => 'file', :name => 'file'}
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %br
+                        %button.btn.btn-primary{:type => 'submit'} Upload
