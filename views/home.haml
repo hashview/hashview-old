@@ -84,7 +84,7 @@
                                       %span.label.label-default #{jt.status}
                                 %td
                                   - if jt.status == "Running"
-                                    %a.label.label-danger{:href => "/job/stop/#{job.id}/#{task.id}"}
+                                    %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
                                       %b Cancel
                   %br
           .col-md-4
