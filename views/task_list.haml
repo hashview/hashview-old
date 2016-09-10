@@ -37,13 +37,7 @@
                     - @tasks.each do |task|
                       %tr
                         %td #{task.name}
-                        %td
-                          - if task.hc_attackmode == 3
-                            Brute Force
-                          - elsif task.hc_attackmode == 0
-                            Dictionary
-                          - else
-                            Uknown
+                        %td #{task.hc_attackmode}
                         %td
                           %a.btn.btn-info{:href => "#modal#{task.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
@@ -64,13 +58,8 @@
                                     .form-group
                                       %label.control-label.col-xs-2{:for => ""} Attack Mode
                                       .col-xs-4
-                                        - if task.hc_attackmode == 3
-                                          Brute Force
-                                        - elsif task.hc_attackmode == 0
-                                          Dictionary
-                                        - else
-                                          Unknown
-                                  - if task.hc_attackmode == 0
+                                        #{task.hc_attackmode}
+                                  - if task.hc_attackmode == 'dictionary'
                                     .row
                                       .form-group
                                         %label.control-label.col-xs-2{:for => ""} Wordlist
