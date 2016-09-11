@@ -1,0 +1,22 @@
+!!!
+%html
+  %body
+    %p
+    .span15 
+      %br
+      .container
+        %h2 Verify the hash file type
+        %br
+        .row
+          .col-md-10
+            %form{:class => "form-horizontal", :action => "/jobs/#{@job.id}/upload/verify_filetype", :method => "post"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Detected Hash File Type: 
+                .col-xs-4
+                  %select.form-control{:name => "filetype"}
+                    - @filetypes.each do |type|
+                      %option{:value => "#{type}", :name => "filetype", :type => "button"} #{type}
+                  %input{:type=>"hidden", :value=>"#{params[:hash].to_s}", :name=>:hash}
+              .form-group
+                .col-xs-offset-2.col-xs-10
+                  %button.btn.btn-primary{:type => "submit"} Confirm

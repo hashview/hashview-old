@@ -38,7 +38,7 @@
         .row
           .col-md-10
             - if @jobtasks
-              %form{:class => "form-horizontal", :action => "/job/edit/#{@job.id}", :method => "post"}
+              %form{:class => "form-horizontal", :action => "/jobs/edit/#{@job.id}", :method => "post"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Job Name
                   .col-xs-10
@@ -55,7 +55,7 @@
                                 %td #{task.name}  
                                 %td{:class => 'col-md-3'}
                                   .btn-group.btn-group-xs
-                                    %a.btn.btn-warning{:href => "/job/#{@job.id}/task/delete/#{jt.id}"}
+                                    %a.btn.btn-warning{:href => "/jobs/#{@job.id}/task/delete/#{jt.id}"}
                                       %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                       %p
                     .dropdown#dropdown
@@ -64,7 +64,14 @@
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Save
             - else
-              %form{:class => "form-horizontal", :action => "/job/create", :method => "post"}
+              %form{:class => "form-horizontal", :action => "/jobs/create", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer
+                  .col-xs-10
+                    %select.form-control{:name => "customer"}
+                      - @customers.each do |customer|
+                        %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Job Name
                   .col-xs-10
@@ -74,12 +81,6 @@
                   .col-xs-10
                     .dropdown#dropdown
                     %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
-                .form-group
-                  %label.control-label.col-xs-2{:for => ""} Hash Type
-                  .col-xs-4
-                    %select.form-control{:name => "hashtype"}
-                      - @hashtype.each do |type|
-                        %option{:value => "#{type[1]}", :name => "hashtype", :type => "button"} #{type[0]}
                 .form-group
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Create

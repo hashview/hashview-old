@@ -1,37 +1,49 @@
 !!!
-%html 
+%html
   %body
-    %p    
-      %br
+    .span15
       .container
-        %h2
-        %h2 Search by hash
+        .row
+          .page-header
+            %h1
+              Search by Hash
+      .container
+        .row
+          .col-md-12
+            %form{:action => "/search", :method => "post"}
+              .form-group.col-xs-2
+                %select.form-control{:name => "search_type"}
+                  %option{:value => "username", :name => "search_type", :type => "button"} Username
+                  %option{:value => "hash", :name => "search_type", :type => "button"} Hash
+              .form-group.col-md-8
+                %input{:type => "textbox", :class => "form-control", :name => "value", :id => "value", :placeholder => "Search for..."}
+              .form-group.col-xs-2
+                %button.btn.btn-primary{:type => "submit"} Search
+        %br
         %br
         .row
-          .col-md-10
-            %form{:class => "form-horizontal", :action => "/search", :method => "post"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Hash:
-                .col-xs-10
-                  %input{:type => "textbox", :class => "form-control", :name => "hash", :id => "hash"}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Search
-        %br
-        .row
-          .col-md-10
-            %div{:id => "data_grid1"}
-              %table.table.table-striped
-                %tr
-                  %th Hash
-                  %th Plaintext
-                %tr 
-                  %td{:id => "hash_td"} "#{params[:hash]}"
-                  %td{:id => "plaintext_td"} "#{@output}"
-            %script{:type => "text/javascript"}
-              var hash_td_value = document.getElementById('hash_td').innerHTML
-              hash_td_value = hash_td_value.replace(/['"]+/g, '')
-              document.getElementById('hash_td').innerHTML = hash_td_value
-              var plaintext_td_value = document.getElementById('plaintext_td').innerHTML
-              plaintext_td_value = plaintext_td_value.split(",")
-              document.getElementById('plaintext_td').innerHTML = plaintext_td_value[2].replace(/['"]+/g, '').replace(/[\[\]']+/g,'')
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th Username
+                    %th Plaintext
+                    %th Type
+                    %th Hash
+                    %th Customer
+                %tbody
+                  %tr
+                  - if @results
+                    - @results.each do |entry|
+                      %td #{entry.username}
+                      %td #{entry.plaintext}
+                      %td #{modeToFriendly(entry.hashtype.to_s)}
+                      %td #{entry.originalhash}
+                      - @customers.each do |customer|
+                        - if entry.customerid == customer.id
+                          %td #{customer.name}
+                      %tr
+                  - else
+                    %td "No Results"
+                    %tr

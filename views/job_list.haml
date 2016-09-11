@@ -1,27 +1,34 @@
 !!!
 %html
   %body
-    %meta{:content => "5", "http-equiv" => "refresh"}
     %p
     .span15
       %br
       - if @result
         #{@result}
       .container
-        %h2 Jobs
+        .row
+          .col-md-12
+            .page-header
+              %h1
+                Jobs
+          .row
+            .col-md-10
+              Jobs contain a series tasks. Each task is an individual hashcat command.  Jobs also have an associated target list of hashes to crack.
+            .col-md-2.pull-right
+              %a.btn.btn-primary.pull-right{:href => "/jobs/create"}
+                Create a New Job
+        %br
         %br
       .container
-        .row
-          .col-sm-3
-            %a.btn.btn-primary{:href => "/job/create"}
-              Start a New Job
-        %br
         .row
           .col-md-12
             .table
               %table{:class => 'table table-striped'}
                 %thead
                   %tr
+                    %th
+                      %b Customer
                     %th
                       %b Name
                     %th
@@ -34,22 +41,31 @@
                   - if @jobs
                     - @jobs.each do |job|
                       %tr
+                        %td #{@customer_names[job.customer_id]}
                         %td #{job.name}
-                        - if job.status
+                        - if job.status == 'Running'
                           %td Running
+                        - elsif job.status == 'Queued'
+                          %td Queued
+                        - elsif job.status == 'Completed'
+                          %td Completed
                         - else
                           %td Stopped
                         %td #{job.last_updated_by}
                         %td
-                          - if job.status
-                            %a.btn.btn-danger{:href => "/job/stop/#{job.id}"}
+                          - if job.status == 'Running'
+                            %a.btn.btn-danger{:href => "/jobs/stop/#{job.id}"}
                               %i.glyphicon.glyphicon-stop{:title => 'Running'}
+                          - elsif job.status == 'Queued'
+                            %a.btn.btn-default{:href => "/jobs/stop/#{job.id}"}
+                              %i.glyphicon.glyphicon-ok-circle{:title => 'Queued'}
+                          - elsif job.status == 'Completed'
+                            %a.btn.btn-success{:href => ""}
+                              %i.glyphicon.glyphicon-ok{:title => 'Completed'}
                           - else
-                            %a.btn.btn-success{:href => "/job/start/#{job.id}"}
+                            %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}
-                          %a.btn.btn-primary{:href => "/download/cracked/#{job.id}"}
-                            %i.glyphicon.glyphicon-download{:title => 'download cracked hashes'}
-                          %a.btn.btn-primary{:href => "/download/stats/#{job.id}"}
+                          %a.btn.btn-primary{:href => "/analytics?custid=#{job.customer_id}&jobid=#{job.id}"}
                             %i.glyphicon.glyphicon-stats{:title => 'display crack stats'}
                           %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
@@ -102,7 +118,7 @@
                                   %p
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
-                          %a.btn.btn-warning{:href => "/job/edit/#{job.id}"}
+                          %a.btn.btn-warning{:href => "/jobs/edit/#{job.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/job/delete/#{job.id}"}
+                          %a.btn.btn-danger{:href => "/jobs/delete/#{job.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}

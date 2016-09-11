@@ -2,16 +2,23 @@
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
-        %h2 Tasks
-        %br
-      .container
         .row
-          .col-sm-3
-            %a.btn.btn-primary{:href => "/task/create"}
-              Create New Task
+          .col-md-12
+            .container
+              .row
+                .page-header
+                  %h1
+                    Tasks
+                .row
+                  .col-md-10.pull-left
+                    Task are predefined hashcat commands. Any number of tasks can be assigned to a Job.
+                  .col-md-2.pull-right
+                    %a.btn.btn-primary.pull-right{:href => "/tasks/create"}
+                      Create Task
+        %br
         %br
         .row
           .col-md-12
@@ -29,8 +36,8 @@
                   - if @tasks
                     - @tasks.each do |task|
                       %tr
-                        %td #{task.name} 
-                        %td 
+                        %td #{task.name}
+                        %td
                           - if task.hc_attackmode == 3
                             Brute Force
                           - elsif task.hc_attackmode == 0
@@ -46,7 +53,7 @@
                                 .modal-header
                                   %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
                                     %span{"aria-hidden" => "true"} &times;
-                                  %h4.modal-title Task details for: #{task.name} 
+                                  %h4.modal-title Task details for: #{task.name}
                                 .modal-body
                                   .row
                                     .form-group
@@ -68,13 +75,15 @@
                                       .form-group
                                         %label.control-label.col-xs-2{:for => ""} Wordlist
                                         .col-xs-4
-                                          #{task.wl_id}    
+                                          - @wordlists.each do |wl|
+                                            - if wl.id.to_i == task.wl_id.to_i
+                                              #{wl.name}
                                     .row
                                       .form-group
                                         %label.control-label.col-xs-2{:for => ""} Dictionary Rules
-                                        .col-xs-4 
+                                        .col-xs-4
                                           #{task.hc_rule}
-                          %a.btn.btn-warning{:href => "/task/edit/#{task.id}"}
+                          %a.btn.btn-warning{:href => "/tasks/edit/#{task.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/task/delete/#{task.id}"}
+                          %a.btn.btn-danger{:href => "/tasks/delete/#{task.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
