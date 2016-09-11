@@ -11,5 +11,6 @@ before_script: cp config/database.travis.yml config/database.yml
 
 script:
   - export RACK_ENV=test
-  - RACK_ENV=test rake db:create
-  - RACK_ENV=test rake db:auto:migrate
+  - rake db:create
+  - rake db:auto:migrate
+  - rake test

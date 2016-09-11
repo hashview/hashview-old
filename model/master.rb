@@ -70,6 +70,7 @@ class User
     user = User.first(id: id)
     user.destroy
   end
+
 end
 
 # Class to handle authenticated sessions
@@ -195,7 +196,7 @@ class Wordlists
   property :size, Integer
 end
 
-#DataMapper.finalize
+DataMapper.finalize
 
 # automatically update db based on model changes
 #DataMapper.auto_upgrade!
