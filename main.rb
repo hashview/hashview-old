@@ -451,7 +451,7 @@ get '/jobs/list' do
   @targets_cracked = {}
   @customer_names = {}
 
-  @jobs = Jobs.all
+  @jobs = Jobs.all(order: [:id.desc])
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
 
