@@ -1,0 +1,23 @@
+production:
+  adapter: mysql
+  hostname: "localhost"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "hashview"
+
+development:
+  adapter: mysql
+  hostname: "localhost"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "hashview_dev"
+
+test:
+  adapter: mysql
+  hostname: "localhost"
+  port: 3306
+  user: "root"
+  password: ""
+  database: "hashview_test"

@@ -1,0 +1,15 @@
+language: ruby
+
+rvm:
+  - 2.1.5
+
+services:
+  - mysql
+  - redis-server
+
+before_script: cp config/database.travis.yml config/database.yml
+
+script:
+  - export RACK_ENV=test
+  - RACK_ENV=test rake db:create
+  - RACK_ENV=test rake db:auto:migrate

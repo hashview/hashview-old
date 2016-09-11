@@ -6,6 +6,11 @@ group :development do
   gem 'factory_girl'
 end
 
+group :test do
+  gem 'factory_girl'
+  gem 'rake'
+end
+
 gem 'sinatra'
 gem 'haml'
 gem 'data_mapper'
