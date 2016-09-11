@@ -195,7 +195,7 @@ class Wordlists
   property :size, Integer
 end
 
-DataMapper.finalize
+#DataMapper.finalize
 
 # automatically update db based on model changes
-DataMapper.auto_upgrade!
+#DataMapper.auto_upgrade!

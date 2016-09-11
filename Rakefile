@@ -68,6 +68,7 @@ namespace :db do
         ENV['RACK_ENV'] = 'development'
       end
       require_relative 'model/master.rb'
+      DataMapper.repository.auto_upgrade!
       puts "db:auto:migrate executed"
     end
 
