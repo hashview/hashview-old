@@ -1,8 +1,8 @@
-!!!
+!!! 5
 %html
   %body
     %p
-    .span15 
+    .span15
       %br
       .container
         .row
@@ -10,41 +10,45 @@
             .table
               .panel.panel-primary
                 .panel-heading
-                  %h3.panel-title 
-                    The following hashcat job/s are running:
+                  %h3.panel-title
+                    - if @active_jobs
+                      - @customers.each do |customer|
+                        - if @active_jobs.customer_id == customer.id
+                          %b Customer:
+                          #{customer.name}
+                          %b Job:
+                          #{@active_jobs.name}
                 - if @results.length > 1
                   .panel-body
-                    %a.btn.btn-danger{:href => "/process/kill/#{@results.to_s.split()[1]}"}
-                      %i.glyphicon.glyphicon-remove{:title => 'Delete'}
-                      %b Stop Current Job
-                    %p
-                    #{@results}
-                    %br
-                    %br
                     - @jobs.each do |job|
-                      - if job.status
+                      - if job.status == 'Running'
                         %h3
-                          Hashes Cracked 
-                          .badge #{@crackedtargets} / #{@alltargets}
+                          Hashes Cracked
+                          .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
                         %p
                         .progress
-                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%      
+                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                    .row
+                      .col-md-12
+                        %h3 Job Status
+                        .table
+                          %table{:class => 'table'}
+                            - if @hashcat_status
+                              - @hashcat_status.each do |k,v|
+                                %tr
+                                  %td.col-md-4
+                                    #{k}
+                                  %td
+                                    #{v}
                 -else
-                  .panel-body None
+                  .panel-body You must be slacking if you dont have any hashes to crack!
               %br
           .col-md-4
             .table
               %table{:class => 'table'}
                 %thead
-                  %b Job Status:
-                  - activejob = false
-                  - @jobs.each do |job|
-                    - if job.status
-                      - activejob = true
-                      active job: #{job.name} (id: #{job.id})
-                  %br
-                  - if not activejob
-                    %br
+                  %b Job Queue:
+                  - if @active_jobs.nil?
                     No HashView jobs are running
                     %br
                     %br
@@ -52,7 +56,15 @@
                       Create a New Job
                 %tbody
                   - @jobs.each do |job|
-                    - if job.status
+                    - if job.status == 'Running' || job.status == 'Queued'
+                      %tr
+                        %td
+                          - @customers.each do |customer|
+                            - if customer.id == job.customer_id
+                              %strong #{customer.name}:#{job.name}
+                        %td
+                        %td
+                      %tr
                       - @jobtasks.each do |jt|
                         - if job.id == jt.job_id
                           - @tasks.each do |task|
@@ -70,6 +82,10 @@
                                       %span.label.label-success #{jt.status}
                                     - else
                                       %span.label.label-default #{jt.status}
+                                %td
+                                  - if jt.status == "Running"
+                                    %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                      %b Cancel
                   %br
           .col-md-4
             .table
@@ -85,12 +101,15 @@
                   &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
                   %br
                 - else
-                  - if gpu.split.last.to_i < 65
+                  - if gpu.split.last.to_i == nil
                     .alert.alert-success{:role => "alert"} #{gpu}
-                  - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
-                    .alert.alert-warning{:role => "alert"} #{gpu}
-                  - if gpu.split.last.to_i > 79
-                    .alert.alert-danger{:role => "alert"} #{gpu}
+                  - else
+                    - if gpu.split.last.to_i < 65
+                      .alert.alert-success{:role => "alert"} #{gpu}
+                    - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
+                      .alert.alert-warning{:role => "alert"} #{gpu}
+                    - if gpu.split.last.to_i > 79
+                      .alert.alert-danger{:role => "alert"} #{gpu}
           .col-md-4
             .table
               %table{:class => 'table table-striped'}
@@ -98,12 +117,21 @@
                 %br
                 %br
                 %tbody
-                  -if @recentcracked
-                    - @recentcracked.each do |cracked|
-                      //%b #{cracked}
-                      //- prefix, match, suffix = cracked.partition(':')
-                      %tr
-                        %td #{cracked}
+                  -if @recentlycracked
+                    %td
+                      %strong Company
+                    %td
+                      %strong Username
+                    %td
+                      %strong Password
+                    %tr
+                    - @recentlycracked.each do |cracked|
+                      - @customers.each do | customer |
+                        - if customer.id == cracked.customerid
+                          %td #{customer.name}
+                          %td #{cracked.username}
+                          %td #{cracked.plaintext}
+                        %tr
                   -else
                     %b None... lets get cracking!
 %br

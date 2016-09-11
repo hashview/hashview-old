@@ -1,0 +1,43 @@
+!!!
+%html
+  /https://jsfiddle.net/vigneshmoha/bbxMe/2/
+  %body
+    %p
+    .span15 
+      %br
+      .container
+        - if @customer
+          %h2 Edit an Existing Customer 
+          %br
+          .row
+            .col-md-10
+              %form{:class => "form-horizontal", :action => "/customers/edit/#{@customer.id}", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer Name
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name", :value => "#{@customer.name}"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer Description
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "desc", :id => "desc", :value => "#{@customer.description}"}
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %button.btn.btn-primary{:type => "submit"} Update
+        - else
+          %h2 Add a new Customer
+          %br
+          .row
+            .col-md-10
+              %form{:class => "form-horizontal", :action => "/customers/create", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer Name
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer Description
+                  .col-xs-10
+                    %input{:type => "textbox", :class => "form-control", :name => "desc", :id => "desc"}
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %button.btn.btn-primary{:type => "submit"} Create
+

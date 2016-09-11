@@ -1,0 +1,31 @@
+!!!
+%html
+  %body
+    %p
+    .span15
+      %br
+      .container
+        .row
+          .col-md-12
+            .container
+              .row
+                .col-md-12
+                  .page-header
+                    %h1
+                      Verify the file format
+                .row
+                  .col-md-10.pull-left
+                    Hashview automatically detected the following file format(s), however there may be instances where this is wrong. Select the correct file type and click confirm.
+                %br
+                .row
+                  %form{:class => "form-horizontal", :action => "/jobs/#{@job.id}/upload/verify_filetype", :method => "post"}
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} Detected Hash File Type: 
+                      .col-xs-4
+                        %select.form-control{:name => "filetype"}
+                          - @filetypes.each do |type|
+                            %option{:value => "#{type}", :name => "filetype", :type => "button"} #{type}
+                        %input{:type=>"hidden", :value=>"#{params[:hash].to_s}", :name=>:hash}
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %button.btn.btn-primary{:type => "submit"} Confirm

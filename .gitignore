@@ -1,4 +1,5 @@
 db/master.db
+config/database.yml
 cert/*
 !cert/.blank
 cert.pem
