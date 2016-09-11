@@ -3,6 +3,7 @@ ruby '2.1.5'
 
 group :development do
   gem 'rubocop'
+  gem 'factory_girl'
 end
 
 gem 'sinatra'

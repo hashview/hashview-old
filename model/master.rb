@@ -2,12 +2,23 @@ require 'rubygems'
 require 'data_mapper'
 require 'bcrypt'
 
-# debug cmd:
-DataMapper::Logger.new($stdout, :debug)
-
-# use for mysql
+# read config
 options = YAML.load_file('config/database.yml')
-DataMapper.setup(:default, options['default'])
+
+# there has to be a better way to handle this shit
+if ENV['RACK_ENV'] == 'test'
+  DataMapper::Logger.new($stdout, :debug)
+  DataMapper.setup(:default, options['test'])
+elsif ENV['RACK_ENV'] == 'development'
+  DataMapper::Logger.new($stdout, :debug)
+  DataMapper.setup(:default, options['development'])
+elsif ENV['RACK_ENV'] == ('production' || 'default')
+  DataMapper.setup(:default, options['production'])
+else
+  puts "ERROR: You must define an evironment. ex: RACK_ENV=production"
+  exit
+end
+
 
 # use for sqlite db
 # DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
@@ -41,6 +52,23 @@ class User
     if user
       return user.username if BCrypt::Password.new(user.hashed_password) == pass
     end
+  end
+
+  def self.create_test_user(attrs = {})
+    user = User.new(
+      username: 'test',
+      admin: true,
+      hashed_password: BCrypt::Password.create('omgplains')
+    )
+    user.save
+    user.update(attrs) if attrs
+    user.save
+    return user.id
+  end
+
+  def self.delete_test_user(id)
+    user = User.first(id: id)
+    user.destroy
   end
 end
 

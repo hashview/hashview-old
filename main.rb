@@ -1,7 +1,13 @@
 require 'sinatra'
 require './helpers/sinatra_ssl.rb'
+
+# we default to production env b/c i want to
+if ENV['RACK_ENV'].nil?
+  set :environment, :production
+  ENV['RACK_ENV'] = 'production'
+end
+
 require 'haml'
-require 'dm-sqlite-adapter'
 require 'data_mapper'
 require './model/master.rb'
 require 'json'
@@ -12,8 +18,6 @@ require './helpers/hash_importer'
 require './helpers/hc_stdout_parser.rb'
 
 set :bind, '0.0.0.0'
-set :environment, :development
-# set :environment, :production
 
 # Check to see if SSL cert is present, if not generate
 unless File.exist?('cert/server.crt')
@@ -98,9 +102,9 @@ end
 post '/register' do
   return 'You must have a username.' if !params[:username] || params[:username].nil?
   return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?  
+  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
 
-  params[:username] = clean(params[:username]) 
+  params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
 
@@ -209,7 +213,7 @@ end
 post '/customers/create' do
   return 'You must provide a Customer Name.' if !params[:name] || params[:name].nil?
 
-  params[:name] = clean(params[:name]) 
+  params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.new
@@ -230,7 +234,7 @@ post '/customers/edit/:id' do
   return 'You must provide Customer Name.' if !params[:name] || params[:name].nil?
 
   params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
-  params[:name] = clean(params[:name]) 
+  params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.first(id: params[:id])
@@ -281,7 +285,7 @@ post '/accounts/create' do
   return 'You must have a password.' if !params[:password] || params[:password].nil?
   return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
 
-  params[:username] = clean(params[:username]) 
+  params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
 
@@ -414,7 +418,7 @@ post '/tasks/create' do
   params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
   params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
   params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
-  params[:name] = clean(params[:name]) 
+  params[:name] = clean(params[:name])
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -426,14 +430,14 @@ post '/tasks/create' do
   task = Tasks.new
   task.name = params[:name]
 
-  task.hc_attackmode = params[:attackmode]  
+  task.hc_attackmode = params[:attackmode]
 
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
     task.hc_rule = params[:rule]
   elsif params[:attackmode] == 'maskmode'
     task.hc_mask = params[:mask]
-  end 
+  end
   task.save
 
   redirect to('/tasks/list')
