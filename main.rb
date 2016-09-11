@@ -341,7 +341,52 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
-  return 'Page under contruction.'
+  params[:id] = clean(params[:id])
+  @task = Tasks.first(id: params[:id])
+  @wordlists = Wordlists.all
+
+  @rules = []
+  # list wordlists that can be used
+  Dir.foreach('control/rules/') do |item|
+    next if item == '.' || item == '..'
+      @rules << item
+  end
+  
+  haml :task_edit
+end
+
+post '/tasks/edit/:id' do
+  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
+
+  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
+  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
+  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
+  params[:name] = clean(params[:name])
+
+  settings = Settings.first
+  wordlist = Wordlists.first(id: params[:wordlist])
+
+  if settings && !settings.hcbinpath
+    return 'No hashcat binary path is defined in global settings.'
+  end
+
+  task = Tasks.first(id: params[:id])
+  task.name = params[:name]
+
+  task.hc_attackmode = params[:attackmode]
+
+  if params[:attackmode] == 'dictionary'
+    task.wl_id = wordlist.id
+    task.hc_rule = params[:rule]
+    task.hc_mask = 'NULL'
+  elsif params[:attackmode] == 'maskmode'
+    task.wl_id = 'NULL'
+    task.hc_rule = 'NULL'
+    task.hc_mask = params[:mask]
+  end
+  task.save
+
+  redirect to('/tasks/list')
 end
 
 get '/tasks/create' do
@@ -364,7 +409,7 @@ get '/tasks/create' do
 
   @wordlists = Wordlists.all
 
-  haml :task_create
+  haml :task_edit
 end
 
 post '/tasks/create' do
@@ -377,7 +422,6 @@ post '/tasks/create' do
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
-  puts wordlist.path
 
   if settings && !settings.hcbinpath
     return 'No hashcat binary path is defined in global settings.'
@@ -715,7 +759,7 @@ get '/jobs/stop/:id' do
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     if jt.status == 'Running'
-      redirect to("/job/stop/#{jt.job_id}/#{jt.task_id}")
+      redirect to("/jobs/stop/#{jt.job_id}/#{jt.task_id}")
     end
   end
 
@@ -767,7 +811,7 @@ get '/jobs/:jobid/task/delete/:jobtaskid' do
     @jobtask.destroy
   end
 
-  redirect to("/job/edit/#{@job.id}")
+  redirect to("/jobs/edit/#{@job.id}")
 end
 
 ############################
@@ -1292,9 +1336,9 @@ def buildCrackCmd(jobid, taskid)
   cmd
 end
 
-# Check if kraken has a job running
-def isKrakenBusy?
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|^$)" | grep -v sudo`
+# Check if a job running
+def isBusy?
+  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
   return true if @results.length > 1
 end
 
