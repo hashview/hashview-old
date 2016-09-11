@@ -39,7 +39,8 @@ class MyTest < MiniTest::Test
 
   def test_login_response
     get '/login'
-    assert_equal 200, last_response.status
+    # if no users exist in db this will redirect
+    assert_equal 302, last_response.status
   end
 
   def test_register_response

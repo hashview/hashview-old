@@ -70,6 +70,7 @@ class User
     user = User.first(id: id)
     user.destroy
   end
+
 end
 
 # Class to handle authenticated sessions
@@ -198,4 +199,4 @@ end
 DataMapper.finalize
 
 # automatically update db based on model changes
-DataMapper.auto_upgrade!
+#DataMapper.auto_upgrade!

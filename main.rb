@@ -351,7 +351,7 @@ get '/tasks/edit/:id' do
     next if item == '.' || item == '..'
       @rules << item
   end
-  
+
   haml :task_edit
 end
 
