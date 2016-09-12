@@ -506,15 +506,33 @@ post '/jobs/create' do
   return 'You must provide a name for your job.' if !params[:name] || params[:name].nil?
   return 'You must provide a customer for your job.' if !params[:customer] || params[:customer].nil?
   return 'You must provide a task to your job' if !params[:tasks] || params[:tasks].nil?
+  return 'You must provide a customer name.' if params[:customer] == 'add_new' && (!params[:cust_name] || params[:cust_name].nil?) # This doesnt work :(
 
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
+
+  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].nil?
+  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].nil?
+
+  # Create a new customer if selected
+  if params[:customer] == 'add_new'
+    customer = Customers.new
+    customer.name = params[:cust_name]
+    customer.description = params[:cust_desc]
+    customer.save
+
+    new_customer = Customers.first(name: params[:cust_name])
+  end
 
   # create new job
   job = Jobs.new
   job.name = params[:name]
   job.last_updated_by = getUsername
-  job.customer_id = params[:customer]
+  if params[:customer] == 'add_new'
+    job.customer_id = new_customer.id
+  else
+    job.customer_id = params[:customer]
+  end
   job.save
 
   # assign tasks to the job
