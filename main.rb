@@ -552,10 +552,27 @@ get '/jobs/create' do
 end
 
 post '/jobs/create' do
-  return 'You must provide a name for your job.' if !params[:name] || params[:name].nil?
-  return 'You must provide a customer for your job.' if !params[:customer] || params[:customer].nil?
-  return 'You must provide a task to your job' if !params[:tasks] || params[:tasks].nil?
-  return 'You must provide a customer name.' if params[:customer] == 'add_new' && (!params[:cust_name] || params[:cust_name].nil?) # This doesnt work :(
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'You must provide a name for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if !params[:customer] || params[:customer].nil?
+    flash[:error] = 'You must provide a customer for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if !params[:tasks] || params[:tasks].nil?
+    flash[:error] = 'You must provide a task for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if params[:customer]
+    if !params[:cust_name] || params[:cust_name].nil?
+      flash[:error] = 'You must provide a customer name.'
+      redirect to('/jobs/create')
+    end
+  end
 
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
@@ -654,7 +671,10 @@ get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
 end
 
 post '/jobs/:id/upload/verify_hashtype' do
-  return 'You must specify a valid hashfile type' if !params[:filetype] || params[:filetype].nil?
+  if !params[:filetype] || params[:filetype].nil?
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
+  end
 
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash]) if params[:hash] && !params[:hash].nil?
@@ -682,7 +702,8 @@ post '/jobs/:id/upload/verify_hashtype' do
   customer_id = @job.customer_id
 
   unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
-    return 'Error importing hash' # need to better handle errors
+    flash[:error] = 'Error importing hashes'
+    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
   end
 
   # Delete file, no longer needed
@@ -714,7 +735,10 @@ get '/jobs/edit/:id' do
 end
 
 post '/jobs/edit/:id' do
-  return 'You must specify a name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:name] = 'You must specify a name.'
+    redirect to("/jobs/edit/#{params[:id]}")
+  end
 
   params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
   params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
@@ -778,7 +802,10 @@ get '/jobs/start/:id' do
     end
   end
 
-  return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.' if @job.status == 'Completed'
+  if @job.status == 'Completed'
+    flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
+    redirect to('/jobs/list')
+  end
 
   redirect to('/home')
 end
