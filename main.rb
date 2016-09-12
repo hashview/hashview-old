@@ -70,12 +70,12 @@ end
 
 post '/login' do
   if !params[:username] || params[:username].nil?
-    flash[:error] = "You must supply a username."
+    flash[:error] = 'You must supply a username.'
     redirect to('/login')
   end
 
   if !params[:password] || params[:password].nil?
-    flash[:error] = "You must supply a password."
+    flash[:error] = 'You must supply a password.'
     redirect to('/login')
   end
   session[:username] = clean(params[:username])
@@ -102,7 +102,7 @@ post '/login' do
       redirect to('/home')
     end
   else
-    flash[:error] = "Invalid credentials."
+    flash[:error] = 'Invalid credentials.'
     redirect to('/not_authorized')
   end
 end
@@ -116,9 +116,20 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must have a username.'
+    redirect to('/register')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
+
+  if !params[:confirm] || params[:confirm].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
 
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
@@ -128,7 +139,8 @@ post '/register' do
   @users = User.all
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match.'
+      redirect to('/register')
     else
       new_user = User.new
       new_user.username = params[:username]
