@@ -398,7 +398,7 @@ get '/tasks/create' do
   settings = Settings.first
 
   # TODO present better error msg
-  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if settings.hcbinpath.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if settings && settings.hcbinpath.empty?
 
   @rules = []
   # list wordlists that can be used
