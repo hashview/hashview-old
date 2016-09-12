@@ -312,9 +312,20 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must have username.'
+    redirect to('/accounts/creat')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
+
+  if !params[:confirm] || params[:confirm].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
 
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
@@ -324,7 +335,8 @@ post '/accounts/create' do
   @users = User.all(username: params[:username])
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match'
+      redirect to('/accounts/create')
     else
       new_user = User.new
       new_user.username = params[:username]
@@ -333,7 +345,8 @@ post '/accounts/create' do
       new_user.save
     end
   else
-    return 'User already exists.'
+    flash[:error] = 'User account already exists.'
+    redirect to('/accounts/create')
   end
   redirect to('/accounts/list')
 end
