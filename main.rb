@@ -69,8 +69,15 @@ get '/logout' do
 end
 
 post '/login' do
-  return 'You must supply a username.' if !params[:username] || params[:username].nil?
-  return 'You must supply a password.' if !params[:password] || params[:password].nil?
+  if !params[:useraname] || params[:username].nil?
+    flash[:error] = "You must supply a username."
+    redirect to('/login')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = "You must supply a password."
+    redirect to('/login')
+  end
   session[:username] = clean(params[:username])
   session[:password] = clean(params[:password])
 
@@ -95,6 +102,7 @@ post '/login' do
       redirect to('/home')
     end
   else
+    flash[:error] = "Invalid credentials."
     redirect to('/not_authorized')
   end
 end
