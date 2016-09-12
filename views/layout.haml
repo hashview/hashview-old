@@ -71,15 +71,27 @@
                 %a(href="/logout")Logout
               - else
                 %a(href="/login")Login
-    - if @warnings != nil
+    - if flash[:info]
       .container
-        - @warnings.each do |warning|
-          .alertfade.alert.alert-danger{:role => "alert"} #{warning}
-      %script{:type => "text/javascript"}
-        :plain
-          window.setTimeout(function() {
-            $(".alertfade").fadeTo(500, 0).slideUp(500, function(){
-              $(this).remove();
-            });
-          }, 4000);
+        .flash.alert.alert-info{:role => "info"}
+          = flash[:info]
+    - if flash[:error]
+      .container
+        .flash.alert.alert-danger{:role => "alert"}
+          = flash[:error]
+    - if flash[:warning]
+      .container
+        .flash.alert.alert-warning{:role => "warning"}
+          = flash[:warning]
+    - if flash[:success]
+      .container
+        .flash.alert.alert-success{:role => "success"}
+          = flash[:success]
+    %script{:type => "text/javascript"}
+      :plain
+        window.setTimeout(function() {
+          $(".flash").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+          });
+        }, 3000);
     = yield

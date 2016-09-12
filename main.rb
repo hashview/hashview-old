@@ -7,6 +7,7 @@ if ENV['RACK_ENV'].nil?
   ENV['RACK_ENV'] = 'production'
 end
 
+require 'sinatra/flash'
 require 'haml'
 require 'data_mapper'
 require './model/master.rb'
@@ -39,7 +40,14 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  redirect to('/login') unless validSession?
+  if ! validSession?
+    redirect to('/login')
+  else
+    settings = Settings.first(id: 1)
+    if settings.hcbinpath.empty?
+      flash[:warning] = 'You need to define hashcat\'s path before you can do anything'
+    end
+  end
 end
 
 get '/login' do
@@ -390,12 +398,7 @@ get '/tasks/create' do
   settings = Settings.first
 
   # TODO present better error msg
-  if settings.nil?
-    return 'You must define hashcat\'s binary path in global settings first.'
-  end
-
-  tasks = Tasks.all
-  warning('You need to have tasks before starting a job') if tasks.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if settings.hcbinpath.empty?
 
   @rules = []
   # list wordlists that can be used
@@ -410,7 +413,10 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
-  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].empty?
+    flash[:error] = 'You must provide a name for your task!'
+    redirect to('/tasks/create')
+  end
 
   params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
   params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
@@ -436,6 +442,8 @@ post '/tasks/create' do
     task.hc_mask = params[:mask]
   end
   task.save
+
+  flash[:success] = "Task #{task.name} successfully created"
 
   redirect to('/tasks/list')
 end
@@ -837,7 +845,7 @@ get '/settings' do
   @settings = Settings.first
 
   if @settings && @settings.maxtasktime.nil?
-    warning('Max task time must be defined in seconds (864000 is 10 days)')
+    flash[:info] = 'Max task time must be defined in seconds (864000 is 10 days)'
   end
 
   haml :global_settings
@@ -1251,8 +1259,8 @@ end
 post '/search' do
   @customers = Customers.all
 
-  if params[:value].nil? || !params[:value]
-    warning('Please provide a search term')
+  if params[:value].nil? || params[:value].empty?
+    flash[:error] = "Please provide a search term"
     redirect to('/search')
   else
     value = clean(params[:value])
@@ -1352,16 +1360,6 @@ def assignTasksToJob(tasks, job_id)
 end
 
 helpers do
-  def warning(txt)
-    if @warnings != nil
-      @warnings << txt
-    else
-      @warnings = []
-      @warnings << txt
-    end
-    @warnings
-  end
-
   def login?
     if session[:username].nil?
       return false
