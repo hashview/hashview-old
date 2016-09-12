@@ -790,7 +790,7 @@ get '/jobs/stop/:jobid/:taskid' do
 
   if referer[3] == 'home'
     redirect to('/home')
-  elsif referer[3] == 'job'
+  elsif referer[3] == 'jobs'
     redirect to('/jobs/list')
   end
 end
