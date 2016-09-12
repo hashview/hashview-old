@@ -12,6 +12,7 @@ group :test do
 end
 
 gem 'sinatra'
+gem 'sinatra-flash'
 gem 'haml'
 gem 'data_mapper'
 gem 'dm-mysql-adapter'
