@@ -6,6 +6,18 @@
   /https://jsfiddle.net/vigneshmoha/bbxMe/2/
   %body
     %p
+    :javascript
+      function showDiv() {
+        var Index = document.jobs_form.customer.options[document.jobs_form.customer.selectedIndex].value
+        if(Index == "add_new")
+        {
+          document.getElementById('new_customer_div').style.display = 'inline';
+        }
+        else
+        {
+          document.getElementById('new_customer_div').style.display = 'none';
+        }
+      }
     %script{:type => "text/javascript"}
       :plain
         function dateGenerate() {
@@ -64,18 +76,29 @@
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Save
             - else
-              %form{:class => "form-horizontal", :action => "/jobs/create", :method => "post"}
-                .form-group
-                  %label.control-label.col-xs-2{:for => ""} Customer
-                  .col-xs-10
-                    %select.form-control{:name => "customer"}
-                      - @customers.each do |customer|
-                        %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
-
+              %form{:name => "jobs_form", :id => "jobs_form", :class => "form-horizontal", :action => "/jobs/create", :method => "post"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Job Name
                   .col-xs-10
                     %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Customer
+                  .col-xs-10
+                    %select.form-control{:id => "customer", :name => "customer", :onchange => "showDiv()"}
+                      - @customers.each do |customer|
+                        %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+                      %option{:value => "add_new", :name => "cust_id", :type => "button"} New Customer
+                .section
+                  %div{:class => "label_leftalign field"}
+                    #new_customer_div{:style => "display:none"}
+                      .form-group
+                        %label.control-label.col-xs-2{:for => ""} Customer Name
+                        .col-xs-10
+                          %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                      .form-group
+                        %label.control-label.col-xs-2{:for => ""} Customer Description
+                        .col-xs-10
+                          %input{:type => "textbox", :class => "form-control", :name => "desc", :id => "desc"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Assigned Tasks
                   .col-xs-10
