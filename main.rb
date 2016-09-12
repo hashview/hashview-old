@@ -69,7 +69,7 @@ get '/logout' do
 end
 
 post '/login' do
-  if !params[:useraname] || params[:username].nil?
+  if !params[:username] || params[:username].nil?
     flash[:error] = "You must supply a username."
     redirect to('/login')
   end
