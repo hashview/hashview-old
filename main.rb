@@ -400,7 +400,10 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
-  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'The task requires a name.'
+    redirect to("/tasks/edit/#{params[:id]}")
+  end
 
   params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
   params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
@@ -411,7 +414,8 @@ post '/tasks/edit/:id' do
   wordlist = Wordlists.first(id: params[:wordlist])
 
   if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
   end
 
   task = Tasks.first(id: params[:id])
@@ -466,7 +470,8 @@ post '/tasks/create' do
   wordlist = Wordlists.first(id: params[:wordlist])
 
   if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
   end
 
   task = Tasks.new
