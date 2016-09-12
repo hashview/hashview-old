@@ -297,6 +297,121 @@ get '/customers/delete/:id' do
   redirect to('/customers/list')
 end
 
+post '/customers/upload/hashfile' do
+  params[:custid] = clean(params[:custid])
+  params[:jobid] = clean(params[:jobid])
+
+  if !params[:hf_name] || params[:hf_name].nil?
+    flash[:error] = 'You must specificy a name for this hash file.'
+    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  end
+
+  @job = Jobs.first(id: params[:jobid])
+  return 'No such job exists' unless @job
+
+  # temporarily save file for testing
+  hash = rand(36**8).to_s(36)
+  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+
+  # Parse uploaded file into an array
+  hash_array = []
+  whole_file_as_string_object = params[:file][:tempfile].read
+  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
+  whole_file_as_string_object.each_line do |line|
+    hash_array << line
+  end
+
+  # save location of tmp hash file
+  hashfile = Hashfiles.new
+  hashfile.name = params[:hf_name]
+  hashfile.customer_id = params[:custid]
+  hashfile.hash_str = hash
+  hashfile.save  
+
+  @job.targetfile = hashfile
+  @job.save
+
+  redirect to("/customers/upload/verify_filetype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{hashfile.id}")
+end
+
+get '/customers/upload/verify_filetype' do
+  params[:custid] = clean(params[:custid])
+  params[:jobid] = clean(params[:jobid])
+  params[:hashid] = clean(params[:hashid])
+
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt")
+  @job = Jobs.first(id: params[:jobid])
+  haml :verify_filetypes
+end
+
+post '/customers/upload/verify_filetype' do
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+  params[:filetype] = clean(params[:filetype])
+  params[:hashid] = clean(params[:hashid])
+
+  redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+end
+
+get '/customers/upload/verify_hashtype' do
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+  params[:hashid] = clean(params[:hashid])
+  params[:filetype] = clean(params[:filetype])
+
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt", params[:filetype])
+  @job = Jobs.first(id: params[:jobid])
+  haml :verify_hashtypes
+end
+
+post '/customers/upload/verify_hashtype' do
+  params[:filetype] = clean(params[:filetype])
+  params[:hashid] = clean(params[:hashid]) if params[:hash] && !params[:hash].nil?
+  params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
+  params[:manualHash] = clean(params[:manualHash]) if params[:hashtype] && !params[:hashtype].nil?
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+
+  if !params[:filetype] || params[:filetype].nil?
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  filetype = params[:filetype]
+  
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  if params[:hashtype] == '99999'
+    hashtype = params[:manualHash]
+  else
+    hashtype = params[:hashtype]
+  end
+
+  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt"
+
+  hash_array = []
+  File.open(hash_file, 'r').each do |line|
+    hash_array << line
+  end
+
+  @job = Jobs.first(id: params[:jobid])
+  customer_id = @job.customer_id
+
+  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
+    flash[:error] = 'Error importing hashes'
+    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  # Delete file, no longer needed
+  File.delete(hash_file)
+
+  redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+end
+
 ############################
 
 ### Account controllers ####
@@ -535,18 +650,20 @@ end
 
 get '/jobs/create' do
   @customers = Customers.all
-  redirect to('/customers/create') if @customers.empty?
+  #redirect to('/customers/create') if @customers.empty?
 
-  @tasks = Tasks.all
-  redirect to('/tasks/create') if @tasks.empty?
+  #@tasks = Tasks.all
+  #redirect to('/tasks/create') if @tasks.empty?
+
+  #@hashfiles = Hashfiles.all
 
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
-  taskhashforjs = {}
-  @tasks.each do |task|
-    taskhashforjs[task.id] = task.name
-  end
-  @taskhashforjs = taskhashforjs.to_json
+  #taskhashforjs = {}
+  #@tasks.each do |task|
+  #  taskhashforjs[task.id] = task.name
+  #end
+  #@taskhashforjs = taskhashforjs.to_json
 
   haml :job_edit
 end
@@ -592,123 +709,70 @@ post '/jobs/create' do
 
   # create new job
   job = Jobs.new
-  job.name = params[:name]
+  job.name = params[:job_name]
   job.last_updated_by = getUsername
-  if params[:customer] == 'add_new'
-    job.customer_id = new_customer.id
-  else
-    job.customer_id = params[:customer]
-  end
+  job.customer_id = cust_id 
   job.save
+
+  # assign tasks to the job
+  #assignTasksToJob(params[:tasks], job.id)
+
+  redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}")
+end
+
+get '/jobs/assign_hashfile' do
+  params[:custid] = clean(params[:custid])
+  params[:jobid] = clean(params[:jobid])
+
+  @hashfiles = Hashfiles.all(customer_id: params[:custid])
+  @customer = Customers.first(id: params[:custid])
+  @job = Jobs.first(id: params[:jobid])
+  return 'No such job exists' unless @job
+
+  haml :assign_hashfile
+end
+
+post '/jobs/assign_hashfile' do
+  params[:hash_file] = clean(params[:hash_file])
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+
+  redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+end
+
+get '/jobs/assign_tasks' do
+  params[:hashid] = clean(params[:hashid])
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+
+  @tasks = Tasks.all
+  # we do this so we can embedded ruby into js easily
+  # js handles adding/selecting tasks associated with new job
+  taskhashforjs = {}
+  @tasks.each do |task|
+    taskhashforjs[task.id] = task.name
+  end
+  @taskhashforjs = taskhashforjs.to_json
+
+  haml :assign_tasks
+end
+
+post '/jobs/assign_tasks' do
+  params[:hashid] = clean(params[:hashid])
+  params[:jobid] = clean(params[:jobid])
+  params[:custid] = clean(params[:custid])
+
+  if !params[:tasks] || params[:tasks].nil?
+    flash[:error] = 'You must assign atleast one task'
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+  end
+
+  job = Jobs.first(id: params[:jobid])
 
   # assign tasks to the job
   assignTasksToJob(params[:tasks], job.id)
 
-  redirect to("/jobs/#{job.id}/upload/hashfile")
-end
-
-get '/jobs/:id/upload/hashfile' do
-  params[:id] = clean(params[:id])
-
-  @job = Jobs.first(id: params[:id])
-  return 'No such job exists' unless @job
-
-  haml :upload_hashfile
-end
-
-post '/jobs/:id/upload/hashfile' do
-  params[:id] = clean(params[:id])
-
-  @job = Jobs.first(id: params[:id])
-  return 'No such job exists' unless @job
-
-  # temporarily save file for testing
-  hash = rand(36**8).to_s(36)
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
-
-  # Parse uploaded file into an array
-  hash_array = []
-  whole_file_as_string_object = params[:file][:tempfile].read
-  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
-  whole_file_as_string_object.each_line do |line|
-    hash_array << line
-  end
-
-  # save location of tmp hash file
-  @job.targetfile = hashfile
-  @job.save
-
-  redirect to("/jobs/#{@job.id}/upload/verify_filetype/#{hash}")
-end
-
-get '/jobs/:id/upload/verify_filetype/:hash' do
-  params[:id] = clean(params[:id])
-  params[:hash] = clean(params[:hash])
-
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
-  @job = Jobs.first(id: params[:id])
-  haml :verify_filetypes
-end
-
-post '/jobs/:id/upload/verify_filetype' do
-  params[:filetype] = clean(params[:filetype])
-  params[:hash] = clean(params[:hash])
-
-  filetype = params[:filetype]
-  hash = params[:hash]
-
-  redirect to("/jobs/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
-end
-
-get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
-  params[:id] = clean(params[:id])
-  params[:hash] = clean(params[:hash])
-  params[:filetype] = clean(params[:filetype])
-
-  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
-  @job = Jobs.first(id: params[:id])
-  haml :verify_hashtypes
-end
-
-post '/jobs/:id/upload/verify_hashtype' do
-  if !params[:filetype] || params[:filetype].nil?
-    flash[:error] = 'You must specify a valid hashfile type.'
-    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
-  end
-
-  params[:filetype] = clean(params[:filetype])
-  params[:hash] = clean(params[:hash]) if params[:hash] && !params[:hash].nil?
-  params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:manualHash] = clean(params[:manualHash]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:id] = clean(params[:id])
-
-  filetype = params[:filetype]
-  hash = params[:hash]
-
-  if params[:hashtype] == '99999'
-    hashtype = params[:manualHash]
-  else
-    hashtype = params[:hashtype]
-  end
-
-  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
-
-  hash_array = []
-  File.open(hash_file, 'r').each do |line|
-    hash_array << line
-  end
-
-  @job = Jobs.first(id: params[:id])
-  customer_id = @job.customer_id
-
-  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
-    flash[:error] = 'Error importing hashes'
-    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
-  end
-
-  # Delete file, no longer needed
-  File.delete(hash_file)
-
+  flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
 end
 

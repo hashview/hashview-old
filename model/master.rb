@@ -196,6 +196,16 @@ class Wordlists
   property :size, Integer
 end
 
+# Hashfile Class
+class Hashfiles
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :customer_id, String 
+  property :name, String, length: 256
+  property :hash_str, String, length: 256
+end
+
 DataMapper.finalize
 
 # automatically update db based on model changes
