@@ -913,8 +913,8 @@ get '/wordlists/delete/:id' do
     return 'no such wordlist exists'
   else
     # check if wordlist is in use
-    tasks = Tasks.all(wl_id: @wordlist.id)
-    if tasks
+    @task_list = Tasks.all(wl_id: @wordlist.id)
+    if !@task_list.empty?
       return 'This word list is associated with a task, it cannot be deleted'
     end
 
