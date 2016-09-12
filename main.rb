@@ -69,8 +69,15 @@ get '/logout' do
 end
 
 post '/login' do
-  return 'You must supply a username.' if !params[:username] || params[:username].nil?
-  return 'You must supply a password.' if !params[:password] || params[:password].nil?
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must supply a username.'
+    redirect to('/login')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must supply a password.'
+    redirect to('/login')
+  end
   session[:username] = clean(params[:username])
   session[:password] = clean(params[:password])
 
@@ -95,6 +102,7 @@ post '/login' do
       redirect to('/home')
     end
   else
+    flash[:error] = 'Invalid credentials.'
     redirect to('/not_authorized')
   end
 end
@@ -108,9 +116,20 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must have a username.'
+    redirect to('/register')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
+
+  if !params[:confirm] || params[:confirm].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
 
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
@@ -120,7 +139,8 @@ post '/register' do
   @users = User.all
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match.'
+      redirect to('/register')
     else
       new_user = User.new
       new_user.username = params[:username]
@@ -219,7 +239,10 @@ get '/customers/create' do
 end
 
 post '/customers/create' do
-  return 'You must provide a Customer Name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
@@ -239,7 +262,10 @@ get '/customers/edit/:id' do
 end
 
 post '/customers/edit/:id' do
-  return 'You must provide Customer Name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
   params[:name] = clean(params[:name])
@@ -286,9 +312,20 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must have username.'
+    redirect to('/accounts/creat')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
+
+  if !params[:confirm] || params[:confirm].nil?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
 
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
@@ -298,7 +335,8 @@ post '/accounts/create' do
   @users = User.all(username: params[:username])
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match'
+      redirect to('/accounts/create')
     else
       new_user = User.new
       new_user.username = params[:username]
@@ -307,7 +345,8 @@ post '/accounts/create' do
       new_user.save
     end
   else
-    return 'User already exists.'
+    flash[:error] = 'User account already exists.'
+    redirect to('/accounts/create')
   end
   redirect to('/accounts/list')
 end
@@ -361,7 +400,10 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
-  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'The task requires a name.'
+    redirect to("/tasks/edit/#{params[:id]}")
+  end
 
   params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
   params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
@@ -372,7 +414,8 @@ post '/tasks/edit/:id' do
   wordlist = Wordlists.first(id: params[:wordlist])
 
   if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
   end
 
   task = Tasks.first(id: params[:id])
@@ -427,7 +470,8 @@ post '/tasks/create' do
   wordlist = Wordlists.first(id: params[:wordlist])
 
   if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
   end
 
   task = Tasks.new
@@ -508,10 +552,27 @@ get '/jobs/create' do
 end
 
 post '/jobs/create' do
-  return 'You must provide a name for your job.' if !params[:name] || params[:name].nil?
-  return 'You must provide a customer for your job.' if !params[:customer] || params[:customer].nil?
-  return 'You must provide a task to your job' if !params[:tasks] || params[:tasks].nil?
-  return 'You must provide a customer name.' if params[:customer] == 'add_new' && (!params[:cust_name] || params[:cust_name].nil?) # This doesnt work :(
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'You must provide a name for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if !params[:customer] || params[:customer].nil?
+    flash[:error] = 'You must provide a customer for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if !params[:tasks] || params[:tasks].nil?
+    flash[:error] = 'You must provide a task for your job.'
+    redirect to('/jobs/create')
+  end
+
+  if params[:customer]
+    if !params[:cust_name] || params[:cust_name].nil?
+      flash[:error] = 'You must provide a customer name.'
+      redirect to('/jobs/create')
+    end
+  end
 
   params[:name] = clean(params[:name])
   params[:customer] = clean(params[:customer])
@@ -610,7 +671,10 @@ get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
 end
 
 post '/jobs/:id/upload/verify_hashtype' do
-  return 'You must specify a valid hashfile type' if !params[:filetype] || params[:filetype].nil?
+  if !params[:filetype] || params[:filetype].nil?
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
+  end
 
   params[:filetype] = clean(params[:filetype])
   params[:hash] = clean(params[:hash]) if params[:hash] && !params[:hash].nil?
@@ -638,7 +702,8 @@ post '/jobs/:id/upload/verify_hashtype' do
   customer_id = @job.customer_id
 
   unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
-    return 'Error importing hash' # need to better handle errors
+    flash[:error] = 'Error importing hashes'
+    redirect to("/jobs/#{params[:id]}/upload/verify_hashtype")
   end
 
   # Delete file, no longer needed
@@ -670,7 +735,10 @@ get '/jobs/edit/:id' do
 end
 
 post '/jobs/edit/:id' do
-  return 'You must specify a name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:name] = 'You must specify a name.'
+    redirect to("/jobs/edit/#{params[:id]}")
+  end
 
   params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
   params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
@@ -734,7 +802,10 @@ get '/jobs/start/:id' do
     end
   end
 
-  return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.' if @job.status == 'Completed'
+  if @job.status == 'Completed'
+    flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
+    redirect to('/jobs/list')
+  end
 
   redirect to('/home')
 end
@@ -954,7 +1025,10 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
-  return 'You must specify a name for your word list' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'You must specify a name for your wordlist.'
+    redirect to('/wordlist/upload')
+  end
 
   params[:name] = clean(params[:name])
 
