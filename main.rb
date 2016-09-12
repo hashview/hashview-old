@@ -662,10 +662,11 @@ get '/jobs/edit/:id' do
 end
 
 post '/jobs/edit/:id' do
-  return 'You must specify task you want to edit' if !params[:tasks] || params[:tasks].nil?
+  return 'You must specify a name.' if !params[:name] || params[:name].nil?
 
   params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
   params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
+  params[:name] = clean(params[:name])
 
   values = request.POST
 
@@ -680,7 +681,9 @@ post '/jobs/edit/:id' do
       assignTasksToJob(params[:tasks], @job.id)
       values.delete('tasks')
     end
-    @job.update(values)
+    @job.status = 'queued'
+    @job.name = params[:name]
+    @job.save
 
   end
 
