@@ -260,9 +260,6 @@ get '/customers/delete/:id' do
     @jobs.destroy unless @jobs.nil?
   end
 
-  @targets = Targets.all(customerid: params[:id])
-  @targets.destroy unless @targets.nil?
-
   redirect to('/customers/list')
 end
 
@@ -978,42 +975,27 @@ end
 ##### Purge Data ###########
 
 get '/purge' do
-  params[:jobid] = clean(params[:jobid])
+  # find all customer ids defined in targets
+  @customersids = Targets.all(fields: [:customerid], unique: true)
 
-  @job_cracked = {}
-  @job_total = {}
-  @job_id_name = {}
-  @target_jobids = []
-  @all_cracked = 0
-  @all_total = 0
-  @targets = Targets.all(fields: [:jobid], unique: true)
-  @targets.each do |entry|
-    @target_jobids.push(entry.jobid)
-  end
-
-  @jobs = Jobs.all
-  @jobs.each do |entry|
-    @job_id_name[entry.id] = entry.name
-  end
-
-  @target_jobids.each do |entry|
-    @job_cracked[entry] = Targets.count(jobid: [entry], cracked: 1)
-    @all_cracked = @all_cracked + @job_cracked[entry]
-    @job_total[entry] = Targets.count(jobid: [entry])
-    @all_total = @all_total + @job_total[entry]
+  @total_target_count = 0
+  @total_cracked_count = 0
+  # count all hashes not associated with an active customer
+  @customersids.each do |custid|
+    total_targets = Targets.count(:customerid.not => custid.customerid)
+    total_cracked = Targets.count(:customerid.not => custid.customerid, :cracked => 1)
+    @total_target_count = @total_target_count + total_targets
+    @total_cracked_count = @total_cracked_count + total_cracked
   end
 
   haml :purge
 end
 
-get '/purge/:id' do
-  params[:id] = clean(params[:id])
-
-  if params[:id] == 'all'
-    @targets = Targets.all
-    @targets.destroy
-  else
-    @targets = Targets.all(jobid: params[:id])
+post '/purge' do
+  # delete all targets no associated with an active customer
+  @customersids = Targets.all(fields: [:customerid], unique: true)
+  @customersids.each do |custid|
+    @targets = Targets.all(:customerid.not => custid.customerid)
     @targets.destroy
   end
 
