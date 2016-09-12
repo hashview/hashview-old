@@ -239,7 +239,10 @@ get '/customers/create' do
 end
 
 post '/customers/create' do
-  return 'You must provide a Customer Name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   params[:name] = clean(params[:name])
   params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
@@ -259,7 +262,10 @@ get '/customers/edit/:id' do
 end
 
 post '/customers/edit/:id' do
-  return 'You must provide Customer Name.' if !params[:name] || params[:name].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
   params[:name] = clean(params[:name])
