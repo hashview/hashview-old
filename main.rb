@@ -260,9 +260,6 @@ get '/customers/delete/:id' do
     @jobs.destroy unless @jobs.nil?
   end
 
-  @targets = Targets.all(customerid: params[:id])
-  @targets.destroy unless @targets.nil?
-
   redirect to('/customers/list')
 end
 
