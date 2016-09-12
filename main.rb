@@ -957,7 +957,7 @@ end
 ##### Purge Data ###########
 
 get '/purge' do
-  #find all customer ids defined in targets
+  # find all customer ids defined in targets
   @customersids = Targets.all(fields: [:customerid], unique: true)
 
   @total_target_count = 0
