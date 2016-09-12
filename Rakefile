@@ -61,6 +61,36 @@ namespace :db do
     end
   end
 
+  task :provision_defaults do
+    config = YAML.load_file('config/database.yml')
+    config = config[ENV['RACK_ENV']]
+    user, password, host = config['user'], config['password'], config['hostname']
+    database = config['database']
+
+    system('gunzip -k control/wordlists/password.gz')
+    puts '[*] Settings up default wordlist ...'
+    # Create Default Wordlist
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'password', '3546')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default wordlist"
+    end
+
+    # Create Default Task
+    puts '[*] Settings up default task'
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('DEFAULT TASK', '1', 'dictionary')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default tasklist"
+    end
+  end
+
   namespace :auto do
     desc "Perform auto migration (reset your db data)"
     task :migrate do

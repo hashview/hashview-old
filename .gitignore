@@ -8,7 +8,6 @@ tmp/*
 .DS_Store
 *.swp
 *.swo
-tmp/*
 control/outfiles/*
 !control/outfiles/.blank
 control/hashes/*
