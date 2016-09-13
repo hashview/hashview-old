@@ -23,5 +23,9 @@
                 .col-md-6
                   %input{:type => "password", :class => "form-control", :name => "confirm", :id => "confirm"}
               .form-group
+                %label.control-label.col-xs-2{:for => ""} Email Address (optional)
+                .col-md-6
+                  %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
+              .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Create

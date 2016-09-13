@@ -25,5 +25,11 @@
               %input.control-label{:type => "password", :class => "form-control", :name => "confirm", :id => "confirm"}
           %p
           .row
+            .col-xs-2
+              %label.control-label.col-xs-2{:for => ""} Email Address (optional)
+            .col-xs-6
+              %input.control-label{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
+          %p
+          .row
             .col-xs-offset-2.col-xs-8
               %button.btn.btn-primary{:type => "submit"} Create

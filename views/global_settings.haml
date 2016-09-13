@@ -23,8 +23,29 @@
                   - if @settings and ! @settings.maxtasktime.nil?
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
                   - else
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"} 86400
+                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"}
                   Note: Default value is 86400 seconds (24 hours)
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} SMTP Server
+                .col-xs-10
+                  - if @settings and ! @settings.smtp_server.nil?
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
+                  - else
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'} 
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} SMTP Username 
+                .col-xs-10
+                  - if @settings and ! @settings.smtp_user.nil?
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+                  - else
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'} 
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} SMTP Password
+                .col-xs-10
+                  - if @settings and ! @settings.smtp_pass.nil?
+                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :value => 'tryharder'}
+                  - else
+                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'} 
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Save

@@ -17,6 +17,7 @@ require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
 require './helpers/hc_stdout_parser.rb'
+require './helpers/email.rb'
 
 set :bind, '0.0.0.0'
 
@@ -134,6 +135,7 @@ post '/register' do
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all
@@ -145,6 +147,7 @@ post '/register' do
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
       flash[:success] = "User #{params[:username]} created successfully"
@@ -440,17 +443,17 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
-  if !params[:username] || params[:username].nil?
+  if params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have username.'
     redirect to('/accounts/creat')
   end
 
-  if !params[:password] || params[:password].nil?
+  if params[:password].nil? || params[:password].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
 
-  if !params[:confirm] || params[:confirm].nil?
+  if params[:confirm].nil? || params[:confirm].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
@@ -458,6 +461,7 @@ post '/accounts/create' do
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all(username: params[:username])
@@ -469,6 +473,7 @@ post '/accounts/create' do
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
     end

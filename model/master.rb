@@ -182,6 +182,9 @@ class Settings
   property :hcglobalopts, String, length: 2000
   property :maxtasktime, String, length: 2000
   property :maxjobtime, String, length: 2000
+  property :smtp_server, String
+  property :smtp_user, String
+  property :smtp_pass, String
   property :clientmode, Boolean
 end
 
