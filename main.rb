@@ -1278,7 +1278,7 @@ get '/analytics/graph1' do
 
   if params[:custid] && !params[:custid].empty?
 #    if params[:jobid] && !params[:jobid].empty?
-    if params[:hl_id] && !params[:hl_id].nil?
+    if params[:hf_id] && !params[:hf_id].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
