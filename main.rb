@@ -18,6 +18,7 @@ require './jobs/jobq.rb'
 require './helpers/hash_importer'
 require './helpers/hc_stdout_parser.rb'
 require './helpers/email.rb'
+require 'pony'
 
 set :bind, '0.0.0.0'
 
@@ -725,6 +726,7 @@ end
 
 post '/jobs/create' do
   params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].empty?
+  params[:notify] = clean(params[:notify]) unless params[:notify].nil? || params[:notify].empty?
   params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].empty?
   params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].empty?
   params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].empty?
@@ -783,7 +785,12 @@ post '/jobs/create' do
   end
   job.name = params[:job_name]
   job.last_updated_by = getUsername
-  job.customer_id = cust_id 
+  job.customer_id = cust_id
+  if params[:notify] == 'on'
+    job.notify_completed = '1'
+  else
+    job.notify_completed = '0'
+  end
   job.save
 
   if params[:edit] == '1'

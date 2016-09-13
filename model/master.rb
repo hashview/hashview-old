@@ -129,6 +129,7 @@ class Jobs
   property :policy_min_pass_length, Integer
   property :policy_complexity_default, Boolean
   property :customer_id, Integer
+  property :notify_completed, Boolean
 end
 
 # Jobs will have multiple crack tasks
