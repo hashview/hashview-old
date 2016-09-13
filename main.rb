@@ -228,7 +228,7 @@ get '/customers/list' do
 
   @customers.each do | customer |
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashes[customer.id] = Targets.count(customerid: customer.id)
+    @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
   end
 
   haml :customer_list
@@ -399,9 +399,11 @@ post '/customers/upload/verify_hashtype' do
   end
 
   @job = Jobs.first(id: params[:jobid])
-  customer_id = @job.customer_id
+  customer_id = @job.customerr_id
+  @job.hashfile_id = hashfile.id
+  @job.save
 
-  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
+  unless importHash(hash_array, customer_id, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
@@ -620,10 +622,6 @@ get '/jobs/list' do
   @jobtasks = Jobtasks.all
 
   @jobs.each do |entry|
-    @targets_cracked[entry.id] = Targets.count(jobid: [entry.id], cracked: 1)
-  end
-
-  @jobs.each do |entry|
     @customers = Customers.first(id: [entry.customer_id])
     @customer_names[entry.customer_id] = @customers.name
   end
@@ -649,53 +647,54 @@ get '/jobs/delete/:id' do
 end
 
 get '/jobs/create' do
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
+
+  if params[:edit] && !params[:edit].nil?
+    params[:custid] = clean(params[:custid])
+    params[:jobid] = clean(params[:jobid])
+  end
+
   @customers = Customers.all
-  #redirect to('/customers/create') if @customers.empty?
-
-  #@tasks = Tasks.all
-  #redirect to('/tasks/create') if @tasks.empty?
-
-  #@hashfiles = Hashfiles.all
-
-  # we do this so we can embedded ruby into js easily
-  # js handles adding/selecting tasks associated with new job
-  #taskhashforjs = {}
-  #@tasks.each do |task|
-  #  taskhashforjs[task.id] = task.name
-  #end
-  #@taskhashforjs = taskhashforjs.to_json
+  @job = Jobs.first(id: params[:jobid])
 
   haml :job_edit
 end
 
 post '/jobs/create' do
-  if !params[:name] || params[:name].nil?
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
+  params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].nil?
+  params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].nil?
+  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].nil?
+  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].nil?
+
+  if !params[:job_name] || params[:job_name].nil?
     flash[:error] = 'You must provide a name for your job.'
-    redirect to('/jobs/create')
-  end
-
-  if !params[:customer] || params[:customer].nil?
-    flash[:error] = 'You must provide a customer for your job.'
-    redirect to('/jobs/create')
-  end
-
-  if !params[:tasks] || params[:tasks].nil?
-    flash[:error] = 'You must provide a task for your job.'
-    redirect to('/jobs/create')
-  end
-
-  if params[:customer]
-    if !params[:cust_name] || params[:cust_name].nil?
-      flash[:error] = 'You must provide a customer name.'
+    if params[:edit] == '1'
+      redirect to("/jobs/create?custid=#{:custid}&jobid=#{:jobid}&edit=1")
+    else
       redirect to('/jobs/create')
     end
   end
 
-  params[:name] = clean(params[:name])
-  params[:customer] = clean(params[:customer])
+  if !params[:customer] || params[:customer].nil?
+    flash[:error] = 'You must provide a customer for your job.'
+    if params[:edit] == '1'
+      redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+    else
+      redirect to('/jobs/create')
+    end
+  end
 
-  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].nil?
-  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].nil?
+  if params[:customer] && params[:customer] == 'add_new'
+    if !params[:cust_name] || params[:cust_name].nil?
+      flash[:error] = 'You must provide a customer name.'
+      if params[:edit] == '1'
+        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+      else
+        redirect to('/jobs/create')
+      end
+    end
+  end
 
   # Create a new customer if selected
   if params[:customer] == 'add_new'
@@ -703,26 +702,36 @@ post '/jobs/create' do
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
     customer.save
-
-    new_customer = Customers.first(name: params[:cust_name])
   end
 
-  # create new job
-  job = Jobs.new
+  if params[:customer] == 'add_new'
+    cust_id = customer.id
+  else
+    cust_id = params[:customer]
+  end
+
+  # create new or update existing job
+  if params[:edit] == '1'
+    job = Jobs.first(id: params[:jobid])
+  else
+    job = Jobs.new
+  end
   job.name = params[:job_name]
   job.last_updated_by = getUsername
   job.customer_id = cust_id 
   job.save
 
-  # assign tasks to the job
-  #assignTasksToJob(params[:tasks], job.id)
-
-  redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}")
+  if params[:edit] == '1'
+    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}&edit=1")
+  else
+    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}")
+  end
 end
 
 get '/jobs/assign_hashfile' do
   params[:custid] = clean(params[:custid])
   params[:jobid] = clean(params[:jobid])
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
 
   @hashfiles = Hashfiles.all(customer_id: params[:custid])
   @customer = Customers.first(id: params[:custid])
@@ -733,18 +742,38 @@ get '/jobs/assign_hashfile' do
 end
 
 post '/jobs/assign_hashfile' do
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
   params[:hash_file] = clean(params[:hash_file])
   params[:jobid] = clean(params[:jobid])
   params[:custid] = clean(params[:custid])
 
-  redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+  if params[:hash_file] != 'add_new'
+    job = Jobs.first(id: params[:jobid])
+    job.hashfile_id = params[:hash_file]
+    job.save
+  end
+
+  if params[:edit] == '1'
+    job = Jobs.first(id: params[:jobid])
+    job.hashfile_id = params[:hash_file]
+    job.save
+  end
+
+  if params[:edit]
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}&edit=1")
+  else
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+  end
 end
 
 get '/jobs/assign_tasks' do
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
   params[:hashid] = clean(params[:hashid])
   params[:jobid] = clean(params[:jobid])
   params[:custid] = clean(params[:custid])
 
+  @job = Jobs.first(id: params[:jobid])
+  @jobtasks = Jobtasks.all(job_id: params[:jobid])
   @tasks = Tasks.all
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -758,16 +787,22 @@ get '/jobs/assign_tasks' do
 end
 
 post '/jobs/assign_tasks' do
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
   params[:hashid] = clean(params[:hashid])
   params[:jobid] = clean(params[:jobid])
   params[:custid] = clean(params[:custid])
 
   if !params[:tasks] || params[:tasks].nil?
     flash[:error] = 'You must assign atleast one task'
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+    if params[:edit]
+      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}&edit=1")
+    else
+      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+    end
   end
 
   job = Jobs.first(id: params[:jobid])
+  job.status = 'Queued'
 
   # assign tasks to the job
   assignTasksToJob(params[:tasks], job.id)

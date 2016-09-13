@@ -125,8 +125,7 @@ class Jobs
   # status options should be "Running", "Paused", "Completed", "Queued", "Canceled"
   property :status, String, length: 100
   property :targettype, String, length: 2000
-  property :targetfile, String, length: 2000
-  property :targethash, String, length: 2000
+  property :hashfile_id, Integer
   property :policy_min_pass_length, Integer
   property :policy_complexity_default, Boolean
   property :customer_id, Integer
@@ -170,8 +169,8 @@ class Targets
   property :hashtype, Integer
   property :cracked, Boolean
   property :plaintext, String, length: 2000
-  property :jobid, Integer
-  property :customerid, Integer
+  property :hashfile_id, Integer
+  property :customer_id, Integer
 end
 
 # User Settings

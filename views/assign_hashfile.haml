@@ -25,8 +25,10 @@
               .row
                 .col-md-12
                   .page-header
-                    %h1
-                      Upload hash file for: #{@job.name}
+                    - if params[:edit] == '1'
+                      %h1 Edit Hashfile for: #{@job.name}
+                    - else
+                      %h1 Select or upload hashfile for: #{@job.name}
                 .row
                   .col-md-10.pull-left
                     Select from an existing list of hashfiles currently uploaded for this customer or upload a new one. Currently Hashview supports, pwdump, shadow and newline seperated hash files. 
@@ -39,18 +41,29 @@
                       .col-xs-10
                         %select.form-control{:id => "hash_file", :name => "hash_file", :onchange => "showDiv()"}
                           - @hashfiles.each do |hashfile|
-                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+                            - if params[:edit] == '1'
+                              - if @job.hashfile_id == hashfile.id
+                                %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name}
+                              - else
+                                %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+ 
+                            - else
+                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
                           %option{:value => "add_new", :name => "hf_id", :type => "button"} New Hashfile
                     .section
                       %div{:class => "label_leftalign field"}
                         #selectfile_div{:style => "display:inline"}
                           .form-group
                             .col-xs-offset-2.col-xs-10
-                              %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
-                              %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                              %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
+                              %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
 
                               %br
-                              %button.btn.btn-primary{:type => 'submit'} Select 
+                              - if params[:edit] == '1'
+                                %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
+                                %button.btn.btn-primary{:type => 'submit'} Update
+                              - else
+                                %button.btn.btn-primary{:type => 'submit'} Select 
                   #hashfile_div{:style => "display:none"}
                     %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
                       .form-group

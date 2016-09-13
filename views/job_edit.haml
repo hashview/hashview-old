@@ -23,7 +23,10 @@
               .row
                 .col-md-12
                   .page-header
-                    %h1 Create a new Job
+                    - if params[:edit] == '1'
+                      %h1 Edit Job
+                    - else
+                      %h1 Create a new Job
                 .row
                   .col-md-10.pull-left
                     The following pages will guide you through creating a new job. First enter the name and select the customer that this job will be running for.  If this is a new company, select 'add new customer'. 
@@ -36,14 +39,23 @@
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Job Name
                 .col-xs-10
-                  %input{:type => "textbox", :class => "form-control", :name => "job_name", :id => "name"}
+                  - if params[:edit] == '1'
+                    %input{:type => "textbox", :class => "form-control", :name => 'job_name', :id => 'name', :value => "#{@job.name.to_s}"}
+                  - else
+                    %input{:type => "textbox", :class => "form-control", :name => "job_name", :id => "name"}
               - if !@customers.empty?
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer
                   .col-xs-10
                     %select.form-control{:id => "customer", :name => "customer", :onchange => "showDiv()"}
                       - @customers.each do |customer|
-                        %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+                        - if params[:edit] == '1'
+                          - if customer.id == @job.customer_id
+                            %option{:value => "#{customer.id}", :name => "cust_id", :type => "button", selected: 'selected'} #{customer.name}
+                          - else
+                            %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+                        - else
+                          %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
                       %option{:value => "add_new", :name => "cust_id", :type => "button"} New Customer
                 .section
                   %div{:class => "label_leftalign field"}
@@ -67,5 +79,11 @@
                     %input{:type => "textbox", :class => "form-control", :name => "cust_desc", :id => "desc"}
               .form-group
                 .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Create
+                  - if params[:edit]
+                    %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit]}"}
+                    %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid]}"}
+                    %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid]}"}
+                    %button.btn.btn-primary{:type => "submit"} Update
+                  -else
+                    %button.btn.btn-primary{:type => "submit"} Create
 
