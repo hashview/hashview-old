@@ -33,5 +33,7 @@
                       %tr
                         %td #{user.username}
                         %td
+                          %a.btn.btn-warning{:href => "/accounts/edit/#{user.id}"}
+                            %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                           %a.btn.btn-danger{:href => "/accounts/delete/#{user.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}

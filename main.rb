@@ -484,6 +484,45 @@ post '/accounts/create' do
   redirect to('/accounts/list')
 end
 
+get '/accounts/edit/:account_id' do
+  params[:account_id] = clean(params[:account_id]) unless params[:account_id].nil? || params[:account_id].empty?
+  @user = User.first(id: params[:account_id])
+
+  haml :account_edit
+end
+
+post '/accounts/save' do
+  if params[:account_id].nil? || params[:account_id].empty?
+    flash[:error] = 'Invalid account.'
+    redirect to('/accounts/list')
+  end
+
+  if params[:username].nil? || params[:username].empty?
+    flash[:error] = 'Invalid username.'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  params[:username] = clean(params[:username])
+  params[:password] = clean(params[:password]) unless params[:password].nil? || params[:password].empty?
+  params[:confirm] = clean(params[:confirm]) unless params[:conirm].nil? || params[:conrim].empty?
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
+
+  if params[:password] != params[:confirm]
+    flash[:error] = 'Passwords do not match'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  user = User.first(id: params[:account_id])
+  user.username = params[:username]
+  user.password = params[:password] unless params[:password].nil? || params[:password].empty?
+  user.email = params[:email] unless params[:email].nil? || params[:email].empty?
+  user.save
+
+  flash[:success] = 'Account successfuly updated.'
+
+  redirect to('/accounts/list')
+end
+
 get '/accounts/delete/:id' do
   params[:id] = clean(params[:id])
 
