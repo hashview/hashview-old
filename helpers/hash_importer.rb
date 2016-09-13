@@ -16,7 +16,7 @@ def detectedHashFormat(hash)
   end
 end
 
-def importPwdump(hash, customer_id, job_id, type)
+def importPwdump(hash, customer_id, hashfile_id, type)
   data = hash.split(':')
   return if machineAcct?(data[0])
   return if data[2].nil?
@@ -31,8 +31,8 @@ def importPwdump(hash, customer_id, job_id, type)
     target_lm1.username = data[0]
     target_lm1.originalhash = lm_hashes[0].downcase
     target_lm1.hashtype = '3000'
-    target_lm1.jobid = job_id
-    target_lm1.customerid = customer_id
+    target_lm1.hashfile_id = hashfile_id
+    target_lm1.customer_id = customer_id
     target_lm1.cracked = false
     target_lm1.save
 
@@ -40,8 +40,8 @@ def importPwdump(hash, customer_id, job_id, type)
     target_lm2.username = data[0]
     target_lm2.originalhash = lm_hashes[1].downcase
     target_lm2.hashtype = '3000'
-    target_lm2.jobid = job_id
-    target_lm2.customerid = customer_id
+    target_lm2.hashfile_id = hashfile_id
+    target_lm2.customer_id = customer_id
     target_lm2.cracked = false
     target_lm2.save
   end
@@ -53,8 +53,8 @@ def importPwdump(hash, customer_id, job_id, type)
     target_ntlm.username = data[0]
     target_ntlm.originalhash = data[3].downcase
     target_ntlm.hashtype = '1000'
-    target_ntlm.jobid = job_id
-    target_ntlm.customerid = customer_id
+    target_ntlm.hashfile_id = hashfile_id
+    target_ntlm.customer_id = customer_id
     target_ntlm.cracked = false
     target_ntlm.save
   end
@@ -68,19 +68,19 @@ def machineAcct?(username)
   end
 end
 
-def importShadow(hash, customer_id, job_id, type)
+def importShadow(hash, customer_id, hashfile_id, type)
   data = hash.split(':')
   target = Targets.new
   target.username = data[0]
   target.originalhash = data[1]
   target.hashtype = type
-  target.jobid = job_id
-  target.customerid = customer_id
+  target.hashfile_id = hashfile_id
+  target.customer_id = customer_id
   target.cracked = false
   target.save
 end
 
-def importRaw(hash, customer_id, job_id, type)
+def importRaw(hash, customer_id, hashfile_id, type)
   if type == '3000'
   # import LM
     lm_hashes = hash.scan(/.{16}/)
@@ -88,16 +88,16 @@ def importRaw(hash, customer_id, job_id, type)
     target_lm1 = Targets.new
     target_lm1.originalhash = lm_hashes[0].downcase
     target_lm1.hashtype = '3000'
-    target_lm1.jobid = job_id
-    target_lm1.customerid = customer_id
+    target_lm1.hashfile_id = hashfile_id
+    target_lm1.customer_id = customer_id
     target_lm1.cracked = false
     target_lm1.save
 
     target_lm2 = Targets.new
     target_lm2.originalhash = lm_hashes[1].downcase
     target_lm2.hashtype = '3000'
-    target_lm2.jobid = job_id
-    target_lm2.customerid = customer_id
+    target_lm2.hashfile_id = hashfile_id
+    target_lm2.customer_id = customer_id
     target_lm2.cracked = false
     target_lm2.save
 
@@ -105,8 +105,8 @@ def importRaw(hash, customer_id, job_id, type)
     target_raw = Targets.new
     target_raw.originalhash = hash.downcase
     target_raw.hashtype = type
-    target_raw.jobid = job_id
-    target_raw.customerid = customer_id
+    target_raw.hashfile_id = hashfile_id
+    target_raw.customer_id = customer_id
     target_raw.cracked = false
     target_raw.save
   end
@@ -189,14 +189,14 @@ def friendlyToMode(friendly)
   end
 end
 
-def importHash(hash_file, customer_id, job_id, file_type, hashtype)
+def importHash(hash_file, customer_id, hashfile_id, file_type, hashtype)
   hash_file.each do |entry|
     if file_type == 'pwdump'
-      importPwdump(entry.chomp, customer_id, job_id, hashtype)
+      importPwdump(entry.chomp, customer_id, hashfile_id, hashtype)
     elsif file_type == 'shadow'
-      importShadow(entry.chomp, customer_id, job_id, hashtype)
+      importShadow(entry.chomp, customer_id, hashfile_id, hashtype)
     elsif file_type == 'raw'
-      importRaw(entry.chomp, customer_id, job_id, hashtype)
+      importRaw(entry.chomp, customer_id, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end

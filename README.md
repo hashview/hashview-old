@@ -1,4 +1,5 @@
 ## *hashview* ##
+[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=dev)](https://travis-ci.com/hashview/hashview)
 
 **hashview** is a web application designed by penetration testers to help organize and automate the repetitious tasks related to password cracking and analysis.
 

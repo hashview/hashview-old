@@ -1,25 +1,22 @@
 !!!
 %html
   %body
-    %p
     .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Tasks
+            .row
+              .col-md-10.pull-left
+                Task are predefined hashcat commands. Any number of tasks can be assigned to a Job.
+              .col-md-2.pull-right
+                %a.btn.btn-primary.pull-right{:href => "/tasks/create"}
+                  Create Task
+      %br
       %br
       .container
-        .row
-          .col-md-12
-            .container
-              .row
-                .page-header
-                  %h1
-                    Tasks
-                .row
-                  .col-md-10.pull-left
-                    Task are predefined hashcat commands. Any number of tasks can be assigned to a Job.
-                  .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-right{:href => "/tasks/create"}
-                      Create Task
-        %br
-        %br
         .row
           .col-md-12
             .table
