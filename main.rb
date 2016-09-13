@@ -458,6 +458,12 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
+  settings = Settings.first
+  if settings && !settings.hcbinpath
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
+  end
+
   if !params[:name] || params[:name].empty?
     flash[:error] = 'You must provide a name for your task!'
     redirect to('/tasks/create')
@@ -468,12 +474,14 @@ post '/tasks/create' do
   params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
   params[:name] = clean(params[:name])
 
-  settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
 
-  if settings && !settings.hcbinpath
-    flash[:error] = 'No hashcat binary path is defined in global settings.'
-    redirect to('/settings')
+  # mask field cannot be empty
+  if params[:attackmode] == 'maskmode'
+    if !params[:mask] || params[:mask].empty?
+      flash[:error] = 'Mask field cannot be left empty'
+      redirect to('/tasks/create')
+    end
   end
 
   task = Tasks.new
