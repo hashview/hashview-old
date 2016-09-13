@@ -116,17 +116,17 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  if !params[:username] || params[:username].nil?
+  if !params[:username] || params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have a username.'
     redirect to('/register')
   end
 
-  if !params[:password] || params[:password].nil?
+  if !params[:password] || params[:password].nil? || params[:password].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/register')
   end
 
-  if !params[:confirm] || params[:confirm].nil?
+  if !params[:confirm] || params[:confirm].nil? || params[:confirm].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/register')
   end
@@ -147,8 +147,10 @@ post '/register' do
       new_user.password = params[:password]
       new_user.admin = 't'
       new_user.save
+      flash[:success] = "User #{params[:username]} created successfully"
     end
   end
+
   redirect to('/home')
 end
 
