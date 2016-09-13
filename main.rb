@@ -1094,9 +1094,13 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
-  if !params[:name] || params[:name].nil?
+  if !params[:file] || params[:file].nil?
+    flash[:error] = 'You must specify a file.'
+    redirect to('/wordlists/add')
+  end
+  if !params[:name] || params[:name].empty?
     flash[:error] = 'You must specify a name for your wordlist.'
-    redirect to('/wordlist/upload')
+    redirect to('/wordlists/add')
   end
 
   params[:name] = clean(params[:name])
