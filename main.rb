@@ -767,7 +767,7 @@ end
 
 get '/jobs/assign_tasks' do
   params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:hashid] = clean(params[:hashid])
+  params[:hashid] = clean(params[:hashid]) if params[:hashid] && !params[:hashid].nil?
   params[:jobid] = clean(params[:jobid])
   params[:custid] = clean(params[:custid])
 
@@ -787,24 +787,25 @@ end
 
 post '/jobs/assign_tasks' do
   params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:hashid] = clean(params[:hashid])
+  params[:hashid] = clean(params[:hashid]) if params[:hashid] && !params[:hashid].nil?
   params[:jobid] = clean(params[:jobid])
   params[:custid] = clean(params[:custid])
 
   if !params[:tasks] || params[:tasks].nil?
-    flash[:error] = 'You must assign atleast one task'
-    if params[:edit]
-      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}&edit=1")
-    else
+    if !params[:edit] || params[:edit].nil?
+      flash[:error] = 'You must assign atleast one task'
       redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
     end
   end
 
   job = Jobs.first(id: params[:jobid])
-  job.status = 'Queued'
+  job.status = 'Stopped'
+  job.save
 
   # assign tasks to the job
-  assignTasksToJob(params[:tasks], job.id)
+  if params[:tasks] && !params[:tasks].nil?
+    assignTasksToJob(params[:tasks], job.id)
+  end
 
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
@@ -940,9 +941,11 @@ end
 
 ##### job task controllers #####
 
-get '/jobs/:jobid/task/delete/:jobtaskid' do
-  params[:jobid] = clean(params[:jobid])
-  params[:jobtaskid] = clean(params[:jobtaskid])
+get '/jobs/remove_task' do
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
+  params[:jobtaskid] = clean(params[:jobtaskid]) if params[:jobtaskid] && !params[:jobtaskid]
 
   @job = Jobs.first(id: params[:jobid])
   if !@job
@@ -952,7 +955,7 @@ get '/jobs/:jobid/task/delete/:jobtaskid' do
     @jobtask.destroy
   end
 
-  redirect to("/jobs/edit/#{@job.id}")
+  redirect to("/jobs/assign_tasks?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
 end
 
 ############################
@@ -993,14 +996,16 @@ end
 ##### Downloads ############
 
 get '/download' do
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], jobid: params[:jobid], cracked: '1')
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].nil?
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: '1')
     else
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], cracked: 1)
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
@@ -1010,8 +1015,9 @@ get '/download' do
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      file_name = "found_#{params[:custid]}_#{params[:jobid]}.txt"
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].nil?
+      file_name = "found_#{params[:custid]}_#{params[:wl_id]}.txt"
     else
       file_name = "found_#{params[:custid]}.txt"
     end
@@ -1029,7 +1035,6 @@ get '/download' do
   end
 
   send_file file_name, filename: file_name, type: 'Application/octet-stream'
-
 end
 
 ############################
@@ -1158,8 +1163,8 @@ get '/analytics' do
 
   if params[:custid] && !params[:custid].empty?
 #    if params[:jobid] && !params[:jobid].empty?
-    if params[:hl_id] && !params[:hl_id].empty?
-      @hashfiles = Hashfiles.first(id: params[:hl_id])
+    if params[:hf_id] && !params[:hf_id].empty?
+      @hashfiles = Hashfiles.first(id: params[:hf_id])
     else
       @hashfiles = Hashfiles.all
     end
