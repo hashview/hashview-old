@@ -665,13 +665,13 @@ get '/jobs/create' do
 end
 
 post '/jobs/create' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].nil?
-  params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].nil?
-  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].nil?
-  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].nil?
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].empty?
+  params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].empty?
+  params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].empty?
+  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].empty?
+  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].empty?
 
-  if !params[:job_name] || params[:job_name].nil?
+  if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
     if params[:edit] == '1'
       redirect to("/jobs/create?custid=#{:custid}&jobid=#{:jobid}&edit=1")
@@ -692,7 +692,7 @@ post '/jobs/create' do
   end
 
   if params[:customer] && params[:customer] == 'add_new'
-    if !params[:cust_name] || params[:cust_name].nil?
+    if !params[:cust_name] || params[:cust_name].empty?
       flash[:error] = 'You must provide a customer name.'
       if params[:edit] == '1'
         redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
@@ -703,14 +703,14 @@ post '/jobs/create' do
   end
 
   # Create a new customer if selected
-  if params[:customer] == 'add_new'
+  if params[:customer] == 'add_new' || params[:customer].empty?
     customer = Customers.new
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
     customer.save
   end
 
-  if params[:customer] == 'add_new'
+  if params[:customer] == 'add_new' || params[:customer].empty?
     cust_id = customer.id
   else
     cust_id = params[:customer]
