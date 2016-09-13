@@ -24,20 +24,20 @@
                       %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
               - if @custid
                 &nbsp
-                %label.control-label.text-right{:for => ""} Job:
+                %label.control-label.text-right{:for => ""} Hash File:
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if @jobid.nil?
-                    All Jobs
+                  - if @hashfiles.nil?
+                    All Hashes
                   - else
-                    #{@jobs.name}
+                    #{@hashfiles.name}
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
                     %a{:href => "/analytics?custid=#{@custid}"} All
                   %li.divider{:role => "separator"}
-                  - @button_select_jobs.each do |job|
+                  - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}
+                      %a{:href => "/analytics?custid=#{@custid}&hf_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
@@ -150,7 +150,7 @@
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
                             Download Cracked File 
                         - elsif @custid && @jobid
-                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&jobid=#{@jobid}"}
+                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
                             Download Cracked File 
                         - else
                           You shouldnt see me
@@ -188,7 +188,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph1?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -255,7 +255,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph2?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -322,7 +322,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph3?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph3?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)

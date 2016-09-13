@@ -18,14 +18,16 @@
                     Hashview automatically detected the following file format(s), however there may be instances where this is wrong. Select the correct file type and click confirm.
                 %br
                 .row
-                  %form{:class => "form-horizontal", :action => "/jobs/#{@job.id}/upload/verify_filetype", :method => "post"}
+                  %form{:class => "form-horizontal", :action => "/customers/upload/verify_filetype", :method => "post"}
                     .form-group
                       %label.control-label.col-xs-2{:for => ""} Detected Hash File Type: 
                       .col-xs-4
                         %select.form-control{:name => "filetype"}
                           - @filetypes.each do |type|
                             %option{:value => "#{type}", :name => "filetype", :type => "button"} #{type}
-                        %input{:type=>"hidden", :value=>"#{params[:hash].to_s}", :name=>:hash}
+                        %input{:type => 'hidden', :name => 'hashid', :value=>"#{params[:hashid].to_s}"}
                     .form-group
                       .col-xs-offset-2.col-xs-10
+                        %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
+                        %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
                         %button.btn.btn-primary{:type => "submit"} Confirm

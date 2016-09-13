@@ -104,8 +104,7 @@ class MyTest < MiniTest::Test
   def test_jobs_create_response
     userid = login_testuser
     get '/jobs/create'
-    # remember, if there are no customers in db, we redirct to create customer
-    assert_equal 302, last_response.status
+    assert_equal 200, last_response.status
     #assert last_response.body.include?("Create a New Job")
     delete_testuser(userid)
   end
