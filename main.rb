@@ -680,12 +680,14 @@ post '/jobs/create' do
     end
   end
 
-  if !params[:customer] || params[:customer].nil?
-    flash[:error] = 'You must provide a customer for your job.'
-    if params[:edit] == '1'
-      redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
-    else
-      redirect to('/jobs/create')
+  if !params[:customer] || params[:customer].empty?
+    if !params[:cust_name] || params[:cust_name].empty?
+      flash[:error] = 'You must provide a customer for your job.'
+      if params[:edit] == '1'
+        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+      else
+        redirect to('/jobs/create')
+      end
     end
   end
 
