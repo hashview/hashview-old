@@ -1130,6 +1130,27 @@ end
 
 ############################
 
+##### Hash Lists ###########
+
+get '/hashfiles/list' do
+  @customers = Customers.all
+  @hashfiles = Hashfiles.all
+
+  haml :hashfile_list
+end
+
+get '/hashfiles/delete' do
+  params[:hashfile_id] = clean(params[:hashfile_id]) if params[:hashfile_id] && !params[:hashfile].nil?
+  @hashfile = Hashfiles.first(id: params[:hashfile_id])
+  @hashfile.destroy() unless @hashfile.nil?
+
+  flash[:success] = 'Successfuly removed hashfile.'
+ 
+  redirect to('/hashfiles/list')
+end
+
+############################
+
 ##### Purge Data ###########
 
 get '/purge' do
