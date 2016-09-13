@@ -65,7 +65,7 @@
                           - else
                             %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}
-                          %a.btn.btn-primary{:href => "/analytics?custid=#{job.customer_id}&jobid=#{job.id}"}
+                          %a.btn.btn-primary{:href => "/analytics?custid=#{job.customer_id}&hf_id=#{job.hashfile_id}"}
                             %i.glyphicon.glyphicon-stats{:title => 'display crack stats'}
                           %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}

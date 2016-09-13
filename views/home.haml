@@ -127,7 +127,7 @@
                     %tr
                     - @recentlycracked.each do |cracked|
                       - @customers.each do | customer |
-                        - if customer.id == cracked.customerid
+                        - if customer.id == cracked.customer_id
                           %td #{customer.name}
                           %td #{cracked.username}
                           %td #{cracked.plaintext}

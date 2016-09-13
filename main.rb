@@ -202,8 +202,8 @@ get '/home' do
   @jobs.each do |j|
     if j.status == 'Running'
       # gather info for statistics
-      @alltargets = Targets.count(jobid: j.id)
-      @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
+      @alltargets = Targets.count(hashfile_id: j.hashfile_id)
+      @crackedtargets = Targets.count(hashfile_id: j.hashfile_id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
       @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
@@ -328,7 +328,6 @@ post '/customers/upload/hashfile' do
   hashfile.hash_str = hash
   hashfile.save  
 
-  @job.targetfile = hashfile
   @job.save
 
   redirect to("/customers/upload/verify_filetype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{hashfile.id}")
@@ -399,7 +398,7 @@ post '/customers/upload/verify_hashtype' do
   end
 
   @job = Jobs.first(id: params[:jobid])
-  customer_id = @job.customerr_id
+  customer_id = @job.customer_id
   @job.hashfile_id = hashfile.id
   @job.save
 
@@ -808,60 +807,6 @@ post '/jobs/assign_tasks' do
   assignTasksToJob(params[:tasks], job.id)
 
   flash[:success] = 'Successfully created job.'
-  redirect to('/jobs/list')
-end
-
-get '/jobs/edit/:id' do
-  params[:id] = clean(params[:id])
-
-  @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
-  else
-    @tasks = Tasks.all
-    @jobtasks = Jobtasks.all(job_id: params[:id])
-  end
-
-  # we do this so we can embedded ruby into js easily
-  # js handles adding/selecting tasks associated with new job
-  taskhashforjs = {}
-  @tasks.each do |task|
-    taskhashforjs[task.id] = task.name
-  end
-  @taskhashforjs = taskhashforjs.to_json
-
-  haml :job_edit
-end
-
-post '/jobs/edit/:id' do
-  if !params[:name] || params[:name].nil?
-    flash[:name] = 'You must specify a name.'
-    redirect to("/jobs/edit/#{params[:id]}")
-  end
-
-  params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
-  params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
-  params[:name] = clean(params[:name])
-
-  values = request.POST
-
-  @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
-  else
-    # update job
-    # assign tasks to the job before
-    p values
-    if values['tasks'] != nil
-      assignTasksToJob(params[:tasks], @job.id)
-      values.delete('tasks')
-    end
-    @job.status = 'queued'
-    @job.name = params[:name]
-    @job.save
-
-  end
-
   redirect to('/jobs/list')
 end
 
@@ -1491,7 +1436,8 @@ def buildCrackCmd(jobid, taskid)
   maxtasktime = settings.maxtasktime
   @task = Tasks.first(id: taskid)
   @job = Jobs.first(id: jobid)
-  @targets = Targets.first(jobid: jobid)
+  hashfile_id = @job.hashfile_id
+  @targets = Targets.first(hashfile_id: hashfile_id)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
