@@ -225,10 +225,12 @@ get '/customers/list' do
   @customers = Customers.all
   @total_jobs = []
   @total_hashes = []
+  @total_hashfiles = []
 
   @customers.each do | customer |
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
     @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
+    @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
   end
 
   haml :customer_list
@@ -293,6 +295,9 @@ get '/customers/delete/:id' do
     end
     @jobs.destroy unless @jobs.nil?
   end
+
+  @hashfiles = Hashfiles.all(customer_id: params[:id])
+  @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')
 end
