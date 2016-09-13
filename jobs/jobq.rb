@@ -46,9 +46,10 @@ module Jobq
 
   def self.perform(id, cmd)
     jobtasks = Jobtasks.first(id: id)
+    job = Jobs.first(id: jobtasks.job_id)
 
     puts '===== creating hash_file ======='
-    targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
+    targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
     hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
     File.open(hash_file, 'w') do |f|
       targets.each do |entry|
