@@ -86,6 +86,7 @@
                                   %option{:value => "#{wordlist.id}", :name => "wl_id", :type => "button", :selected => "selected"} #{wordlist.name} (#{wordlist.size} words)
                                 - else
                                   %option{:value => "#{wordlist.id}", :name => "wl_id", :type => "button"} #{wordlist.name} (#{wordlist.size} words)
+                        %p
                         .form-group
                           %label.control-label.col-xs-2{:for => ""} Dictionary Rules
                           .col-xs-4
@@ -96,9 +97,10 @@
                                   %option{:value => "#{rule}", :name => "rule", :type => "button", :selected => "selected"} #{rule}
                                 - else
                                   %option{:value => "#{rule}", :name => "rule", :type => "button"} #{rule}
-                          .form-group
-                            .col-xs-offset-2.col-xs-10
-                              %button.btn.btn-primary{:type => "submit"} Update
+                          %p
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{:type => "submit"} Update
                     - else
                       #dictionary_div{:style => "display:none"}
                         .form-group
@@ -114,9 +116,9 @@
                               %option{:value => "none", :name => "rule", :type => "button", :selected => "selected"} None
                               - @rules.each do |rule|
                                 %option{:value => "#{rule}", :name => "rule", :type => "button"} #{rule}
-                          .form-group
-                            .col-xs-offset-2.col-xs-10
-                              %button.btn.btn-primary{:type => "submit"} Update
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{:type => "submit"} Update
                     - if @task.hc_attackmode == 'maskmode'
                       #maskmode_div{:style => "display:inline"}
                         .form-group
@@ -132,6 +134,7 @@
                           %label.control-label.col-xs-2{:for => ""} Hashcat Mask:
                           .col-xs-4
                             <input class='form-control' id='mask' name='mask' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                          %p
                         .form-group
                           .col-xs-offset-2.col-xs-10
                             %button.btn.btn-primary{:type => "submit"} Update
@@ -165,7 +168,7 @@
           .row
             .col-md-12
               .table
-  
+
               %form{:name => "taskForm", :id => "taskForm", :class => "form-horizontal", :action => "/tasks/create", :method => "post"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Task Name
@@ -179,7 +182,7 @@
                       %option{:value => "dictionary", :name => "attackmode", :type => "button"} Dictionary
                       %option{:value => "maskmode", :name => "attackmode", :type => "button"} Mask Mode
                       %option{:value => "bruteforce", :name => "attackmode", :type => "button"} Brute Force
-  
+
                 .section
                   %div{:class => "label_leftalign field"}
                     #dictionary_div{:style => "display:none"}
