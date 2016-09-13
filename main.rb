@@ -373,6 +373,7 @@ get '/customers/upload/verify_hashtype' do
 end
 
 post '/customers/upload/verify_hashtype' do
+  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
   params[:filetype] = clean(params[:filetype])
   params[:hashid] = clean(params[:hashid]) if params[:hash] && !params[:hash].nil?
   params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
@@ -415,7 +416,12 @@ post '/customers/upload/verify_hashtype' do
   # Delete file, no longer needed
   File.delete(hash_file)
 
-  redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  if params[:edit]
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&edit=1")
+  else
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}")
+  end
+#  redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
 end
 
 ############################
@@ -774,9 +780,7 @@ end
 
 get '/jobs/assign_tasks' do
   params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:hashid] = clean(params[:hashid]) if params[:hashid] && !params[:hashid].nil?
   params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
 
   @job = Jobs.first(id: params[:jobid])
   @jobtasks = Jobtasks.all(job_id: params[:jobid])
