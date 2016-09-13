@@ -82,7 +82,7 @@ namespace :db do
     # Create Default Task
     puts '[*] Settings up default task'
     query = [
-      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('DEFAULT TASK', '1', 'dictionary')".inspect
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(" "))

@@ -306,7 +306,7 @@ post '/customers/upload/hashfile' do
   params[:custid] = clean(params[:custid])
   params[:jobid] = clean(params[:jobid])
 
-  if !params[:hf_name] || params[:hf_name].nil?
+  if !params[:hf_name] || params[:hf_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
     redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
   end
@@ -421,7 +421,6 @@ post '/customers/upload/verify_hashtype' do
   else
     redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}")
   end
-#  redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
 end
 
 ############################
