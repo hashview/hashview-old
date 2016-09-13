@@ -1,7 +1,6 @@
 !!! 5
 %html
   %body
-    %p
     .span15
       .row
         .container
@@ -143,18 +142,18 @@
                       %td Total Run time: #{@total_run_time} Seconds
                     %tr
                       %td
-                        - if @custid.nil? 
+                        - if @custid.nil?
                           %a.btn.btn-primary.pull-left{:href => "/download"}
                             Download Cracked File
                         - elsif @custid && @jobid.nil?
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                            Download Cracked File 
+                            Download Cracked File
                         - elsif @custid && @jobid
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&jobid=#{@jobid}"}
-                            Download Cracked File 
+                            Download Cracked File
                         - else
                           You shouldnt see me
-                        
+
 
           .col-md-12
             .panel.panel-default
@@ -357,5 +356,3 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
-
-
