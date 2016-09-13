@@ -1,7 +1,6 @@
 !!!
 %html
   %body
-    %p
     .span15
       %br
       .container
@@ -34,6 +33,9 @@
         %br
         .row
           .col-md-10
+            .col-xs-offset-2.col-xs-10
+              Only perform this function if you dont want Hashview to retroactively crack password hashes.
+              %p
             %form{:class => "form-horizontal", :action => "/purge", :method => "GET"}
               .form-group
                 .col-xs-offset-2.col-xs-10

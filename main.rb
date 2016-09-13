@@ -43,9 +43,9 @@ before /^(?!\/(login|register|logout))/ do
   if ! validSession?
     redirect to('/login')
   else
-    settings = Settings.first(id: 1)
+    settings = Settings.first
     if settings && settings.hcbinpath.empty?
-      flash[:warning] = 'You need to define hashcat\'s path before you can do anything'
+      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
     end
   end
 end
@@ -116,17 +116,17 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  if !params[:username] || params[:username].nil?
+  if !params[:username] || params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have a username.'
     redirect to('/register')
   end
 
-  if !params[:password] || params[:password].nil?
+  if !params[:password] || params[:password].nil? || params[:password].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/register')
   end
 
-  if !params[:confirm] || params[:confirm].nil?
+  if !params[:confirm] || params[:confirm].nil? || params[:confirm].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/register')
   end
@@ -147,8 +147,10 @@ post '/register' do
       new_user.password = params[:password]
       new_user.admin = 't'
       new_user.save
+      flash[:success] = "User #{params[:username]} created successfully"
     end
   end
+
   redirect to('/home')
 end
 
@@ -582,6 +584,12 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
+  settings = Settings.first
+  if settings && !settings.hcbinpath
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
+  end
+
   if !params[:name] || params[:name].empty?
     flash[:error] = 'You must provide a name for your task!'
     redirect to('/tasks/create')
@@ -592,12 +600,14 @@ post '/tasks/create' do
   params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
   params[:name] = clean(params[:name])
 
-  settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
 
-  if settings && !settings.hcbinpath
-    flash[:error] = 'No hashcat binary path is defined in global settings.'
-    redirect to('/settings')
+  # mask field cannot be empty
+  if params[:attackmode] == 'maskmode'
+    if !params[:mask] || params[:mask].empty?
+      flash[:error] = 'Mask field cannot be left empty'
+      redirect to('/tasks/create')
+    end
   end
 
   task = Tasks.new

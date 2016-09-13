@@ -1,27 +1,22 @@
 !!!
 %html
   %body
-    %p
     .span15
-      %br
-      - if @result
-        #{@result}
       .container
-        .row
-          .col-md-12
-            .container
-              .row
-                .page-header
-                  %h1
-                    Wordlists
-                .row
-                  .col-md-10.pull-left
-                    Wordlists are used in dictionary attacks. Upload your custom wordlists here.
-                  .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-right{:href => "/wordlists/add"}
-                      Upload Wordlist
-        %br
-        %br
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Wordlists
+            .row
+              .col-md-10.pull-left
+                Wordlists are used in dictionary attacks. Upload your custom wordlists here.
+              .col-md-2.pull-right
+                %a.btn.btn-primary.pull-right{:href => "/wordlists/add"}
+                  Upload Wordlist
+      %br
+      %br
+      .container
         .row
           .col-md-12
             .table

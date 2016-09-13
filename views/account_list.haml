@@ -1,26 +1,21 @@
 !!!
 %html
   %body
-    %p
     .span15
-      %br
       .container
-        .row
-          .col-md-12
-            .container
-              .row
-                .col-md-12
-                  .page-header
-                    %h1
-                      Accounts
-                .row
-                  .col-md-10.pull-left
-                    The following are a list of user accounts currnelty configured within Hashview.
-                  .col-md-2.pull-right
-                    %a.btn.btn-primary.pull-left{:href => "/accounts/create"}
-                      Add a New User Account
-        %br
-        %br
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Accounts
+            .row
+              .col-md-10.pull-left
+                These are awesome people that use Hashview.
+              .col-md-2.pull-right
+                %a.btn.btn-primary.pull-right{:href => "/accounts/create"}
+                  Add User
+      %br
+      %br
       .container
         .row
           .col-md-12
@@ -40,4 +35,3 @@
                         %td
                           %a.btn.btn-danger{:href => "/accounts/delete/#{user.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
-
