@@ -703,14 +703,14 @@ post '/jobs/create' do
   end
 
   # Create a new customer if selected
-  if params[:customer] == 'add_new' || params[:customer].empty?
+  if params[:customer] == 'add_new' || params[:customer].nil?
     customer = Customers.new
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
     customer.save
   end
 
-  if params[:customer] == 'add_new' || params[:customer].empty?
+  if params[:customer] == 'add_new' || params[:customer].nil?
     cust_id = customer.id
   else
     cust_id = params[:customer]

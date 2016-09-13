@@ -71,7 +71,7 @@ namespace :db do
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     query = [
-      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'password', '3546')".inspect
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'control/wordlists/password', '3546')".inspect
     ]
     begin
       system(query.compact.join(" "))
