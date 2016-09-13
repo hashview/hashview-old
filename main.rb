@@ -1137,16 +1137,17 @@ end
 
 # displays analytics for a specific client, job
 get '/analytics' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
 
   @custid = params[:custid]
-  @jobid = params[:jobid]
+  #@jobid = params[:jobid]
+  @hashfile_id = params[:hf_id]
   @button_select_customers = Customers.all
 
   if params[:custid] && !params[:custid].empty?
-    @button_select_jobs = Jobs.all(customer_id: params[:custid])
+    @button_select_hashfiles = Hashfiles.all(customer_id: params[:custid])
   end
 
   if params[:custid] && !params[:custid].empty?
@@ -1156,39 +1157,42 @@ get '/analytics' do
   end
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @jobs = Jobs.first(id: params[:jobid])
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hl_id] && !params[:hl_id].empty?
+      @hashfiles = Hashfiles.first(id: params[:hl_id])
     else
-      @jobs = Jobs.all
+      @hashfiles = Hashfiles.all
     end
   end
 
   # get results of specific customer if custid is defined
   if params[:custid] && !params[:custid].empty?
     # if we have a job
-    if params[:jobid] && !params[:jobid].empty?
-      # Used for Total Hashes Cracked doughnut: Customer: Job
-      @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
-      @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
+#    if params[:jobid] && !params[:jobid].empty?
+    # if we have a hashfile
+    if params[:hf_id] && !params[:hf_id].empty?
+      # Used for Total Hashes Cracked doughnut: Customer: Hashfile
+      @cracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1)
+      @uncracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0)
 
-      # Used for Total Accounts table: Customer: Job
-      @total_accounts = Targets.count(customerid: params[:custid], jobid: params[:jobid])
+      # Used for Total Accounts table: Customer: Hashfile
+      @total_accounts = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id])
 
-      # Used for Total Unique Users and originalhashes Table: Customer: Job
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid], jobid: params[:jobid])
+      # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid], hashfile_id: params[:hf_id])
 
       # Used for Total Run Time: Customer: Job
       @total_run_time = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = Targets.count(customerid: params[:custid], cracked: 1)
-      @uncracked_pw_count = Targets.count(customerid: params[:custid], cracked: 0)
+      @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)
+      @uncracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 0)
 
       # Used for Total Accounts Table: Customer
-      @total_accounts = Targets.count(customerid: params[:custid])
+      @total_accounts = Targets.count(customer_id: params[:custid])
 
       # Used for Total Unique Users and original hashes Table: Customer
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
       # I'm ashamed of the code below
@@ -1236,18 +1240,19 @@ end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
 
   @counts = []
   @passwords = {}
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hl_id] && !params[:hl_id].nil?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
@@ -1280,16 +1285,17 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].nil?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
@@ -1325,16 +1331,17 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
+  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
+  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].empty?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)

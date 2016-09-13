@@ -24,20 +24,20 @@
                       %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
               - if @custid
                 &nbsp
-                %label.control-label.text-right{:for => ""} Job:
+                %label.control-label.text-right{:for => ""} Hash File:
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if @jobid.nil?
+                  - if @hashfiles.nil?
                     All Jobs
                   - else
-                    #{@jobs.name}
+                    #{@hashfiles.name}
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
                     %a{:href => "/analytics?custid=#{@custid}"} All
                   %li.divider{:role => "separator"}
-                  - @button_select_jobs.each do |job|
+                  - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}
+                      %a{:href => "/analytics?custid=#{@custid}&hf_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
