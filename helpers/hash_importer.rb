@@ -82,7 +82,7 @@ end
 
 def importRaw(hash, customer_id, hashfile_id, type)
   if type == '3000'
-  # import LM
+    # import LM
     lm_hashes = hash.scan(/.{16}/)
 
     target_lm1 = Targets.new
@@ -140,53 +140,30 @@ def getMode(hash)
 end
 
 def modeToFriendly(mode)
-  if mode == '0'
-    return 'MD5'
-  elsif mode == '1000'
-    return 'NTLM'
-  elsif mode == '3000'
-    return 'LM'
-  elsif mode == '500'
-    return 'md5crypt'
-  elsif mode == '3200'
-    return 'bcrypt'
-  elsif mode == '7400'
-    return 'sha256crypt'
-  elsif mode == '1800'
-    return 'sha512crypt'
-  elsif mode == '1500'
-    return 'descrypt'
-  elsif mode == '5500'
-    return 'NetNTLMv1'
-  elsif mode == '5600'
-    return 'NetNTLMv2'
-  else
-    return 'unknown'
-  end
+  return 'MDF' if mode == '0'
+  return 'NTLM' if mode == '1000'
+  return 'LM' if mode == '3000'
+  return 'md5crypt' if mode == '500'
+  return 'bcrypt' if mode == '3200'
+  return 'sha256crypt' if mode == '7400'
+  return 'sha512crypt' if mode == '1800'
+  return 'descrypt' if mode == '1500'
+  return 'NetNTLMv1' if mode == '5500'
+  return 'NetNTLMv2' if mode == '5600'
+  return 'unknown'
 end
 
 def friendlyToMode(friendly)
-  if friendly == 'MD5'
-    return '0'
-  elsif friendly == 'NTLM'
-    return '1000'
-  elsif friendly == 'LM'
-    return '3000'
-  elsif friendly == 'md5crypt'
-    return '500'
-  elsif friendly == 'bcrypt'
-    return '3200'
-  elsif friendly == 'sha512crypt'
-    return '7400'
-  elsif friendly == 'sha256crypt'
-    return '1800'
-  elsif friendly == 'descrypt'
-    return '1500'
-  elsif friendly == 'NetNTLMv1'
-    return '5500'
-  elsif friendly == 'NetNTLMv2'
-    return '5600'
-  end
+  return '0' if friendly == 'MD5'
+  return '1000' if friendly == 'NTLM'
+  return '3000' if friendly == 'LM'
+  return '500' if friendly == 'md5crypt'
+  return '3200' if friendly == 'bcrypt'
+  return '7400' if friendly == 'sha512crypt'
+  return '1800' if friendly == 'sha256crypt'
+  return '1500' if friendly == 'descrypt'
+  return '5500' if friendly == 'NetNTLMv1'
+  return '5600' if friendly == 'NetNTLMv2'
 end
 
 def importHash(hash_file, customer_id, hashfile_id, file_type, hashtype)
