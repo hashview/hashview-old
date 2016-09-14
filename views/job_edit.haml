@@ -1,7 +1,6 @@
 !!!
 %html
   %body
-    %p
     :javascript
       function showDiv() {
         var Index = document.jobs_form.customer.options[document.jobs_form.customer.selectedIndex].value
@@ -14,49 +13,36 @@
           document.getElementById('new_customer_div').style.display = 'none';
         }
       }
-    .span15 
+    .span15
+      .container
+        .col-md-12
+          .row
+            .col-md-12
+              .page-header
+                - if params[:edit] == '1'
+                  %h1 Edit Job
+                - else
+                  %h1 Create a new Job
+              .row
+                .col-md-10
+                  Enter the name and select the customer that this job will be running for.  If this is a new company, select 'add new customer'.
+      %br
       %br
       .container
         .row
           .col-md-12
-            .container
-              .row
-                .col-md-12
-                  .page-header
-                    - if params[:edit] == '1'
-                      %h1 Edit Job
-                    - else
-                      %h1 Create a new Job
-                .row
-                  .col-md-10.pull-left
-                    The following pages will guide you through creating a new job. First enter the name and select the customer that this job will be running for.  If this is a new company, select 'add new customer'. 
-        %br
-        %br
-      .container
-        .row
-          .col-md-10
             %form{:name => "jobs_form", :id => "jobs_form", :class => "form-horizontal", :action => "/jobs/create", :method => "post"}
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Job Name
-                .col-xs-10
+                .col-xs-6
                   - if params[:edit] == '1'
                     %input{:type => "textbox", :class => "form-control", :name => 'job_name', :id => 'name', :value => "#{@job.name.to_s}"}
                   - else
                     %input{:type => "textbox", :class => "form-control", :name => "job_name", :id => "name"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Send Completed Email
-                .col-md-10.pull-left
-                  - if params[:edit] == '1'
-                    - if @job.notify_completed == true
-                      %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify', :checked => 'checked'}
-                    - else
-                      %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
-                  - else
-                    %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
               - if !@customers.empty?
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer
-                  .col-xs-10
+                  .col-xs-6
                     %select.form-control{:id => "customer", :name => "customer", :onchange => "showDiv()"}
                       - @customers.each do |customer|
                         - if params[:edit] == '1'
@@ -72,21 +58,31 @@
                     #new_customer_div{:style => "display:none"}
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Customer Name
-                        .col-xs-10
+                        .col-xs-6
                           %input{:type => "textbox", :class => "form-control", :name => "cust_name", :id => "name"}
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Customer Description
-                        .col-xs-10
+                        .col-xs-6
                           %input{:type => "textbox", :class => "form-control", :name => "cust_desc", :id => "desc"}
               - else
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer Name
-                  .col-xs-10
+                  .col-xs-6
                     %input{:type => "textbox", :class => "form-control", :name => "cust_name", :id => "name"}
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer Description
                   .col-xs-10
                     %input{:type => "textbox", :class => "form-control", :name => "cust_desc", :id => "desc"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Notify When Completed
+                .col-xs-1.pull-left
+                  - if params[:edit] == '1'
+                    - if @job.notify_completed == true
+                      %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify', :checked => 'checked'}
+                    - else
+                      %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
+                  - else
+                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
               .form-group
                 .col-xs-offset-2.col-xs-10
                   - if params[:edit]
@@ -96,4 +92,3 @@
                     %button.btn.btn-primary{:type => "submit"} Update
                   -else
                     %button.btn.btn-primary{:type => "submit"} Create
-
