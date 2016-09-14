@@ -1009,13 +1009,27 @@ get '/settings' do
   @settings = Settings.first
 
   if @settings && @settings.maxtasktime.nil?
-    flash[:info] = 'Max task time must be defined in seconds (864000 is 10 days)'
+    flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
   end
 
   haml :global_settings
 end
 
 post '/settings' do
+  varWash(params)
+
+  if params[:hcbinpath].nil? || params[:hcbinpath].empty?
+    flash[:error] = 'You must set the path for your hashcat binary'
+    redirect('/settings')
+  end
+
+  if params[:maxtasktime].nil? || params[:maxtasktime].empty?
+    flash[:error] = 'You must set a max task time.'
+    redirect('/settings')
+  end
+
+  #params[:maxtasktime] = '86400' if params[:maxtasktime].empty? || params[:maxtasktime].nil?
+
   values = request.POST
 
   @settings = Settings.first
@@ -1023,7 +1037,8 @@ post '/settings' do
   if @settings.nil?
     # create settings for the first time
     # set max task time if none is provided
-    values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
+    #values['maxtasktime'] = '86400' if @settings && @settings.maxtasktime.empty?
+    #values[:maxtasktime] = '86400' if values[:maxtasktime].empty? || values[:maxtasktime].nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -1031,7 +1046,9 @@ post '/settings' do
     @settings.update(values)
   end
 
-  redirect to('/settings')
+  flash[:success] = 'Settings successfully saved.'
+
+  redirect to('/home')
 end
 
 ############################

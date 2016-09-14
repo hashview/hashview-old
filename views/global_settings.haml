@@ -28,22 +28,22 @@
               .form-group
                 %label.control-label.col-xs-2{:for => ""} SMTP Server
                 .col-xs-10
-                  - if @settings and ! @settings.smtp_server.nil?
+                  - if @settings and ! @settings.smtp_server.empty?
                     %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
                   - else
                     %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'} 
               .form-group
                 %label.control-label.col-xs-2{:for => ""} SMTP Username 
                 .col-xs-10
-                  - if @settings and ! @settings.smtp_user.nil?
+                  - if @settings and ! @settings.smtp_user.empty?
                     %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
                   - else
                     %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'} 
               .form-group
                 %label.control-label.col-xs-2{:for => ""} SMTP Password
                 .col-xs-10
-                  - if @settings and ! @settings.smtp_pass.nil?
-                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :value => 'tryharder'}
+                  - if @settings and ! @settings.smtp_pass.empty?
+                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
                   - else
                     %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'} 
               .form-group
