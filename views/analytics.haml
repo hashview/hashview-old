@@ -150,7 +150,7 @@
                             Download Cracked File
                         - elsif @custid && @hashfile_id
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
-                            Download Cracked File 
+                            Download Cracked File
                         - else
                           You shouldnt see me
 
@@ -356,4 +356,19 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
-
+          .col-md-12
+            .panel.panel-default
+              .panel-heading
+                %b Users with the same password
+              .panel-body
+                - if @password_users
+                  - @password_users.each do |pass, users|
+                    - link = rand(36**8).to_s(36)
+                    #accordion.panel-group
+                      .panel.panel-default
+                        .panel-heading
+                          %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                            #{pass}
+                        %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                          .panel-body
+                            #{users}

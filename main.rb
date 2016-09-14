@@ -1232,7 +1232,6 @@ get '/analytics' do
   # get results of specific customer if custid is defined
   if params[:custid] && !params[:custid].empty?
     # if we have a job
-#    if params[:jobid] && !params[:jobid].empty?
     # if we have a hashfile
     if params[:hf_id] && !params[:hf_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
@@ -1245,9 +1244,51 @@ get '/analytics' do
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid], hashfile_id: params[:hf_id])
 
-      # Used for Total Run Time: Customer: Hashfile
-      @total_run_time_object = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id])
-      @total_run_time = @total_run_time_object.total_run_time
+      # Used for Total Run Time: Customer: Job
+      @total_run_time = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
+
+      # make list of unique hashes
+      unique_hashes = Set.new
+      @total_users_originalhash.each do |entry|
+        unique_hashes.add(entry.originalhash)
+      end
+
+      hashes = []
+      # create array of all hashes to count dups
+      @total_users_originalhash.each do |uh|
+        unless uh.originalhash.nil?
+          hashes << uh.originalhash unless uh.originalhash.length == 0
+        end
+      end
+
+      @duphashes = {}
+      # count dup hashes
+      hashes.each do |hash|
+        if @duphashes[hash].nil?
+          @duphashes[hash] = 1
+        else
+          @duphashes[hash] += 1
+        end
+      end
+      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..10]]
+      puts @duphashes
+      users_same_password = []
+      @password_users ={}
+      # for each unique password hash find the users and their plaintext
+      @duphashes.each do |hash|
+        dups = Targets.all(fields: [:username, :plaintext, :cracked], originalhash: hash[0])
+        # for each user with the same password hash add user to array
+        dups.each do |d|
+          if !d.username.nil?
+            users_same_password << d.username
+            #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
+          end
+        end
+        # assign array of users to hash of similar password hashes
+        @password_users[hash[0]] = users_same_password
+        users_same_password = []
+      end
+      puts @password_users
     else
       # Used for Total Hashes Cracked doughnut: Customer
       @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)
@@ -1260,7 +1301,15 @@ get '/analytics' do
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
-      @total_run_time = Hashfiles.sum(:total_run_time, conditions: {:customer_id => params[:custid]})
+      # I'm ashamed of the code below
+      @jobs = Jobs.all(customer_id: params[:custid])
+      @total_run_time = 0
+      @jobs.each do |job|
+        @query_results = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
+        unless @query_results.nil?
+          @total_run_time = @total_run_time + @query_results
+        end
+      end
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1274,7 +1323,7 @@ get '/analytics' do
     @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
 
     # Used for Total Run Time:
-    @total_run_time = Hashfiles.sum(:total_run_time)
+    @total_run_time = Jobtasks.sum(:run_time)
   end
 
   @passwords = @cracked_results.to_json
@@ -1546,8 +1595,9 @@ helpers do
   # Take you to the var wash baby
   def varWash(params)
     params.keys.each do |key|
-      if params[key].is_a?(String) 
+      if params[key].is_a?(String)
         params[key] = cleanString(params[key])
+        p "CLEANED: " + params[key]
       end
       if params[key].is_a?(Array)
         params[key] = cleanArray(params[key])
@@ -1556,7 +1606,9 @@ helpers do
   end
 
   def cleanString(text)
+    p "BEFORE: " + text unless text.nil?
     return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
+    p "CLEANED: " + text unless text.nil?
   end
 
   def cleanArray(array)
