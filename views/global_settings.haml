@@ -20,7 +20,7 @@
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
                 .col-xs-10
-                  - if @settings and ! @settings.maxtasktime.nil?
+                  - if @settings and ! @settings.maxtasktime.empty?
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
                   - else
                     %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"}

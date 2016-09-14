@@ -1019,7 +1019,7 @@ post '/settings' do
   varWash(params)
 
   if params[:hcbinpath].nil? || params[:hcbinpath].empty?
-    flash[:error] = 'You must set the path for your hashcat binary'
+    flash[:error] = 'You must set the path for your hashcat binary.'
     redirect('/settings')
   end
 
@@ -1028,8 +1028,6 @@ post '/settings' do
     redirect('/settings')
   end
 
-  #params[:maxtasktime] = '86400' if params[:maxtasktime].empty? || params[:maxtasktime].nil?
-
   values = request.POST
 
   @settings = Settings.first
@@ -1037,8 +1035,6 @@ post '/settings' do
   if @settings.nil?
     # create settings for the first time
     # set max task time if none is provided
-    #values['maxtasktime'] = '86400' if @settings && @settings.maxtasktime.empty?
-    #values[:maxtasktime] = '86400' if values[:maxtasktime].empty? || values[:maxtasktime].nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -1046,7 +1042,7 @@ post '/settings' do
     @settings.update(values)
   end
 
-  flash[:success] = 'Settings successfully saved.'
+  flash[:success] = 'Settings updated successfully.'
 
   redirect to('/home')
 end
