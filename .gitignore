@@ -23,5 +23,5 @@ control/wordlists/wordlist-*
 cudaHashcat.log
 *.pot
 *.restore
-Rakefile.lock
+Gemfile.lock
 control/wordlists/password
