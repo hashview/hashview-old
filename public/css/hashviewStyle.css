@@ -15,3 +15,9 @@
 .bar {
   fill: '#0000FF';
 }
+
+.ulc {
+  columns: 4;
+  webkit-columns: 4;
+  moz-columns: 4;
+}

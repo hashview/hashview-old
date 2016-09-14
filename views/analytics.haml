@@ -361,14 +361,15 @@
               .panel-heading
                 %b Users with the same password
               .panel-body
-                - if @password_users
-                  - @password_users.each do |pass, users|
-                    - link = rand(36**8).to_s(36)
-                    #accordion.panel-group
-                      .panel.panel-default
+                #accordion.panel-group
+                  .panel.panel-default
+                    - if @password_users
+                      - @password_users.each do |pass, users|
+                        - link = rand(36**8).to_s(36)
                         .panel-heading
                           %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
                             #{pass}
-                        %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                        %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
                           .panel-body
-                            #{users}
+                            - users.each do |user|
+                              #{users}
