@@ -67,6 +67,28 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
 
+    #puts '[*] Setting up default user ...'
+    ## Create Default User
+    #query = [
+    #  "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO users (username, hashed_password, admin, email) VALUES ('test', '$2a$10$J5F2/EfT9xX5k5.VHVLvV.BAI/aFX..aHNJlnD/vKq5VXxJ3GnEPW', '1', 'test@test.com')".inspect
+    #]
+    #begin
+    #  system(query.compact.join(" "))
+    #rescue
+    #  raise "Error in creating default wordlist"
+    #end
+
+    puts '[*] Setting up default customer ...'
+    # Create Default customer
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO customers (name, description) VALUES ('test', 'test')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default customer"
+    end
+
     system('gunzip -k control/wordlists/password.gz')
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
@@ -80,7 +102,7 @@ namespace :db do
     end
 
     # Create Default Task
-    puts '[*] Settings up default task'
+    puts '[*] Setting up default task'
     query = [
       "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
     ]
