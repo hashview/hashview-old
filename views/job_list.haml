@@ -54,7 +54,7 @@
                               %i.glyphicon.glyphicon-stop{:title => 'Running'}
                           - elsif job.status == 'Queued'
                             %a.btn.btn-default{:href => "/jobs/stop/#{job.id}"}
-                              %i.glyphicon.glyphicon-ok-circle{:title => 'Queued'}
+                              %i.glyphicon.glyphicon-hourglass{:title => 'Queued'}
                           - elsif job.status == 'Completed'
                             %a.btn.btn-success{:href => ""}
                               %i.glyphicon.glyphicon-ok{:title => 'Completed'}
