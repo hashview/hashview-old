@@ -53,10 +53,14 @@ def updateDbStatus(id, status)
   end
 end
 
-def updateDbRunTime(id, run_time)
-  jobtask = Jobtasks.first(id: id)
+def updateDbRunTime(job_id, hashfile_id, run_time)
+  jobtask = Jobtasks.first(id: job_id)
   jobtask.run_time = run_time
   jobtask.save
+
+  hashfile = Hashfiles.first(id: hashfile_id)
+  hashfile.total_run_time = hashfile.total_run_time + run_time.to_i
+  hashfile.save
 end
 
 # Responsible for managing crack jobs
@@ -124,6 +128,6 @@ module Jobq
     puts '==== Crack File Deleted ===='
 
     updateDbStatus(id, 'Completed')
-    updateDbRunTime(id, run_time)
+    updateDbRunTime(id, job.hashfile_id, run_time)
   end
 end

@@ -204,9 +204,10 @@ class Hashfiles
   include DataMapper::Resource
 
   property :id, Serial
-  property :customer_id, String 
+  property :customer_id, Integer
   property :name, String, length: 256
   property :hash_str, String, length: 256
+  property :total_run_time, Integer, default: 0
 end
 
 DataMapper.finalize
