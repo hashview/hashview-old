@@ -356,20 +356,27 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
-          .col-md-12
-            .panel.panel-default
-              .panel-heading
-                %b Users with the same password
-              .panel-body
-                #accordion.panel-group
-                  .panel.panel-default
-                    - if @password_users
-                      - @password_users.each do |pass, users|
-                        - link = rand(36**8).to_s(36)
-                        .panel-heading
-                          %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
-                            #{pass}
-                        %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
-                          .panel-body
-                            - users.each do |user|
-                              #{users}
+          - if @custid && @hashfile_id
+            .col-md-12
+              .panel.panel-default
+                .panel-heading
+                  %b Top 20 Passwords/hashes shared by Users
+                .panel-body
+                  - if @password_users
+                    - if @password_users.empty?
+                      No passwords are shared by users
+                    - else
+                      #accordion.panel-group
+                        .panel.panel-default
+                          - @password_users.each do |pass, users|
+                            - link = rand(36**8).to_s(36)
+                            .panel-heading
+                              %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                                #{pass}
+                              .span.badge.pull-right #{@password_users[pass].length}
+                            %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                              .panel-body
+                                %ul{:class =>"list-group borderless row"}
+                                  - users.each do |user|
+                                    %li{:class => "list-group-item borderless col-xs-4"}
+                                      #{user}

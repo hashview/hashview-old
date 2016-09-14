@@ -1270,25 +1270,35 @@ get '/analytics' do
           @duphashes[hash] += 1
         end
       end
-      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..10]]
-      puts @duphashes
+      # this will only display top 10 hash/passwords shared by users
+      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
+      # this will only display all hash/passwords shared by users
+      #@duphashes = Hash[@duphashes.sort_by { |k, v| -v }]
+
       users_same_password = []
       @password_users ={}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
-        dups = Targets.all(fields: [:username, :plaintext, :cracked], originalhash: hash[0])
+        dups = Targets.all(fields: [:username, :plaintext, :cracked], hashfile_id: params[:hf_id], customer_id: params[:custid], originalhash: hash[0])
         # for each user with the same password hash add user to array
         dups.each do |d|
           if !d.username.nil?
             users_same_password << d.username
             #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
+          else
+            users_same_password << "NULL"
+          end
+          if d.cracked
+            hash[0] = d.plaintext
           end
         end
         # assign array of users to hash of similar password hashes
-        @password_users[hash[0]] = users_same_password
+        if users_same_password.length > 1
+          @password_users[hash[0]] = users_same_password
+        end
         users_same_password = []
       end
-      puts @password_users
+
     else
       # Used for Total Hashes Cracked doughnut: Customer
       @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)

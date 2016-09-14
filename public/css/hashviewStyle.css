@@ -16,8 +16,7 @@
   fill: '#0000FF';
 }
 
-.ulc {
-  columns: 4;
-  webkit-columns: 4;
-  moz-columns: 4;
+li.borderless {
+  border-top: 0 none;
+  border-bottom: 0 none;
 }
