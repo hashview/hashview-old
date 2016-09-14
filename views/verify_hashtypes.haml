@@ -1,7 +1,6 @@
 !!!
 %html
   %body
-    %p
     :javascript
       function showDiv(obj) {
         var Index = document.hashTypeForm.hashtype.options[document.hashTypeForm.hashtype.selectedIndex].value
@@ -10,59 +9,52 @@
           document.getElementById('manual_div').style.display = 'inline';
         }
         else
-        { 
+        {
           document.getElementById('manual_div').style.display = 'none';
         }
       }
-    .span15 
-      %br
-      .container
-!!!
-%html
-  %body
-    %p
     .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Confirm Hash Type
+            .row
+              .col-md-12.pull-left
+                Hashview will attempt to automatically detect the hash type (hashcat -m). Select one of the detected hash types (there could be multiple) or choose other and select the mode you with hashcat to use.
+                %p
+                Note: if you select an invalid option, your crack will not complete successfully.
+      %br
       %br
       .container
-        .row
-          .col-md-12
-            .container
-              .row
-                .col-md-12
-                  .page-header
-                    %h1
-                      Confirm the hash type
-                .row
-                  .col-md-10.pull-left
-                    Hashview will attempt to automatically detect the hash type found in the file, however there maybe instances where this is wrong, or you'd like to override the detected values. To do this, select other and enter the hash cat attack mode value. Note if you select an invalid option, your crack will not complete successfully.
-                %br
-                .row
-                  %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/customers/upload/verify_hashtype", :method => "post"}
-                    .form-group
-                      %label.control-label.col-xs-2{:for => ""} Detected Hash(s): 
-                      .col-xs-3
-                        %select.form-control{:id => "hashtype", :name => "hashtype", :onchange => "showDiv()"}
-                          - @hashtypes.each do |type|
-                            %option{:value => "#{type}", :name => "hashtype", :type => "button"} #{modeToFriendly(type)}
-                          %option{:value => "99999", :name => "hashtype", :type => "button"} Other
-                        %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
-                        %input{:type => 'hidden', :name => 'filetype', :value => "#{params[:filetype].to_s}"}
-                        %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
-                        %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+        .col-md-12
+          .row
+            %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/customers/upload/verify_hashtype", :method => "post"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Detected Hash(s):
+                .col-xs-3
+                  %select.form-control{:id => "hashtype", :name => "hashtype", :onchange => "showDiv()"}
+                    - @hashtypes.each do |type|
+                      %option{:value => "#{type}", :name => "hashtype", :type => "button"} #{modeToFriendly(type)}
+                    %option{:value => "99999", :name => "hashtype", :type => "button"} Other
+                  %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
+                  %input{:type => 'hidden', :name => 'filetype', :value => "#{params[:filetype].to_s}"}
+                  %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
+                  %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
 
-                      .section
-                        %div{:class => "label_leftalign field"}
-                          - if @hashtypes.size == 0
-                            #manual_div{:style => "display:inline"}
-                              %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
-                              .col-xs-4
-                                <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
-                          - else  
-                            #manual_div{:style => "display:none"}
-                              %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
-                              .col-xs-4
-                                <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
-                    .form-group
-                      .col-xs-offset-2.col-xs-10
-                        %button.btn.btn-primary{:type => "submit"} Confirm
-
+                .section
+                  %div{:class => "label_leftalign field"}
+                    - if @hashtypes.size == 0
+                      #manual_div{:style => "display:inline"}
+                        %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                        .col-xs-4
+                          <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
+                    - else
+                      #manual_div{:style => "display:none"}
+                        %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                        .col-xs-4
+                          <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
+              .form-group
+                .col-xs-offset-2.col-xs-10
+                  %button.btn.btn-primary{:type => "submit"} Confirm

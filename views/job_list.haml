@@ -1,25 +1,21 @@
 !!!
 %html
   %body
-    %p
     .span15
-      %br
-      - if @result
-        #{@result}
       .container
-        .row
-          .col-md-12
+        .col-md-12
+          .row
             .page-header
               %h1
                 Jobs
-          .row
-            .col-md-10
-              Jobs contain a series tasks. Each task is an individual hashcat command.  Jobs also have an associated target list of hashes to crack.
-            .col-md-2.pull-right
-              %a.btn.btn-primary.pull-right{:href => "/jobs/create"}
-                Create a New Job
-        %br
-        %br
+            .row
+              .col-md-10
+                Jobs contain a series of tasks (hashcat commands). Jobs also have an associated list of hashes to crack.
+              .col-md-2.pull-right
+                %a.btn.btn-primary.pull-right{:href => "/jobs/create"}
+                  Create a New Job
+      %br
+      %br
       .container
         .row
           .col-md-12
@@ -58,7 +54,7 @@
                               %i.glyphicon.glyphicon-stop{:title => 'Running'}
                           - elsif job.status == 'Queued'
                             %a.btn.btn-default{:href => "/jobs/stop/#{job.id}"}
-                              %i.glyphicon.glyphicon-ok-circle{:title => 'Queued'}
+                              %i.glyphicon.glyphicon-hourglass{:title => 'Queued'}
                           - elsif job.status == 'Completed'
                             %a.btn.btn-success{:href => ""}
                               %i.glyphicon.glyphicon-ok{:title => 'Completed'}
