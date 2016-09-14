@@ -333,7 +333,7 @@ post '/customers/upload/hashfile' do
   hashfile.name = params[:hf_name]
   hashfile.customer_id = params[:custid]
   hashfile.hash_str = hash
-  hashfile.save  
+  hashfile.save
 
   @job.save
 
@@ -389,7 +389,7 @@ post '/customers/upload/verify_hashtype' do
   end
 
   filetype = params[:filetype]
-  
+
   hashfile = Hashfiles.first(id: params[:hashid])
 
   if params[:hashtype] == '99999'
@@ -405,6 +405,8 @@ post '/customers/upload/verify_hashtype' do
     hash_array << line
   end
 
+
+
   @job = Jobs.first(id: params[:jobid])
   customer_id = @job.customer_id
   @job.hashfile_id = hashfile.id
@@ -413,6 +415,29 @@ post '/customers/upload/verify_hashtype' do
   unless importHash(hash_array, customer_id, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  # detect if hash was previously cracked
+  # build hash of hashes and plains
+  cracks = {}
+  @all_cracked_targets = Targets.all(cracked: 1)
+  @all_cracked_targets.each do |ct|
+    cracks[ct.originalhash.chomp.to_s] = ct.plaintext
+  end
+
+  # match already cracked hashes against hashes to be uploaded, update db
+  matches = []
+  count = 0
+  hash_array.each do |hash|
+    hash = hash.chomp.to_s
+    if cracks.key?(hash)
+      Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
+      count = count + 1
+    end
+  end
+
+  if count > 0
+    flash[:success] = "Hashview has previous cracked #{count} of these hashes"
   end
 
   # Delete file, no longer needed
@@ -739,7 +764,7 @@ post '/jobs/create' do
   end
   job.name = params[:job_name]
   job.last_updated_by = getUsername
-  job.customer_id = cust_id 
+  job.customer_id = cust_id
   job.save
 
   if params[:edit] == '1'
