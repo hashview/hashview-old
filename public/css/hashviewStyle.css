@@ -15,3 +15,8 @@
 .bar {
   fill: '#0000FF';
 }
+
+li.borderless {
+  border-top: 0 none;
+  border-bottom: 0 none;
+}
