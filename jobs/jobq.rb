@@ -59,6 +59,7 @@ def updateDbRunTime(id, run_time)
   jobtask.save
 end
 
+# Responsible for managing crack jobs
 module Jobq
   @queue = :hashcat
 

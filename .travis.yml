@@ -18,4 +18,5 @@ script:
   - export RACK_ENV=test
   - rake db:create
   - rake db:auto:migrate
+  - rake db:provision_defaults
   - rake test
