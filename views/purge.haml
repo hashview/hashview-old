@@ -12,41 +12,28 @@
                 .col-md-12
                   .page-header
                     %h1
-                      Purge
+                      Purge Hashes
                 .row
                   .col-md-10.pull-left
-                    The following entries contain cracked and uncracked passwords in the master database. You can choose to remove entries for a specific job, or all jobs entirely. This action is non-recoverable. 
+                    By default Hashview stores all hashes you uploaded regardless if you deleted the customer. This is done so future crack jobs can retroactively crack hashes.
+                    %p
+                    This function purges all hashes (cracked or not) from the database where they are not associated with a customer. This action is non-recoverable.
         %br
         %br
-      .container
-        .row
-          .col-md-12
-            .table
-              %table{:class => 'table table-striped'}
-                %thead
-                  %tr
-                    %th
-                      %b Job ID 
-                    %th
-                      %b Cracked/Total
-                    %th
-                      %b Control
-                %tbody
-                  - if @target_jobids
-                    - @target_jobids.each do |entry|
+      %form{:class => "form-horizontal", :action => "/purge", :method => "POST"}
+        .form-group
+          .container
+            .row
+              .col-md-12
+                .table
+                  %table{:class => 'table table-striped'}
+                    %thead
                       %tr
-                        %td 
-                          - if @job_id_name[entry]
-                            #{@job_id_name[entry]}
-                          - else
-                            Deleted Job: #{entry}
-                        %td #{@job_cracked[entry]} / #{@job_total[entry]}
-                        %td
-                          %a.btn.btn-danger{:href => "/purge/#{entry.to_s}"}
-                            %i.glyphicon.glyphicon-trash{:title => 'Purge'}
-                  %tr
-                    %td * 
-                    %td #{@all_cracked} / #{@all_total}
-                    %td 
-                      %a.btn.btn-danger{:href => "/purge/all", :type => "submit"} Purge all Data
-           
+                        %th
+                          %b Cracked/Total
+                        %th
+                          %b Control
+                    %tbody
+                      %td #{@total_cracked_count} / #{@total_target_count}
+                      %td
+                        %button.btn.btn-danger{:type => "submit"} Purge hashes

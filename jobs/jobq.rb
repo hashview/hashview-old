@@ -3,8 +3,11 @@ require 'dm-mysql-adapter'
 require 'data_mapper'
 require './model/master.rb'
 require 'benchmark'
+require './helpers/email.rb'
 
 def updateDbStatus(id, status)
+  require './helpers/email.rb'
+
   jobtask = Jobtasks.first(id: id)
   jobtask.status = status
   jobtask.save
@@ -28,6 +31,21 @@ def updateDbStatus(id, status)
       break
     end
   end
+
+  # Send email
+  if job.notify_completed == true && done == true
+    p '===== Sending Email ====='
+    user = User.first(username: job.last_updated_by)
+    hashfile = Hashfiles.first(id: job.hashfile_id)
+    customer = Customers.first(id: job.customer_id)
+    total_cracked = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 1)
+    total = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 0)
+    if user.email
+      sendEmail(user.email, "Your Job: #{job.name} has completed", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}\r\nTotal Remaining: #{total}.")
+    end
+    p '===== Email Sent ====='
+  end
+
   # toggle job status
   if done == true
     job.status = 'Completed'
@@ -46,9 +64,10 @@ module Jobq
 
   def self.perform(id, cmd)
     jobtasks = Jobtasks.first(id: id)
+    job = Jobs.first(id: jobtasks.job_id)
 
     puts '===== creating hash_file ======='
-    targets = Targets.all(jobid: jobtasks.job_id, cracked: false, fields: [:originalhash])
+    targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
     hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
     File.open(hash_file, 'w') do |f|
       targets.each do |entry|
