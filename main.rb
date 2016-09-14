@@ -62,7 +62,7 @@ get '/login' do
 end
 
 get '/logout' do
-  session[:session_id] = clean(session[:session_id])
+  varWash(params)
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
     sess.destroy if sess
@@ -71,6 +71,7 @@ get '/logout' do
 end
 
 post '/login' do
+  varWash(params)
   if !params[:username] || params[:username].nil?
     flash[:error] = 'You must supply a username.'
     redirect to('/login')
@@ -80,8 +81,6 @@ post '/login' do
     flash[:error] = 'You must supply a password.'
     redirect to('/login')
   end
-  session[:username] = clean(params[:username])
-  session[:password] = clean(params[:password])
 
   @user = User.first(username: params[:username])
 
@@ -118,6 +117,7 @@ get '/not_authorized' do
 end
 
 post '/register' do
+  varWash(params)
   if !params[:username] || params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have a username.'
     redirect to('/register')
@@ -132,11 +132,6 @@ post '/register' do
     flash[:error] = 'You must have a password.'
     redirect to('/register')
   end
-
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password])
-  params[:confirm] = clean(params[:confirm])
-  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all
@@ -247,13 +242,12 @@ get '/customers/create' do
 end
 
 post '/customers/create' do
+  varWash(params)
+
   if !params[:name] || params[:name].nil?
     flash[:error] = 'Customer must have a name.'
     redirect to('/customers/create')
   end
-
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.new
   customer.name = params[:name]
@@ -264,20 +258,18 @@ post '/customers/create' do
 end
 
 get '/customers/edit/:id' do
+  varWash(params)
   @customer = Customers.first(id: params[:id])
 
   haml :customer_edit
 end
 
 post '/customers/edit/:id' do
+  varWash(params)
   if !params[:name] || params[:name].nil?
     flash[:error] = 'Customer must have a name.'
     redirect to('/customers/create')
   end
-
-  params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
 
   customer = Customers.first(id: params[:id])
   customer.name = params[:name]
@@ -288,7 +280,7 @@ post '/customers/edit/:id' do
 end
 
 get '/customers/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
@@ -309,8 +301,7 @@ get '/customers/delete/:id' do
 end
 
 post '/customers/upload/hashfile' do
-  params[:custid] = clean(params[:custid])
-  params[:jobid] = clean(params[:jobid])
+  varWash(params)
 
   if !params[:hf_name] || params[:hf_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -345,9 +336,7 @@ post '/customers/upload/hashfile' do
 end
 
 get '/customers/upload/verify_filetype' do
-  params[:custid] = clean(params[:custid])
-  params[:jobid] = clean(params[:jobid])
-  params[:hashid] = clean(params[:hashid])
+  varWash(params)
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
@@ -357,19 +346,13 @@ get '/customers/upload/verify_filetype' do
 end
 
 post '/customers/upload/verify_filetype' do
-  params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
-  params[:filetype] = clean(params[:filetype])
-  params[:hashid] = clean(params[:hashid])
+  varWash(params)
 
   redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
 get '/customers/upload/verify_hashtype' do
-  params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
-  params[:hashid] = clean(params[:hashid])
-  params[:filetype] = clean(params[:filetype])
+  varWash(params)
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
@@ -379,13 +362,7 @@ get '/customers/upload/verify_hashtype' do
 end
 
 post '/customers/upload/verify_hashtype' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:filetype] = clean(params[:filetype])
-  params[:hashid] = clean(params[:hashid]) if params[:hash] && !params[:hash].nil?
-  params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:manualHash] = clean(params[:manualHash]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
+  varWash(params)
 
   if !params[:filetype] || params[:filetype].nil?
     flash[:error] = 'You must specify a valid hashfile type.'
@@ -408,8 +385,6 @@ post '/customers/upload/verify_hashtype' do
   File.open(hash_file, 'r').each do |line|
     hash_array << line
   end
-
-
 
   @job = Jobs.first(id: params[:jobid])
   customer_id = @job.customer_id
@@ -469,9 +444,11 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
+  varWash(params)
+
   if params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have username.'
-    redirect to('/accounts/creat')
+    redirect to('/accounts/create')
   end
 
   if params[:password].nil? || params[:password].empty?
@@ -483,11 +460,6 @@ post '/accounts/create' do
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
-
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password])
-  params[:confirm] = clean(params[:confirm])
-  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all(username: params[:username])
@@ -511,13 +483,16 @@ post '/accounts/create' do
 end
 
 get '/accounts/edit/:account_id' do
-  params[:account_id] = clean(params[:account_id]) unless params[:account_id].nil? || params[:account_id].empty?
+  varWash(params)
+
   @user = User.first(id: params[:account_id])
 
   haml :account_edit
 end
 
 post '/accounts/save' do
+  varWash(params)
+
   if params[:account_id].nil? || params[:account_id].empty?
     flash[:error] = 'Invalid account.'
     redirect to('/accounts/list')
@@ -527,11 +502,6 @@ post '/accounts/save' do
     flash[:error] = 'Invalid username.'
     redirect to("/accounts/edit/#{params[:account_id]}")
   end
-
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password]) unless params[:password].nil? || params[:password].empty?
-  params[:confirm] = clean(params[:confirm]) unless params[:conirm].nil? || params[:conrim].empty?
-  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   if params[:password] != params[:confirm]
     flash[:error] = 'Passwords do not match'
@@ -550,7 +520,7 @@ post '/accounts/save' do
 end
 
 get '/accounts/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @user = User.first(id: params[:id])
   @user.destroy unless @user.nil?
@@ -570,7 +540,7 @@ get '/tasks/list' do
 end
 
 get '/tasks/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @task = Tasks.first(id: params[:id])
   if @task
@@ -583,7 +553,7 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
 
@@ -598,15 +568,11 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
+  varWash(params)
   if !params[:name] || params[:name].nil?
     flash[:error] = 'The task requires a name.'
     redirect to("/tasks/edit/#{params[:id]}")
   end
-
-  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
-  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
-  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
-  params[:name] = clean(params[:name])
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -636,6 +602,7 @@ post '/tasks/edit/:id' do
 end
 
 get '/tasks/create' do
+  varWash(params)
   settings = Settings.first
 
   # TODO present better error msg
@@ -654,6 +621,7 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
+  varWash(params)
   settings = Settings.first
   if settings && !settings.hcbinpath
     flash[:error] = 'No hashcat binary path is defined in global settings.'
@@ -664,11 +632,6 @@ post '/tasks/create' do
     flash[:error] = 'You must provide a name for your task!'
     redirect to('/tasks/create')
   end
-
-  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
-  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
-  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
-  params[:name] = clean(params[:name])
 
   wordlist = Wordlists.first(id: params[:wordlist])
 
@@ -719,7 +682,7 @@ get '/jobs/list' do
 end
 
 get '/jobs/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @job = Jobs.first(id: params[:id])
   if !@job
@@ -736,12 +699,7 @@ get '/jobs/delete/:id' do
 end
 
 get '/jobs/create' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-
-  if params[:edit] && !params[:edit].nil?
-    params[:custid] = clean(params[:custid])
-    params[:jobid] = clean(params[:jobid])
-  end
+  varWash(params)
 
   @customers = Customers.all
   @job = Jobs.first(id: params[:jobid])
@@ -750,12 +708,7 @@ get '/jobs/create' do
 end
 
 post '/jobs/create' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].empty?
-  params[:notify] = clean(params[:notify]) unless params[:notify].nil? || params[:notify].empty?
-  params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].empty?
-  params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].empty?
-  params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].empty?
-  params[:cust_desc] = clean(params[:cust_desc]) if params[:cust_desc] && !params[:cust_desc].empty?
+  varWash(params)
 
   if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
@@ -827,9 +780,7 @@ post '/jobs/create' do
 end
 
 get '/jobs/assign_hashfile' do
-  params[:custid] = clean(params[:custid])
-  params[:jobid] = clean(params[:jobid])
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
+  varWash(params)
 
   @hashfiles = Hashfiles.all(customer_id: params[:custid])
   @customer = Customers.first(id: params[:custid])
@@ -840,10 +791,7 @@ get '/jobs/assign_hashfile' do
 end
 
 post '/jobs/assign_hashfile' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:hash_file] = clean(params[:hash_file])
-  params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
+  varWash(params)
 
   if params[:hash_file] != 'add_new'
     job = Jobs.first(id: params[:jobid])
@@ -865,8 +813,7 @@ post '/jobs/assign_hashfile' do
 end
 
 get '/jobs/assign_tasks' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:jobid] = clean(params[:jobid])
+  varWash(params)
 
   @job = Jobs.first(id: params[:jobid])
   @jobtasks = Jobtasks.all(job_id: params[:jobid])
@@ -883,10 +830,7 @@ get '/jobs/assign_tasks' do
 end
 
 post '/jobs/assign_tasks' do
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:hashid] = clean(params[:hashid]) if params[:hashid] && !params[:hashid].nil?
-  params[:jobid] = clean(params[:jobid])
-  params[:custid] = clean(params[:custid])
+  varWash(params)
 
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
@@ -909,7 +853,7 @@ post '/jobs/assign_tasks' do
 end
 
 get '/jobs/start/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -961,7 +905,7 @@ get '/jobs/queue' do
 end
 
 get '/jobs/stop/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -1006,8 +950,7 @@ get '/jobs/stop/:id' do
 end
 
 get '/jobs/stop/:jobid/:taskid' do
-  params[:jobid] = clean(params[:jobid])
-  params[:taskid] = clean(params[:taskid])
+  varWash(params)
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
@@ -1039,10 +982,7 @@ end
 ##### job task controllers #####
 
 get '/jobs/remove_task' do
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
-  params[:jobtaskid] = clean(params[:jobtaskid]) if params[:jobtaskid] && !params[:jobtaskid]
+  varWash(params)
 
   @job = Jobs.first(id: params[:jobid])
   if !@job
@@ -1093,9 +1033,7 @@ end
 ##### Downloads ############
 
 get '/download' do
-  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
+  varWash(params)
 
   if params[:custid] && !params[:custid].empty?
 #    if params[:jobid] && !params[:jobid].empty?
@@ -1149,7 +1087,7 @@ get '/wordlists/add' do
 end
 
 get '/wordlists/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
@@ -1171,6 +1109,7 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
+  varWash(params)
   if !params[:file] || params[:file].nil?
     flash[:error] = 'You must specify a file.'
     redirect to('/wordlists/add')
@@ -1179,8 +1118,6 @@ post '/wordlists/upload/' do
     flash[:error] = 'You must specify a name for your wordlist.'
     redirect to('/wordlists/add')
   end
-
-  params[:name] = clean(params[:name])
 
   # Replace white space with underscore.  We need more filtering here too
   upload_name = params[:name]
@@ -1217,7 +1154,7 @@ get '/hashfiles/list' do
 end
 
 get '/hashfiles/delete' do
-  params[:hashfile_id] = clean(params[:hashfile_id]) if params[:hashfile_id] && !params[:hashfile].nil?
+  varWash(params)
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy() unless @hashfile.nil?
 
@@ -1231,6 +1168,7 @@ end
 ##### Purge Data ###########
 
 get '/purge' do
+  varWash(params)
   # find all customer ids defined in targets
   @customersids = Targets.all(fields: [:customer_id], unique: true)
 
@@ -1248,6 +1186,7 @@ get '/purge' do
 end
 
 post '/purge' do
+  varWash(params)
   # delete all targets no associated with an active customer
   @customersids = Targets.all(fields: [:customer_id], unique: true)
   @customersids.each do |custid|
@@ -1264,9 +1203,7 @@ end
 
 # displays analytics for a specific client, job
 get '/analytics' do
-  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
+  varWash(params)
 
   @custid = params[:custid]
   #@jobid = params[:jobid]
@@ -1367,9 +1304,7 @@ end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
-  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
+  varWash(params)
 
   @counts = []
   @passwords = {}
@@ -1412,9 +1347,7 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
-  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil?
+  varWash(params)
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1458,9 +1391,7 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
-  params[:hf_id] = clean(params[:hf_id]) if params[:hf_id] && !params[:hf_id].nil?
-  params[:custid] = clean(params[:custid]) if params[:custid] && !params[:custid].nil?
-  params[:jobid] = clean(params[:jobid]) if params[:jobid] && !params[:jobid].nil
+  varWash(params)
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
@@ -1512,21 +1443,12 @@ get '/search' do
 end
 
 post '/search' do
+  varWash(params)
   @customers = Customers.all
 
   if params[:value].nil? || params[:value].empty?
     flash[:error] = "Please provide a search term"
     redirect to('/search')
-  else
-    value = clean(params[:value])
-  end
-
-  if params[:search_type] == 'hash'
-    hash = clean(params[:value])
-  elsif params[:search_type] == 'username'
-    username = clean(params[:value])
-  else
-    return 'You need to provide a search type'
   end
 
   if username
@@ -1628,14 +1550,29 @@ helpers do
     session[:username]
   end
 
-  def clean(text)
-    return text.gsub(/[<>'"()\/\\]*/i, '')
+  # Take you to the var wash baby
+  def varWash(params)
+    params.keys.each do |key|
+      if params[key].is_a?(String) 
+        params[key] = cleanString(params[key])
+        p "CLEANED: " + params[key]
+      end
+      if params[key].is_a?(Array)
+        params[key] = cleanArray(params[key])
+      end
+    end
   end
 
-  def clean_array(array)
+  def cleanString(text)
+    p "BEFORE: " + text unless text.nil?
+    return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
+    p "CLEANED: " + text unless text.nil?
+  end
+
+  def cleanArray(array)
     clean_array = []
     array.each do |entry|
-      clean_array.push(clean(entry))
+      clean_array.push(cleanString(entry))
     end
     return clean_array
   end
