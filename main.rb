@@ -303,8 +303,13 @@ end
 post '/customers/upload/hashfile' do
   varWash(params)
 
-  if !params[:hf_name] || params[:hf_name].empty?
+  if params[:hf_name].nil? || params[:hf_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
+    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  end
+
+  if params[:file].nil? || params[:file].empty?
+    flash[:error] = 'You must specify a hashfile.'
     redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
   end
 
