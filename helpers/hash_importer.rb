@@ -140,7 +140,7 @@ def getMode(hash)
 end
 
 def modeToFriendly(mode)
-  return 'MDF' if mode == '0'
+  return 'MD5' if mode == '0'
   return 'NTLM' if mode == '1000'
   return 'LM' if mode == '3000'
   return 'md5crypt' if mode == '500'
