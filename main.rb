@@ -561,6 +561,7 @@ get '/tasks/edit/:id' do
   varWash(params)
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
+  @settings = Settings.first
 
   @rules = []
   # list wordlists that can be used
@@ -608,10 +609,10 @@ end
 
 get '/tasks/create' do
   varWash(params)
-  settings = Settings.first
+  @settings = Settings.first
 
   # TODO present better error msg
-  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if settings && settings.hcbinpath.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.empty?
 
   @rules = []
   # list wordlists that can be used

@@ -212,5 +212,10 @@
                           %button.btn.btn-primary{:type => "submit"} Create
                     #bruteforce_div{:style => "display:none"}
                       .form-group
+                        %label.control-label.col-xs-2{:for => ""} Run Time:
+                        .col-xs-6 
+                          #{@settings.maxtasktime} Seconds
+                          (Set in Global Settings)
+                      .form-group
                         .col-xs-offset-2.col-xs-1
                           %button.btn.btn-primary{:type => "submit"} Create
