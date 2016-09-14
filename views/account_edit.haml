@@ -5,23 +5,53 @@
     .span15
       %br
       .container
-        %h2 Add User
+        - if @user
+          %h2 Edit User
+        - else
+          %h2 Add User
         %br
         .row
           .col-md-10
-            %form{:class => "form-horizontal", :action => "/accounts/create", :method => "post"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Username
-                .col-md-6
-                  %input{:type => "textbox", :class => "form-control", :name => "username", :id => "username"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Password
-                .col-md-6
-                  %input{:type => "password", :class => "form-control", :name => "password", :id => "password"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Confirm Password
-                .col-md-6
-                  %input{:type => "password", :class => "form-control", :name => "confirm", :id => "confirm"}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Create
+            - if @user
+              %form{:class => "form-horizontal", :action => "/accounts/save", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Username
+                  .col-md-6
+                    %input{:type => "textbox", :class => "form-control", :name => "username", :id => "username", :value => @user.username}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Reset Password
+                  .col-md-6
+                    %input{:type => "password", :class => "form-control", :name => "password", :id => "password"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Confirm Password
+                  .col-md-6
+                    %input{:type => "password", :class => "form-control", :name => "confirm", :id => "confirm"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Email Address (optional)
+                  .col-md-6
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email', :value => @user.email}
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %input{:type => 'hidden', :name => 'account_id', :value => "#{params[:account_id].to_s}"}
+                    %button.btn.btn-primary{:type => "submit"} Save
+            - else
+              %form{:class => "form-horizontal", :action => "/accounts/create", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Username
+                  .col-md-6
+                    %input{:type => "textbox", :class => "form-control", :name => "username", :id => "username"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Password
+                  .col-md-6
+                    %input{:type => "password", :class => "form-control", :name => "password", :id => "password"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Confirm Password
+                  .col-md-6
+                    %input{:type => "password", :class => "form-control", :name => "confirm", :id => "confirm"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Email Address (optional)
+                  .col-md-6
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %button.btn.btn-primary{:type => "submit"} Create

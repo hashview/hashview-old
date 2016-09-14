@@ -43,6 +43,16 @@
                     %input{:type => "textbox", :class => "form-control", :name => 'job_name', :id => 'name', :value => "#{@job.name.to_s}"}
                   - else
                     %input{:type => "textbox", :class => "form-control", :name => "job_name", :id => "name"}
+              .form-group
+                %label.control-label.col-xs-2{:for => ""} Send Completed Email
+                .col-md-10.pull-left
+                  - if params[:edit] == '1'
+                    - if @job.notify_completed == true
+                      %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify', :checked => 'checked'}
+                    - else
+                      %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
+                  - else
+                    %input{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
               - if !@customers.empty?
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Customer

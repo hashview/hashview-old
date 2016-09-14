@@ -17,6 +17,8 @@ require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
 require './helpers/hc_stdout_parser.rb'
+require './helpers/email.rb'
+require 'pony'
 
 set :bind, '0.0.0.0'
 
@@ -134,6 +136,7 @@ post '/register' do
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all
@@ -145,6 +148,7 @@ post '/register' do
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
       flash[:success] = "User #{params[:username]} created successfully"
@@ -440,17 +444,17 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
-  if !params[:username] || params[:username].nil?
+  if params[:username].nil? || params[:username].empty?
     flash[:error] = 'You must have username.'
     redirect to('/accounts/creat')
   end
 
-  if !params[:password] || params[:password].nil?
+  if params[:password].nil? || params[:password].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
 
-  if !params[:confirm] || params[:confirm].nil?
+  if params[:confirm].nil? || params[:confirm].empty?
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
@@ -458,6 +462,7 @@ post '/accounts/create' do
   params[:username] = clean(params[:username])
   params[:password] = clean(params[:password])
   params[:confirm] = clean(params[:confirm])
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
 
   # validate that no other user account exists
   @users = User.all(username: params[:username])
@@ -469,6 +474,7 @@ post '/accounts/create' do
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
     end
@@ -476,6 +482,45 @@ post '/accounts/create' do
     flash[:error] = 'User account already exists.'
     redirect to('/accounts/create')
   end
+  redirect to('/accounts/list')
+end
+
+get '/accounts/edit/:account_id' do
+  params[:account_id] = clean(params[:account_id]) unless params[:account_id].nil? || params[:account_id].empty?
+  @user = User.first(id: params[:account_id])
+
+  haml :account_edit
+end
+
+post '/accounts/save' do
+  if params[:account_id].nil? || params[:account_id].empty?
+    flash[:error] = 'Invalid account.'
+    redirect to('/accounts/list')
+  end
+
+  if params[:username].nil? || params[:username].empty?
+    flash[:error] = 'Invalid username.'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  params[:username] = clean(params[:username])
+  params[:password] = clean(params[:password]) unless params[:password].nil? || params[:password].empty?
+  params[:confirm] = clean(params[:confirm]) unless params[:conirm].nil? || params[:conrim].empty?
+  params[:email] = clean(params[:email]) unless params[:email].nil? || params[:email].empty?
+
+  if params[:password] != params[:confirm]
+    flash[:error] = 'Passwords do not match'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  user = User.first(id: params[:account_id])
+  user.username = params[:username]
+  user.password = params[:password] unless params[:password].nil? || params[:password].empty?
+  user.email = params[:email] unless params[:email].nil? || params[:email].empty?
+  user.save
+
+  flash[:success] = 'Account successfuly updated.'
+
   redirect to('/accounts/list')
 end
 
@@ -681,6 +726,7 @@ end
 
 post '/jobs/create' do
   params[:edit] = clean(params[:edit]) if params[:edit] && !params[:edit].empty?
+  params[:notify] = clean(params[:notify]) unless params[:notify].nil? || params[:notify].empty?
   params[:job_name] = clean(params[:job_name]) if params[:job_name] && !params[:job_name].empty?
   params[:customer] = clean(params[:customer]) if params[:customer] && !params[:customer].empty?
   params[:cust_name] = clean(params[:cust_name]) if params[:cust_name] && !params[:cust_name].empty?
@@ -739,7 +785,12 @@ post '/jobs/create' do
   end
   job.name = params[:job_name]
   job.last_updated_by = getUsername
-  job.customer_id = cust_id 
+  job.customer_id = cust_id
+  if params[:notify] == 'on'
+    job.notify_completed = '1'
+  else
+    job.notify_completed = '0'
+  end
   job.save
 
   if params[:edit] == '1'
