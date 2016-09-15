@@ -46,7 +46,7 @@ before /^(?!\/(login|register|logout))/ do
     redirect to('/login')
   else
     settings = Settings.first
-    if settings && settings.hcbinpath.empty?
+    if settings && settings.hcbinpath.nil?
       flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
     end
   end
@@ -303,8 +303,13 @@ end
 post '/customers/upload/hashfile' do
   varWash(params)
 
-  if !params[:hf_name] || params[:hf_name].empty?
+  if params[:hf_name].nil? || params[:hf_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
+    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  end
+
+  if params[:file].nil? || params[:file].empty?
+    flash[:error] = 'You must specify a hashfile.'
     redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
   end
 
@@ -405,7 +410,7 @@ post '/customers/upload/verify_hashtype' do
   end
 
   # match already cracked hashes against hashes to be uploaded, update db
-  matches = []
+  # matches = []
   count = 0
   hash_array.each do |hash|
     hash = hash.chomp.to_s
@@ -556,6 +561,7 @@ get '/tasks/edit/:id' do
   varWash(params)
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
+  @settings = Settings.first
 
   @rules = []
   # list wordlists that can be used
@@ -603,10 +609,10 @@ end
 
 get '/tasks/create' do
   varWash(params)
-  settings = Settings.first
+  @settings = Settings.first
 
   # TODO present better error msg
-  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if settings && settings.hcbinpath.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.nil?
 
   @rules = []
   # list wordlists that can be used
@@ -1003,13 +1009,25 @@ get '/settings' do
   @settings = Settings.first
 
   if @settings && @settings.maxtasktime.nil?
-    flash[:info] = 'Max task time must be defined in seconds (864000 is 10 days)'
+    flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
   end
 
   haml :global_settings
 end
 
 post '/settings' do
+  varWash(params)
+
+  if params[:hcbinpath].nil? || params[:hcbinpath].empty?
+    flash[:error] = 'You must set the path for your hashcat binary.'
+    redirect('/settings')
+  end
+
+  if params[:maxtasktime].nil? || params[:maxtasktime].empty?
+    flash[:error] = 'You must set a max task time.'
+    redirect('/settings')
+  end
+
   values = request.POST
 
   @settings = Settings.first
@@ -1017,7 +1035,6 @@ post '/settings' do
   if @settings.nil?
     # create settings for the first time
     # set max task time if none is provided
-    values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -1025,7 +1042,9 @@ post '/settings' do
     @settings.update(values)
   end
 
-  redirect to('/settings')
+  flash[:success] = 'Settings updated successfully.'
+
+  redirect to('/home')
 end
 
 ############################

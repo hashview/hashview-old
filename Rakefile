@@ -78,6 +78,18 @@ namespace :db do
     #  raise "Error in creating default wordlist"
     #end
 
+    puts '[*] Setting up default settings ...'
+    # Create Default Settings
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (maxtasktime) VALUES ('68400')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default settings"
+    end
+
+
     puts '[*] Setting up default customer ...'
     # Create Default customer
     query = [
