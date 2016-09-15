@@ -1115,7 +1115,8 @@ get '/wordlists/delete/:id' do
     # check if wordlist is in use
     @task_list = Tasks.all(wl_id: @wordlist.id)
     if !@task_list.empty?
-      return 'This word list is associated with a task, it cannot be deleted'
+      flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
+      redirect to ('/wordlists/list')
     end
 
     # remove from filesystem
