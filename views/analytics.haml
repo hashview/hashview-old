@@ -144,7 +144,7 @@
                         %td Total Run Time: #{@total_run_time.to_f/3600} Hours
                       - elsif @total_run_time and @total_run_time > 60
                         %td Total Run Time: #{@total_run_time.to_f/60} Minutes
-                      - elsif @total_run_time
+                      - elsif @total_run_time and @total_run_time >= 0
                         %td Total Run Time: #{@total_run_time.to_f} Seconds
                       - else
                         %td Total Run Time: Im ready coach, just send me in.
