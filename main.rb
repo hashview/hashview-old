@@ -7,6 +7,7 @@ if ENV['RACK_ENV'].nil?
   ENV['RACK_ENV'] = 'production'
 end
 
+require 'sinatra/flash'
 require 'haml'
 require 'data_mapper'
 require './model/master.rb'
@@ -16,6 +17,8 @@ require 'resque'
 require './jobs/jobq.rb'
 require './helpers/hash_importer'
 require './helpers/hc_stdout_parser.rb'
+require './helpers/email.rb'
+require 'pony'
 
 set :bind, '0.0.0.0'
 
@@ -39,7 +42,14 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  redirect to('/login') unless validSession?
+  if ! validSession?
+    redirect to('/login')
+  else
+    settings = Settings.first
+    if settings && settings.hcbinpath.nil?
+      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
+    end
+  end
 end
 
 get '/login' do
@@ -52,7 +62,7 @@ get '/login' do
 end
 
 get '/logout' do
-  session[:session_id] = clean(session[:session_id])
+  varWash(params)
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
     sess.destroy if sess
@@ -61,10 +71,16 @@ get '/logout' do
 end
 
 post '/login' do
-  return 'You must supply a username.' if !params[:username] || params[:username].nil?
-  return 'You must supply a password.' if !params[:password] || params[:password].nil?
-  session[:username] = clean(params[:username])
-  session[:password] = clean(params[:password])
+  varWash(params)
+  if !params[:username] || params[:username].nil?
+    flash[:error] = 'You must supply a username.'
+    redirect to('/login')
+  end
+
+  if !params[:password] || params[:password].nil?
+    flash[:error] = 'You must supply a password.'
+    redirect to('/login')
+  end
 
   @user = User.first(username: params[:username])
 
@@ -87,6 +103,7 @@ post '/login' do
       redirect to('/home')
     end
   else
+    flash[:error] = 'Invalid credentials.'
     redirect to('/not_authorized')
   end
 end
@@ -100,27 +117,39 @@ get '/not_authorized' do
 end
 
 post '/register' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  varWash(params)
+  if !params[:username] || params[:username].nil? || params[:username].empty?
+    flash[:error] = 'You must have a username.'
+    redirect to('/register')
+  end
 
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password])
-  params[:confirm] = clean(params[:confirm])
+  if !params[:password] || params[:password].nil? || params[:password].empty?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
+
+  if !params[:confirm] || params[:confirm].nil? || params[:confirm].empty?
+    flash[:error] = 'You must have a password.'
+    redirect to('/register')
+  end
 
   # validate that no other user account exists
   @users = User.all
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match.'
+      redirect to('/register')
     else
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
+      flash[:success] = "User #{params[:username]} created successfully"
     end
   end
+
   redirect to('/home')
 end
 
@@ -174,8 +203,8 @@ get '/home' do
   @jobs.each do |j|
     if j.status == 'Running'
       # gather info for statistics
-      @alltargets = Targets.count(jobid: j.id)
-      @crackedtargets = Targets.count(jobid: j.id, cracked: 1)
+      @alltargets = Targets.count(hashfile_id: j.hashfile_id)
+      @crackedtargets = Targets.count(hashfile_id: j.hashfile_id, cracked: 1)
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
       @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
@@ -197,10 +226,12 @@ get '/customers/list' do
   @customers = Customers.all
   @total_jobs = []
   @total_hashes = []
+  @total_hashfiles = []
 
   @customers.each do | customer |
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashes[customer.id] = Targets.count(customerid: customer.id)
+    @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
+    @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
   end
 
   haml :customer_list
@@ -211,10 +242,12 @@ get '/customers/create' do
 end
 
 post '/customers/create' do
-  return 'You must provide a Customer Name.' if !params[:name] || params[:name].nil?
+  varWash(params)
 
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   customer = Customers.new
   customer.name = params[:name]
@@ -225,17 +258,18 @@ post '/customers/create' do
 end
 
 get '/customers/edit/:id' do
+  varWash(params)
   @customer = Customers.first(id: params[:id])
 
   haml :customer_edit
 end
 
 post '/customers/edit/:id' do
-  return 'You must provide Customer Name.' if !params[:name] || params[:name].nil?
-
-  params[:id] = clean(params[:id]) if params[:id] && !params[:id].nil?
-  params[:name] = clean(params[:name])
-  params[:desc] = clean(params[:desc]) if params[:desc] && !params[:desc].nil?
+  varWash(params)
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'Customer must have a name.'
+    redirect to('/customers/create')
+  end
 
   customer = Customers.first(id: params[:id])
   customer.name = params[:name]
@@ -246,7 +280,7 @@ post '/customers/edit/:id' do
 end
 
 get '/customers/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
@@ -260,10 +294,144 @@ get '/customers/delete/:id' do
     @jobs.destroy unless @jobs.nil?
   end
 
-  @targets = Targets.all(customerid: params[:id])
-  @targets.destroy unless @targets.nil?
+  @hashfiles = Hashfiles.all(customer_id: params[:id])
+  @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')
+end
+
+post '/customers/upload/hashfile' do
+  varWash(params)
+
+  if params[:hf_name].nil? || params[:hf_name].empty?
+    flash[:error] = 'You must specificy a name for this hash file.'
+    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  end
+
+  if params[:file].nil? || params[:file].empty?
+    flash[:error] = 'You must specify a hashfile.'
+    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+  end
+
+  @job = Jobs.first(id: params[:jobid])
+  return 'No such job exists' unless @job
+
+  # temporarily save file for testing
+  hash = rand(36**8).to_s(36)
+  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+
+  # Parse uploaded file into an array
+  hash_array = []
+  whole_file_as_string_object = params[:file][:tempfile].read
+  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
+  whole_file_as_string_object.each_line do |line|
+    hash_array << line
+  end
+
+  # save location of tmp hash file
+  hashfile = Hashfiles.new
+  hashfile.name = params[:hf_name]
+  hashfile.customer_id = params[:custid]
+  hashfile.hash_str = hash
+  hashfile.save
+
+  @job.save
+
+  redirect to("/customers/upload/verify_filetype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{hashfile.id}")
+end
+
+get '/customers/upload/verify_filetype' do
+  varWash(params)
+
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt")
+  @job = Jobs.first(id: params[:jobid])
+  haml :verify_filetypes
+end
+
+post '/customers/upload/verify_filetype' do
+  varWash(params)
+
+  redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+end
+
+get '/customers/upload/verify_hashtype' do
+  varWash(params)
+
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt", params[:filetype])
+  @job = Jobs.first(id: params[:jobid])
+  haml :verify_hashtypes
+end
+
+post '/customers/upload/verify_hashtype' do
+  varWash(params)
+
+  if !params[:filetype] || params[:filetype].nil?
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  filetype = params[:filetype]
+
+  hashfile = Hashfiles.first(id: params[:hashid])
+
+  if params[:hashtype] == '99999'
+    hashtype = params[:manualHash]
+  else
+    hashtype = params[:hashtype]
+  end
+
+  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt"
+
+  hash_array = []
+  File.open(hash_file, 'r').each do |line|
+    hash_array << line
+  end
+
+  @job = Jobs.first(id: params[:jobid])
+  customer_id = @job.customer_id
+  @job.hashfile_id = hashfile.id
+  @job.save
+
+  unless importHash(hash_array, customer_id, hashfile.id, filetype, hashtype)
+    flash[:error] = 'Error importing hashes'
+    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  # detect if hash was previously cracked
+  # build hash of hashes and plains
+  cracks = {}
+  @all_cracked_targets = Targets.all(cracked: 1)
+  @all_cracked_targets.each do |ct|
+    cracks[ct.originalhash.chomp.to_s] = ct.plaintext
+  end
+
+  # match already cracked hashes against hashes to be uploaded, update db
+  # matches = []
+  count = 0
+  hash_array.each do |hash|
+    hash = hash.chomp.to_s
+    if cracks.key?(hash)
+      Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
+      count = count + 1
+    end
+  end
+
+  if count > 0
+    flash[:success] = "Hashview has previous cracked #{count} of these hashes"
+  end
+
+  # Delete file, no longer needed
+  File.delete(hash_file)
+
+  if params[:edit]
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&edit=1")
+  else
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}")
+  end
 end
 
 ############################
@@ -281,34 +449,83 @@ get '/accounts/create' do
 end
 
 post '/accounts/create' do
-  return 'You must have a username.' if !params[:username] || params[:username].nil?
-  return 'You must have a password.' if !params[:password] || params[:password].nil?
-  return 'You must have a password.' if !params[:confirm] || params[:confirm].nil?
+  varWash(params)
 
-  params[:username] = clean(params[:username])
-  params[:password] = clean(params[:password])
-  params[:confirm] = clean(params[:confirm])
+  if params[:username].nil? || params[:username].empty?
+    flash[:error] = 'You must have username.'
+    redirect to('/accounts/create')
+  end
+
+  if params[:password].nil? || params[:password].empty?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
+
+  if params[:confirm].nil? || params[:confirm].empty?
+    flash[:error] = 'You must have a password.'
+    redirect to('/accounts/create')
+  end
 
   # validate that no other user account exists
   @users = User.all(username: params[:username])
   if @users.empty?
     if params[:password] != params[:confirm]
-      return 'Passwords do not match'
+      flash[:error] = 'Passwords do not match'
+      redirect to('/accounts/create')
     else
       new_user = User.new
       new_user.username = params[:username]
       new_user.password = params[:password]
+      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
       new_user.save
     end
   else
-    return 'User already exists.'
+    flash[:error] = 'User account already exists.'
+    redirect to('/accounts/create')
   end
   redirect to('/accounts/list')
 end
 
+get '/accounts/edit/:account_id' do
+  varWash(params)
+
+  @user = User.first(id: params[:account_id])
+
+  haml :account_edit
+end
+
+post '/accounts/save' do
+  varWash(params)
+
+  if params[:account_id].nil? || params[:account_id].empty?
+    flash[:error] = 'Invalid account.'
+    redirect to('/accounts/list')
+  end
+
+  if params[:username].nil? || params[:username].empty?
+    flash[:error] = 'Invalid username.'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  if params[:password] != params[:confirm]
+    flash[:error] = 'Passwords do not match'
+    redirect to("/accounts/edit/#{params[:account_id]}")
+  end
+
+  user = User.first(id: params[:account_id])
+  user.username = params[:username]
+  user.password = params[:password] unless params[:password].nil? || params[:password].empty?
+  user.email = params[:email] unless params[:email].nil? || params[:email].empty?
+  user.save
+
+  flash[:success] = 'Account successfuly updated.'
+
+  redirect to('/accounts/list')
+end
+
 get '/accounts/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @user = User.first(id: params[:id])
   @user.destroy unless @user.nil?
@@ -328,7 +545,7 @@ get '/tasks/list' do
 end
 
 get '/tasks/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @task = Tasks.first(id: params[:id])
   if @task
@@ -341,9 +558,10 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
+  @settings = Settings.first
 
   @rules = []
   # list wordlists that can be used
@@ -356,18 +574,18 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
-  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
-
-  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
-  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
-  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
-  params[:name] = clean(params[:name])
+  varWash(params)
+  if !params[:name] || params[:name].nil?
+    flash[:error] = 'The task requires a name.'
+    redirect to("/tasks/edit/#{params[:id]}")
+  end
 
   settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
 
   if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
   end
 
   task = Tasks.first(id: params[:id])
@@ -390,15 +608,11 @@ post '/tasks/edit/:id' do
 end
 
 get '/tasks/create' do
-  settings = Settings.first
+  varWash(params)
+  @settings = Settings.first
 
   # TODO present better error msg
-  if settings.nil?
-    return 'You must define hashcat\'s binary path in global settings first.'
-  end
-
-  tasks = Tasks.all
-  warning('You need to have tasks before starting a job') if tasks.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.nil?
 
   @rules = []
   # list wordlists that can be used
@@ -413,18 +627,32 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
-  return 'You must provide a name for your task.' if !params[:name] || params[:name].nil?
-
-  params[:wordlist] = clean(params[:wordlist]) if params[:wordlist] && !params[:wordlist].nil?
-  params[:attackmode] = clean(params[:attackmode]) if params[:attackmode] && !params[:attackmode].nil?
-  params[:rule] = clean(params[:rule]) if params[:rule] && !params[:rule] && !params[:rule].nil?
-  params[:name] = clean(params[:name])
-
+  varWash(params)
   settings = Settings.first
+  if settings && !settings.hcbinpath
+    flash[:error] = 'No hashcat binary path is defined in global settings.'
+    redirect to('/settings')
+  end
+
+  if !params[:name] || params[:name].empty?
+    flash[:error] = 'You must provide a name for your task!'
+    redirect to('/tasks/create')
+  end
+
+  @tasks = Tasks.all(name: params[:name])
+  if ! @tasks.nil?
+    flash[:error] = 'Name already in use, pick another'
+    redirect to ('/tasks/create')
+  end
+
   wordlist = Wordlists.first(id: params[:wordlist])
 
-  if settings && !settings.hcbinpath
-    return 'No hashcat binary path is defined in global settings.'
+  # mask field cannot be empty
+  if params[:attackmode] == 'maskmode'
+    if !params[:mask] || params[:mask].empty?
+      flash[:error] = 'Mask field cannot be left empty'
+      redirect to('/tasks/create')
+    end
   end
 
   task = Tasks.new
@@ -440,6 +668,8 @@ post '/tasks/create' do
   end
   task.save
 
+  flash[:success] = "Task #{task.name} successfully created"
+
   redirect to('/tasks/list')
 end
 
@@ -451,13 +681,9 @@ get '/jobs/list' do
   @targets_cracked = {}
   @customer_names = {}
 
-  @jobs = Jobs.all
+  @jobs = Jobs.all(order: [:id.desc])
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
-
-  @jobs.each do |entry|
-    @targets_cracked[entry.id] = Targets.count(jobid: [entry.id], cracked: 1)
-  end
 
   @jobs.each do |entry|
     @customers = Customers.first(id: [entry.customer_id])
@@ -468,7 +694,7 @@ get '/jobs/list' do
 end
 
 get '/jobs/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @job = Jobs.first(id: params[:id])
   if !@job
@@ -485,156 +711,125 @@ get '/jobs/delete/:id' do
 end
 
 get '/jobs/create' do
+  varWash(params)
+
   @customers = Customers.all
-  redirect to('/customers/create') if @customers.empty?
-
-  @tasks = Tasks.all
-  redirect to('/tasks/create') if @tasks.empty?
-
-  # we do this so we can embedded ruby into js easily
-  # js handles adding/selecting tasks associated with new job
-  taskhashforjs = {}
-  @tasks.each do |task|
-    taskhashforjs[task.id] = task.name
-  end
-  @taskhashforjs = taskhashforjs.to_json
+  @job = Jobs.first(id: params[:jobid])
 
   haml :job_edit
 end
 
 post '/jobs/create' do
-  return 'You must provide a name for your job.' if !params[:name] || params[:name].nil?
-  return 'You must provide a customer for your job.' if !params[:customer] || params[:customer].nil?
-  return 'You must provide a task to your job' if !params[:tasks] || params[:tasks].nil?
+  varWash(params)
 
-  params[:name] = clean(params[:name])
-  params[:customer] = clean(params[:customer])
+  if !params[:job_name] || params[:job_name].empty?
+    flash[:error] = 'You must provide a name for your job.'
+    if params[:edit] == '1'
+      redirect to("/jobs/create?custid=#{:custid}&jobid=#{:jobid}&edit=1")
+    else
+      redirect to('/jobs/create')
+    end
+  end
 
-  # create new job
-  job = Jobs.new
-  job.name = params[:name]
+  if !params[:customer] || params[:customer].empty?
+    if !params[:cust_name] || params[:cust_name].empty?
+      flash[:error] = 'You must provide a customer for your job.'
+      if params[:edit] == '1'
+        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+      else
+        redirect to('/jobs/create')
+      end
+    end
+  end
+
+  if params[:customer] && params[:customer] == 'add_new'
+    if !params[:cust_name] || params[:cust_name].empty?
+      flash[:error] = 'You must provide a customer name.'
+      if params[:edit] == '1'
+        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+      else
+        redirect to('/jobs/create')
+      end
+    end
+  end
+
+  # Create a new customer if selected
+  if params[:customer] == 'add_new' || params[:customer].nil?
+    customer = Customers.new
+    customer.name = params[:cust_name]
+    customer.description = params[:cust_desc]
+    customer.save
+  end
+
+  if params[:customer] == 'add_new' || params[:customer].nil?
+    cust_id = customer.id
+  else
+    cust_id = params[:customer]
+  end
+
+  # create new or update existing job
+  if params[:edit] == '1'
+    job = Jobs.first(id: params[:jobid])
+  else
+    job = Jobs.new
+  end
+  job.name = params[:job_name]
   job.last_updated_by = getUsername
-  job.customer_id = params[:customer]
+  job.customer_id = cust_id
+
+  if params[:notify] == 'on'
+    job.notify_completed = '1'
+  else
+    job.notify_completed = '0'
+  end
   job.save
 
-  # assign tasks to the job
-  assignTasksToJob(params[:tasks], job.id)
-
-  redirect to("/jobs/#{job.id}/upload/hashfile")
+  if params[:edit] == '1'
+    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}&edit=1")
+  else
+    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}")
+  end
 end
 
-get '/jobs/:id/upload/hashfile' do
-  params[:id] = clean(params[:id])
+get '/jobs/assign_hashfile' do
+  varWash(params)
 
-  @job = Jobs.first(id: params[:id])
+  @hashfiles = Hashfiles.all(customer_id: params[:custid])
+  @customer = Customers.first(id: params[:custid])
+  @job = Jobs.first(id: params[:jobid])
   return 'No such job exists' unless @job
 
-  haml :upload_hashfile
+  haml :assign_hashfile
 end
 
-post '/jobs/:id/upload/hashfile' do
-  params[:id] = clean(params[:id])
+post '/jobs/assign_hashfile' do
+  varWash(params)
 
-  @job = Jobs.first(id: params[:id])
-  return 'No such job exists' unless @job
-
-  # temporarily save file for testing
-  hash = rand(36**8).to_s(36)
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
-
-  # Parse uploaded file into an array
-  hash_array = []
-  whole_file_as_string_object = params[:file][:tempfile].read
-  File.open(hashfile, 'w') { |f| f.write(whole_file_as_string_object) }
-  whole_file_as_string_object.each_line do |line|
-    hash_array << line
+  if params[:hash_file] != 'add_new'
+    job = Jobs.first(id: params[:jobid])
+    job.hashfile_id = params[:hash_file]
+    job.save
   end
 
-  # save location of tmp hash file
-  @job.targetfile = hashfile
-  @job.save
+  if params[:edit] == '1'
+    job = Jobs.first(id: params[:jobid])
+    job.hashfile_id = params[:hash_file]
+    job.save
+  end
 
-  redirect to("/jobs/#{@job.id}/upload/verify_filetype/#{hash}")
-end
-
-get '/jobs/:id/upload/verify_filetype/:hash' do
-  params[:id] = clean(params[:id])
-  params[:hash] = clean(params[:hash])
-
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt")
-  @job = Jobs.first(id: params[:id])
-  haml :verify_filetypes
-end
-
-post '/jobs/:id/upload/verify_filetype' do
-  params[:filetype] = clean(params[:filetype])
-  params[:hash] = clean(params[:hash])
-
-  filetype = params[:filetype]
-  hash = params[:hash]
-
-  redirect to("/jobs/#{params[:id]}/upload/verify_hashtype/#{hash}/#{filetype}")
-end
-
-get '/jobs/:id/upload/verify_hashtype/:hash/:filetype' do
-  params[:id] = clean(params[:id])
-  params[:hash] = clean(params[:hash])
-  params[:filetype] = clean(params[:filetype])
-
-  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt", params[:filetype])
-  @job = Jobs.first(id: params[:id])
-  haml :verify_hashtypes
-end
-
-post '/jobs/:id/upload/verify_hashtype' do
-  return 'You must specify a valid hashfile type' if !params[:filetype] || params[:filetype].nil?
-
-  params[:filetype] = clean(params[:filetype])
-  params[:hash] = clean(params[:hash]) if params[:hash] && !params[:hash].nil?
-  params[:hashtype] = clean(params[:hashtype]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:manualHash] = clean(params[:manualHash]) if params[:hashtype] && !params[:hashtype].nil?
-  params[:id] = clean(params[:id])
-
-  filetype = params[:filetype]
-  hash = params[:hash]
-
-  if params[:hashtype] == '99999'
-    hashtype = params[:manualHash]
+  if params[:edit]
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}&edit=1")
   else
-    hashtype = params[:hashtype]
+    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
   end
-
-  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:id]}-#{params[:hash]}.txt"
-
-  hash_array = []
-  File.open(hash_file, 'r').each do |line|
-    hash_array << line
-  end
-
-  @job = Jobs.first(id: params[:id])
-  customer_id = @job.customer_id
-
-  unless importHash(hash_array, customer_id, params[:id], filetype, hashtype)
-    return 'Error importing hash' # need to better handle errors
-  end
-
-  # Delete file, no longer needed
-  File.delete(hash_file)
-
-  redirect to('/jobs/list')
 end
 
-get '/jobs/edit/:id' do
-  params[:id] = clean(params[:id])
+get '/jobs/assign_tasks' do
+  varWash(params)
 
-  @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
-  else
-    @tasks = Tasks.all
-    @jobtasks = Jobtasks.all(job_id: params[:id])
-  end
-
+  @job = Jobs.first(id: params[:jobid])
+  @jobtasks = Jobtasks.all(job_id: params[:jobid])
+  @tasks = Tasks.all
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
   taskhashforjs = {}
@@ -643,37 +838,43 @@ get '/jobs/edit/:id' do
   end
   @taskhashforjs = taskhashforjs.to_json
 
-  haml :job_edit
+  haml :assign_tasks
 end
 
-post '/jobs/edit/:id' do
-  return 'You must specify task you want to edit' if !params[:tasks] || params[:tasks].nil?
+post '/jobs/assign_tasks' do
+  varWash(params)
 
-  params[:id] = clean(params[:id])  if params[:id] && !params[:id].nil?
-  params[:tasks] = clean_array(params[:tasks]) if params[:tasks] && !params[:tasks].nil?
-
-  values = request.POST
-
-  @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
-  else
-    # update job
-    # assign tasks to the job before
-    p values
-    if values['tasks'] != nil
-      assignTasksToJob(params[:tasks], @job.id)
-      values.delete('tasks')
+  if !params[:tasks] || params[:tasks].nil?
+    if !params[:edit] || params[:edit].nil?
+      flash[:error] = 'You must assign atleast one task'
+      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
     end
-    @job.update(values)
-
   end
 
+  job = Jobs.first(id: params[:jobid])
+  job.status = 'Stopped'
+  job.save
+
+  # assign tasks to the job
+  if params[:tasks] && !params[:tasks].nil?
+    assignTasksToJob(params[:tasks], job.id)
+  end
+
+  # Resets jobtasks tables
+  if params[:edit] && !params[:edit].nil?
+    @jobtasks = Jobtasks.all(job_id: params[:jobid])
+    @jobtasks.each do |jobtask|
+      jobtask.status = 'READY'
+      jobtask.save
+    end
+  end
+
+  flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
 end
 
 get '/jobs/start/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -708,7 +909,10 @@ get '/jobs/start/:id' do
     end
   end
 
-  return 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.' if @job.status == 'Completed'
+  if @job.status == 'Completed'
+    flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
+    redirect to('/jobs/list')
+  end
 
   redirect to('/home')
 end
@@ -722,7 +926,7 @@ get '/jobs/queue' do
 end
 
 get '/jobs/stop/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   tasks = []
   @job = Jobs.first(id: params[:id])
@@ -767,8 +971,7 @@ get '/jobs/stop/:id' do
 end
 
 get '/jobs/stop/:jobid/:taskid' do
-  params[:jobid] = clean(params[:jobid])
-  params[:taskid] = clean(params[:taskid])
+  varWash(params)
 
   # validate if running
   jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
@@ -790,7 +993,7 @@ get '/jobs/stop/:jobid/:taskid' do
 
   if referer[3] == 'home'
     redirect to('/home')
-  elsif referer[3] == 'job'
+  elsif referer[3] == 'jobs'
     redirect to('/jobs/list')
   end
 end
@@ -799,9 +1002,8 @@ end
 
 ##### job task controllers #####
 
-get '/jobs/:jobid/task/delete/:jobtaskid' do
-  params[:jobid] = clean(params[:jobid])
-  params[:jobtaskid] = clean(params[:jobtaskid])
+get '/jobs/remove_task' do
+  varWash(params)
 
   @job = Jobs.first(id: params[:jobid])
   if !@job
@@ -811,7 +1013,7 @@ get '/jobs/:jobid/task/delete/:jobtaskid' do
     @jobtask.destroy
   end
 
-  redirect to("/jobs/edit/#{@job.id}")
+  redirect to("/jobs/assign_tasks?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
 end
 
 ############################
@@ -822,13 +1024,25 @@ get '/settings' do
   @settings = Settings.first
 
   if @settings && @settings.maxtasktime.nil?
-    warning('Max task time must be defined in seconds (864000 is 10 days)')
+    flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
   end
 
   haml :global_settings
 end
 
 post '/settings' do
+  varWash(params)
+
+  if params[:hcbinpath].nil? || params[:hcbinpath].empty?
+    flash[:error] = 'You must set the path for your hashcat binary.'
+    redirect('/settings')
+  end
+
+  if params[:maxtasktime].nil? || params[:maxtasktime].empty?
+    flash[:error] = 'You must set a max task time.'
+    redirect('/settings')
+  end
+
   values = request.POST
 
   @settings = Settings.first
@@ -836,7 +1050,6 @@ post '/settings' do
   if @settings.nil?
     # create settings for the first time
     # set max task time if none is provided
-    values['maxtasktime'] = '864000' if @settings && @settings.maxtasktime.nil?
     @newsettings = Settings.create(values)
     @newsettings.save
   else
@@ -844,7 +1057,9 @@ post '/settings' do
     @settings.update(values)
   end
 
-  redirect to('/settings')
+  flash[:success] = 'Settings updated successfully.'
+
+  redirect to('/home')
 end
 
 ############################
@@ -852,14 +1067,14 @@ end
 ##### Downloads ############
 
 get '/download' do
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  varWash(params)
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], jobid: params[:jobid], cracked: '1')
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].nil?
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: '1')
     else
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customerid: params[:custid], cracked: 1)
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
@@ -869,8 +1084,9 @@ get '/download' do
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      file_name = "found_#{params[:custid]}_#{params[:jobid]}.txt"
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].nil?
+      file_name = "found_#{params[:custid]}_#{params[:wl_id]}.txt"
     else
       file_name = "found_#{params[:custid]}.txt"
     end
@@ -888,7 +1104,6 @@ get '/download' do
   end
 
   send_file file_name, filename: file_name, type: 'Application/octet-stream'
-
 end
 
 ############################
@@ -906,7 +1121,7 @@ get '/wordlists/add' do
 end
 
 get '/wordlists/delete/:id' do
-  params[:id] = clean(params[:id])
+  varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
   if not @wordlist
@@ -915,7 +1130,8 @@ get '/wordlists/delete/:id' do
     # check if wordlist is in use
     @task_list = Tasks.all(wl_id: @wordlist.id)
     if !@task_list.empty?
-      return 'This word list is associated with a task, it cannot be deleted'
+      flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
+      redirect to ('/wordlists/list')
     end
 
     # remove from filesystem
@@ -928,9 +1144,15 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
-  return 'You must specify a name for your word list' if !params[:name] || params[:name].nil?
-
-  params[:name] = clean(params[:name])
+  varWash(params)
+  if !params[:file] || params[:file].nil?
+    flash[:error] = 'You must specify a file.'
+    redirect to('/wordlists/add')
+  end
+  if !params[:name] || params[:name].empty?
+    flash[:error] = 'You must specify a name for your wordlist.'
+    redirect to('/wordlists/add')
+  end
 
   # Replace white space with underscore.  We need more filtering here too
   upload_name = params[:name]
@@ -957,45 +1179,53 @@ end
 
 ############################
 
+##### Hash Lists ###########
+
+get '/hashfiles/list' do
+  @customers = Customers.all
+  @hashfiles = Hashfiles.all
+
+  haml :hashfile_list
+end
+
+get '/hashfiles/delete' do
+  varWash(params)
+  @hashfile = Hashfiles.first(id: params[:hashfile_id])
+  @hashfile.destroy() unless @hashfile.nil?
+
+  flash[:success] = 'Successfuly removed hashfile.'
+
+  redirect to('/hashfiles/list')
+end
+
+############################
+
 ##### Purge Data ###########
 
 get '/purge' do
-  params[:jobid] = clean(params[:jobid])
+  varWash(params)
+  # find all customer ids defined in targets
+  @customersids = Targets.all(fields: [:customer_id], unique: true)
 
-  @job_cracked = {}
-  @job_total = {}
-  @job_id_name = {}
-  @target_jobids = []
-  @all_cracked = 0
-  @all_total = 0
-  @targets = Targets.all(fields: [:jobid], unique: true)
-  @targets.each do |entry|
-    @target_jobids.push(entry.jobid)
-  end
-
-  @jobs = Jobs.all
-  @jobs.each do |entry|
-    @job_id_name[entry.id] = entry.name
-  end
-
-  @target_jobids.each do |entry|
-    @job_cracked[entry] = Targets.count(jobid: [entry], cracked: 1)
-    @all_cracked = @all_cracked + @job_cracked[entry]
-    @job_total[entry] = Targets.count(jobid: [entry])
-    @all_total = @all_total + @job_total[entry]
+  @total_target_count = 0
+  @total_cracked_count = 0
+  # count all hashes not associated with an active customer
+  @customersids.each do |custid|
+    total_targets = Targets.count(:customer_id.not => custid.customerid)
+    total_cracked = Targets.count(:customer_id.not => custid.customerid, :cracked => 1)
+    @total_target_count = @total_target_count + total_targets
+    @total_cracked_count = @total_cracked_count + total_cracked
   end
 
   haml :purge
 end
 
-get '/purge/:id' do
-  params[:id] = clean(params[:id])
-
-  if params[:id] == 'all'
-    @targets = Targets.all
-    @targets.destroy
-  else
-    @targets = Targets.all(jobid: params[:id])
+post '/purge' do
+  varWash(params)
+  # delete all targets no associated with an active customer
+  @customersids = Targets.all(fields: [:customer_id], unique: true)
+  @customersids.each do |custid|
+    @targets = Targets.all(:customer_id.not => custid.customer_id)
     @targets.destroy
   end
 
@@ -1008,16 +1238,15 @@ end
 
 # displays analytics for a specific client, job
 get '/analytics' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  varWash(params)
 
   @custid = params[:custid]
-  @jobid = params[:jobid]
+  #@jobid = params[:jobid]
+  @hashfile_id = params[:hf_id]
   @button_select_customers = Customers.all
 
   if params[:custid] && !params[:custid].empty?
-    @button_select_jobs = Jobs.all(customer_id: params[:custid])
+    @button_select_hashfiles = Hashfiles.all(customer_id: params[:custid])
   end
 
   if params[:custid] && !params[:custid].empty?
@@ -1027,50 +1256,98 @@ get '/analytics' do
   end
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @jobs = Jobs.first(id: params[:jobid])
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].empty?
+      @hashfiles = Hashfiles.first(id: params[:hf_id])
     else
-      @jobs = Jobs.all
+      @hashfiles = Hashfiles.all
     end
   end
 
   # get results of specific customer if custid is defined
   if params[:custid] && !params[:custid].empty?
     # if we have a job
-    if params[:jobid] && !params[:jobid].empty?
-      # Used for Total Hashes Cracked doughnut: Customer: Job
-      @cracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 1)
-      @uncracked_pw_count = Targets.count(customerid: params[:custid], jobid: params[:jobid], cracked: 0)
+    # if we have a hashfile
+    if params[:hf_id] && !params[:hf_id].empty?
+      # Used for Total Hashes Cracked doughnut: Customer: Hashfile
+      @cracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1)
+      @uncracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0)
 
-      # Used for Total Accounts table: Customer: Job
-      @total_accounts = Targets.count(customerid: params[:custid], jobid: params[:jobid])
+      # Used for Total Accounts table: Customer: Hashfile
+      @total_accounts = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id])
 
-      # Used for Total Unique Users and originalhashes Table: Customer: Job
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid], jobid: params[:jobid])
+      # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid], hashfile_id: params[:hf_id])
 
-      # Used for Total Run Time: Customer: Job
-      @total_run_time = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
-    else
-      # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = Targets.count(customerid: params[:custid], cracked: 1)
-      @uncracked_pw_count = Targets.count(customerid: params[:custid], cracked: 0)
+      # Used for Total Run Time: Customer: Hashfile
+      @total_run_time_object = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id])
+      @total_run_time = @total_run_time_object.total_run_time
 
-      # Used for Total Accounts Table: Customer
-      @total_accounts = Targets.count(customerid: params[:custid])
+      # make list of unique hashes
+      unique_hashes = Set.new
+      @total_users_originalhash.each do |entry|
+        unique_hashes.add(entry.originalhash)
+      end
 
-      # Used for Total Unique Users and original hashes Table: Customer
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customerid: params[:custid])
-
-      # Used for Total Run Time: Customer:
-      # I'm ashamed of the code below
-      @jobs = Jobs.all(customer_id: params[:custid])
-      @total_run_time = 0
-      @jobs.each do |job|
-        @query_results = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
-        unless @query_results.nil?
-          @total_run_time = @total_run_time + @query_results
+      hashes = []
+      # create array of all hashes to count dups
+      @total_users_originalhash.each do |uh|
+        unless uh.originalhash.nil?
+          hashes << uh.originalhash unless uh.originalhash.length == 0
         end
       end
+
+      @duphashes = {}
+      # count dup hashes
+      hashes.each do |hash|
+        if @duphashes[hash].nil?
+          @duphashes[hash] = 1
+        else
+          @duphashes[hash] += 1
+        end
+      end
+      # this will only display top 10 hash/passwords shared by users
+      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
+      # this will only display all hash/passwords shared by users
+      #@duphashes = Hash[@duphashes.sort_by { |k, v| -v }]
+
+      users_same_password = []
+      @password_users ={}
+      # for each unique password hash find the users and their plaintext
+      @duphashes.each do |hash|
+        dups = Targets.all(fields: [:username, :plaintext, :cracked], hashfile_id: params[:hf_id], customer_id: params[:custid], originalhash: hash[0])
+        # for each user with the same password hash add user to array
+        dups.each do |d|
+          if !d.username.nil?
+            users_same_password << d.username
+            #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
+          else
+            users_same_password << "NULL"
+          end
+          if d.cracked
+            hash[0] = d.plaintext
+          end
+        end
+        # assign array of users to hash of similar password hashes
+        if users_same_password.length > 1
+          @password_users[hash[0]] = users_same_password
+        end
+        users_same_password = []
+      end
+
+    else
+      # Used for Total Hashes Cracked doughnut: Customer
+      @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)
+      @uncracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 0)
+
+      # Used for Total Accounts Table: Customer
+      @total_accounts = Targets.count(customer_id: params[:custid])
+
+      # Used for Total Unique Users and original hashes Table: Customer
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
+
+      # Used for Total Run Time: Customer:
+      @total_run_time = Hashfiles.sum(:total_run_time, conditions: {:customer_id => params[:custid]})
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1084,7 +1361,7 @@ get '/analytics' do
     @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
 
     # Used for Total Run Time:
-    @total_run_time = Jobtasks.sum(:run_time)
+    @total_run_time = Hashfiles.sum(:total_run_time)
   end
 
   @passwords = @cracked_results.to_json
@@ -1107,18 +1384,17 @@ end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  varWash(params)
 
   @counts = []
   @passwords = {}
 
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].empty?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
@@ -1151,16 +1427,15 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  varWash(params)
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].empty?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
@@ -1196,16 +1471,15 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
-
-  params[:custid] = clean(params[:custid]) if params[:custid]
-  params[:jobid] = clean(params[:jobid]) if params[:jobid]
+  varWash(params)
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:jobid] && !params[:jobid].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], jobid: params[:jobid], cracked: true)
+#    if params[:jobid] && !params[:jobid].empty?
+    if params[:hf_id] && !params[:hf_id].empty?
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customerid: params[:custid], cracked: true)
+      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
     end
   else
     @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
@@ -1249,21 +1523,12 @@ get '/search' do
 end
 
 post '/search' do
+  varWash(params)
   @customers = Customers.all
 
-  if params[:value].nil? || !params[:value]
-    warning('Please provide a search term')
+  if params[:value].nil? || params[:value].empty?
+    flash[:error] = "Please provide a search term"
     redirect to('/search')
-  else
-    value = clean(params[:value])
-  end
-
-  if params[:search_type] == 'hash'
-    hash = clean(params[:value])
-  elsif params[:search_type] == 'username'
-    username = clean(params[:value])
-  else
-    return 'You need to provide a search type'
   end
 
   if username
@@ -1307,7 +1572,8 @@ def buildCrackCmd(jobid, taskid)
   maxtasktime = settings.maxtasktime
   @task = Tasks.first(id: taskid)
   @job = Jobs.first(id: jobid)
-  @targets = Targets.first(jobid: jobid)
+  hashfile_id = @job.hashfile_id
+  @targets = Targets.first(hashfile_id: hashfile_id)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
@@ -1352,16 +1618,6 @@ def assignTasksToJob(tasks, job_id)
 end
 
 helpers do
-  def warning(txt)
-    if @warnings != nil
-      @warnings << txt
-    else
-      @warnings = []
-      @warnings << txt
-    end
-    @warnings
-  end
-
   def login?
     if session[:username].nil?
       return false
@@ -1374,14 +1630,26 @@ helpers do
     session[:username]
   end
 
-  def clean(text)
-    return text.gsub(/[<>'"()\/\\]*/i, '')
+  # Take you to the var wash baby
+  def varWash(params)
+    params.keys.each do |key|
+      if params[key].is_a?(String)
+        params[key] = cleanString(params[key])
+      end
+      if params[key].is_a?(Array)
+        params[key] = cleanArray(params[key])
+      end
+    end
   end
 
-  def clean_array(array)
+  def cleanString(text)
+    return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
+  end
+
+  def cleanArray(array)
     clean_array = []
     array.each do |entry|
-      clean_array.push(clean(entry))
+      clean_array.push(cleanString(entry))
     end
     return clean_array
   end

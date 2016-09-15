@@ -1,7 +1,6 @@
 !!! 5
 %html
   %body
-    %p
     .span15
       .row
         .container
@@ -24,20 +23,20 @@
                       %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
               - if @custid
                 &nbsp
-                %label.control-label.text-right{:for => ""} Job:
+                %label.control-label.text-right{:for => ""} Hash File:
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if @jobid.nil?
-                    All Jobs
+                  - if !params[:hf_id]
+                    All Hashes
                   - else
-                    #{@jobs.name}
+                    #{@hashfiles.name}
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics?custid=#{@custid}"} All
+                    %a{:href => "/analytics?custid=#{@custid}"} All Hashes
                   %li.divider{:role => "separator"}
-                  - @button_select_jobs.each do |job|
+                  - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?custid=#{@custid}&jobid=#{job.id}"} #{job.name}
+                      %a{:href => "/analytics?custid=#{@custid}&hf_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
@@ -126,13 +125,12 @@
               .panel-body
                 .table
                   %table{:class => 'table'}
-                    %tr
-                      - if @jobid.nil?
-                        %td
-                          %b Job: All Jobs
-                      -else
-                        %td
-                          %b Job: #{@jobs.name}
+                    - if params[:hf_id].nil?
+                      %td
+                        %b All Hashfiles
+                    -else
+                      %td
+                        %b #{@hashfiles.name}
                     %tr
                       %td Total Accounts: #{@total_accounts}
                     %tr
@@ -140,21 +138,30 @@
                     %tr
                       %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
                     %tr
-                      %td Total Run time: #{@total_run_time} Seconds
+                      - if @total_run_time and @total_run_time > 86400
+                        %td Total Run Time: #{@total_run_time.to_f/86400} Days
+                      - elsif @total_run_time and @total_run_time > 3600
+                        %td Total Run Time: #{@total_run_time.to_f/3600} Hours
+                      - elsif @total_run_time and @total_run_time > 60
+                        %td Total Run Time: #{@total_run_time.to_f/60} Minutes
+                      - elsif @total_run_time and @total_run_time >= 0
+                        %td Total Run Time: #{@total_run_time.to_f} Seconds
+                      - else
+                        %td Total Run Time: Im ready coach, just send me in.
                     %tr
                       %td
-                        - if @custid.nil? 
+                        - if @custid.nil?
                           %a.btn.btn-primary.pull-left{:href => "/download"}
                             Download Cracked File
-                        - elsif @custid && @jobid.nil?
+                        - elsif @custid && @hashfile_id.nil?
                           %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                            Download Cracked File 
-                        - elsif @custid && @jobid
-                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&jobid=#{@jobid}"}
-                            Download Cracked File 
+                            Download Cracked File
+                        - elsif @custid && @hashfile_id
+                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                            Download Cracked File
                         - else
                           You shouldnt see me
-                        
+
 
           .col-md-12
             .panel.panel-default
@@ -167,7 +174,7 @@
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = 600 - margin.left - margin.right,
+                      width = document.getElementById('chart2').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -188,7 +195,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph1?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -234,7 +241,7 @@
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = 600 - margin.left - margin.right,
+                      width = document.getElementById('chart3').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -255,7 +262,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph2?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -301,7 +308,7 @@
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = 600 - margin.left - margin.right,
+                      width = document.getElementById('chart4').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -322,7 +329,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph3?custid=#{@custid}&jobid=#{@jobid}';
+                  var url = '/analytics/graph3?custid=#{@custid}&hf_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -357,5 +364,27 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
-
-
+          - if @custid && @hashfile_id
+            .col-md-12
+              .panel.panel-default
+                .panel-heading
+                  %b Top 20 Passwords/hashes shared by Users
+                .panel-body
+                  - if @password_users
+                    - if @password_users.empty?
+                      No passwords are shared by users
+                    - else
+                      #accordion.panel-group
+                        .panel.panel-default
+                          - @password_users.each do |pass, users|
+                            - link = rand(36**8).to_s(36)
+                            .panel-heading
+                              %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                                #{pass}
+                              .span.badge.pull-right #{@password_users[pass].length}
+                            %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                              .panel-body
+                                %ul{:class =>"list-group borderless row"}
+                                  - users.each do |user|
+                                    %li{:class => "list-group-item borderless col-xs-4"}
+                                      #{user}

@@ -7,41 +7,46 @@
       .container
         .row
           .col-md-12
-            .table
-              .panel.panel-primary
-                .panel-heading
-                  %h3.panel-title
-                    - if @active_jobs
-                      - @customers.each do |customer|
-                        - if @active_jobs.customer_id == customer.id
-                          %b Customer:
-                          #{customer.name}
-                          %b Job:
-                          #{@active_jobs.name}
+            - if @active_jobs
+              .table
                 - if @results.length > 1
-                  .panel-body
-                    - @jobs.each do |job|
-                      - if job.status == 'Running'
-                        %h3
-                          Hashes Cracked
-                          .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
-                        %p
-                        .progress
-                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
-                    .row
-                      .col-md-12
-                        %h3 Job Status
-                        .table
-                          %table{:class => 'table'}
-                            - if @hashcat_status
-                              - @hashcat_status.each do |k,v|
-                                %tr
-                                  %td.col-md-4
-                                    #{k}
-                                  %td
-                                    #{v}
-                -else
-                  .panel-body You must be slacking if you dont have any hashes to crack!
+                  .panel.panel-primary
+                    .panel-heading
+                      %h3.panel-title
+                        - if @active_jobs
+                          - @customers.each do |customer|
+                            - if @active_jobs.customer_id == customer.id
+                              %b Customer:
+                              #{customer.name}
+                              %b Job:
+                              #{@active_jobs.name}
+                    .panel-body
+                      - @jobs.each do |job|
+                        - if job.status == 'Running'
+                          %h3
+                            Hashes Cracked
+                            .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
+                          %p
+                          .progress
+                            .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                      .row
+                        .col-md-12
+                          %h3 Job Status
+                          .table
+                            %table{:class => 'table'}
+                              - if @hashcat_status
+                                - @hashcat_status.each do |k,v|
+                                  %tr
+                                    %td.col-md-4
+                                      #{k}
+                                    %td
+                                      #{v}
+                - else
+                  .jumbotron
+                    I'm probably importing hashes from my last cracked job, please wait...
+            - else
+              .jumbotron
+                Feed me hashes!!!
               %br
           .col-md-4
             .table
@@ -52,7 +57,7 @@
                     No HashView jobs are running
                     %br
                     %br
-                    %a.btn.btn-primary{:href => "/job/create"}
+                    %a.btn.btn-primary{:href => "/jobs/create"}
                       Create a New Job
                 %tbody
                   - @jobs.each do |job|
@@ -127,7 +132,7 @@
                     %tr
                     - @recentlycracked.each do |cracked|
                       - @customers.each do | customer |
-                        - if customer.id == cracked.customerid
+                        - if customer.id == cracked.customer_id
                           %td #{customer.name}
                           %td #{cracked.username}
                           %td #{cracked.plaintext}

@@ -1,0 +1,94 @@
+!!!
+%html
+  %body
+    :javascript
+      function showDiv() {
+        var Index = document.hf_form.hash_file.options[document.hf_form.hash_file.selectedIndex].value
+        if(Index == "add_new")
+        {
+          document.getElementById('hashfile_div').style.display = 'inline';
+          document.getElementById('selectfile_div').style.display = 'none';
+        }
+        else
+        {
+          document.getElementById('hashfile_div').style.display = 'none';
+          document.getElementById('selectfile_div').style.display = 'inline';
+        }
+      }
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              - if params[:edit] == '1'
+                %h1 Edit Hashfile for: #{@job.name}
+              - else
+                %h1 Assign Hashfile for: #{@job.name}
+            .row
+              .col-md-10.pull-left
+                Upload a new hashfile or select from an existing one. Currently Hashview supports, pwdump, shadow and newline separated hash files.
+          %br
+          %br
+            .row
+              .col-md-12
+              - if !@hashfiles.empty?
+                %form{:name => "hf_form", :id => "hf_form", :class => "form-horizontal", :action => "/jobs/assign_hashfile", :method => "post"}
+                  .form-group
+                    %label.control-label.col-xs-2{:for => ""} Hash Files
+                    .col-xs-10
+                      %select.form-control{:id => "hash_file", :name => "hash_file", :onchange => "showDiv()"}
+                        - @hashfiles.each do |hashfile|
+                          - if params[:edit] == '1'
+                            - if @job.hashfile_id == hashfile.id
+                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name}
+                            - else
+                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+                          - else
+                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+                        %option{:value => "add_new", :name => "hf_id", :type => "button"} New Hashfile
+                  .section
+                    %div{:class => "label_leftalign field"}
+                      #selectfile_div{:style => "display:inline"}
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
+                            %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+                            %br
+                            - if params[:edit] == '1'
+                              %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
+                              %button.btn.btn-primary{:type => 'submit'} Update
+                            - else
+                              %button.btn.btn-primary{:type => 'submit'} Select
+                #hashfile_div{:style => "display:none"}
+                  %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+                    .form-group
+                      %label.control-label.col-xs-2 Name:
+                      .col-xs-10
+                        %input{:type => 'textbox', :name => 'hf_name'}
+                    .form-group
+                      %label.control-label.col-xs-2 Hash File:
+                      .col-xs-10
+                        %input{:type => 'file', :name => 'file'}
+                        %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
+                        %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                    .form-group
+                      .col-xs-offset-2.col-xs-10
+                        %br
+                        %button.btn.btn-primary{:type => 'submit'} Upload
+              - else
+                %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+                  .form-group
+                    %label.control-label.col-xs-2 Name:
+                    .col-xs-10
+                      %input{:type => 'textbox', :name => 'hf_name'}
+                  %br
+                  .form-group
+                    %label.control-label.col-xs-2 Hash File:
+                    .col-xs-10
+                      %input{:type => 'file', :name => 'file'}
+                      %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
+                      %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                  .form-group
+                    .col-xs-offset-2.col-xs-10
+                      %br
+                      %button.btn.btn-primary{:type => 'submit'} Upload
