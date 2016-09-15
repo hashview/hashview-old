@@ -214,7 +214,7 @@
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Run Time:
                         .col-xs-6
-                          - if @settings && @settings.maxtasktime.nil? 
+                          - if @settings && ! @settings.maxtasktime.nil? 
                             #{@settings.maxtasktime} Seconds
                             (Set in Global Settings)
                           - else

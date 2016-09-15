@@ -1264,8 +1264,9 @@ get '/analytics' do
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid], hashfile_id: params[:hf_id])
 
-      # Used for Total Run Time: Customer: Job
-      @total_run_time = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
+      # Used for Total Run Time: Customer: Hashfile
+      @total_run_time_object = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id])
+      @total_run_time = @total_run_time_object.total_run_time
 
       # make list of unique hashes
       unique_hashes = Set.new
@@ -1331,15 +1332,7 @@ get '/analytics' do
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
-      # I'm ashamed of the code below
-      @jobs = Jobs.all(customer_id: params[:custid])
-      @total_run_time = 0
-      @jobs.each do |job|
-        @query_results = Jobtasks.sum(:run_time, conditions: {:job_id => params[:jobid]})
-        unless @query_results.nil?
-          @total_run_time = @total_run_time + @query_results
-        end
-      end
+      @total_run_time = Hashfiles.sum(:total_run_time, conditions: {:customer_id => params[:custid]})
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1353,7 +1346,7 @@ get '/analytics' do
     @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
 
     # Used for Total Run Time:
-    @total_run_time = Jobtasks.sum(:run_time)
+    @total_run_time = Hashfiles.sum(:total_run_time)
   end
 
   @passwords = @cracked_results.to_json
