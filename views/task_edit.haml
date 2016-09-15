@@ -213,9 +213,12 @@
                     #bruteforce_div{:style => "display:none"}
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Run Time:
-                        .col-xs-6 
-                          #{@settings.maxtasktime} Seconds
-                          (Set in Global Settings)
+                        .col-xs-6
+                          - if @settings && @settings.maxtasktime.nil? 
+                            #{@settings.maxtasktime} Seconds
+                            (Set in Global Settings)
+                          - else
+                            WARNING: Set max task time in global settings.
                       .form-group
                         .col-xs-offset-2.col-xs-1
                           %button.btn.btn-primary{:type => "submit"} Create
