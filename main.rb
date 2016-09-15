@@ -410,7 +410,7 @@ post '/customers/upload/verify_hashtype' do
   end
 
   # match already cracked hashes against hashes to be uploaded, update db
-  matches = []
+  # matches = []
   count = 0
   hash_array.each do |hash|
     hash = hash.chomp.to_s
@@ -612,7 +612,7 @@ get '/tasks/create' do
   @settings = Settings.first
 
   # TODO present better error msg
-  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.empty?
+  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.nil?
 
   @rules = []
   # list wordlists that can be used
