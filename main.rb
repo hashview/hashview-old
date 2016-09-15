@@ -46,7 +46,7 @@ before /^(?!\/(login|register|logout))/ do
     redirect to('/login')
   else
     settings = Settings.first
-    if settings && settings.hcbinpath.empty?
+    if settings && settings.hcbinpath.nil?
       flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
     end
   end
