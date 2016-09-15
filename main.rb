@@ -639,6 +639,12 @@ post '/tasks/create' do
     redirect to('/tasks/create')
   end
 
+  @tasks = Tasks.all(name: params[:name])
+  if ! @tasks.nil?
+    flash[:error] = 'Name already in use, pick another'
+    redirect to ('/tasks/create')
+  end
+
   wordlist = Wordlists.first(id: params[:wordlist])
 
   # mask field cannot be empty
@@ -852,6 +858,15 @@ post '/jobs/assign_tasks' do
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
     assignTasksToJob(params[:tasks], job.id)
+  end
+
+  # Resets jobtasks tables
+  if params[:edit] && !params[:edit].nil?
+    @jobtasks = Jobtasks.all(job_id: params[:jobid])
+    @jobtasks.each do |jobtask|
+      jobtask.status = 'READY'
+      jobtask.save
+    end
   end
 
   flash[:success] = 'Successfully created job.'
