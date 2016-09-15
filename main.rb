@@ -1620,7 +1620,6 @@ helpers do
     params.keys.each do |key|
       if params[key].is_a?(String)
         params[key] = cleanString(params[key])
-        p "CLEANED: " + params[key]
       end
       if params[key].is_a?(Array)
         params[key] = cleanArray(params[key])
@@ -1629,9 +1628,7 @@ helpers do
   end
 
   def cleanString(text)
-    p "BEFORE: " + text unless text.nil?
     return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
-    p "CLEANED: " + text unless text.nil?
   end
 
   def cleanArray(array)
