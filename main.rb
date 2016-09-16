@@ -47,7 +47,7 @@ before /^(?!\/(login|register|logout))/ do
   else
     settings = Settings.first
     if settings && settings.hcbinpath.nil?
-      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
+      flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
     end
   end
 end
@@ -641,8 +641,12 @@ post '/tasks/create' do
 
   @tasks = Tasks.all(name: params[:name])
   if ! @tasks.nil?
-    flash[:error] = 'Name already in use, pick another'
-    redirect to ('/tasks/create')
+    @tasks.each do |task|
+      if task.name == params[:name]
+        flash[:error] = 'Name already in use, pick another'
+        redirect to ('/tasks/create')
+      end
+    end
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -1536,10 +1540,12 @@ post '/search' do
     redirect to('/search')
   end
 
-  if username
-    @results = Targets.all(username: username)
-  elsif hash
-    @results = Targets.all(originalhash: hash)
+  if params[:search_type].to_s == "password"
+    @results = Targets.all(plaintext: params[:value])
+  elsif params[:search_type].to_s == "username"
+    @results = Targets.all(username: params[:value])
+  elsif params[:search_type] == "hash"
+    @results = Targets.all(originalhash: params[:value])
   end
 
   haml :search_post

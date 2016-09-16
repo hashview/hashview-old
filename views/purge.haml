@@ -1,39 +1,35 @@
 !!!
 %html
   %body
-    %p
     .span15
-      %br
       .container
-        .row
-          .col-md-12
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Purge Hashes
+            .row
+              .col-md-10.pull-left
+                By default Hashview stores all hashes you uploaded regardless if you deleted the customer. This is done so future crack jobs can retroactively crack hashes.
+                %p
+                This function purges all hashes (cracked or not) from the database where they are not associated with a customer. This action is non-recoverable.
+      %br
+      %br
+      .row
+        %form{:class => "form-horizontal", :action => "/purge", :method => "POST"}
+          .form-group
             .container
               .row
                 .col-md-12
-                  .page-header
-                    %h1
-                      Purge Hashes
-                .row
-                  .col-md-10.pull-left
-                    By default Hashview stores all hashes you uploaded regardless if you deleted the customer. This is done so future crack jobs can retroactively crack hashes.
-                    %p
-                    This function purges all hashes (cracked or not) from the database where they are not associated with a customer. This action is non-recoverable.
-        %br
-        %br
-      %form{:class => "form-horizontal", :action => "/purge", :method => "POST"}
-        .form-group
-          .container
-            .row
-              .col-md-12
-                .table
-                  %table{:class => 'table table-striped'}
-                    %thead
-                      %tr
-                        %th
-                          %b Cracked/Total
-                        %th
-                          %b Control
-                    %tbody
-                      %td #{@total_cracked_count} / #{@total_target_count}
-                      %td
-                        %button.btn.btn-danger{:type => "submit"} Purge hashes
+                  .table
+                    %table{:class => 'table table-striped'}
+                      %thead
+                        %tr
+                          %th
+                            %b Cracked/Total
+                          %th
+                            %b Control
+                      %tbody
+                        %td #{@total_cracked_count} / #{@total_target_count}
+                        %td
+                          %button.btn.btn-danger{:type => "submit"} Purge hashes
