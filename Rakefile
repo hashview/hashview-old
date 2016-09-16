@@ -32,7 +32,7 @@ namespace :db do
       system(query.compact.join(" "))
       #require_relative 'model/master.rb'
     rescue
-      raise "Something went wrong. double check your config/database.yml file and manually test access to mysql."
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
     end
   end
 
@@ -55,9 +55,8 @@ namespace :db do
     ]
     begin
       system(query.compact.join(" "))
-      #require_relative 'model/master.rb'
     rescue
-      raise "Something went wrong. double check your config/database.yml file and manually test access to mysql."
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
     end
   end
 
@@ -75,9 +74,8 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default settings"
+      raise 'Error in creating default settings'
     end
-
 
     puts '[*] Setting up default customer ...'
     # Create Default customer
@@ -87,7 +85,7 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default customer"
+      raise 'Error in creating default customer'
     end
 
     system('gunzip -k control/wordlists/password.gz')
@@ -99,7 +97,7 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default wordlist"
+      raise 'Error in creating default wordlist'
     end
 
     # Create Default Task Dictionary
@@ -110,10 +108,10 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default dictionary task"
+      raise 'Error in creating default dictionary task'
     end
 
-    # Create Default Dictionary + Rule Task 
+    # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
       "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + Best64 Rules', '1', 'dictionary', 'best64.rule')".inspect
@@ -121,10 +119,10 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default dictionary task + rule"
+      raise 'Error in creating default dictionary task + rule'
     end
 
-    # Create Default Mask task 
+    # Create Default Mask task
     puts '[*] Setting up default mask task'
     query = [
       "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode, hc_mask) VALUES ('Lower Alpha 7char', 'maskmode', '?l?l?l?l?l?l?l')".inspect
@@ -132,7 +130,7 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default mask task"
+      raise 'Error in creating default mask task'
     end
 
     # Create Default Raw Brute
@@ -143,11 +141,8 @@ namespace :db do
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default bute task"
+      raise 'Error in creating default bute taski'
     end
-
-
-
   end
 
   namespace :auto do
