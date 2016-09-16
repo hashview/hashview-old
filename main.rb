@@ -644,7 +644,7 @@ post '/tasks/create' do
     @tasks.each do |task|
       if task.name == params[:name]
         flash[:error] = 'Name already in use, pick another'
-        redirect to ('/tasks/create')
+        redirect to('/tasks/create')
       end
     end
   end
@@ -1138,7 +1138,7 @@ get '/wordlists/delete/:id' do
     @task_list = Tasks.all(wl_id: @wordlist.id)
     if !@task_list.empty?
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
-      redirect to ('/wordlists/list')
+      redirect to('/wordlists/list')
     end
 
     # remove from filesystem
