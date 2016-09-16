@@ -14,6 +14,9 @@
 Involves installing mysql, resque, and a ruby app (see wiki)  
 [Installation Instructions](https://github.com/hashview/hashview/wiki/Install)
 
+### Legal and Licensing
+Governance policy for Hashview projects is described here.
+
 ### Authors
 @caseycammilleri  
 @jarsnah12  
