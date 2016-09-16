@@ -42,7 +42,7 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  if ! validSession?
+  if !validSession?
     redirect to('/login')
   else
     settings = Settings.first
@@ -1321,7 +1321,7 @@ get '/analytics' do
       #@duphashes = Hash[@duphashes.sort_by { |k, v| -v }]
 
       users_same_password = []
-      @password_users ={}
+      @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
         dups = Targets.all(fields: [:username, :plaintext, :cracked], hashfile_id: params[:hf_id], customer_id: params[:custid], originalhash: hash[0])
@@ -1331,7 +1331,7 @@ get '/analytics' do
             users_same_password << d.username
             #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
           else
-            users_same_password << "NULL"
+            users_same_password << 'NULL'
           end
           if d.cracked
             hash[0] = d.plaintext
@@ -1536,15 +1536,15 @@ post '/search' do
   @customers = Customers.all
 
   if params[:value].nil? || params[:value].empty?
-    flash[:error] = "Please provide a search term"
+    flash[:error] = 'Please provide a search term'
     redirect to('/search')
   end
 
-  if params[:search_type].to_s == "password"
+  if params[:search_type].to_s == 'password'
     @results = Targets.all(plaintext: params[:value])
-  elsif params[:search_type].to_s == "username"
+  elsif params[:search_type].to_s == 'username'
     @results = Targets.all(username: params[:value])
-  elsif params[:search_type] == "hash"
+  elsif params[:search_type] == 'hash'
     @results = Targets.all(originalhash: params[:value])
   end
 

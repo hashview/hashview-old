@@ -16,6 +16,9 @@ engines:
     enabled: true
   rubocop:
     enabled: true
+    checks:
+      Rubocop/Metrics/LineLength:
+        enabled: false
 ratings:
   paths:
   - "**.css"

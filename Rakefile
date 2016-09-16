@@ -111,7 +111,7 @@ namespace :db do
       raise 'Error in creating default dictionary task'
     end
 
-    # Create Default Dictionary + Rule Task 
+    # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
       "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + Best64 Rules', '1', 'dictionary', 'best64.rule')".inspect
@@ -122,7 +122,7 @@ namespace :db do
       raise 'Error in creating default dictionary task + rule'
     end
 
-    # Create Default Mask task 
+    # Create Default Mask task
     puts '[*] Setting up default mask task'
     query = [
       "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode, hc_mask) VALUES ('Lower Alpha 7char', 'maskmode', '?l?l?l?l?l?l?l')".inspect
@@ -143,8 +143,6 @@ namespace :db do
     rescue
       raise 'Error in creating default bute taski'
     end
-
-
 
   end
 
