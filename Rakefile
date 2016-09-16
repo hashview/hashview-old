@@ -67,17 +67,6 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
 
-    #puts '[*] Setting up default user ...'
-    ## Create Default User
-    #query = [
-    #  "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO users (username, hashed_password, admin, email) VALUES ('test', '$2a$10$J5F2/EfT9xX5k5.VHVLvV.BAI/aFX..aHNJlnD/vKq5VXxJ3GnEPW', '1', 'test@test.com')".inspect
-    #]
-    #begin
-    #  system(query.compact.join(" "))
-    #rescue
-    #  raise "Error in creating default wordlist"
-    #end
-
     puts '[*] Setting up default settings ...'
     # Create Default Settings
     query = [
@@ -113,16 +102,52 @@ namespace :db do
       raise "Error in creating default wordlist"
     end
 
-    # Create Default Task
-    puts '[*] Setting up default task'
+    # Create Default Task Dictionary
+    puts '[*] Setting up default dictionary'
     query = [
-      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '1', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(" "))
     rescue
-      raise "Error in creating default tasklist"
+      raise "Error in creating default dictionary task"
     end
+
+    # Create Default Dictionary + Rule Task 
+    puts '[*] Setting up default dictionary + rule task'
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + Best64 Rules', '1', 'dictionary', 'best64.rule')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default dictionary task + rule"
+    end
+
+    # Create Default Mask task 
+    puts '[*] Setting up default mask task'
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode, hc_mask) VALUES ('Lower Alpha 7char', 'maskmode', '?l?l?l?l?l?l?l')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default mask task"
+    end
+
+    # Create Default Raw Brute
+    puts '[*] Setting up default bute task'
+    query = [
+      "mysql", "--user=#{user}", "--password=#{password}", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode) VALUES ('Raw Brute', 'bruteforce')".inspect
+    ]
+    begin
+      system(query.compact.join(" "))
+    rescue
+      raise "Error in creating default bute task"
+    end
+
+
+
   end
 
   namespace :auto do
