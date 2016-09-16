@@ -9,7 +9,7 @@ Rake::TestTask.new do |t|
   t.verbose
 end
 
-desc "Setup test database"
+desc 'Setup test database'
 namespace :db do
   task :create do
     if ENV['RACK_ENV'].nil?
@@ -145,7 +145,7 @@ namespace :db do
   end
 
   namespace :auto do
-    desc "Perform auto migration (reset your db data)"
+    desc 'Perform auto migration (reset your db data)'
     task :migrate do
       if ENV['RACK_ENV'].nil?
         ENV['RACK_ENV'] = 'development'
@@ -156,7 +156,7 @@ namespace :db do
       puts "db:auto:migrate executed"
     end
 
-    desc "Perform non destructive auto migration"
+    desc 'Perform non destructive auto migration'
     task :upgrade do
       if ENV['RACK_ENV'].nil?
         ENV['RACK_ENV'] = 'development'
