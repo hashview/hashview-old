@@ -15,7 +15,7 @@ elsif ENV['RACK_ENV'] == 'development'
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   DataMapper.setup(:default, options['production'])
 else
-  puts "ERROR: You must define an evironment. ex: RACK_ENV=production"
+  puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
   exit
 end
 
