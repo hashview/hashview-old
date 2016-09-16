@@ -21,7 +21,7 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset']   || ENV['CHARSET']   || 'utf8'
+    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     # create database in mysql for datamapper
@@ -45,7 +45,7 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset']   || ENV['CHARSET']   || 'utf8'
+    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     # create database in mysql for datamapper
