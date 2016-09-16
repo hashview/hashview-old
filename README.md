@@ -17,10 +17,20 @@ Involves installing mysql, resque, and a ruby app (see wiki)
 |-------------------|
 |[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=master)](https://travis-ci.com/hashview/hashview)|
 
-### Legal and Licensing
+Developing and Contributing
+--------------------------
+
+Please see the [Contribution Guide][] for how to develop and contribute.
+
+If you have any problems, please consult the [known issues][], developer [FAQ][], and [GitHub issues][].
+If you do not see your problem captured, please file a [new issue][] and follow the provided template.
+
+Legal and Licensing
+-------------------
 Governance policy for Hashview projects is described here.
 
-### Authors
+Authors
+-------------------
 @caseycammilleri  
 @jarsnah12  
 
