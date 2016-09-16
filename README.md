@@ -1,6 +1,8 @@
 # Hashview
-
-[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=dev)](https://travis-ci.com/hashview/hashview)
+### Build status of master branches
+| Travis CI (Linux) |
+|-------------------|
+|[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=dev)](https://travis-ci.com/hashview/hashview)|
 
 >**Hashview** is a tool for security professionals to help organize and automate the repetitious tasks related to password cracking. Hashview is a web application that manages hashcat (https://hashcat.net) commands. Hashview strives to bring constiency in your hashcat tasks while delivering analytics with pretty pictures ready for ctrl+c, ctrl+v into your reports.
 
