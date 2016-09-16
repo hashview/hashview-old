@@ -19,10 +19,6 @@ else
   exit
 end
 
-
-# use for sqlite db
-# DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
-
 # User class object to handle user account credentials
 class User
   include DataMapper::Resource
@@ -70,7 +66,6 @@ class User
     user = User.first(id: id)
     user.destroy
   end
-
 end
 
 # Class to handle authenticated sessions
