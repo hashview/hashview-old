@@ -13,11 +13,11 @@ def hashcatParser(file)
       status['Input_Mode'] = line.split(': ')[-1].strip
     elsif line.start_with?('Speed.Dev.')
       item = line.split(': ')
-      gpu = item[0].gsub!('Speed.Dev.','Speed Dev ').gsub!('.','')
+      gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')
       status[gpu] = line.split(': ')[-1].strip
     elsif line.start_with?('HWMon.Dev.')
       item = line.split('.: ')
-      gpu = item[0].gsub!('HWMon.Dev.','HWMon Dev ').gsub!('.','')
+      gpu = item[0].gsub!('HWMon.Dev.', 'HWMon Dev ').gsub!('.', '')
       status[gpu] = line.split('.: ')[-1].strip
     end
   end
