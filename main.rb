@@ -1535,10 +1535,12 @@ post '/search' do
     redirect to('/search')
   end
 
-  if username
-    @results = Targets.all(username: username)
-  elsif hash
-    @results = Targets.all(originalhash: hash)
+  if params[:search_type].to_s == "password"
+    @results = Targets.all(plaintext: params[:value])
+  elsif params[:search_type].to_s == "username"
+    @results = Targets.all(username: params[:value])
+  elsif params[:search_type] == "hash"
+    @results = Targets.all(originalhash: params[:value])
   end
 
   haml :search_post
