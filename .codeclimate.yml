@@ -21,6 +21,8 @@ engines:
         enabled: false
       Rubocop/Metrics/AbcSize:
         enabled: false
+      Rubocop/Metrics/MethodLength:
+        enabled: false
 ratings:
   paths:
   - "**.css"
