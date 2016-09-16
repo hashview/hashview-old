@@ -19,6 +19,8 @@ engines:
     checks:
       Rubocop/Metrics/LineLength:
         enabled: false
+      Rubocop/Metrics/AbcSize:
+        enabled: false
 ratings:
   paths:
   - "**.css"

@@ -640,7 +640,7 @@ post '/tasks/create' do
   end
 
   @tasks = Tasks.all(name: params[:name])
-  if ! @tasks.nil?
+  unless @tasks.nil?
     @tasks.each do |task|
       if task.name == params[:name]
         flash[:error] = 'Name already in use, pick another'
@@ -1037,8 +1037,6 @@ get '/settings' do
 end
 
 post '/settings' do
-  #varWash(params)
-
   if params[:hcbinpath].nil? || params[:hcbinpath].empty?
     flash[:error] = 'You must set the path for your hashcat binary.'
     redirect('/settings')
@@ -1056,7 +1054,7 @@ post '/settings' do
   end
 
   settings = Settings.first
-  
+
   settings.hcbinpath = params[:hcbinpath] unless params[:hcbinpath].nil? || params[:hcbinpath].empty?
   settings.maxtasktime = params[:maxtasktime] unless params[:maxtasktime].nil? || params[:maxtasktime].empty?
   settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].nil?

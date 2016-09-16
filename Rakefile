@@ -143,7 +143,6 @@ namespace :db do
     rescue
       raise 'Error in creating default bute taski'
     end
-
   end
 
   namespace :auto do

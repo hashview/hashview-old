@@ -187,7 +187,7 @@ class Settings
   property :smtp_user, String
   property :smtp_pass, String
   property :smtp_use_tls, Boolean
-  property :smtp_auth_type, String  # Options are plain, login, cram_md5, none
+  property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
 end
 
