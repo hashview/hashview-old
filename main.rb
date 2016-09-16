@@ -228,7 +228,7 @@ get '/customers/list' do
   @total_hashes = []
   @total_hashfiles = []
 
-  @customers.each do | customer |
+  @customers.each do |customer|
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
     @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
     @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
@@ -1198,7 +1198,7 @@ end
 get '/hashfiles/delete' do
   varWash(params)
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
-  @hashfile.destroy() unless @hashfile.nil?
+  @hashfile.destroy unless @hashfile.nil?
 
   flash[:success] = 'Successfuly removed hashfile.'
 
@@ -1315,8 +1315,6 @@ get '/analytics' do
       end
       # this will only display top 10 hash/passwords shared by users
       @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
-      # this will only display all hash/passwords shared by users
-      #@duphashes = Hash[@duphashes.sort_by { |k, v| -v }]
 
       users_same_password = []
       @password_users = {}
@@ -1327,7 +1325,6 @@ get '/analytics' do
         dups.each do |d|
           if !d.username.nil?
             users_same_password << d.username
-            #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
           else
             users_same_password << 'NULL'
           end
@@ -1354,7 +1351,7 @@ get '/analytics' do
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
-      @total_run_time = Hashfiles.sum(:total_run_time, conditions: {:customer_id => params[:custid]})
+      @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:custid] })
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1426,7 +1423,7 @@ get '/analytics/graph1' do
 
   # convert to array of json objects for d3
   @passwords.each do |key, value|
-    @counts << {length: key, count: value}
+    @counts << { length: key, count: value }
   end
 
   return @counts.to_json

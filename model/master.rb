@@ -213,6 +213,3 @@ class Hashfiles
 end
 
 DataMapper.finalize
-
-# automatically update db based on model changes
-#DataMapper.auto_upgrade!
