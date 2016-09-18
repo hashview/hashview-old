@@ -930,14 +930,6 @@ get '/jobs/start/:id' do
   redirect to('/home')
 end
 
-get '/jobs/queue' do
-  if isDevelopment?
-    redirect to('http://192.168.15.244:5678')
-  else
-    return redis.keys
-  end
-end
-
 get '/jobs/stop/:id' do
   varWash(params)
 
