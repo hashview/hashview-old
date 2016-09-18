@@ -116,6 +116,30 @@ get '/not_authorized' do
   return 'You are not authorized.'
 end
 
+get '/' do
+  @users = User.all
+  if @users.empty?
+    redirect to('/register')
+  elsif !validSession?
+    redirect to('/login')
+  else
+    redirect to('/home')
+  end
+end
+
+############################
+
+### Register controllers ###
+
+get '/register' do
+  @users = User.all
+  
+  # Prevent registering of multiple admins
+  redirect to('/') unless @users.empty?
+
+  haml :register
+end
+
 post '/register' do
   varWash(params)
   if !params[:username] || params[:username].nil? || params[:username].empty?
@@ -151,17 +175,6 @@ post '/register' do
   end
 
   redirect to('/home')
-end
-
-get '/' do
-  @users = User.all
-  if @users.empty?
-    redirect to('/register')
-  elsif !validSession?
-    redirect to('/login')
-  else
-    redirect to('/home')
-  end
 end
 
 ############################
@@ -212,10 +225,6 @@ get '/home' do
   end
 
   haml :home
-end
-
-get '/register' do
-  haml :register
 end
 
 ############################
