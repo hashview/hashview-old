@@ -46,7 +46,7 @@ before /^(?!\/(login|register|logout))/ do
     redirect to('/login')
   else
     settings = Settings.first
-    if settings && settings.hcbinpath.nil?
+    if (settings && settings.hcbinpath.nil?) or settings.nil?
       flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
     end
   end
@@ -1055,6 +1055,10 @@ post '/settings' do
   end
 
   settings = Settings.first
+
+  if settings.nil?
+    settings = Settings.create
+  end
 
   settings.hcbinpath = params[:hcbinpath] unless params[:hcbinpath].nil? || params[:hcbinpath].empty?
   settings.maxtasktime = params[:maxtasktime] unless params[:maxtasktime].nil? || params[:maxtasktime].empty?
