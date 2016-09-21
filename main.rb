@@ -133,7 +133,7 @@ end
 
 get '/register' do
   @users = User.all
-  
+
   # Prevent registering of multiple admins
   redirect to('/') unless @users.empty?
 
@@ -1219,8 +1219,8 @@ get '/purge' do
   @total_cracked_count = 0
   # count all hashes not associated with an active customer
   @customersids.each do |custid|
-    total_targets = Targets.count(:customer_id.not => custid.customerid)
-    total_cracked = Targets.count(:customer_id.not => custid.customerid, :cracked => 1)
+    total_targets = Targets.count(:customer_id.not => custid.customer_id)
+    total_cracked = Targets.count(:customer_id.not => custid.customer_id, :cracked => 1)
     @total_target_count = @total_target_count + total_targets
     @total_cracked_count = @total_cracked_count + total_cracked
   end
