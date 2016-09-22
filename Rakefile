@@ -12,9 +12,13 @@ end
 desc 'Setup test database'
 namespace :db do
 
+  desc 'create, setup schema, and load defaults into db. do this on clean install'
   task :setup => [:create, :upgrade, :provision_defaults]
-  task :setup_clean => [:create, :upgrade]
+  desc 'create and setup schema'
+  task :clean => [:create, :upgrade]
+  desc 'destroy db, create db, setup schema, load defaults'
   task :reset => [:destroy, :create, :upgrade, :provision_defaults]
+  desc 'destroy db, create db, setup schema'
   task :reset_clean => [:destroy, :create, :upgrade]
 
   task :create do
@@ -106,7 +110,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '1', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(" "))
