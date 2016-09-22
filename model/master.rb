@@ -15,13 +15,9 @@ elsif ENV['RACK_ENV'] == 'development'
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   DataMapper.setup(:default, options['production'])
 else
-  puts "ERROR: You must define an evironment. ex: RACK_ENV=production"
+  puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
   exit
 end
-
-
-# use for sqlite db
-# DataMapper.setup(:default, "sqlite://#{Dir.pwd}/db/master.db")
 
 # User class object to handle user account credentials
 class User
@@ -70,7 +66,6 @@ class User
     user = User.first(id: id)
     user.destroy
   end
-
 end
 
 # Class to handle authenticated sessions
@@ -186,6 +181,8 @@ class Settings
   property :smtp_server, String
   property :smtp_user, String
   property :smtp_pass, String
+  property :smtp_use_tls, Boolean
+  property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
 end
 
@@ -211,6 +208,3 @@ class Hashfiles
 end
 
 DataMapper.finalize
-
-# automatically update db based on model changes
-#DataMapper.auto_upgrade!

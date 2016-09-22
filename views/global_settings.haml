@@ -1,6 +1,18 @@
 !!!
 %html
   %body
+    :javascript
+      function showDiv() {
+        var Index = document.settings_form.smtp_auth_type.options[document.settings_form.smtp_auth_type.selectedIndex].value
+        if(Index != "None")
+        {
+          document.getElementById('smtp_auth_div').style.display = 'inline';
+        }
+        else
+        {
+          document.getElementById('smtp_auth_div').style.display = 'none';
+        }
+      }
     .span15
       %br
       .container
@@ -8,7 +20,7 @@
         %br
         .row
           .col-md-10
-            %form{:class => "form-horizontal", :action => "/settings", :method => "post"}
+            %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
               .form-group
                 %label.control-label.col-xs-2{:for => ""} Hashcat Binary Path
                 .col-xs-10
@@ -33,19 +45,39 @@
                   - else
                     %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'} 
               .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Username 
-                .col-xs-10
-                  - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+                %label.control-label.col-xs-2{:for => ""} Use TLS
+                .col-xs-1.pull-left
+                  - if @settings and @settings.smtp_use_tls == true
+                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
                   - else
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'} 
+                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
+
               .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Password
+                %label.control-label.col-xs-2{:for => ""} SMTP Auth type
                 .col-xs-10
-                  - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
-                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
-                  - else
-                    %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'} 
+                  %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
+                    - @auth_types.each do |auth_type|
+                      - if @settings and (@settings.smtp_auth_type == auth_type)
+                        %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
+                      - else
+                        %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
+              .section
+                %div{:class => "label_leftalign field"}
+                  #smtp_auth_div{:style => "display:none"}
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} SMTP Username 
+                      .col-xs-10
+                        - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
+                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+                        - else
+                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'} 
+                    .form-group
+                      %label.control-label.col-xs-2{:for => ""} SMTP Password
+                      .col-xs-10
+                        - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
+                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
+                        - else
+                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'} 
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Save

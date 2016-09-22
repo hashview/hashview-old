@@ -42,12 +42,12 @@ redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
-  if ! validSession?
+  if !validSession?
     redirect to('/login')
   else
     settings = Settings.first
-    if settings && settings.hcbinpath.nil?
-      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings before I can work.'
+    if (settings && settings.hcbinpath.nil?) or settings.nil?
+      flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
     end
   end
 end
@@ -116,6 +116,30 @@ get '/not_authorized' do
   return 'You are not authorized.'
 end
 
+get '/' do
+  @users = User.all
+  if @users.empty?
+    redirect to('/register')
+  elsif !validSession?
+    redirect to('/login')
+  else
+    redirect to('/home')
+  end
+end
+
+############################
+
+### Register controllers ###
+
+get '/register' do
+  @users = User.all
+
+  # Prevent registering of multiple admins
+  redirect to('/') unless @users.empty?
+
+  haml :register
+end
+
 post '/register' do
   varWash(params)
   if !params[:username] || params[:username].nil? || params[:username].empty?
@@ -151,17 +175,6 @@ post '/register' do
   end
 
   redirect to('/home')
-end
-
-get '/' do
-  @users = User.all
-  if @users.empty?
-    redirect to('/register')
-  elsif !validSession?
-    redirect to('/login')
-  else
-    redirect to('/home')
-  end
 end
 
 ############################
@@ -214,10 +227,6 @@ get '/home' do
   haml :home
 end
 
-get '/register' do
-  haml :register
-end
-
 ############################
 
 ### customer controllers ###
@@ -228,7 +237,7 @@ get '/customers/list' do
   @total_hashes = []
   @total_hashfiles = []
 
-  @customers.each do | customer |
+  @customers.each do |customer|
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
     @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
     @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
@@ -640,9 +649,13 @@ post '/tasks/create' do
   end
 
   @tasks = Tasks.all(name: params[:name])
-  if ! @tasks.nil?
-    flash[:error] = 'Name already in use, pick another'
-    redirect to ('/tasks/create')
+  unless @tasks.nil?
+    @tasks.each do |task|
+      if task.name == params[:name]
+        flash[:error] = 'Name already in use, pick another'
+        redirect to('/tasks/create')
+      end
+    end
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
@@ -917,14 +930,6 @@ get '/jobs/start/:id' do
   redirect to('/home')
 end
 
-get '/jobs/queue' do
-  if isDevelopment?
-    redirect to('http://192.168.15.244:5678')
-  else
-    return redis.keys
-  end
-end
-
 get '/jobs/stop/:id' do
   varWash(params)
 
@@ -1023,6 +1028,8 @@ end
 get '/settings' do
   @settings = Settings.first
 
+  @auth_types = ['None', 'Plain', 'Login', 'cram_md5']
+
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
   end
@@ -1031,8 +1038,6 @@ get '/settings' do
 end
 
 post '/settings' do
-  varWash(params)
-
   if params[:hcbinpath].nil? || params[:hcbinpath].empty?
     flash[:error] = 'You must set the path for your hashcat binary.'
     redirect('/settings')
@@ -1043,19 +1048,26 @@ post '/settings' do
     redirect('/settings')
   end
 
-  values = request.POST
-
-  @settings = Settings.first
-
-  if @settings.nil?
-    # create settings for the first time
-    # set max task time if none is provided
-    @newsettings = Settings.create(values)
-    @newsettings.save
+  if params[:smtp_use_tls] == 'on'
+    params[:smtp_use_tls] = '1'
   else
-    # update settings
-    @settings.update(values)
+    params[:smtp_use_tls] = '0'
   end
+
+  settings = Settings.first
+
+  if settings.nil?
+    settings = Settings.create
+  end
+
+  settings.hcbinpath = params[:hcbinpath] unless params[:hcbinpath].nil? || params[:hcbinpath].empty?
+  settings.maxtasktime = params[:maxtasktime] unless params[:maxtasktime].nil? || params[:maxtasktime].empty?
+  settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].nil?
+  settings.smtp_auth_type = params[:smtp_auth_type] unless params[:smtp_auth_type].nil? || params[:smtp_auth_type].empty?
+  settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
+  settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
+  settings.smtp_pass = params[:smtp_pass] unless params[:smtp_pass].nil? || params[:smtp_pass].empty?
+  settings.save
 
   flash[:success] = 'Settings updated successfully.'
 
@@ -1131,7 +1143,7 @@ get '/wordlists/delete/:id' do
     @task_list = Tasks.all(wl_id: @wordlist.id)
     if !@task_list.empty?
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
-      redirect to ('/wordlists/list')
+      redirect to('/wordlists/list')
     end
 
     # remove from filesystem
@@ -1191,7 +1203,7 @@ end
 get '/hashfiles/delete' do
   varWash(params)
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
-  @hashfile.destroy() unless @hashfile.nil?
+  @hashfile.destroy unless @hashfile.nil?
 
   flash[:success] = 'Successfuly removed hashfile.'
 
@@ -1211,8 +1223,8 @@ get '/purge' do
   @total_cracked_count = 0
   # count all hashes not associated with an active customer
   @customersids.each do |custid|
-    total_targets = Targets.count(:customer_id.not => custid.customerid)
-    total_cracked = Targets.count(:customer_id.not => custid.customerid, :cracked => 1)
+    total_targets = Targets.count(:customer_id.not => custid.customer_id)
+    total_cracked = Targets.count(:customer_id.not => custid.customer_id, :cracked => 1)
     @total_target_count = @total_target_count + total_targets
     @total_cracked_count = @total_cracked_count + total_cracked
   end
@@ -1308,11 +1320,9 @@ get '/analytics' do
       end
       # this will only display top 10 hash/passwords shared by users
       @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
-      # this will only display all hash/passwords shared by users
-      #@duphashes = Hash[@duphashes.sort_by { |k, v| -v }]
 
       users_same_password = []
-      @password_users ={}
+      @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
         dups = Targets.all(fields: [:username, :plaintext, :cracked], hashfile_id: params[:hf_id], customer_id: params[:custid], originalhash: hash[0])
@@ -1320,9 +1330,8 @@ get '/analytics' do
         dups.each do |d|
           if !d.username.nil?
             users_same_password << d.username
-            #puts "user: #{d.username} hash: #{hash[0]} password: #{d.plaintext}"
           else
-            users_same_password << "NULL"
+            users_same_password << 'NULL'
           end
           if d.cracked
             hash[0] = d.plaintext
@@ -1347,7 +1356,7 @@ get '/analytics' do
       @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
-      @total_run_time = Hashfiles.sum(:total_run_time, conditions: {:customer_id => params[:custid]})
+      @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:custid] })
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1419,7 +1428,7 @@ get '/analytics/graph1' do
 
   # convert to array of json objects for d3
   @passwords.each do |key, value|
-    @counts << {length: key, count: value}
+    @counts << { length: key, count: value }
   end
 
   return @counts.to_json
@@ -1527,14 +1536,16 @@ post '/search' do
   @customers = Customers.all
 
   if params[:value].nil? || params[:value].empty?
-    flash[:error] = "Please provide a search term"
+    flash[:error] = 'Please provide a search term'
     redirect to('/search')
   end
 
-  if username
-    @results = Targets.all(username: username)
-  elsif hash
-    @results = Targets.all(originalhash: hash)
+  if params[:search_type].to_s == 'password'
+    @results = Targets.all(plaintext: params[:value])
+  elsif params[:search_type].to_s == 'username'
+    @results = Targets.all(username: params[:value])
+  elsif params[:search_type] == 'hash'
+    @results = Targets.all(originalhash: params[:value])
   end
 
   haml :search_post

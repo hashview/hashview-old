@@ -12,10 +12,11 @@
         .row
           .col-md-12
             %form{:action => "/search", :method => "post"}
-              .form-group.col-xs-3
-                %select.form-control{:name => "search_type"}
+              .form-group.col-xs-2
+                %select.form-control{:id => "search_type", :name => "search_type"}
                   %option{:value => "username", :name => "search_type", :type => "button"} Username
                   %option{:value => "hash", :name => "search_type", :type => "button"} Hash
+                  %option{:value => "password", :name => "search_type", :type => "button"} Password
               .form-group.col-md-8
                 %input{:type => "textbox", :class => "form-control", :name => "value", :id => "value", :placeholder => "Search for..."}
               .form-group.col-xs-2
