@@ -26,7 +26,7 @@ namespace :db do
 
     # create database in mysql for datamapper
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "CREATE DATABASE #{database} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "CREATE DATABASE #{database} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -50,7 +50,7 @@ namespace :db do
 
     # create database in mysql for datamapper
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "DROP DATABASE #{database}".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "DROP DATABASE #{database}".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -68,7 +68,7 @@ namespace :db do
     puts '[*] Setting up default settings ...'
     # Create Default Settings
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (maxtasktime) VALUES ('68400')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (maxtasktime) VALUES ('68400')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -79,7 +79,7 @@ namespace :db do
     puts '[*] Setting up default customer ...'
     # Create Default customer
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO customers (name, description) VALUES ('test', 'test')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO customers (name, description) VALUES ('test', 'test')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -91,7 +91,7 @@ namespace :db do
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'control/wordlists/password', '3546')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'control/wordlists/password', '3546')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -102,7 +102,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      "mysql", "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('DEFAULT TASK', '1', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(" "))
