@@ -11,12 +11,17 @@ end
 
 desc 'Setup test database'
 namespace :db do
+
+  task :setup => [:create, :upgrade, :provision_defaults]
+  task :setup_clean => [:create, :upgrade]
+  task :reset => [:destroy, :create, :upgrade, :provision_defaults]
+  task :reset_clean => [:destroy, :create, :upgrade]
+
   task :create do
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
     puts "setting up database for environment: #{ENV['RACK_ENV']}"
-    #ENV['RACK_ENV'] = 'test'
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
@@ -40,7 +45,6 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
     puts "destroying database for environment: #{ENV['RACK_ENV']}"
-    #ENV['RACK_ENV'] = 'test'
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
@@ -48,7 +52,7 @@ namespace :db do
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
-    # create database in mysql for datamapper
+    # destroy database in mysql for datamapper
     query = [
       'mysql', "--user=#{user}", "--password=#{password}", "--host=#{host} -e", "DROP DATABASE #{database}".inspect
     ]
@@ -144,26 +148,13 @@ namespace :db do
     end
   end
 
-  namespace :auto do
-    desc 'Perform auto migration (reset your db data)'
-    task :migrate do
-      if ENV['RACK_ENV'].nil?
-        ENV['RACK_ENV'] = 'development'
-      end
-      require_relative 'model/master.rb'
-      DataMapper.finalize
-      DataMapper.auto_upgrade!
-      puts "db:auto:migrate executed"
+  desc 'Perform non destructive auto migration'
+  task :upgrade do
+    if ENV['RACK_ENV'].nil?
+      ENV['RACK_ENV'] = 'development'
     end
-
-    desc 'Perform non destructive auto migration'
-    task :upgrade do
-      if ENV['RACK_ENV'].nil?
-        ENV['RACK_ENV'] = 'development'
-      end
-      DataMapper.repository.auto_upgrade!
-      puts "db:auto:upgrade executed"
-    end
+    DataMapper.repository.auto_upgrade!
+    puts "db:auto:upgrade executed"
   end
 
 end
