@@ -410,25 +410,33 @@ post '/customers/upload/verify_hashtype' do
 
   # detect if hash was previously cracked
   # build hash of hashes and plains
-  cracks = {}
-  @all_cracked_targets = Targets.all(cracked: 1)
-  @all_cracked_targets.each do |ct|
-    cracks[ct.originalhash.chomp.to_s] = ct.plaintext
-  end
-
-  # match already cracked hashes against hashes to be uploaded, update db
-  # matches = []
-  count = 0
-  hash_array.each do |hash|
-    hash = hash.chomp.to_s
-    if cracks.key?(hash)
-      Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
-      count = count + 1
+  if  params[:retro_crack]
+    puts "detecting previously cracked hashes"
+    cracks = {}
+    @all_cracked_targets = Targets.all(cracked: 1)
+    @all_cracked_targets.each do |ct|
+      cracks[ct.originalhash.chomp.to_s] = ct.plaintext
     end
-  end
 
-  if count > 0
-    flash[:success] = "Hashview has previous cracked #{count} of these hashes"
+    # modify hash array if it is a pwdump
+    if filetype == "pwdump"
+      hash_array.map! {|item| item = item.split(":")[3].downcase}
+    end
+
+    # match already cracked hashes against hashesl to be uploaded, update db
+    # matches = []
+    count = 0
+    hash_array.each do |hash|
+      hash = hash.chomp.downcase.to_s
+      if cracks.key?(hash)
+        Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
+        count = count + 1
+      end
+    end
+
+    if count > 0
+      flash[:success] = "Hashview has previous cracked #{count} of these hashes"
+    end
   end
 
   # Delete file, no longer needed
