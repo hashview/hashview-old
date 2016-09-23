@@ -51,7 +51,7 @@ def importPwdump(hash, customer_id, hashfile_id, type)
     # import NTLM
     target_ntlm = Targets.new
     target_ntlm.username = data[0]
-    target_ntlm.originalhash = data[3].downcase
+    target_ntlm.originalhash = data[3]
     target_ntlm.hashtype = '1000'
     target_ntlm.hashfile_id = hashfile_id
     target_ntlm.customer_id = customer_id
@@ -103,7 +103,7 @@ def importRaw(hash, customer_id, hashfile_id, type)
 
   else
     target_raw = Targets.new
-    target_raw.originalhash = hash.downcase
+    target_raw.originalhash = hash
     target_raw.hashtype = type
     target_raw.hashfile_id = hashfile_id
     target_raw.customer_id = customer_id
