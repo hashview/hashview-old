@@ -234,12 +234,10 @@ end
 get '/customers/list' do
   @customers = Customers.all
   @total_jobs = []
-  @total_hashes = []
   @total_hashfiles = []
 
   @customers.each do |customer|
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
     @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
   end
 
