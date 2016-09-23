@@ -183,7 +183,7 @@ end
 
 get '/home' do
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
-  @jobs = Jobs.all
+  @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
