@@ -182,8 +182,8 @@ end
 ##### Home controllers #####
 
 get '/home' do
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)" | grep -v sudo`
-  @jobs = Jobs.all
+  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
+  @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
@@ -234,12 +234,10 @@ end
 get '/customers/list' do
   @customers = Customers.all
   @total_jobs = []
-  @total_hashes = []
   @total_hashfiles = []
 
   @customers.each do |customer|
     @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashes[customer.id] = Targets.count(customer_id: customer.id)
     @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
   end
 
@@ -412,25 +410,33 @@ post '/customers/upload/verify_hashtype' do
 
   # detect if hash was previously cracked
   # build hash of hashes and plains
-  cracks = {}
-  @all_cracked_targets = Targets.all(cracked: 1)
-  @all_cracked_targets.each do |ct|
-    cracks[ct.originalhash.chomp.to_s] = ct.plaintext
-  end
-
-  # match already cracked hashes against hashes to be uploaded, update db
-  # matches = []
-  count = 0
-  hash_array.each do |hash|
-    hash = hash.chomp.to_s
-    if cracks.key?(hash)
-      Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
-      count = count + 1
+  if  params[:retro_crack]
+    puts "detecting previously cracked hashes"
+    cracks = {}
+    @all_cracked_targets = Targets.all(cracked: 1)
+    @all_cracked_targets.each do |ct|
+      cracks[ct.originalhash.chomp.to_s] = ct.plaintext
     end
-  end
 
-  if count > 0
-    flash[:success] = "Hashview has previous cracked #{count} of these hashes"
+    # modify hash array if it is a pwdump
+    if filetype == "pwdump"
+      hash_array.map! {|item| item = item.split(":")[3].downcase}
+    end
+
+    # match already cracked hashes against hashesl to be uploaded, update db
+    # matches = []
+    count = 0
+    hash_array.each do |hash|
+      hash = hash.chomp.downcase.to_s
+      if cracks.key?(hash)
+        Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
+        count = count + 1
+      end
+    end
+
+    if count > 0
+      flash[:success] = "Hashview has previous cracked #{count} of these hashes"
+    end
   end
 
   # Delete file, no longer needed
@@ -984,7 +990,7 @@ get '/jobs/stop/:jobid/:taskid' do
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
-  pid = `sudo ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v sudo | awk '{print $2}'`
+  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
   pid = pid.chomp
 
   # update jobtasks to "canceled"
@@ -992,7 +998,7 @@ get '/jobs/stop/:jobid/:taskid' do
   jt.save
 
   # Kill jobtask
-  `sudo kill -9 #{pid}`
+  `kill -9 #{pid}`
 
   referer = request.referer.split('/')
 
@@ -1599,14 +1605,14 @@ def buildCrackCmd(jobid, taskid)
   File.open(crack_file, 'w')
 
   if attackmode == 'bruteforce'
-    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
   elsif attackmode == 'maskmode'
-    cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
   elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
-      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
-      cmd = 'sudo ' + hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
   end
   p cmd

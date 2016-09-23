@@ -3,7 +3,6 @@
   %body
     %p
     .span15
-      %br
       .container
         .row
           .col-md-12
@@ -43,55 +42,65 @@
                                       #{v}
                 - else
                   .jumbotron
-                    I'm probably importing hashes from my last cracked job, please wait...
+                    %center
+                      %h4 Performing pre or post cracking tasks, please wait...
+                    %meta{:content => "3", "http-equiv" => "refresh"}
             - else
               .jumbotron
-                Feed me hashes!!!
+                %center
+                  %h4 Feed me hashes!
+                  %br
+                  %a.btn.btn-primary{:href => "/jobs/create"}
+                    Create a New Job
               %br
           .col-md-4
             .table
               %table{:class => 'table'}
-                %thead
-                  %b Job Queue:
-                  - if @active_jobs.nil?
-                    No HashView jobs are running
+                - if @active_jobs.nil?
+                  %thead
+                    %tr
+                      %td
+                        %b Job Queue:
+                  %tbody
+                    %tr
+                      %td
+                        No Hashview jobs are running
+                - else
+                  %thead
+                    %b Job Queue:
+                  %tbody
+                    - @jobs.each do |job|
+                      - if job.status == 'Running' || job.status == 'Queued'
+                        %tr
+                          %td
+                            - @customers.each do |customer|
+                              - if customer.id == job.customer_id
+                                %strong #{customer.name}:#{job.name}
+                          %td
+                          %td
+                        %tr
+                        - @jobtasks.each do |jt|
+                          - if job.id == jt.job_id
+                            - @tasks.each do |task|
+                              - if task.id == jt.task_id
+                                %tr
+                                  %td
+                                    #{task.name}
+                                  %td
+                                    %div{:align => "right"}
+                                      - if jt.status == "Queue"
+                                        %span.label.label-default #{jt.status}
+                                      - elsif jt.status == "Completed"
+                                        %span.label.label-primary #{jt.status}
+                                      - elsif jt.status == "Running"
+                                        %span.label.label-success #{jt.status}
+                                      - else
+                                        %span.label.label-default #{jt.status}
+                                  %td
+                                    - if jt.status == "Running"
+                                      %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                        %b Cancel
                     %br
-                    %br
-                    %a.btn.btn-primary{:href => "/jobs/create"}
-                      Create a New Job
-                %tbody
-                  - @jobs.each do |job|
-                    - if job.status == 'Running' || job.status == 'Queued'
-                      %tr
-                        %td
-                          - @customers.each do |customer|
-                            - if customer.id == job.customer_id
-                              %strong #{customer.name}:#{job.name}
-                        %td
-                        %td
-                      %tr
-                      - @jobtasks.each do |jt|
-                        - if job.id == jt.job_id
-                          - @tasks.each do |task|
-                            - if task.id == jt.task_id
-                              %tr
-                                %td
-                                  #{task.name}
-                                %td
-                                  %div{:align => "right"}
-                                    - if jt.status == "Queue"
-                                      %span.label.label-default #{jt.status}
-                                    - elsif jt.status == "Completed"
-                                      %span.label.label-primary #{jt.status}
-                                    - elsif jt.status == "Running"
-                                      %span.label.label-success #{jt.status}
-                                    - else
-                                      %span.label.label-default #{jt.status}
-                                %td
-                                  - if jt.status == "Running"
-                                    %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
-                                      %b Cancel
-                  %br
           .col-md-4
             .table
               %b GPUs:
@@ -121,24 +130,19 @@
                 %b Recently Cracked Passwords:
                 %br
                 %br
-                %tbody
-                  -if @recentlycracked
-                    %td
-                      %strong Company
+                -if @recentlycracked
+                  %thead
                     %td
                       %strong Username
                     %td
                       %strong Password
-                    %tr
+                  %tbody
                     - @recentlycracked.each do |cracked|
-                      - @customers.each do | customer |
-                        - if customer.id == cracked.customer_id
-                          %td #{customer.name}
-                          %td #{cracked.username}
-                          %td #{cracked.plaintext}
-                        %tr
-                  -else
-                    %b None... lets get cracking!
+                      %tr
+                        %td #{cracked.username}
+                        %td #{cracked.plaintext}
+                -else
+                  %b None... lets get cracking!
 %br
 %br
 %br
