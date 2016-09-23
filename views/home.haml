@@ -128,24 +128,19 @@
                 %b Recently Cracked Passwords:
                 %br
                 %br
-                %tbody
-                  -if @recentlycracked
-                    %td
-                      %strong Company
+                -if @recentlycracked
+                  %thead
                     %td
                       %strong Username
                     %td
                       %strong Password
-                    %tr
+                  %tbody
                     - @recentlycracked.each do |cracked|
-                      - @customers.each do | customer |
-                        - if customer.id == cracked.customer_id
-                          %td #{customer.name}
-                          %td #{cracked.username}
-                          %td #{cracked.plaintext}
-                        %tr
-                  -else
-                    %b None... lets get cracking!
+                      %tr
+                        %td #{cracked.username}
+                        %td #{cracked.plaintext}
+                -else
+                  %b None... lets get cracking!
 %br
 %br
 %br
