@@ -87,7 +87,7 @@ namespace :db do
     puts '[*] Setting up default customer ...'
     # Create Default customer
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO customers (name, description) VALUES ('test', 'test')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO customers (name, description) VALUES ('Acme Corp', 'Default Customer')".inspect
     ]
     begin
       system(query.compact.join(' '))
