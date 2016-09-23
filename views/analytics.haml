@@ -123,44 +123,49 @@
               .panel-heading
                 %b Analysis Details
               .panel-body
-                .table
-                  %table{:class => 'table'}
-                    - if params[:hf_id].nil?
-                      %td
-                        %b All Hashfiles
-                    -else
-                      %td
-                        %b #{@hashfiles.name}
-                    %tr
-                      %td Total Hashes: #{@total_accounts}
-                    %tr
-                      %td Total Unique Users: #{@total_unique_users_count.size}
-                    %tr
-                      %td Total Unique Passwords: #{@total_unique_originalhash_count.size.to_s}
-                    %tr
-                      - if @total_run_time and @total_run_time > 86400
-                        %td Total Run Time: #{@total_run_time.to_f/86400} Days
-                      - elsif @total_run_time and @total_run_time > 3600
-                        %td Total Run Time: #{@total_run_time.to_f/3600} Hours
-                      - elsif @total_run_time and @total_run_time > 60
-                        %td Total Run Time: #{@total_run_time.to_f/60} Minutes
-                      - elsif @total_run_time and @total_run_time >= 0
-                        %td Total Run Time: #{@total_run_time.to_f} Seconds
+                %table{:class => 'table'}
+                  - if params[:hf_id].nil?
+                    %td
+                      %b All Hashfiles
+                    %td
+                  -else
+                    %td
+                      %b #{@hashfiles.name}
+                  %tr
+                    %td Total Hashes: 
+                    %td #{@total_accounts}
+                  %tr
+                    %td Total Unique Users: 
+                    %td #{@total_unique_users_count.size}
+                  %tr
+                    %td Total Unique Passwords: 
+                    %td #{@total_unique_originalhash_count.size.to_s}
+                  %tr
+                    %td Total Run Time:
+                    - if @total_run_time and @total_run_time > 86400
+                      %td #{@total_run_time.to_f/86400} Days
+                    - elsif @total_run_time and @total_run_time > 3600
+                      %td #{@total_run_time.to_f/3600} Hours
+                    - elsif @total_run_time and @total_run_time > 60
+                      %td #{@total_run_time.to_f/60} Minutes
+                    - elsif @total_run_time and @total_run_time >= 0
+                      %td #{@total_run_time.to_f} Seconds
+                    - else
+                      %td Im ready coach, just send me in.
+                  %tr
+                    %td
+                      - if @custid.nil?
+                        %a.btn.btn-primary.pull-left{:href => "/download"}
+                          Download Cracked File
+                      - elsif @custid && @hashfile_id.nil?
+                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
+                          Download Cracked File
+                      - elsif @custid && @hashfile_id
+                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                          Download Cracked File
                       - else
-                        %td Total Run Time: Im ready coach, just send me in.
-                    %tr
-                      %td
-                        - if @custid.nil?
-                          %a.btn.btn-primary.pull-left{:href => "/download"}
-                            Download Cracked File
-                        - elsif @custid && @hashfile_id.nil?
-                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                            Download Cracked File
-                        - elsif @custid && @hashfile_id
-                          %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
-                            Download Cracked File
-                        - else
-                          You shouldnt see me
+                        You shouldnt see me
+                    %td
 
 
           .col-md-12
