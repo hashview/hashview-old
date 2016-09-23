@@ -42,7 +42,9 @@
                                       #{v}
                 - else
                   .jumbotron
-                    I'm probably importing hashes from my last cracked job, please wait...
+                    %center
+                      %h4 Performing pre or post cracking tasks, please wait...
+                    %meta{:content => "3", "http-equiv" => "refresh"}
             - else
               .jumbotron
                 %center
