@@ -39,36 +39,35 @@
               - else
                 %span.label.label-success Feed me nom nom
             - if validSession?
+              %li
+                %a(href="/jobs/list") Jobs
+              %li
+                %a(href="/tasks/list") Tasks
               %li.dropdown
                 %a.dropdown-toggle(data-toggle="dropdown" href="#")
-                  Controls
+                  Manage
                   %b.caret
                 %ul.dropdown-menu
                   %li
                     %a(href="/customers/list") Customers
                   %li
-                    %a(href="/jobs/list") Jobs
-                  %li
-                    %a(href="/tasks/list") Tasks
-                  %li.divider{:role => "separator"}
-                  %li.dropdown-header
-                    Additional Functions
-                  %li
-                    %a(href="/analytics")Analytics
-                  %li
                     %a(href="/wordlists/list")Wordlists
                   %li
                     %a(href='/hashfiles/list')Hashfiles
+                  %li.divider{:role => "separator"}
+                  %li
+                    %a(href="/analytics")Analytics
                   %li
                     %a(href="/search")Search
+                  %li.divider{:role => "separator"}
                   %li
                     %a(href='/accounts/list')User Accounts
                   %li
                     %a(href="/settings")Global Settings
+                  %li
+                    %a(href="/logout")Logout
             %li
-              - if validSession?
-                %a(href="/logout")Logout
-              - else
+              - if !validSession?                
                 %a(href="/login")Login
     - if flash[:info]
       .container
