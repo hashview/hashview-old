@@ -1,36 +1,26 @@
 # Hashview
+[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=master)](https://travis-ci.com/hashview/hashview)
 
 >**Hashview** is a tool for security professionals to help organize and automate the repetitious tasks related to password cracking. Hashview is a web application that manages hashcat (https://hashcat.net) commands. Hashview strives to bring constiency in your hashcat tasks while delivering analytics with pretty pictures ready for ctrl+c, ctrl+v into your reports.
 
 ### Requirements
+
 1. Hashcat installed and working (https://hashcat.net/hashcat/)  
 2. Hashcat installed and working (just double checking)  
 3. A working RVM environment (https://rvm.io/rvm/install)    
 
-### Installation
+## Installation
 
 Involves installing mysql, resque, and a ruby app (see wiki)  
-[Installation Instructions](https://github.com/hashview/hashview/wiki/Install)
+[Installation Instructions](https://github.com/hashview/hashview/wiki/01_Installing-Hashview)
 
-### Build status of master branches
-| Travis CI (Linux) |
-|-------------------|
-|[![Build Status](https://travis-ci.com/hashview/hashview.svg?token=Pu6CSkAzTNcHqXCP8iKM&branch=master)](https://travis-ci.com/hashview/hashview)|
+### Developing and Contributing
 
-Developing and Contributing
---------------------------
+Please see the [Contribution Guide](https://github.com/hashview/hashview/wiki/Contributing) for how to develop and contribute.  
+If you have any problems, please consult [Issues](https://github.com/hashview/hashview/issues) page first. If you don't see a related issue, feel free to add one and we'll help.
 
-Please see the [Contribution Guide][] for how to develop and contribute.
+### Authors
 
-If you have any problems, please consult the [known issues][], developer [FAQ][], and [GitHub issues][].
-If you do not see your problem captured, please file a [new issue][] and follow the provided template.
-
-Legal and Licensing
--------------------
-Governance policy for Hashview projects is described here.
-
-Authors
--------------------
 @caseycammilleri  
 @jarsnah12  
 

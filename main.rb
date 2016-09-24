@@ -208,11 +208,6 @@ get '/home' do
     end
   end
 
-  encrypted_dir = '/data/hashes'
-  @dir_available = File.directory?(encrypted_dir)
-  dict_dir = '/mnt/temp/Dictionaries'
-  @dict_available = File.directory?(dict_dir)
-
   @jobs.each do |j|
     if j.status == 'Running'
       # gather info for statistics
