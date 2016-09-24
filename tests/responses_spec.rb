@@ -210,20 +210,4 @@ class MyTest < MiniTest::Test
     delete_testuser(userid)
   end
 
-  # purge routes
-
-  def test_purge_response
-    userid = login_testuser
-    get '/purge'
-    assert_equal 200, last_response.status
-    delete_testuser(userid)
-  end
-
-  def test_purge_post_response
-    userid = login_testuser
-    post '/purge'
-    assert_equal 302, last_response.status
-    delete_testuser(userid)
-  end
-
 end
