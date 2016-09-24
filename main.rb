@@ -1213,40 +1213,6 @@ end
 
 ############################
 
-##### Purge Data ###########
-
-get '/purge' do
-  varWash(params)
-  # find all customer ids defined in targets
-  @customersids = Targets.all(fields: [:customer_id], unique: true)
-
-  @total_target_count = 0
-  @total_cracked_count = 0
-  # count all hashes not associated with an active customer
-  @customersids.each do |custid|
-    total_targets = Targets.count(:customer_id.not => custid.customer_id)
-    total_cracked = Targets.count(:customer_id.not => custid.customer_id, :cracked => 1)
-    @total_target_count = @total_target_count + total_targets
-    @total_cracked_count = @total_cracked_count + total_cracked
-  end
-
-  haml :purge
-end
-
-post '/purge' do
-  varWash(params)
-  # delete all targets no associated with an active customer
-  @customersids = Targets.all(fields: [:customer_id], unique: true)
-  @customersids.each do |custid|
-    @targets = Targets.all(:customer_id.not => custid.customer_id)
-    @targets.destroy
-  end
-
-  redirect to('/purge')
-end
-
-############################
-
 ##### Analysis #############
 
 # displays analytics for a specific client, job
