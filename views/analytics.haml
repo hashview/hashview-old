@@ -10,7 +10,7 @@
               .btn-group
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
                   - if @custid.nil?
-                    All
+                    All Time
                   - else
                     #{@customers.name}
                   %span.caret
@@ -132,13 +132,13 @@
                     %td
                       %b #{@hashfiles.name}
                   %tr
-                    %td Total Hashes: 
+                    %td Total Hashes:
                     %td #{@total_accounts}
                   %tr
-                    %td Total Unique Users: 
+                    %td Total Unique Users:
                     %td #{@total_unique_users_count.size}
                   %tr
-                    %td Total Unique Passwords: 
+                    %td Total Unique Passwords:
                     %td #{@total_unique_originalhash_count.size.to_s}
                   %tr
                     %td Total Run Time:

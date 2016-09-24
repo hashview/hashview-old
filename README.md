@@ -12,7 +12,7 @@
 ## Installation
 
 Involves installing mysql, resque, and a ruby app (see wiki)  
-[Installation Instructions](https://github.com/hashview/hashview/wiki/Install)
+[Installation Instructions](https://github.com/hashview/hashview/wiki/01_Installing-Hashview)
 
 ### Developing and Contributing
 
