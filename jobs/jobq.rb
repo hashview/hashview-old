@@ -101,7 +101,7 @@ module Jobq
     unless File.zero?(crack_file)
       File.open(crack_file).each_line do |line|
         hash_pass = line.split(/:/)
-        plaintext = hash_pass[1]
+        plaintext = hash_pass[-1] # Get last entry
         plaintext = plaintext.chomp
 
         # This will pull all hashes from DB regardless of job id
@@ -117,15 +117,15 @@ module Jobq
 
    puts '==== import complete ===='
 
-    begin
-      File.delete(crack_file)
-      File.delete(hash_file)
+    #begin
+      #File.delete(crack_file)
+      #File.delete(hash_file)
 
-    rescue SystemCallError
-      p 'ERROR: ' + $!
-    end
+    #rescue SystemCallError
+    #  p 'ERROR: ' + $!
+    #end
 
-    puts '==== Crack File Deleted ===='
+    #puts '==== Crack File Deleted ===='
 
     updateDbStatus(id, 'Completed')
     updateDbRunTime(id, job.hashfile_id, run_time)
