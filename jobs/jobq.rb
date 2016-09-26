@@ -74,9 +74,16 @@ module Jobq
     puts '===== creating hash_file ======='
     targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
     hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+    hashtype = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+
     File.open(hash_file, 'w') do |f|
       targets.each do |entry|
-        f.puts entry.originalhash
+        if hashtype == '5500' || hashtype == '5600'
+          # Hashtype is either NetNTLMv1 or NetNTLMv2
+          f.puts ':::' + entry.originalhash # we dont need to include the username for this
+        else
+          f.puts entry.originalhash
+        end
       end
       f.close
     end
@@ -103,9 +110,14 @@ module Jobq
         hash_pass = line.split(/:/)
         plaintext = hash_pass[-1] # Get last entry
         plaintext = plaintext.chomp
+        if hashtype == '5500' or hashtype == '5600'
+          hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
+        else
+          hash = hash_pass[0]
+        end
 
         # This will pull all hashes from DB regardless of job id
-        records = Targets.all(fields: [:id, :cracked, :originalhash], originalhash: hash_pass[0], cracked: 0)
+        records = Targets.all(fields: [:id, :cracked, :originalhash], originalhash: hash, cracked: 0)
         # Yes its slow... we know.
         records.each do |entry|
           entry.cracked = 1
