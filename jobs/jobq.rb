@@ -74,12 +74,13 @@ module Jobq
     puts '===== creating hash_file ======='
     targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
     hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-    hashtype = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+    hashtype_target = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+    hashtype = hashtype_target.hashtype.to_s
 
     File.open(hash_file, 'w') do |f|
       targets.each do |entry|
-        if hashtype == '5500' || hashtype == '5600'
-          # Hashtype is either NetNTLMv1 or NetNTLMv2
+        if hashtype == '5500' 
+          # Hashtype is NetNTLMv1
           f.puts ':::' + entry.originalhash # we dont need to include the username for this
         else
           f.puts entry.originalhash
@@ -110,8 +111,10 @@ module Jobq
         hash_pass = line.split(/:/)
         plaintext = hash_pass[-1] # Get last entry
         plaintext = plaintext.chomp
-        if hashtype == '5500' or hashtype == '5600'
+        if hashtype == '5500'
           hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
+        elsif hashtype == '5600'
+          hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s + ':' + hash_pass[2].to_s + ':' + hash_pass[3].to_s + ':' + hash_pass[4].to_s + ':' + hash_pass[5].to_s
         else
           hash = hash_pass[0]
         end
@@ -127,17 +130,17 @@ module Jobq
       end
     end
 
-   puts '==== import complete ===='
+    puts '==== import complete ===='
 
-    #begin
-      #File.delete(crack_file)
-      #File.delete(hash_file)
+    begin
+      File.delete(crack_file)
+      File.delete(hash_file)
 
-    #rescue SystemCallError
-    #  p 'ERROR: ' + $!
-    #end
+    rescue SystemCallError
+      p 'ERROR: ' + $!
+    end
 
-    #puts '==== Crack File Deleted ===='
+    puts '==== Crack File Deleted ===='
 
     updateDbStatus(id, 'Completed')
     updateDbRunTime(id, job.hashfile_id, run_time)

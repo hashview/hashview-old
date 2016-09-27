@@ -106,7 +106,7 @@ def importRaw(hash, customer_id, hashfile_id, type)
     fields = hash.split(':')
     target_NetNTLMv1 = Targets.new
     target_NetNTLMv1.username = fields[0]
-    target_NetNTLMv1.originalhash = fields[3] + ':' + fields[4] + ':' + fields[5]
+    target_NetNTLMv1.originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
     target_NetNTLMv1.hashtype = '5500'
     target_NetNTLMv1.hashfile_id = hashfile_id
     target_NetNTLMv1.customer_id = customer_id
@@ -118,7 +118,8 @@ def importRaw(hash, customer_id, hashfile_id, type)
     fields = hash.split(':')
     target_NetNTLMv2 = Targets.new
     target_NetNTLMv2.username = fields[0]
-    target_NetNTLMv2.originalhash = fields[3] + ':' + fields[4] + ':' + fields[5]
+    #target_NetNTLMv2.originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
+    target_NetNTLMv2.originalhash = hash # looks like we need full hash including username, salt, computername
     target_NetNTLMv2.hashtype = '5600'
     target_NetNTLMv2.hashfile_id = hashfile_id
     target_NetNTLMv2.customer_id = customer_id
