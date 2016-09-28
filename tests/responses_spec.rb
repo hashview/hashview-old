@@ -37,15 +37,27 @@ class MyTest < MiniTest::Test
     User.delete_test_user(id)
   end
 
+  def delete_allusers()
+    puts 'Deleteing all users'
+    User.delete_all_users
+  end
+
   def test_login_response
     get '/login'
     # if no users exist in db this will redirect
     assert_equal 302, last_response.status
   end
 
-  def test_register_response
+  def test_register_response_get
     get '/register'
     assert_equal 200, last_response.status
+  end
+
+  def test_register_response_post
+    post '/register', {username: 'reg_test', password: 'tryharder', confirm: 'tryharder'}
+    #assert_equal 'test', flash[:success]
+    assert_equal 302, last_response.status
+    delete_allusers() 
   end
 
   def test_successful_login
