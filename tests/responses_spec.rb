@@ -24,6 +24,23 @@ class MyTest < MiniTest::Test
     Sinatra::Application
   end
 
+  ##############################
+  #### Supporting Functions ####
+  ##############################
+
+  # Deletes single user by id
+  def delete_testuser(id)
+    puts "deleting test user #{id}"
+    User.delete_test_user(id)
+  end
+
+  # Deletes all users
+  def delete_all_users()
+    puts 'Deleteing all users'
+    User.delete_all_users
+  end
+
+  # Logs in a single test user
   def login_testuser
     @user = build(:user, username: "test", password: "omgplains", admin: true)
     @userid = User.create_test_user
@@ -31,76 +48,117 @@ class MyTest < MiniTest::Test
     return @userid
   end
 
-  # there has to be a better way to hook the end of a rake test
-  def delete_testuser(id)
-    puts "deleting test user #{id}"
-    User.delete_test_user(id)
-  end
+  #######################
+  #### Route Testing ####
+  #######################
 
-  def delete_allusers()
-    puts 'Deleteing all users'
-    User.delete_all_users
-  end
+  #### Register Tests ####
 
-  def test_login_response
-    get '/login'
-    # if no users exist in db this will redirect
-    assert_equal 302, last_response.status
-  end
-
-  def test_register_response_get
+  def test_register_get
+    # Should allow access to /register if no users exist.
+    delete_all_users
+    puts '[+] Testing /register GET [1 of 2]'
     get '/register'
-    assert_equal 200, last_response.status
+    assert last_response.ok?
+    assert last_response.body.include?('Create a New Admin Account')
+
+    # Should redirect user to /login if at least 1 user exists.
+    puts '[+] Testing /register GET [2 of 2]'
+    user_id = User.create_test_user
+    get '/register'
+    assert last_response.redirection? 
+    assert_equal 'http://example.org/', last_response.location
+    follow_redirect! # Redirect to /
+    assert last_response.redirection?
+    assert_equal "http://example.org/login", last_response.location
+    follow_redirect! # redirect to /login
+    assert last_response.ok?
+    assert last_response.body.include?('Login')
+    delete_all_users    
   end
 
-  def test_register_response_post
+  def test_register_post
+    puts '[+] Testing /register POST'
+    delete_all_users
     post '/register', {username: 'reg_test', password: 'tryharder', confirm: 'tryharder'}
-    #assert_equal 'test', flash[:success]
-    assert_equal 302, last_response.status
-    delete_allusers() 
-  end
-
-  def test_successful_login
-    userid = login_testuser
-    assert last_response.include?('Set-Cookie')
-    assert_equal "http://example.org/home", last_response.location
+    assert last_response.redirection?
+    assert_equal "http://example.org/login", last_response.location
     follow_redirect!
     assert last_response.ok?
-    assert last_response.body.include?("Cracked")
-    delete_testuser(userid)
+    assert last_response.body.include?('Login')
+    delete_all_users
   end
 
-  # this is a dummy/example test
-  def test_authd_404_response
+  #### Login Tests ####
+
+  def test_login_get
+    puts '[+] Testing /login GET [1 of 2]'
+    delete_all_users
+    get '/login'
+    # if no users exist in db this will redirect
+    assert last_response.redirection?
+    assert_equal "http://example.org/register", last_response.location
+    follow_redirect!
+    assert last_response.ok?
+    assert last_response.body.include?('Create a New Admin Account')
+
+    puts '[+] Testing /login GET [2 of 2]'
+    user_id = User.create_test_user
+    get '/login'
+    assert last_response.ok?
+    delete_all_users
+  end
+
+  def test_login_post
+    puts '[+] Testing /login POST'
     userid = login_testuser
-    get '/thisshouldneverexist'
-    assert_equal 404, last_response.status
+    assert last_response.include?('Set-Cookie')
+    assert last_response.redirection?
+    assert_equal 'http://example.org/home', last_response.location
+    follow_redirect!
+    assert last_response.ok?
+    assert last_response.body.include?('Cracked')
     delete_testuser(userid)
   end
 
-  def test_home_response
+  #### Home Tests ####
+
+  def test_home_get
+    puts '[+] Testing /home GET'
     userid = login_testuser
     get '/home'
     assert last_response.ok?
     delete_testuser(userid)
   end
 
-  # customer routes
+  #### Customer Tests ####
 
-  def test_customers_list_response
+  def test_customers_list_get
+    puts '[+] Testing /customers/list GET'
     userid = login_testuser
     get '/customers/list'
-    assert_equal 200, last_response.status
-    #assert last_response.body.include?("Add a New Customer")
+    assert last_response.ok?
+    assert last_response.body.include?('Add a New Customer')
     delete_testuser(userid)
   end
 
-  def test_customers_create_response
+  def test_customers_create_get
+    puts '[+] Testing /customers/create GET'
     userid = login_testuser
     get '/customers/create'
-    assert_equal 200, last_response.status
-    #assert last_response.body.include?("Add a New Customer")
+    assert last_response.ok?
     delete_testuser(userid)
+  end
+
+  def test_customers_create_post
+    puts '[+] Testing /customers/create POST'
+    userid = login_testuser
+    post '/customers/create', {name: 'cust_test', desc: 'cust_test_desc'}
+    assert last_response.redirection?
+    assert_equal 'http://example.org/customers/list', last_response.location
+    follow_redirect!
+    assert last_response.ok?
+    assert last_response.body.include?('Add a New Customer')
   end
 
   # job routes
