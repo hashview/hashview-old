@@ -174,7 +174,7 @@ post '/register' do
     end
   end
 
-  redirect to('/home')
+  redirect to('/login')
 end
 
 ############################

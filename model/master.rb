@@ -66,6 +66,12 @@ class User
     user = User.first(id: id)
     user.destroy
   end
+
+  def self.delete_all_users()
+    @users = User.all
+    @users.destroy
+  end
+
 end
 
 # Class to handle authenticated sessions
