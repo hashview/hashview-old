@@ -93,11 +93,11 @@ post '/login' do
       if session[:session_id]
         # replace the session in the session table
         # TODO : This needs an expiration, session fixation
-        @del_session = Sessions.first(username: "#{usern}")
+        @del_session = Sessions.first(username: usern)
         @del_session.destroy if @del_session
       end
       # Create new session
-      @curr_session = Sessions.create(username: "#{usern}", session_key: "#{session[:session_id]}")
+      @curr_session = Sessions.create(username: usern, session_key: session[:session_id])
       @curr_session.save
 
       redirect to('/home')
@@ -406,7 +406,7 @@ post '/customers/upload/verify_hashtype' do
   # detect if hash was previously cracked
   # build hash of hashes and plains
   if  params[:retro_crack]
-    puts "detecting previously cracked hashes"
+    puts 'detecting previously cracked hashes'
     cracks = {}
     @all_cracked_targets = Targets.all(cracked: 1)
     @all_cracked_targets.each do |ct|
@@ -414,8 +414,8 @@ post '/customers/upload/verify_hashtype' do
     end
 
     # modify hash array if it is a pwdump
-    if filetype == "pwdump"
-      hash_array.map! {|item| item = item.split(":")[3].downcase}
+    if filetype == 'pwdump'
+      hash_array.map! { |item| item = item.split(':')[3].downcase }
     end
 
     # match already cracked hashes against hashesl to be uploaded, update db
@@ -425,7 +425,7 @@ post '/customers/upload/verify_hashtype' do
       hash = hash.chomp.downcase.to_s
       if cracks.key?(hash)
         Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
-        count = count + 1
+        count += 1
       end
     end
 
@@ -1029,7 +1029,7 @@ end
 get '/settings' do
   @settings = Settings.first
 
-  @auth_types = ['None', 'Plain', 'Login', 'cram_md5']
+  @auth_types = %w(None, Plain, Login, cram_md5)
 
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
@@ -1137,7 +1137,7 @@ get '/wordlists/delete/:id' do
   varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
-  if not @wordlist
+  if !@wordlist
     return 'no such wordlist exists'
   else
     # check if wordlist is in use
@@ -1272,7 +1272,7 @@ get '/analytics' do
       # create array of all hashes to count dups
       @total_users_originalhash.each do |uh|
         unless uh.originalhash.nil?
-          hashes << uh.originalhash unless uh.originalhash.length == 0
+          hashes << uh.originalhash unless uh.originalhash.empty?
         end
       end
 
@@ -1407,7 +1407,6 @@ get '/analytics/graph2' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
@@ -1418,7 +1417,7 @@ get '/analytics/graph2' do
   end
   @cracked_results.each do |crack|
     unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.length == 0
+      plaintext << crack.plaintext unless crack.plaintext.empty?
     end
   end
 
@@ -1451,7 +1450,6 @@ get '/analytics/graph3' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
@@ -1462,7 +1460,7 @@ get '/analytics/graph3' do
   end
   @cracked_results.each do |crack|
     unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.length == 0
+      plaintext << crack.plaintext unless crack.plaintext.empty?
     end
   end
 
