@@ -557,6 +557,12 @@ end
 get '/tasks/delete/:id' do
   varWash(params)
 
+  @job_tasks = Jobtasks.all(task_id: params[:id])
+  unless @job_tasks.empty?
+    flash[:error] = 'That task is currently used in a job.'
+    redirect to ('/tasks/list')
+  end
+
   @task = Tasks.first(id: params[:id])
   if @task
     @task.destroy
