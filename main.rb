@@ -1469,10 +1469,12 @@ get '/analytics/graph3' do
   # get top 10 basewords
   plaintext.each do |pass|
     word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
-    if @top10basewords[word_just_alpha].nil?
-      @top10basewords[word_just_alpha] = 1
-    else
-      @top10basewords[word_just_alpha] += 1
+    unless word_just_alpha.nil?
+      if @top10basewords[word_just_alpha].nil?
+        @top10basewords[word_just_alpha] = 1
+      else
+        @top10basewords[word_just_alpha] += 1
+      end
     end
   end
 
