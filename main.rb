@@ -557,6 +557,12 @@ end
 get '/tasks/delete/:id' do
   varWash(params)
 
+  @job_tasks = Jobtasks.all(task_id: params[:id])
+  unless @job_tasks.empty?
+    flash[:error] = 'That task is currently used in a job.'
+    redirect to ('/tasks/list')
+  end
+
   @task = Tasks.first(id: params[:id])
   if @task
     @task.destroy
@@ -1469,10 +1475,12 @@ get '/analytics/graph3' do
   # get top 10 basewords
   plaintext.each do |pass|
     word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
-    if @top10basewords[word_just_alpha].nil?
-      @top10basewords[word_just_alpha] = 1
-    else
-      @top10basewords[word_just_alpha] += 1
+    unless word_just_alpha.nil?
+      if @top10basewords[word_just_alpha].nil?
+        @top10basewords[word_just_alpha] = 1
+      else
+        @top10basewords[word_just_alpha] += 1
+      end
     end
   end
 

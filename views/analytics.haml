@@ -143,13 +143,13 @@
                   %tr
                     %td Total Run Time:
                     - if @total_run_time and @total_run_time > 86400
-                      %td #{@total_run_time.to_f/86400} Days
+                      %td #{(@total_run_time.to_f/86400).round(2)} Days
                     - elsif @total_run_time and @total_run_time > 3600
-                      %td #{@total_run_time.to_f/3600} Hours
+                      %td #{(@total_run_time.to_f/3600).round(2)} Hours
                     - elsif @total_run_time and @total_run_time > 60
-                      %td #{@total_run_time.to_f/60} Minutes
+                      %td #{(@total_run_time.to_f/60).round(2)} Minutes
                     - elsif @total_run_time and @total_run_time >= 0
-                      %td #{@total_run_time.to_f} Seconds
+                      %td #{@total_run_time.to_f.round(2)} Seconds
                     - else
                       %td Im ready coach, just send me in.
                   %tr
