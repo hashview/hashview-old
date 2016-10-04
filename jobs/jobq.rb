@@ -24,7 +24,7 @@ def updateDbStatus(id, status)
   # if no more jobs are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
-    if jt.status == 'Queued' || jt.status == 'Running'
+    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
       job.status = status
       job.save
       done = false
@@ -103,6 +103,7 @@ module Jobq
 
     # this assumes a job completed successfully. we need to add check for failures or killed processes
     puts '==== Importing cracked hashes ====='
+    updateDbStatus(id, 'Importing')
     jobtasks = Jobtasks.first(id: id)
     crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 

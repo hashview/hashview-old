@@ -14,11 +14,12 @@
                       %h3.panel-title
                         - if @active_jobs
                           - @customers.each do |customer|
-                            - if @active_jobs.customer_id == customer.id
-                              %b Customer:
-                              #{customer.name}
-                              %b Job:
-                              #{@active_jobs.name}
+                            - @active_jobs.each do |active_job|
+                              - if active_job.customer_id == customer.id
+                                %b Customer:
+                                #{customer.name}
+                                %b Job:
+                                #{active_job.name}
                     .panel-body
                       - @jobs.each do |job|
                         - if job.status == 'Running'
@@ -70,7 +71,7 @@
                     %b Job Queue:
                   %tbody
                     - @jobs.each do |job|
-                      - if job.status == 'Running' || job.status == 'Queued'
+                      - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
                         %tr
                           %td
                             - @customers.each do |customer|
@@ -88,12 +89,14 @@
                                     #{task.name}
                                   %td
                                     %div{:align => "right"}
-                                      - if jt.status == "Queue"
+                                      - if jt.status == 'Queue'
                                         %span.label.label-default #{jt.status}
-                                      - elsif jt.status == "Completed"
+                                      - elsif jt.status == 'Completed'
                                         %span.label.label-primary #{jt.status}
-                                      - elsif jt.status == "Running"
+                                      - elsif jt.status == 'Running'
                                         %span.label.label-success #{jt.status}
+                                      - elsif jt.status == 'Importing'
+                                        %span.label.label-warning #{jt.status}
                                       - else
                                         %span.label.label-default #{jt.status}
                                   %td
