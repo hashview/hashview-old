@@ -816,6 +816,14 @@ get '/jobs/assign_hashfile' do
 
   @hashfiles = Hashfiles.all(customer_id: params[:custid])
   @customer = Customers.first(id: params[:custid])
+
+  @cracked_status = Hash.new
+  @hashfiles.each do |hash_file|
+    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
+    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
+  end
+
   @job = Jobs.first(id: params[:jobid])
   return 'No such job exists' unless @job
 
@@ -1203,6 +1211,12 @@ end
 get '/hashfiles/list' do
   @customers = Customers.all
   @hashfiles = Hashfiles.all
+  @cracked_status = Hash.new
+  @hashfiles.each do |hash_file|
+    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
+    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
+  end
 
   haml :hashfile_list
 end
@@ -1226,7 +1240,6 @@ get '/analytics' do
   varWash(params)
 
   @custid = params[:custid]
-  #@jobid = params[:jobid]
   @hashfile_id = params[:hf_id]
   @button_select_customers = Customers.all
 
