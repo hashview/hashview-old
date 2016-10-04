@@ -45,6 +45,8 @@
                           %td Queued
                         - elsif job.status == 'Completed'
                           %td Completed
+                        - elsif job.status == 'Importing'
+                          %td Importing
                         - else
                           %td Stopped
                         %td #{job.last_updated_by}
@@ -58,6 +60,9 @@
                           - elsif job.status == 'Completed'
                             %a.btn.btn-success{:href => ""}
                               %i.glyphicon.glyphicon-ok{:title => 'Completed'}
+                          - elsif job.status == 'Importing'
+                            %a.btn.btn-default{:href => '/home'}
+                              %i.glyphicon.glyphicon-hourglass{:title => 'Wait'}
                           - else
                             %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}

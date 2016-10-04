@@ -188,7 +188,7 @@ get '/home' do
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
   @customers = Customers.all
-  @active_jobs = Jobs.first(fields: [:id, :status], status: 'Running')
+  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
 
   # status
   # this cmd requires a sudo TODO:this isnt working due to X env
@@ -718,8 +718,13 @@ get '/jobs/delete/:id' do
 
   @job = Jobs.first(id: params[:id])
   if !@job
-    return 'No such job exists.'
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
+    if @job.status == 'Running' || @job.status == 'Importing'
+      flash[:error] = 'Failed to Delete Job. A task is currently running.'
+      redirect to('/jobs/list')
+    end
     @jobtasks = Jobtasks.all(job_id: params[:id])
     @jobtasks.each do |jobtask|
       jobtask.destroy unless jobtask.nil?
