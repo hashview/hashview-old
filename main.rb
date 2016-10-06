@@ -688,7 +688,7 @@ post '/tasks/create' do
       end
     end
 
-    if wordlist_count < 3
+    if wordlist_count != 2
       flash[:error] = 'You must specify at least 2 wordlists.'
       redirect to('/tasks/create')
     end
