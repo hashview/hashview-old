@@ -1102,7 +1102,6 @@ get '/download' do
   varWash(params)
 
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
       @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: '1')
     else
@@ -1116,7 +1115,6 @@ get '/download' do
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
       file_name = "found_#{params[:custid]}_#{params[:wl_id]}.txt"
     else
@@ -1130,7 +1128,12 @@ get '/download' do
 
   File.open(file_name, 'w') do |f|
     @cracked_results.each do |entry|
-      line = entry.username + ':' + entry.originalhash + ':' + entry.plaintext
+      if entry.username.nil?
+        line = ''
+      else
+        line = entry.username + ':'
+      end
+      line = line + entry.originalhash + ':' + entry.plaintext
       f.puts line
     end
   end
