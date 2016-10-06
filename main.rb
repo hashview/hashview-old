@@ -675,6 +675,25 @@ post '/tasks/create' do
     end
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+          p "WORDLIST: " + key
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count < 3
+      flash[:error] = 'You must specify at least 2 wordlists.'
+      redirect to('/tasks/create')
+    end
+  end
+
   task = Tasks.new
   task.name = params[:name]
 
@@ -1599,6 +1618,11 @@ def buildCrackCmd(jobid, taskid)
     else
       cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
+  elsif attackmode == 'combinator'
+    # cycle for dictionaries
+    # if left rule
+    # if right rule
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + dict_list + ' ' + rule_lists
   end
   p cmd
   cmd
