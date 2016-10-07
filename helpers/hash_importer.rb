@@ -87,12 +87,12 @@ def importDsusers(hash, customer_id, hashfile_id, type)
   target = Targets.new
   target.username = data[0]
   if type == '1000' # import NTLM
-    target.hashtype == '1000'
+    target.hashtype = '1000'
     lm_hash = data[1].split('$')
     target.originalhash = lm_hash[2]
   end
   if type == '3000' # import LM
-    target.hashtype == '3000'
+    target.hashtype = '3000'
     target.originalhash = data[1]
   end
   target.hashfile_id = hashfile_id
@@ -267,7 +267,7 @@ def detectHashType(hash_file, file_type)
       end
     elsif file_type == 'dsusers'
       elements = entry.split(':')
-      modes = getMode(elements[1])
+      @modes = getMode(elements[1])
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
