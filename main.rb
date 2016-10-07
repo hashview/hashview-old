@@ -616,6 +616,41 @@ post '/tasks/edit/:id' do
     redirect to('/settings')
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    wordlist_list = ''
+    rule_list = ''
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+          if wordlist_list == ''
+            wordlist_list = wordlist.id.to_s + ','
+          else
+            wordlist_list = wordlist_list + wordlist.id.to_s
+          end
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count != 2
+      flash[:error] = 'You must specify at exactly 2 wordlists.'
+      redirect to("/tasks/edit/#{params[:id]}")
+    end
+
+    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
+    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule]
+    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-right=' + params[:combinator_right_rule]
+    else
+      rule_list = ''
+    end
+  end
+
   task = Tasks.first(id: params[:id])
   task.name = params[:name]
 
@@ -629,6 +664,10 @@ post '/tasks/edit/:id' do
     task.wl_id = 'NULL'
     task.hc_rule = 'NULL'
     task.hc_mask = params[:mask]
+  elsif params[:attackmode] == 'combinator'
+    task.wl_id = wordlist_list 
+    task.hc_rule = rule_list
+    task.hc_mask = 'NULL'
   end
   task.save
 
@@ -696,7 +735,6 @@ post '/tasks/create' do
     @wordlists.each do |wordlist|
       params.keys.each do |key|
         if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
-          p "WORDLIST: " + key
           if wordlist_list == ''
             wordlist_list = wordlist.id.to_s + ','
           else
