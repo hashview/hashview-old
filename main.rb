@@ -519,7 +519,7 @@ post '/accounts/save' do
   end
 
   if params[:password] != params[:confirm]
-    flash[:error] = 'Passwords do not match'
+    flash[:error] = 'Passwords do not match.'
     redirect to("/accounts/edit/#{params[:account_id]}")
   end
 
@@ -578,6 +578,18 @@ get '/tasks/edit/:id' do
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
   @settings = Settings.first
+
+  if @task.hc_attackmode == 'combinator'
+    @combinator_wordlists = @task.wl_id.split(',')
+    if @task.hc_rule =~ /--rule-left=(.*) --rule-right=(.*)/
+      @combinator_left_rule = $1
+      @combinator_right_rule = $2
+    elsif @task.hc_rule =~ /--rule-left=(.*)/
+      @combinator_left_rule = $1
+    elsif @task.hc_rule =~ /--rule-right=(.*)/
+      @combinator_right_rule = $1
+    end
+  end
 
   @rules = []
   # list wordlists that can be used
