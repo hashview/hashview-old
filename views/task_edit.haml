@@ -10,24 +10,35 @@
           document.getElementById('dictionary_div').style.display = 'inline';
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'none';
         }
         else if(Index == "maskmode")
         {
           document.getElementById('dictionary_div').style.display = 'none';
           document.getElementById('maskmode_div').style.display = 'inline';
           document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'none';
         }
         else if(Index == "bruteforce")
         {
           document.getElementById('dictionary_div').style.display = 'none';
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'inline';
+          document.getElementById('combinator_div').style.display = 'none';
+        }
+        else if(Index == "combinator")
+        {
+          document.getElementById('dictionary_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'inline';
         }
         else
         {
           document.getElementById('bruteforce_div').style.display = 'none';
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'none';
         }
       }
     - if @task
@@ -59,20 +70,27 @@
                 .form-group
                   %label.control-label.col-xs-2{:for => ""} Attack Mode
                   .col-xs-4
-                    %select.form-control{:id => "attackmode",  :name => "attackmode", :onchange => "showDiv()"}
+                    %select.form-control{:id => 'attackmode',  :name => 'attackmode', :onchange => "showDiv()"}
                       - if @task.hc_attackmode == 'dictionary'
-                        %option{:value => "dictionary", :name => "attackmode", :type => "button", :selected => "selected"} Dictionary
-                        %option{:value => "maskmode", :name => "attackmode", :type => "button"} Mask Mode
-                        %option{:value => "bruteforce", :name => "attackmode", :type => "button"} Brute Force
+                        %option{:value => 'dictionary', :name => 'attackmode', :type => 'button', :selected => 'selected'} Dictionary
+                        %option{:value => 'maskmode', :name => 'attackmode', :type => 'button'} Mask Mode
+                        %option{:value => 'bruteforce', :name => 'attackmode', :type => 'button'} Brute Force
+                        %option{:value => 'combinator', :name => 'combinator', :type => 'button'} Combinator
                       - elsif @task.hc_attackmode == 'maskmode'
-                        %option{:value => "dictionary", :name => "attackmode", :type => "button"} Dictionary
-                        %option{:value => "maskmode", :name => "attackmode", :type => "button", :selected => "selected"} Mask Mode
-                        %option{:value => "bruteforce", :name => "attackmode", :type => "button"} Brute Force
+                        %option{:value => 'dictionary', :name => 'attackmode', :type => 'button'} Dictionary
+                        %option{:value => 'maskmode', :name => 'attackmode', :type => 'button', :selected => 'selected'} Mask Mode
+                        %option{:value => 'bruteforce', :name => 'attackmode', :type => 'button'} Brute Force
+                        %option{:value => 'combinator', :name => 'combinator', :type => 'button'} Combinator
+                      - elsif @task.hc_attackmode == 'combinator'
+                        %option{:value => 'dictionary', :name => 'attackmode', :type => 'button'} Dictionary
+                        %option{:value => 'maskmode', :name => 'attackmode', :type => 'button'} Mask Mode
+                        %option{:value => 'bruteforce', :name => 'attackmode', :type => 'button'} Brute Force
+                        %option{:value => 'combinator', :name => 'combinator', :type => 'button', :selected => 'selected'} Combinator
                       - elsif @task.hc_attackmode == 'bruteforce'
-                        %option{:value => "dictionary", :name => "attackmode", :type => "button"} Dictionary
-                        %option{:value => "maskmode", :name => "attackmode", :type => "button"} Mask Mode
-                        %option{:value => "bruteforce", :name => "attackmode", :type => "button", :selected => "selected"} Brute Force
-
+                        %option{:value => 'dictionary', :name => 'attackmode', :type => 'button'} Dictionary
+                        %option{:value => 'maskmode', :name => 'attackmode', :type => 'button'} Mask Mode
+                        %option{:value => 'bruteforce', :name => 'attackmode', :type => 'button', :selected => 'selected'} Brute Force
+                        %option{:value => 'combinator', :name => 'combinator', :type => 'button'} Combinator
                 .section
                   %div{:class => "label_leftalign field"}
                     - if @task.hc_attackmode == 'dictionary'
@@ -138,6 +156,49 @@
                         .form-group
                           .col-xs-offset-2.col-xs-10
                             %button.btn.btn-primary{:type => "submit"} Update
+                    - if @task.hc_attackmode == 'combinator'
+                      #combinator_div{:style => 'display:inline'}
+                        .form-group
+                          %label.control-label.col-xs-2{:for => ''} Wordlists (Req 2):
+                          .col-xs-4
+                            .table
+                              %table{:class => 'table table'}
+                                - @wordlists.each do |wordlist|
+                                  - if @combinator_wordlists[0].to_i == wordlist.id || @combinator_wordlists[1].to_i == wordlist.id
+                                    %td
+                                      %input.checkbox.pull-left{:type => 'checkbox', :name => "combinator_wordlist_#{wordlist.id}", :id => "combinator_wordlist_#{wordlist.id}", :checked => 'checked'}
+                                    %td
+                                      #{wordlist.name}
+                                    %tr
+                                  - else
+                                    %td
+                                      %input.checkbox.pull-left{:type => 'checkbox', :name => "combinator_wordlist_#{wordlist.id}", :id => "combinator_wordlist_#{wordlist.id}"}
+                                    %td
+                                      #{wordlist.name}
+                                    %tr
+                        .form-group
+                          %label.control-label.col-xs-2{:for => ''} Left Rule:
+                          .col-xs-4
+                            - if @combinator_left_rule
+                              <input class='form-control' id='combinator_left_rule' name='combinator_left_rule' type='textbox' value="#{@combinator_left_rule}" >
+                            -else
+                              <input class='form-control' id='combinator_left_rule' name='combinator_left_rule' type='textbox' placeholder=' (optional)' >
+                        .form-group
+                          %label.control-label.col-xs-2{:for => ''} Right Rule:
+                          .col-xs-4
+                            - if @combinator_right_rule
+                              <input class='form-control' id='combinator_right_rule' name='combinator_right_rule' type='textbox' value="#{@combinator_right_rule}" >
+                            -else
+                              <input class='form-control' id='combinator_right_rule' name='combinator_right_rule' type='textbox' placeholder=' (optional)' >
+                        .form-group
+                          .col-xs-offset-2.col.xs-10
+                            %button.btn.btn-primary{:type => 'submit'} Update
+                    - else
+                      #combinator_div{:style => 'display:none'}
+                        .form-group
+                          .col-xs-ofset-2.col-xs-1
+                            %button.btn.btn-primary{:type => 'submit'} Update
+
                     - if @task.hc_attackmode == 'bruteforce'
                       #bruteforce_div{:style => "display:inline"}
                         .form-group
@@ -148,6 +209,7 @@
                         .form-group
                           .col-xs-offset-2.col-xs-1
                             %button.btn.btn-primary{:type => "submit"} Update
+                      
     - else
       .span15
         %br
@@ -169,20 +231,20 @@
             .col-md-12
               .table
 
-              %form{:name => "taskForm", :id => "taskForm", :class => "form-horizontal", :action => "/tasks/create", :method => "post"}
+              %form{:name => 'taskForm', :id => 'taskForm', :class => 'form-horizontal', :action => '/tasks/create', :method => 'post'}
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Task Name
+                  %label.control-label.col-xs-2{:for => ''} Task Name
                   .col-xs-10
-                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                    %input{:type => 'textbox', :class => 'form-control', :name => 'name', :id => 'name'}
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Attack Mode
+                  %label.control-label.col-xs-2{:for => ''} Attack Mode
                   .col-xs-4
-                    %select.form-control{:id => "attackmode",  :name => "attackmode", :onchange => "showDiv()"}
-                      %option{:value => "", :name => "attackmode", :type => "button"} Select a Mode
-                      %option{:value => "dictionary", :name => "attackmode", :type => "button"} Dictionary
-                      %option{:value => "maskmode", :name => "attackmode", :type => "button"} Mask Mode
-                      %option{:value => "bruteforce", :name => "attackmode", :type => "button"} Brute Force
-
+                    %select.form-control{:id => 'attackmode',  :name => 'attackmode', :onchange => "showDiv()"}
+                      %option{:value => '', :name => 'attackmode', :type => 'button'} Select a Mode
+                      %option{:value => 'dictionary', :name => 'attackmode', :type => 'button'} Dictionary
+                      %option{:value => 'maskmode', :name => 'attackmode', :type => 'button'} Mask Mode
+                      %option{:value => 'combinator', :name => 'combinator', :type => 'button'} Combinator
+                      %option{:value => 'bruteforce', :name => 'attackmode', :type => 'button'} Brute Force
                 .section
                   %div{:class => "label_leftalign field"}
                     #dictionary_div{:style => "display:none"}
@@ -210,6 +272,29 @@
                       .form-group
                         .col-xs-offset-2.col-xs-10
                           %button.btn.btn-primary{:type => "submit"} Create
+                    #combinator_div{:style => 'display:none'}
+                      .form-group
+                        %label.control-label.col-xs-2{:for => ''} Wordlists (Req 2):
+                        .col-xs-4
+                          .table
+                            %table{:class => 'table table'}
+                              - @wordlists.each do |wordlist|
+                                %td
+                                  %input.checkbox.pull-left{:type => 'checkbox', :name => "combinator_wordlist_#{wordlist.id}", :id => "combinator_wordlist_#{wordlist.id}"}  
+                                %td
+                                  #{wordlist.name}
+                                %tr
+                      .form-group
+                        %label.control-label.col-xs-2{:for => ''} Left Rule:
+                        .col-xs-4
+                          <input class='form-control' id='combinator_left_rule' name='combinator_left_rule' type='textbox' placeholder=' (optional)' >
+                      .form-group
+                        %label.control-label.col-xs-2{:for => ''} Right Rule:
+                        .col-xs-4
+                          <input class='form-control' id='combinator_right_rule' name='combinator_right_rule' type='textbox' placeholder=' (optional)' >
+                      .form-group
+                        .col-xs-offset-2.col.xs-10
+                          %button.btn.btn-primary{:type => 'submit'} Create
                     #bruteforce_div{:style => "display:none"}
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Run Time:

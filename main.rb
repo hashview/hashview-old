@@ -519,7 +519,7 @@ post '/accounts/save' do
   end
 
   if params[:password] != params[:confirm]
-    flash[:error] = 'Passwords do not match'
+    flash[:error] = 'Passwords do not match.'
     redirect to("/accounts/edit/#{params[:account_id]}")
   end
 
@@ -560,7 +560,7 @@ get '/tasks/delete/:id' do
   @job_tasks = Jobtasks.all(task_id: params[:id])
   unless @job_tasks.empty?
     flash[:error] = 'That task is currently used in a job.'
-    redirect to ('/tasks/list')
+    redirect to('/tasks/list')
   end
 
   @task = Tasks.first(id: params[:id])
@@ -578,6 +578,18 @@ get '/tasks/edit/:id' do
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
   @settings = Settings.first
+
+  if @task.hc_attackmode == 'combinator'
+    @combinator_wordlists = @task.wl_id.split(',')
+    if @task.hc_rule =~ /--rule-left=(.*) --rule-right=(.*)/
+      @combinator_left_rule = $1
+      @combinator_right_rule = $2
+    elsif @task.hc_rule =~ /--rule-left=(.*)/
+      @combinator_left_rule = $1
+    elsif @task.hc_rule =~ /--rule-right=(.*)/
+      @combinator_right_rule = $1
+    end
+  end
 
   @rules = []
   # list wordlists that can be used
@@ -604,6 +616,41 @@ post '/tasks/edit/:id' do
     redirect to('/settings')
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    wordlist_list = ''
+    rule_list = ''
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+          if wordlist_list == ''
+            wordlist_list = wordlist.id.to_s + ','
+          else
+            wordlist_list = wordlist_list + wordlist.id.to_s
+          end
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count != 2
+      flash[:error] = 'You must specify at exactly 2 wordlists.'
+      redirect to("/tasks/edit/#{params[:id]}")
+    end
+
+    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
+    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule]
+    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-right=' + params[:combinator_right_rule]
+    else
+      rule_list = ''
+    end
+  end
+
   task = Tasks.first(id: params[:id])
   task.name = params[:name]
 
@@ -617,6 +664,10 @@ post '/tasks/edit/:id' do
     task.wl_id = 'NULL'
     task.hc_rule = 'NULL'
     task.hc_mask = params[:mask]
+  elsif params[:attackmode] == 'combinator'
+    task.wl_id = wordlist_list 
+    task.hc_rule = rule_list
+    task.hc_mask = 'NULL'
   end
   task.save
 
@@ -675,6 +726,41 @@ post '/tasks/create' do
     end
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    wordlist_list = ''
+    rule_list = ''
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+          if wordlist_list == ''
+            wordlist_list = wordlist.id.to_s + ','
+          else
+            wordlist_list = wordlist_list + wordlist.id.to_s
+          end
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count != 2
+      flash[:error] = 'You must specify at exactly 2 wordlists.'
+      redirect to('/tasks/create')
+    end
+
+    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
+    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule]
+    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-right=' + params[:combinator_right_rule]
+    else
+      rule_list = ''
+    end
+  end
+
   task = Tasks.new
   task.name = params[:name]
 
@@ -685,10 +771,13 @@ post '/tasks/create' do
     task.hc_rule = params[:rule]
   elsif params[:attackmode] == 'maskmode'
     task.hc_mask = params[:mask]
+  elsif params[:attackmode] == 'combinator'
+    task.wl_id = wordlist_list
+    task.hc_rule = rule_list
   end
   task.save
 
-  flash[:success] = "Task #{task.name} successfully created"
+  flash[:success] = "Task #{task.name} successfully created."
 
   redirect to('/tasks/list')
 end
@@ -1582,7 +1671,15 @@ def buildCrackCmd(jobid, taskid)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
-  wordlist = Wordlists.first(id: @task.wl_id)
+
+  if attackmode == 'combinator'
+    wordlist_list = @task.wl_id
+    @wordlist_list_elements = wordlist_list.split(',')
+    wordlist_one = Wordlists.first(id: @wordlist_list_elements[0])
+    wordlist_two = Wordlists.first(id: @wordlist_list_elements[1])
+  else
+    wordlist = Wordlists.first(id: @task.wl_id)
+  end
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
@@ -1602,6 +1699,8 @@ def buildCrackCmd(jobid, taskid)
     else
       cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
+  elsif attackmode == 'combinator'
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
   end
   p cmd
   cmd
