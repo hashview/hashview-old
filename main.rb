@@ -34,12 +34,6 @@ enable :sessions
 
 redis = Redis.new
 
-# to start the resque web queue run the following from the command prompt:
-# resque-web
-
-# to start the rake task do: TERM_CHILD=1 QUEUE=* rake resque:work
-# ^^^ should probably make an upstart for that
-
 # validate every session
 before /^(?!\/(login|register|logout))/ do
   if !validSession?
@@ -189,10 +183,6 @@ get '/home' do
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
-
-  # status
-  # this cmd requires a sudo TODO:this isnt working due to X env
-  # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
@@ -419,7 +409,6 @@ post '/customers/upload/verify_hashtype' do
     end
 
     # match already cracked hashes against hashesl to be uploaded, update db
-    # matches = []
     count = 0
     hash_array.each do |hash|
       hash = hash.chomp.downcase.to_s
@@ -1293,7 +1282,7 @@ post '/wordlists/upload/' do
   size = File.foreach(file_name).inject(0) { |c, line| c + 1 }
 
   wordlist = Wordlists.new
-  wordlist.name = upload_name # what XSS?
+  wordlist.name = upload_name 
   wordlist.path = file_name
   wordlist.size = size
   wordlist.save
