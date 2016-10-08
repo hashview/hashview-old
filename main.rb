@@ -34,19 +34,13 @@ enable :sessions
 
 redis = Redis.new
 
-# to start the resque web queue run the following from the command prompt:
-# resque-web
-
-# to start the rake task do: TERM_CHILD=1 QUEUE=* rake resque:work
-# ^^^ should probably make an upstart for that
-
 # validate every session
 before /^(?!\/(login|register|logout))/ do
   if !validSession?
     redirect to('/login')
   else
     settings = Settings.first
-    if (settings && settings.hcbinpath.nil?) or settings.nil?
+    if (settings && settings.hcbinpath.nil?) || settings.nil?
       flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
     end
   end
@@ -189,10 +183,6 @@ get '/home' do
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
-
-  # status
-  # this cmd requires a sudo TODO:this isnt working due to X env
-  # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
@@ -419,7 +409,6 @@ post '/customers/upload/verify_hashtype' do
     end
 
     # match already cracked hashes against hashesl to be uploaded, update db
-    # matches = []
     count = 0
     hash_array.each do |hash|
       hash = hash.chomp.downcase.to_s
@@ -564,11 +553,7 @@ get '/tasks/delete/:id' do
   end
 
   @task = Tasks.first(id: params[:id])
-  if @task
-    @task.destroy
-  else
-    return 'No such task exists.'
-  end
+  @task.destroy if @task
 
   redirect to('/tasks/list')
 end
@@ -806,7 +791,7 @@ get '/jobs/delete/:id' do
   varWash(params)
 
   @job = Jobs.first(id: params[:id])
-  if !@job
+  unless @job
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
   else
@@ -1000,11 +985,13 @@ get '/jobs/start/:id' do
 
   tasks = []
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
     @jobtasks = Jobtasks.all(job_id: params[:id])
-    if !@jobtasks
+    unless @jobtasks
+      flash[:error] = 'This job has no tasks to run.'
       return 'This job has no tasks to run.'
     else
       @jobtasks.each do |jt|
@@ -1044,12 +1031,14 @@ get '/jobs/stop/:id' do
 
   tasks = []
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
     @jobtasks = Jobtasks.all(job_id: params[:id])
-    if !@jobtasks
-      return 'This job has no tasks to stop.'
+    unless @jobtasks
+      flash[:error] = 'This job has no tasks to stop.'
+      redirect to('/jobs/list')
     else
       @jobtasks.each do |jt|
         tasks << Tasks.first(id: jt.task_id)
@@ -1064,7 +1053,7 @@ get '/jobs/stop/:id' do
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if not jt.status == 'Completed' and not jt.status == 'Running'
+    if !jt.status == 'Completed' && !jt.status == 'Running'
       jt.status = 'Canceled'
       jt.save
       cmd = buildCrackCmd(@job.id, task.id)
@@ -1120,8 +1109,9 @@ get '/jobs/remove_task' do
   varWash(params)
 
   @job = Jobs.first(id: params[:jobid])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
     @jobtask = Jobtasks.first(id: params[:jobtaskid])
     @jobtask.destroy
@@ -1293,7 +1283,7 @@ post '/wordlists/upload/' do
   size = File.foreach(file_name).inject(0) { |c, line| c + 1 }
 
   wordlist = Wordlists.new
-  wordlist.name = upload_name # what XSS?
+  wordlist.name = upload_name 
   wordlist.path = file_name
   wordlist.size = size
   wordlist.save

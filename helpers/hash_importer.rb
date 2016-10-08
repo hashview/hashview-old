@@ -259,13 +259,7 @@ def detectHashType(hash_file, file_type)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
-    elsif file_type == 'shadow'
-      elements = entry.split(':')
-      @modes = getMode(elements[1])
-      @modes.each do |mode|
-        @hashtypes.push(mode) unless @hashtypes.include?(mode)
-      end
-    elsif file_type == 'dsusers'
+    elsif file_type == 'shadow' || file_type == 'dsusers'
       elements = entry.split(':')
       @modes = getMode(elements[1])
       @modes.each do |mode|

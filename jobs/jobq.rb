@@ -41,7 +41,7 @@ def updateDbStatus(id, status)
     total_cracked = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 1)
     total = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 0)
     if user.email
-      sendEmail(user.email, "Your Job: #{job.name} has completed", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}\r\nTotal Remaining: #{total}.")
+      sendEmail(user.email, "Your Job: #{job.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
     end
     p '===== Email Sent ====='
   end

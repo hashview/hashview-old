@@ -25,6 +25,8 @@ engines:
         enabled: false
       Rubocop/Style/GuardClause:
         enabled: false
+      Rubocop/Metrics/CyclomaticComplexity:
+        enabled: false
 ratings:
   paths:
   - "**.css"
