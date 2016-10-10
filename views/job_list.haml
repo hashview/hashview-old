@@ -103,8 +103,7 @@
                                                         .form-group
                                                           %label.control-label.col-xs-2{:for => ""} Wordlist
                                                           .col-xs-4
-                                                            #{task.wl_id}
-                                                            #{@wordlist_id_to_name[task.wl_id]}
+                                                            #{@wordlist_id_to_name[task.wl_id.to_i]}
                                                       .row
                                                         .form-group
                                                           %label.control-label.col-xs-2{:for => ""} Dictionary Rules
