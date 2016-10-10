@@ -971,7 +971,7 @@ post '/jobs/assign_tasks' do
   if params[:edit] && !params[:edit].nil?
     @jobtasks = Jobtasks.all(job_id: params[:jobid])
     @jobtasks.each do |jobtask|
-      jobtask.status = 'READY'
+      jobtask.status = 'Queued'
       jobtask.save
     end
   end
@@ -1031,42 +1031,47 @@ get '/jobs/stop/:id' do
 
   tasks = []
   @job = Jobs.first(id: params[:id])
-  unless @job
-    flash[:error] = 'No such job exists.'
-    redirect to('/jobs/list')
-  else
-    @jobtasks = Jobtasks.all(job_id: params[:id])
-    unless @jobtasks
-      flash[:error] = 'This job has no tasks to stop.'
-      redirect to('/jobs/list')
-    else
-      @jobtasks.each do |jt|
-        tasks << Tasks.first(id: jt.task_id)
-      end
-    end
-  end
+#  unless @job
+#    flash[:error] = 'No such job exists.'
+#    redirect to('/jobs/list')
+#  else
+  @jobtasks = Jobtasks.all(job_id: params[:id])
+#    unless @jobtasks
+#      flash[:error] = 'This job has no tasks to stop.'
+#      redirect to('/jobs/list')
+    #else
+    #  @jobtasks.each do |jt|
+    #    tasks << Tasks.first(id: jt.task_id)
+    #  end
+#    end
+#  end
 
-  @job.status = 'Paused'
+  @job.status = 'Canceled'
   @job.save
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+  p 'Saved Job status to canceled'
+
+  @jobtasks.each do |task|
+    # jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if !jt.status == 'Completed' && !jt.status == 'Running'
-      jt.status = 'Canceled'
-      jt.save
-      cmd = buildCrackCmd(@job.id, task.id)
+    if task.status == 'Queued'
+      task.status = 'Canceled'
+      task.save
+      cmd = buildCrackCmd(@job.id, task.task_id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
-      Resque::Job.destroy('hashcat', Jobq, jt.id, cmd)
+      Resque::Job.destroy('hashcat', Jobq, task.id, cmd)
+    else
+     p 'TASK: ' + task.id.to_s
+     p 'TASK STATUS: ' + task.status.to_s
     end
   end
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
-    if jt.status == 'Running'
-      redirect to("/jobs/stop/#{jt.job_id}/#{jt.task_id}")
+  @jobtasks.each do |task|
+    #jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+    if task.status == 'Running'
+      redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
     end
   end
 

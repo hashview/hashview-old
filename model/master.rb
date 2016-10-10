@@ -123,7 +123,7 @@ class Jobs
   property :name, String
   property :last_updated_by, String, length: 40
   property :updated_at, DateTime, default: DateTime.now
-  # status options should be "Running", "Paused", "Completed", "Queued", "Canceled"
+  # status options should be "Running", "Paused", "Completed", "Queued", "Canceled", "Ready"
   property :status, String, length: 100
   property :targettype, String, length: 2000
   property :hashfile_id, Integer
@@ -141,7 +141,7 @@ class Jobtasks
   property :job_id, Integer
   property :task_id, Integer
   property :build_cmd, String, length: 5000
-  # status options should be "Running", "Paused", "Not Started", "Completed", "Queued", "Failed", "Canceled"
+  # status options should be "Running", "Paused", "Not Started", "Completed", "Queued", "Failed", "Canceled", "Importing"
   property :status, String
   property :run_time, Integer
 end
