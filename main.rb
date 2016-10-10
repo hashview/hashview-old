@@ -774,14 +774,22 @@ end
 get '/jobs/list' do
   @targets_cracked = {}
   @customer_names = {}
+  @wordlist_id_to_name = {}
 
   @jobs = Jobs.all(order: [:id.desc])
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
+  @wordlists = Wordlists.all
 
-  @jobs.each do |entry|
-    @customers = Customers.first(id: [entry.customer_id])
-    @customer_names[entry.customer_id] = @customers.name
+  @wordlists.each do |wordlist|
+    @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name
+    p 'Wordlist to id association: ' + wordlist.id.to_s + ' <=> ' + wordlist.name.to_s
+    p 'Wordlist_id_to_name[' + wordlist.id.to_s + '] = ' + @wordlist_id_to_name[wordlist.id.to_s]
+  end
+
+  @jobs.each do |job|
+    @customers = Customers.first(id: [job.customer_id])
+    @customer_names[job.customer_id] = @customers.name
   end
 
   haml :job_list
