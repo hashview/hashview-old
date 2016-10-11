@@ -154,19 +154,26 @@
                       %td Im ready coach, just send me in.
                   %tr
                     %td
-                      - if @custid.nil?
-                        %a.btn.btn-primary.pull-left{:href => "/download"}
-                          Download Cracked File
-                      - elsif @custid && @hashfile_id.nil?
-                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                          Download Cracked File
-                      - elsif @custid && @hashfile_id
-                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
-                          Download Cracked File
-                      - else
-                        You shouldnt see me
+                      %b Download
                     %td
-
+                      - if @custid.nil?
+                        %a.btn.btn-success.pull-left{:href => '/download?type=cracked'}
+                          Cracked
+                        &nbsp; 
+                        %a.btn.btn-danger.pull-center{:href => '/download?type=uncracked'}
+                          Uncracked 
+                      - elsif @custid && @hashfile_id.nil?
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}"}
+                          Cracked
+                        &nbsp;
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}"}
+                          Uncracked 
+                      - elsif @custid && @hashfile_id
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                          Cracked
+                        &nbsp;
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                          Uncracked 
 
           .col-md-12
             .panel.panel-default
