@@ -1175,25 +1175,29 @@ get '/download' do
 
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: '1')
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1) if params[:type] == 'cracked'
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0) if params[:type] == 'uncracked'
     else
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1)
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1) if params[:type] == 'cracked'
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 0) if params[:type] == 'uncracked'
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
+    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1) if params[:type] == 'cracked'
+    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 0) if params[:type] == 'uncracked'
   end
-
-  return 'No Results available.' if @cracked_results.nil?
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
-      file_name = "found_#{params[:custid]}_#{params[:wl_id]}.txt"
+      file_name = "found_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'uncracked'
     else
-      file_name = "found_#{params[:custid]}.txt"
+      file_name = "found_#{params[:custid]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:custid]}.txt" if params[:type] == 'uncracked'
     end
   else
-    file_name = 'found_all.txt'
+    file_name = 'found_all.txt' if params[:type] == 'cracked'
+    file_name = 'left_all.txt' if params[:type] == 'uncracked'
   end
 
   file_name = 'control/outfiles/' + file_name
@@ -1205,7 +1209,8 @@ get '/download' do
       else
         line = entry.username + ':'
       end
-      line = line + entry.originalhash + ':' + entry.plaintext
+      line = line + entry.originalhash
+      line = line + ':' + entry.plaintext if params[:type] == 'cracked'
       f.puts line
     end
   end
