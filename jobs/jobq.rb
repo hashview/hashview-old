@@ -24,7 +24,7 @@ def updateDbStatus(id, status)
   # if no more jobs are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
-    if jt.status == 'Queued' || jt.status == 'Running'
+    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
       job.status = status
       job.save
       done = false
@@ -41,13 +41,13 @@ def updateDbStatus(id, status)
     total_cracked = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 1)
     total = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 0)
     if user.email
-      sendEmail(user.email, "Your Job: #{job.name} has completed", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}\r\nTotal Remaining: #{total}.")
+      sendEmail(user.email, "Your Job: #{job.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
     end
     p '===== Email Sent ====='
   end
 
   # toggle job status
-  if done == true
+  if done == true 
     job.status = 'Completed'
     job.save
   end
@@ -71,63 +71,82 @@ module Jobq
     jobtasks = Jobtasks.first(id: id)
     job = Jobs.first(id: jobtasks.job_id)
 
-    puts '===== creating hash_file ======='
-    targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
-    hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-    File.open(hash_file, 'w') do |f|
-      targets.each do |entry|
-        f.puts entry.originalhash
+    unless job.status == 'Canceled'
+
+      puts '===== creating hash_file ======='
+      targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
+      hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+      hashtype_target = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+      hashtype = hashtype_target.hashtype.to_s
+
+      File.open(hash_file, 'w') do |f|
+        targets.each do |entry|
+          if hashtype == '5500' 
+            # Hashtype is NetNTLMv1
+            f.puts ':::' + entry.originalhash # we dont need to include the username for this
+          else
+            f.puts entry.originalhash
+          end
+        end
+        f.close
       end
-      f.close
-    end
 
-    puts '===== Hash_File Created ======'
+      puts '===== Hash_File Created ======'
 
-    puts '===== starting job ======='
-    updateDbStatus(id, 'Running')
-    puts id
-    puts cmd
-    run_time = Benchmark.realtime do
-      system(cmd)
-    end
-    puts 'job completed'
-    puts "And it only took: #{run_time} seconds"
+      puts '===== starting job ======='
+      updateDbStatus(id, 'Running')
+      # puts id
+      puts cmd
+      run_time = Benchmark.realtime do
+        system(cmd)
+      end
+      puts 'job completed'
+      puts "And it only took: #{run_time} seconds"
 
-    # this assumes a job completed successfully. we need to add check for failures or killed processes
-    puts '==== Importing cracked hashes ====='
-    jobtasks = Jobtasks.first(id: id)
-    crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
+      # this assumes a job completed successfully. we need to add check for failures or killed processes
+      puts '==== Importing cracked hashes ====='
+      updateDbStatus(id, 'Importing')
+      jobtasks = Jobtasks.first(id: id)
+      crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
 
-    unless File.zero?(crack_file)
-      File.open(crack_file).each_line do |line|
-        hash_pass = line.split(/:/)
-        plaintext = hash_pass[1]
-        plaintext = plaintext.chomp
+      unless File.zero?(crack_file)
+        File.open(crack_file).each_line do |line|
+          hash_pass = line.split(/:/)
+          plaintext = hash_pass[-1] # Get last entry
+          plaintext = plaintext.chomp
+          if hashtype == '5500'
+            hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
+          elsif hashtype == '5600'
+            hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s + ':' + hash_pass[2].to_s + ':' + hash_pass[3].to_s + ':' + hash_pass[4].to_s + ':' + hash_pass[5].to_s
+          else
+            hash = hash_pass[0]
+          end
 
-        # This will pull all hashes from DB regardless of job id
-        records = Targets.all(fields: [:id, :cracked, :originalhash], originalhash: hash_pass[0], cracked: 0)
-        # Yes its slow... we know.
-        records.each do |entry|
-          entry.cracked = 1
-          entry.plaintext = plaintext
-          entry.save
+          # This will pull all hashes from DB regardless of job id
+          records = Targets.all(fields: [:id, :cracked, :plaintext], originalhash: hash, cracked: 0)
+          # Yes its slow... we know.
+          records.each do |entry|
+            entry.cracked = 1
+            entry.plaintext = plaintext
+            entry.save
+          end
         end
       end
+
+      puts '==== import complete ===='
+
+      begin
+        File.delete(crack_file)
+        File.delete(hash_file)
+ 
+      rescue SystemCallError
+        p 'ERROR: ' + $!
+      end
+  
+      puts '==== Crack File Deleted ===='
+
+      updateDbStatus(id, 'Completed')
+      updateDbRunTime(id, job.hashfile_id, run_time)
     end
-
-   puts '==== import complete ===='
-
-    begin
-      File.delete(crack_file)
-      File.delete(hash_file)
-
-    rescue SystemCallError
-      p 'ERROR: ' + $!
-    end
-
-    puts '==== Crack File Deleted ===='
-
-    updateDbStatus(id, 'Completed')
-    updateDbRunTime(id, job.hashfile_id, run_time)
   end
 end

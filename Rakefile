@@ -4,8 +4,7 @@ require 'rake/testtask'
 require 'data_mapper'
 
 Rake::TestTask.new do |t|
-  #ENV['RACK_ENV'] = 'test'
-  t.pattern = "tests/*_spec.rb"
+  t.pattern = 'tests/*_spec.rb'
   t.verbose
 end
 
@@ -113,7 +112,7 @@ namespace :db do
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '1', 'dictionary', 'none')".inspect
     ]
     begin
-      system(query.compact.join(" "))
+      system(query.compact.join(' '))
     rescue
       raise 'Error in creating default dictionary task'
     end
@@ -158,7 +157,6 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
     DataMapper.repository.auto_upgrade!
-    puts "db:auto:upgrade executed"
+    puts 'db:auto:upgrade executed'
   end
-
 end
