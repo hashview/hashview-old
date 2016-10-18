@@ -56,11 +56,5 @@
                         .col-xs-4
                           <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Detect Previously Cracked
-                .col-xs-1.pull-left
-                  %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'retro_crack', :id => 'retro_crack'}
-                .col-xs-6
-                  Warning: This feature can be time consuming
-              .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{:type => "submit"} Confirm
