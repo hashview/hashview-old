@@ -9,7 +9,8 @@ def detectedHashFormat(hash)
   # Detect if shadow
   elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
-  elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/
+  #elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+  elsif hash =~ /^.*:\w{32}$/
     return 'dsusers'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
@@ -88,8 +89,9 @@ def importDsusers(hash, customer_id, hashfile_id, type)
   target.username = data[0]
   if type == '1000' # import NTLM
     target.hashtype = '1000'
-    lm_hash = data[1].split('$')
-    target.originalhash = lm_hash[2]
+  #  lm_hash = data[1].split('$')
+  #  target.originalhash = lm_hash[2]
+    target.originalhash = data[1]
   end
   if type == '3000' # import LM
     target.hashtype = '3000'
