@@ -98,7 +98,7 @@ post '/login' do
     end
   else
     flash[:error] = 'Invalid credentials.'
-    redirect to('/not_authorized')
+    redirect to('/login')
   end
 end
 
