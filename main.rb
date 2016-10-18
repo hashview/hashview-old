@@ -393,36 +393,6 @@ post '/customers/upload/verify_hashtype' do
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  # detect if hash was previously cracked
-  # build hash of hashes and plains
-  if  params[:retro_crack]
-    puts 'detecting previously cracked hashes'
-    cracks = {}
-    @all_cracked_targets = Targets.all(cracked: 1)
-    @all_cracked_targets.each do |ct|
-      cracks[ct.originalhash.chomp.to_s] = ct.plaintext
-    end
-
-    # modify hash array if it is a pwdump
-    if filetype == 'pwdump'
-      hash_array.map! { |item| item = item.split(':')[3].downcase }
-    end
-
-    # match already cracked hashes against hashesl to be uploaded, update db
-    count = 0
-    hash_array.each do |hash|
-      hash = hash.chomp.downcase.to_s
-      if cracks.key?(hash)
-        Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
-        count += 1
-      end
-    end
-
-    if count > 0
-      flash[:success] = "Hashview has previous cracked #{count} of these hashes"
-    end
-  end
-
   # Delete file, no longer needed
   File.delete(hash_file)
 
@@ -783,8 +753,6 @@ get '/jobs/list' do
 
   @wordlists.each do |wordlist|
     @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name
-    p 'Wordlist to id association: ' + wordlist.id.to_s + ' <=> ' + wordlist.name.to_s
-    p 'Wordlist_id_to_name[' + wordlist.id.to_s + '] = ' + @wordlist_id_to_name[wordlist.id.to_s]
   end
 
   @jobs.each do |job|
@@ -1006,6 +974,30 @@ get '/jobs/start/:id' do
         tasks << Tasks.first(id: jt.task_id)
       end
     end
+  end
+
+  # Check to see if we have any previously cracked hashes
+  #@ = Targets.first(hashfile_id: @job.hashfile_id)   
+
+  cracks = {}
+  hashtype = Targets.first(hashfile_id: @job.hashfile_id).hashtype
+  @all_cracked_targets = Targets.all(fields: [:plaintext, :originalhash], cracked: 1, hashtype: hashtype)
+  @to_be_cracked_targets = Targets.all(fields: [:originalhash], cracked: 0, hashfile_id: @job.hashfile_id)
+  @all_cracked_targets.each do |ct|
+    cracks[ct.originalhash] = ct.plaintext unless cracks.key?(ct.originalhash)
+  end
+
+  # match already cracked hashes against hashes to be uploaded, update db
+  count = 0
+  @to_be_cracked_targets.each do |entry|
+    if cracks.key?(entry.originalhash)
+      Targets.all(fields: [:id, :cracked, :plaintext], originalhash: entry.originalhash, hashtype: hashtype, cracked: 0).update(cracked: 1, plaintext: cracks[entry.originalhash])
+      count += 1
+    end
+  end
+
+  if count > 0
+    flash[:success] = "Hashview has previous cracked #{count} of these hashes."
   end
 
   tasks.each do |task|
