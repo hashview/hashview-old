@@ -32,7 +32,7 @@ set :ssl_certificate, 'cert/server.crt'
 set :ssl_key, 'cert/server.key'
 enable :sessions
 
-redis = Redis.new
+#redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
@@ -577,13 +577,13 @@ post '/tasks/edit/:id' do
     wordlist_list = ''
     rule_list = ''
     @wordlists = Wordlists.all
-    @wordlists.each do |wordlist|
+    @wordlists.each do |wordlist_check|
       params.keys.each do |key|
-        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist_check.id}"
           if wordlist_list == ''
-            wordlist_list = wordlist.id.to_s + ','
+            wordlist_list = wordlist_check.id.to_s + ','
           else
-            wordlist_list = wordlist_list + wordlist.id.to_s
+            wordlist_list = wordlist_list + wordlist_check.id.to_s
           end
           wordlist_count = wordlist_count + 1
         end
@@ -687,13 +687,13 @@ post '/tasks/create' do
     wordlist_list = ''
     rule_list = ''
     @wordlists = Wordlists.all
-    @wordlists.each do |wordlist|
+    @wordlists.each do |wordlist_check|
       params.keys.each do |key|
-        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist.id}"
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist_check.id}"
           if wordlist_list == ''
-            wordlist_list = wordlist.id.to_s + ','
+            wordlist_list = wordlist_check.id.to_s + ','
           else
-            wordlist_list = wordlist_list + wordlist.id.to_s
+            wordlist_list = wordlist_list + wordlist_check.id.to_s
           end
           wordlist_count = wordlist_count + 1
         end
@@ -800,7 +800,7 @@ post '/jobs/create' do
   if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
     if params[:edit] == '1'
-      redirect to("/jobs/create?custid=#{:custid}&jobid=#{:jobid}&edit=1")
+      redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
     else
       redirect to('/jobs/create')
     end
@@ -1013,7 +1013,6 @@ get '/jobs/start/:id' do
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      p 'ENQUE CMD: ' + cmd
       Resque.enqueue(Jobq, jt.id, cmd)
     end
   end
@@ -1029,7 +1028,6 @@ end
 get '/jobs/stop/:id' do
   varWash(params)
 
-  tasks = []
   @job = Jobs.first(id: params[:id])
   @jobtasks = Jobtasks.all(job_id: params[:id])
 
@@ -1270,7 +1268,7 @@ post '/wordlists/upload/' do
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0) { |c, line| c + 1 }
+  size = File.foreach(file_name).inject(0) { |c| c + 1 }
 
   wordlist = Wordlists.new
   wordlist.name = upload_name 
@@ -1382,7 +1380,7 @@ get '/analytics' do
         end
       end
       # this will only display top 10 hash/passwords shared by users
-      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
+      @duphashes = Hash[@duphashes.sort_by { |_k, v| -v }[0..20]]
 
       users_same_password = []
       @password_users = {}
@@ -1529,9 +1527,9 @@ get '/analytics/graph2' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10passwords = @top10passwords.sort_by { |key, value| value }.reverse.to_h
+  @top10passwords = @top10passwords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v }[0..9]]
+  @top10passwords = Hash[@top10passwords.sort_by { |_k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
     @toppasswords << { password: key, count: value }
@@ -1575,9 +1573,9 @@ get '/analytics/graph3' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10basewords = @top10basewords.sort_by { |key, value| value }.reverse.to_h
+  @top10basewords = @top10basewords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
-  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v }[0..9]]
+  @top10basewords = Hash[@top10basewords.sort_by { |_k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10basewords.each do |key, value|
     @topbasewords << { password: key, count: value }
