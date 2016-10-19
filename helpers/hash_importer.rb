@@ -167,6 +167,8 @@ def getMode(hash)
     @modes.push('0')	# MD5
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
+  elsif hash =~ /^[a-f0-9]{40}(:.+)?$/
+    @modes.push('100')  # SHA-1
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
@@ -192,6 +194,7 @@ def modeToFriendly(mode)
   return 'MD5' if mode == '0'
   return 'NTLM' if mode == '1000'
   return 'LM' if mode == '3000'
+  return 'SHA-1' if mode == '100'
   return 'md5crypt' if mode == '500'
   return 'bcrypt' if mode == '3200'
   return 'sha256crypt' if mode == '7400'
@@ -206,6 +209,7 @@ def friendlyToMode(friendly)
   return '0' if friendly == 'MD5'
   return '1000' if friendly == 'NTLM'
   return '3000' if friendly == 'LM'
+  return '100' if friendly == 'SHA-1'
   return '500' if friendly == 'md5crypt'
   return '3200' if friendly == 'bcrypt'
   return '7400' if friendly == 'sha512crypt'
