@@ -1301,6 +1301,9 @@ get '/hashfiles/delete' do
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
 
+  @uncracked = Targets.all(hashfile_id: parms[:hashfile_id], cracked: 0)
+  @uncracked.destroy unless @uncracked.nil?
+
   flash[:success] = 'Successfuly removed hashfile.'
 
   redirect to('/hashfiles/list')
