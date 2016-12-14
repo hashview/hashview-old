@@ -225,6 +225,11 @@ namespace :db do
         end
       end
 
+      # Remove old tables
+      puts '[*] Removing old tables'
+      #conn.query("DROP TABLE targets")
+
+
     rescue Mysql::Error => e
       puts e.errno
       puts e.error
