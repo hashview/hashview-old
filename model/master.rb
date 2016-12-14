@@ -175,6 +175,27 @@ class Targets
   property :customer_id, Integer
 end
 
+# Table for handling hashes cracked and uncracked
+class Hashes
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :originalhash, String, length: 4000
+  property :hashtype, Integer
+  property :cracked, Boolean
+  property :plaintext, String, length: 2000
+end
+
+# Table for managing association between users and hashes
+class HashfileHashes
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :hash_id, Integer
+  property :username, String, length: 2000
+  property :hashfile_id, Integer
+end
+
 # User Settings
 class Settings
   include DataMapper::Resource
