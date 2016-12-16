@@ -180,7 +180,16 @@ get '/home' do
   @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentlycracked = Targets.all(limit: 10, cracked: 1)
+
+  @recentlycracked = {}
+  # Until we can figure out JOIN statments, we're going to have to hack it
+  @cracked_hashes = Hashes.all(fields: [:id, :plaintext], limit: 10, cracked: 1, order: [:id.desc])
+  @cracked_hashes.each do |hash|
+    password = hash[:plaintext]
+    username = Hashfilehashes.first(fields: [:username], hash_id: hash[:id])
+    @recentlycracked[username.username] = password
+  end
+
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
 
@@ -201,8 +210,15 @@ get '/home' do
   @jobs.each do |j|
     if j.status == 'Running'
       # gather info for statistics
-      @alltargets = Targets.count(hashfile_id: j.hashfile_id)
-      @crackedtargets = Targets.count(hashfile_id: j.hashfile_id, cracked: 1)
+
+      @hash_ids = Array.new
+      Hashfilehashes.all(fields: [:hash_id], hashfile_id: j.hashfile_id).each do |entry|
+        @hash_ids.push(entry.hash_id)
+      end
+ 
+      @alltargets = Hashes.count(id: @hash_ids)
+      @crackedtargets = Hashes.count(id: @hash_ids, cracked: 1)
+
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
       @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')

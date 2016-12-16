@@ -184,16 +184,21 @@ class Hashes
   property :hashtype, Integer
   property :cracked, Boolean
   property :plaintext, String, length: 2000
+  #belongs_to :Hashfilehashes
+  #has n, :hashfilehashs, 'Hashfilehash'
+  #  :child_key => 'hashes_id' # We add the second 's because...bugs?
 end
 
 # Table for managing association between users and hashes
-class HashfileHashes
+class Hashfilehashes
   include DataMapper::Resource
 
-  property :id, Serial
-  property :hash_id, Integer
-  property :username, String, length: 2000
+  property :id, 	Serial
+  property :hash_id, 	Integer
+  property :username, 	String, length: 2000
   property :hashfile_id, Integer
+  #belongs_to :hashes, :key => true #'Hashes'#,
+  #  parent_key: ['id']
 end
 
 # User Settings
