@@ -1380,8 +1380,6 @@ get '/hashfiles/list' do
     end
     hash_file_cracked_count = Hashes.count(id: @hash_ids, cracked: 1)
     hash_file_total_count = Hashes.count(id: @hash_ids)
-    # hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
-    # hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
     @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
   end
 
