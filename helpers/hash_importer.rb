@@ -19,7 +19,7 @@ def detectedHashFormat(hash)
   end
 end
 
-def importPwdump(hash, customer_id, hashfile_id, type)
+def importPwdump(hash, hashfile_id, type)
   data = hash.split(':')
   return if machineAcct?(data[0])
   return if data[2].nil?
@@ -65,7 +65,6 @@ def importPwdump(hash, customer_id, hashfile_id, type)
     hashfileHashes_1.username = data[0]
     hashfileHashes_1.hashfile_id = hashfile_id
     hashfileHashes_1.save
-
   end
 
   # if hashtype is ntlm
@@ -86,7 +85,6 @@ def importPwdump(hash, customer_id, hashfile_id, type)
     hashfileHashes_ntlm.username = data[0]
     hashfileHashes_ntlm.hashfile_id = hashfile_id
     hashfileHashes_ntlm.save
-
   end
 end
 
@@ -98,16 +96,25 @@ def machineAcct?(username)
   end
 end
 
-def importShadow(hash, customer_id, hashfile_id, type)
+def importShadow(hash, hashfile_id, type)
+  # This parser needs some work
   data = hash.split(':')
-  target = Targets.new
-  target.username = data[0]
-  target.originalhash = data[1]
-  target.hashtype = type
-  target.hashfile_id = hashfile_id
-  target.customer_id = customer_id
-  target.cracked = false
-  target.save
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    hashes = Hashes.new
+    hashes.originalhash = data[1]
+    hashes.hashtype = type
+    hashes.cracked = false
+    hashes.save
+
+     @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  end
+
+  hashfileHashes = Hashfilehashes.new
+  hashfileHashes.hash_id = @hash_id.id.to_i
+  hashfileHashes.username = data[0]
+  hashfileHashes.hashfile_id = hashfile_id
+  hashfileHashes.save
 end
 
 def importDsusers(hash, customer_id, hashfile_id, type)
@@ -246,16 +253,16 @@ def friendlyToMode(friendly)
   return '5600' if friendly == 'NetNTLMv2'
 end
 
-def importHash(hash_file, customer_id, hashfile_id, file_type, hashtype)
+def importHash(hash_file, hashfile_id, file_type, hashtype)
   hash_file.each do |entry|
     if file_type == 'pwdump'
-      importPwdump(entry.chomp, customer_id, hashfile_id, hashtype)
+      importPwdump(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'shadow'
-      importShadow(entry.chomp, customer_id, hashfile_id, hashtype)
+      importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'raw'
-      importRaw(entry.chomp, customer_id, hashfile_id, hashtype)
+      importRaw(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'dsusers'
-      importDsusers(entry.chomp, customer_id, hashfile_id, hashtype)
+      importDsusers(entry.chomp, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
