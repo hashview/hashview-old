@@ -40,11 +40,11 @@
                         - @hashfiles.each do |hashfile|
                           - if params[:edit] == '1'
                             - if @job.hashfile_id == hashfile.id
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name}
+                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                             - else
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                           - else
-                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name}
+                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]} 
                         %option{:value => "add_new", :name => "hf_id", :type => "button"} New Hashfile
                   .section
                     %div{:class => "label_leftalign field"}

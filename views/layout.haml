@@ -51,24 +51,24 @@
                   %li
                     %a(href="/customers/list") Customers
                   %li
-                    %a(href="/wordlists/list")Wordlists
+                    %a(href="/wordlists/list") Wordlists
                   %li
-                    %a(href='/hashfiles/list')Hashfiles
+                    %a(href='/hashfiles/list') Hashfiles
                   %li.divider{:role => "separator"}
                   %li
-                    %a(href="/analytics")Analytics
+                    %a(href="/analytics") Analytics
                   %li
-                    %a(href="/search")Search
+                    %a(href="/search") Search
                   %li.divider{:role => "separator"}
                   %li
-                    %a(href='/accounts/list')User Accounts
+                    %a(href='/accounts/list') User Accounts
                   %li
-                    %a(href="/settings")Global Settings
+                    %a(href="/settings") Global Settings
                   %li
-                    %a(href="/logout")Logout
+                    %a(href="/logout") Logout
             %li
               - if !validSession?                
-                %a(href="/login")Login
+                %a(href="/login") Login
     - if flash[:info]
       .container
         .flash.alert.alert-info{:role => "info"}

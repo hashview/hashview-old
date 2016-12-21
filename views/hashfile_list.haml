@@ -10,7 +10,7 @@
                 Hash Files
             .row
               .col-md-10.pull-left
-                The following are a list of Hash Files currently configured in Hashview. All Hash Files are assigned to a single customer. Deleting a Hash File will remove it from the customer, but all cracked hashes will remain in the database. To remove these, you must purge them.
+                The following are a list of Hash Files currently configured in Hashview. All Hash Files are assigned to a single customer. Deleting a Hash File will remove it from the customer, but all cracked hashes will remain in the database.
       %br
       %br
       .container
@@ -25,18 +25,22 @@
                     %th
                       %b Hash File
                     %th
+                      %b Crack Rate
+                    %th
                       %b Control
                 %tbody
                   - if @customers
                     - @customers.each do |customer|
                       %tr
                         %td #{customer.name}
-                        %td 
+                        %td
                         %td
                       - @hashfiles.each do |hashfile|
                         - if hashfile.customer_id.to_i == customer.id.to_i
                           %td
                           %td #{hashfile.name}
+                          %td 
+                            #{@cracked_status[hashfile.id]}
                           %td
                             %a.btn.btn-danger{:href => "/hashfiles/delete?hashfile_id=#{hashfile.id}"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}

@@ -9,6 +9,9 @@ def detectedHashFormat(hash)
   # Detect if shadow
   elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
+  #elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+  elsif hash =~ /^.*:\w{32}$/
+    return 'dsusers'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
   else
@@ -51,7 +54,7 @@ def importPwdump(hash, customer_id, hashfile_id, type)
     # import NTLM
     target_ntlm = Targets.new
     target_ntlm.username = data[0]
-    target_ntlm.originalhash = data[3].downcase
+    target_ntlm.originalhash = data[3]
     target_ntlm.hashtype = '1000'
     target_ntlm.hashfile_id = hashfile_id
     target_ntlm.customer_id = customer_id
@@ -80,6 +83,26 @@ def importShadow(hash, customer_id, hashfile_id, type)
   target.save
 end
 
+def importDsusers(hash, customer_id, hashfile_id, type)
+  data = hash.split(':')
+  target = Targets.new
+  target.username = data[0]
+  if type == '1000' # import NTLM
+    target.hashtype = '1000'
+  #  lm_hash = data[1].split('$')
+  #  target.originalhash = lm_hash[2]
+    target.originalhash = data[1]
+  end
+  if type == '3000' # import LM
+    target.hashtype = '3000'
+    target.originalhash = data[1]
+  end
+  target.hashfile_id = hashfile_id
+  target.customer_id = customer_id
+  target.cracked = false
+  target.save
+end
+
 def importRaw(hash, customer_id, hashfile_id, type)
   if type == '3000'
     # import LM
@@ -101,9 +124,33 @@ def importRaw(hash, customer_id, hashfile_id, type)
     target_lm2.cracked = false
     target_lm2.save
 
+  elsif type == '5500'
+    # import NetNTLMv1
+    fields = hash.split(':')
+    target_NetNTLMv1 = Targets.new
+    target_NetNTLMv1.username = fields[0]
+    target_NetNTLMv1.originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
+    target_NetNTLMv1.hashtype = '5500'
+    target_NetNTLMv1.hashfile_id = hashfile_id
+    target_NetNTLMv1.customer_id = customer_id
+    target_NetNTLMv1.cracked = false
+    target_NetNTLMv1.save    
+
+  elsif type == '5600'
+    # import NetNTLMv2
+    fields = hash.split(':')
+    target_NetNTLMv2 = Targets.new
+    target_NetNTLMv2.username = fields[0]
+    target_NetNTLMv2.originalhash = hash # looks like we need full hash including username, salt, computername
+    target_NetNTLMv2.hashtype = '5600'
+    target_NetNTLMv2.hashfile_id = hashfile_id
+    target_NetNTLMv2.customer_id = customer_id
+    target_NetNTLMv2.cracked = false
+    target_NetNTLMv2.save
+
   else
     target_raw = Targets.new
-    target_raw.originalhash = hash.downcase
+    target_raw.originalhash = hash
     target_raw.hashtype = type
     target_raw.hashfile_id = hashfile_id
     target_raw.customer_id = customer_id
@@ -118,6 +165,10 @@ def getMode(hash)
     @modes.push('1000') # NTLM
     @modes.push('3000') # LM (in pwdump format)
     @modes.push('0')	# MD5
+  elsif hash =~ %r{\$NT\$\w{32}} # NTLM
+    @modes.push('1000')
+  elsif hash =~ /^[a-f0-9]{40}(:.+)?$/
+    @modes.push('100')  # SHA-1
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
@@ -143,6 +194,7 @@ def modeToFriendly(mode)
   return 'MD5' if mode == '0'
   return 'NTLM' if mode == '1000'
   return 'LM' if mode == '3000'
+  return 'SHA-1' if mode == '100'
   return 'md5crypt' if mode == '500'
   return 'bcrypt' if mode == '3200'
   return 'sha256crypt' if mode == '7400'
@@ -157,6 +209,7 @@ def friendlyToMode(friendly)
   return '0' if friendly == 'MD5'
   return '1000' if friendly == 'NTLM'
   return '3000' if friendly == 'LM'
+  return '100' if friendly == 'SHA-1'
   return '500' if friendly == 'md5crypt'
   return '3200' if friendly == 'bcrypt'
   return '7400' if friendly == 'sha512crypt'
@@ -174,6 +227,8 @@ def importHash(hash_file, customer_id, hashfile_id, file_type, hashtype)
       importShadow(entry.chomp, customer_id, hashfile_id, hashtype)
     elsif file_type == 'raw'
       importRaw(entry.chomp, customer_id, hashfile_id, hashtype)
+    elsif file_type == 'dsusers'
+      importDsusers(entry.chomp, customer_id, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
@@ -187,6 +242,8 @@ def detectHashfileType(hash_file)
       @file_types.push('pwdump') unless @file_types.include?('pwdump')
     elsif detectedHashFormat(entry.chomp) == 'shadow'
       @file_types.push('shadow') unless @file_types.include?('shadow')
+    elsif detectedHashFormat(entry.chomp) == 'dsusers'
+      @file_types.push('dsusers') unless @file_types.include?('dsusers')
     else
       @file_types.push('raw') unless @file_types.include?('raw')
     end
@@ -208,7 +265,7 @@ def detectHashType(hash_file, file_type)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
-    elsif file_type == 'shadow'
+    elsif file_type == 'shadow' || file_type == 'dsusers'
       elements = entry.split(':')
       @modes = getMode(elements[1])
       @modes.each do |mode|

@@ -10,7 +10,7 @@
               .btn-group
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
                   - if @custid.nil?
-                    All
+                    All Time
                   - else
                     #{@customers.name}
                   %span.caret
@@ -132,41 +132,48 @@
                     %td
                       %b #{@hashfiles.name}
                   %tr
-                    %td Total Hashes: 
+                    %td Total Hashes:
                     %td #{@total_accounts}
                   %tr
-                    %td Total Unique Users: 
+                    %td Total Unique Users:
                     %td #{@total_unique_users_count.size}
                   %tr
-                    %td Total Unique Passwords: 
+                    %td Total Unique Passwords:
                     %td #{@total_unique_originalhash_count.size.to_s}
                   %tr
                     %td Total Run Time:
                     - if @total_run_time and @total_run_time > 86400
-                      %td #{@total_run_time.to_f/86400} Days
+                      %td #{(@total_run_time.to_f/86400).round(2)} Days
                     - elsif @total_run_time and @total_run_time > 3600
-                      %td #{@total_run_time.to_f/3600} Hours
+                      %td #{(@total_run_time.to_f/3600).round(2)} Hours
                     - elsif @total_run_time and @total_run_time > 60
-                      %td #{@total_run_time.to_f/60} Minutes
+                      %td #{(@total_run_time.to_f/60).round(2)} Minutes
                     - elsif @total_run_time and @total_run_time >= 0
-                      %td #{@total_run_time.to_f} Seconds
+                      %td #{@total_run_time.to_f.round(2)} Seconds
                     - else
                       %td Im ready coach, just send me in.
                   %tr
                     %td
-                      - if @custid.nil?
-                        %a.btn.btn-primary.pull-left{:href => "/download"}
-                          Download Cracked File
-                      - elsif @custid && @hashfile_id.nil?
-                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}"}
-                          Download Cracked File
-                      - elsif @custid && @hashfile_id
-                        %a.btn.btn-primary.pull-left{:href => "/download?custid=#{@custid}&hf_id=#{@hashfile_id}"}
-                          Download Cracked File
-                      - else
-                        You shouldnt see me
+                      %b Download
                     %td
-
+                      - if @custid.nil?
+                        %a.btn.btn-success.pull-left{:href => '/download?type=cracked'}
+                          Cracked
+                        &nbsp; 
+                        %a.btn.btn-danger.pull-center{:href => '/download?type=uncracked'}
+                          Uncracked 
+                      - elsif @custid && @hashfile_id.nil?
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}"}
+                          Cracked
+                        &nbsp;
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}"}
+                          Uncracked 
+                      - elsif @custid && @hashfile_id
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                          Cracked
+                        &nbsp;
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                          Uncracked 
 
           .col-md-12
             .panel.panel-default

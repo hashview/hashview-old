@@ -32,13 +32,7 @@ set :ssl_certificate, 'cert/server.crt'
 set :ssl_key, 'cert/server.key'
 enable :sessions
 
-redis = Redis.new
-
-# to start the resque web queue run the following from the command prompt:
-# resque-web
-
-# to start the rake task do: TERM_CHILD=1 QUEUE=* rake resque:work
-# ^^^ should probably make an upstart for that
+#redis = Redis.new
 
 # validate every session
 before /^(?!\/(login|register|logout))/ do
@@ -46,7 +40,7 @@ before /^(?!\/(login|register|logout))/ do
     redirect to('/login')
   else
     settings = Settings.first
-    if (settings && settings.hcbinpath.nil?) or settings.nil?
+    if (settings && settings.hcbinpath.nil?) || settings.nil?
       flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
     end
   end
@@ -93,18 +87,18 @@ post '/login' do
       if session[:session_id]
         # replace the session in the session table
         # TODO : This needs an expiration, session fixation
-        @del_session = Sessions.first(username: "#{usern}")
+        @del_session = Sessions.first(username: usern)
         @del_session.destroy if @del_session
       end
       # Create new session
-      @curr_session = Sessions.create(username: "#{usern}", session_key: "#{session[:session_id]}")
+      @curr_session = Sessions.create(username: usern, session_key: session[:session_id])
       @curr_session.save
 
       redirect to('/home')
     end
   else
     flash[:error] = 'Invalid credentials.'
-    redirect to('/not_authorized')
+    redirect to('/login')
   end
 end
 
@@ -174,7 +168,7 @@ post '/register' do
     end
   end
 
-  redirect to('/home')
+  redirect to('/login')
 end
 
 ############################
@@ -188,11 +182,7 @@ get '/home' do
   @tasks = Tasks.all
   @recentlycracked = Targets.all(limit: 10, cracked: 1)
   @customers = Customers.all
-  @active_jobs = Jobs.first(fields: [:id, :status], status: 'Running')
-
-  # status
-  # this cmd requires a sudo TODO:this isnt working due to X env
-  # username   ALL=(ALL) NOPASSWD: /usr/bin/amdconfig --adapter=all --odgt
+  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
@@ -403,37 +393,6 @@ post '/customers/upload/verify_hashtype' do
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  # detect if hash was previously cracked
-  # build hash of hashes and plains
-  if  params[:retro_crack]
-    puts "detecting previously cracked hashes"
-    cracks = {}
-    @all_cracked_targets = Targets.all(cracked: 1)
-    @all_cracked_targets.each do |ct|
-      cracks[ct.originalhash.chomp.to_s] = ct.plaintext
-    end
-
-    # modify hash array if it is a pwdump
-    if filetype == "pwdump"
-      hash_array.map! {|item| item = item.split(":")[3].downcase}
-    end
-
-    # match already cracked hashes against hashesl to be uploaded, update db
-    # matches = []
-    count = 0
-    hash_array.each do |hash|
-      hash = hash.chomp.downcase.to_s
-      if cracks.key?(hash)
-        Targets.all(originalhash: hash, cracked: 0).update(cracked: 1, plaintext: cracks[hash])
-        count = count + 1
-      end
-    end
-
-    if count > 0
-      flash[:success] = "Hashview has previous cracked #{count} of these hashes"
-    end
-  end
-
   # Delete file, no longer needed
   File.delete(hash_file)
 
@@ -519,7 +478,7 @@ post '/accounts/save' do
   end
 
   if params[:password] != params[:confirm]
-    flash[:error] = 'Passwords do not match'
+    flash[:error] = 'Passwords do not match.'
     redirect to("/accounts/edit/#{params[:account_id]}")
   end
 
@@ -557,12 +516,14 @@ end
 get '/tasks/delete/:id' do
   varWash(params)
 
-  @task = Tasks.first(id: params[:id])
-  if @task
-    @task.destroy
-  else
-    return 'No such task exists.'
+  @job_tasks = Jobtasks.all(task_id: params[:id])
+  unless @job_tasks.empty?
+    flash[:error] = 'That task is currently used in a job.'
+    redirect to('/tasks/list')
   end
+
+  @task = Tasks.first(id: params[:id])
+  @task.destroy if @task
 
   redirect to('/tasks/list')
 end
@@ -572,6 +533,18 @@ get '/tasks/edit/:id' do
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
   @settings = Settings.first
+
+  if @task.hc_attackmode == 'combinator'
+    @combinator_wordlists = @task.wl_id.split(',')
+    if @task.hc_rule =~ /--rule-left=(.*) --rule-right=(.*)/
+      @combinator_left_rule = $1
+      @combinator_right_rule = $2
+    elsif @task.hc_rule =~ /--rule-left=(.*)/
+      @combinator_left_rule = $1
+    elsif @task.hc_rule =~ /--rule-right=(.*)/
+      @combinator_right_rule = $1
+    end
+  end
 
   @rules = []
   # list wordlists that can be used
@@ -598,6 +571,41 @@ post '/tasks/edit/:id' do
     redirect to('/settings')
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    wordlist_list = ''
+    rule_list = ''
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist_check|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist_check.id}"
+          if wordlist_list == ''
+            wordlist_list = wordlist_check.id.to_s + ','
+          else
+            wordlist_list = wordlist_list + wordlist_check.id.to_s
+          end
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count != 2
+      flash[:error] = 'You must specify at exactly 2 wordlists.'
+      redirect to("/tasks/edit/#{params[:id]}")
+    end
+
+    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
+    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule]
+    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-right=' + params[:combinator_right_rule]
+    else
+      rule_list = ''
+    end
+  end
+
   task = Tasks.first(id: params[:id])
   task.name = params[:name]
 
@@ -611,6 +619,10 @@ post '/tasks/edit/:id' do
     task.wl_id = 'NULL'
     task.hc_rule = 'NULL'
     task.hc_mask = params[:mask]
+  elsif params[:attackmode] == 'combinator'
+    task.wl_id = wordlist_list 
+    task.hc_rule = rule_list
+    task.hc_mask = 'NULL'
   end
   task.save
 
@@ -669,6 +681,41 @@ post '/tasks/create' do
     end
   end
 
+  # must have two word lists
+  if params[:attackmode] == 'combinator'
+    wordlist_count = 0
+    wordlist_list = ''
+    rule_list = ''
+    @wordlists = Wordlists.all
+    @wordlists.each do |wordlist_check|
+      params.keys.each do |key|
+        if params[key] == 'on' && key == "combinator_wordlist_#{wordlist_check.id}"
+          if wordlist_list == ''
+            wordlist_list = wordlist_check.id.to_s + ','
+          else
+            wordlist_list = wordlist_list + wordlist_check.id.to_s
+          end
+          wordlist_count = wordlist_count + 1
+        end
+      end
+    end
+
+    if wordlist_count != 2
+      flash[:error] = 'You must specify at exactly 2 wordlists.'
+      redirect to('/tasks/create')
+    end
+
+    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
+    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
+      rule_list = '--rule-left=' + params[:combinator_left_rule]
+    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
+      rule_list = '--rule-right=' + params[:combinator_right_rule]
+    else
+      rule_list = ''
+    end
+  end
+
   task = Tasks.new
   task.name = params[:name]
 
@@ -679,10 +726,13 @@ post '/tasks/create' do
     task.hc_rule = params[:rule]
   elsif params[:attackmode] == 'maskmode'
     task.hc_mask = params[:mask]
+  elsif params[:attackmode] == 'combinator'
+    task.wl_id = wordlist_list
+    task.hc_rule = rule_list
   end
   task.save
 
-  flash[:success] = "Task #{task.name} successfully created"
+  flash[:success] = "Task #{task.name} successfully created."
 
   redirect to('/tasks/list')
 end
@@ -694,14 +744,20 @@ end
 get '/jobs/list' do
   @targets_cracked = {}
   @customer_names = {}
+  @wordlist_id_to_name = {}
 
   @jobs = Jobs.all(order: [:id.desc])
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
+  @wordlists = Wordlists.all
 
-  @jobs.each do |entry|
-    @customers = Customers.first(id: [entry.customer_id])
-    @customer_names[entry.customer_id] = @customers.name
+  @wordlists.each do |wordlist|
+    @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name
+  end
+
+  @jobs.each do |job|
+    @customers = Customers.first(id: [job.customer_id])
+    @customer_names[job.customer_id] = @customers.name
   end
 
   haml :job_list
@@ -711,9 +767,14 @@ get '/jobs/delete/:id' do
   varWash(params)
 
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
+    if @job.status == 'Running' || @job.status == 'Importing'
+      flash[:error] = 'Failed to Delete Job. A task is currently running.'
+      redirect to('/jobs/list')
+    end
     @jobtasks = Jobtasks.all(job_id: params[:id])
     @jobtasks.each do |jobtask|
       jobtask.destroy unless jobtask.nil?
@@ -739,7 +800,7 @@ post '/jobs/create' do
   if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
     if params[:edit] == '1'
-      redirect to("/jobs/create?custid=#{:custid}&jobid=#{:jobid}&edit=1")
+      redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
     else
       redirect to('/jobs/create')
     end
@@ -810,6 +871,14 @@ get '/jobs/assign_hashfile' do
 
   @hashfiles = Hashfiles.all(customer_id: params[:custid])
   @customer = Customers.first(id: params[:custid])
+
+  @cracked_status = Hash.new
+  @hashfiles.each do |hash_file|
+    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
+    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
+  end
+
   @job = Jobs.first(id: params[:jobid])
   return 'No such job exists' unless @job
 
@@ -878,7 +947,7 @@ post '/jobs/assign_tasks' do
   if params[:edit] && !params[:edit].nil?
     @jobtasks = Jobtasks.all(job_id: params[:jobid])
     @jobtasks.each do |jobtask|
-      jobtask.status = 'READY'
+      jobtask.status = 'Queued'
       jobtask.save
     end
   end
@@ -892,17 +961,43 @@ get '/jobs/start/:id' do
 
   tasks = []
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
     @jobtasks = Jobtasks.all(job_id: params[:id])
-    if !@jobtasks
+    unless @jobtasks
+      flash[:error] = 'This job has no tasks to run.'
       return 'This job has no tasks to run.'
     else
       @jobtasks.each do |jt|
         tasks << Tasks.first(id: jt.task_id)
       end
     end
+  end
+
+  # Check to see if we have any previously cracked hashes
+  #@ = Targets.first(hashfile_id: @job.hashfile_id)   
+
+  cracks = {}
+  hashtype = Targets.first(hashfile_id: @job.hashfile_id).hashtype
+  @all_cracked_targets = Targets.all(fields: [:plaintext, :originalhash], cracked: 1, hashtype: hashtype)
+  @to_be_cracked_targets = Targets.all(fields: [:originalhash], cracked: 0, hashfile_id: @job.hashfile_id)
+  @all_cracked_targets.each do |ct|
+    cracks[ct.originalhash] = ct.plaintext unless cracks.key?(ct.originalhash)
+  end
+
+  # match already cracked hashes against hashes to be uploaded, update db
+  count = 0
+  @to_be_cracked_targets.each do |entry|
+    if cracks.key?(entry.originalhash)
+      Targets.all(fields: [:id, :cracked, :plaintext], originalhash: entry.originalhash, hashtype: hashtype, cracked: 0).update(cracked: 1, plaintext: cracks[entry.originalhash])
+      count += 1
+    end
+  end
+
+  if count > 0
+    flash[:success] = "Hashview has previous cracked #{count} of these hashes."
   end
 
   tasks.each do |task|
@@ -918,7 +1013,6 @@ get '/jobs/start/:id' do
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      p 'ENQUE CMD: ' + cmd
       Resque.enqueue(Jobq, jt.id, cmd)
     end
   end
@@ -934,42 +1028,28 @@ end
 get '/jobs/stop/:id' do
   varWash(params)
 
-  tasks = []
   @job = Jobs.first(id: params[:id])
-  if !@job
-    return 'No such job exists.'
-  else
-    @jobtasks = Jobtasks.all(job_id: params[:id])
-    if !@jobtasks
-      return 'This job has no tasks to stop.'
-    else
-      @jobtasks.each do |jt|
-        tasks << Tasks.first(id: jt.task_id)
-      end
-    end
-  end
+  @jobtasks = Jobtasks.all(job_id: params[:id])
 
-  @job.status = 'Paused'
+  @job.status = 'Canceled'
   @job.save
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+  @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if not jt.status == 'Completed' and not jt.status == 'Running'
-      jt.status = 'Canceled'
-      jt.save
-      cmd = buildCrackCmd(@job.id, task.id)
+    if task.status == 'Queued'
+      task.status = 'Canceled'
+      task.save
+      cmd = buildCrackCmd(@job.id, task.task_id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
-      Resque::Job.destroy('hashcat', Jobq, jt.id, cmd)
+      Resque::Job.destroy('hashcat', Jobq, task.id, cmd)
     end
   end
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
-    if jt.status == 'Running'
-      redirect to("/jobs/stop/#{jt.job_id}/#{jt.task_id}")
+  @jobtasks.each do |task|
+    if task.status == 'Running'
+      redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
     end
   end
 
@@ -1012,8 +1092,9 @@ get '/jobs/remove_task' do
   varWash(params)
 
   @job = Jobs.first(id: params[:jobid])
-  if !@job
-    return 'No such job exists.'
+  unless @job
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   else
     @jobtask = Jobtasks.first(id: params[:jobtaskid])
     @jobtask.destroy
@@ -1029,7 +1110,7 @@ end
 get '/settings' do
   @settings = Settings.first
 
-  @auth_types = ['None', 'Plain', 'Login', 'cram_md5']
+  @auth_types = %w(None, Plain, Login, cram_md5)
 
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
@@ -1083,35 +1164,43 @@ get '/download' do
   varWash(params)
 
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: '1')
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1) if params[:type] == 'cracked'
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0) if params[:type] == 'uncracked'
     else
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1)
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1) if params[:type] == 'cracked'
+      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 0) if params[:type] == 'uncracked'
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1)
+    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1) if params[:type] == 'cracked'
+    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 0) if params[:type] == 'uncracked'
   end
-
-  return 'No Results available.' if @cracked_results.nil?
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
-      file_name = "found_#{params[:custid]}_#{params[:wl_id]}.txt"
+      file_name = "found_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'uncracked'
     else
-      file_name = "found_#{params[:custid]}.txt"
+      file_name = "found_#{params[:custid]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:custid]}.txt" if params[:type] == 'uncracked'
     end
   else
-    file_name = 'found_all.txt'
+    file_name = 'found_all.txt' if params[:type] == 'cracked'
+    file_name = 'left_all.txt' if params[:type] == 'uncracked'
   end
 
   file_name = 'control/outfiles/' + file_name
 
   File.open(file_name, 'w') do |f|
     @cracked_results.each do |entry|
-      line = entry.username + ':' + entry.originalhash + ':' + entry.plaintext
+      if entry.username.nil?
+        line = ''
+      else
+        line = entry.username + ':'
+      end
+      line = line + entry.originalhash
+      line = line + ':' + entry.plaintext if params[:type] == 'cracked'
       f.puts line
     end
   end
@@ -1137,7 +1226,7 @@ get '/wordlists/delete/:id' do
   varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
-  if not @wordlist
+  if !@wordlist
     return 'no such wordlist exists'
   else
     # check if wordlist is in use
@@ -1179,10 +1268,10 @@ post '/wordlists/upload/' do
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
 
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0) { |c, line| c + 1 }
+  size = File.foreach(file_name).inject(0) { |c| c + 1 }
 
   wordlist = Wordlists.new
-  wordlist.name = upload_name # what XSS?
+  wordlist.name = upload_name 
   wordlist.path = file_name
   wordlist.size = size
   wordlist.save
@@ -1197,6 +1286,12 @@ end
 get '/hashfiles/list' do
   @customers = Customers.all
   @hashfiles = Hashfiles.all
+  @cracked_status = Hash.new
+  @hashfiles.each do |hash_file|
+    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
+    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
+  end
 
   haml :hashfile_list
 end
@@ -1206,43 +1301,12 @@ get '/hashfiles/delete' do
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
 
+  @uncracked = Targets.all(hashfile_id: params[:hashfile_id], cracked: 0)
+  @uncracked.destroy unless @uncracked.nil?
+
   flash[:success] = 'Successfuly removed hashfile.'
 
   redirect to('/hashfiles/list')
-end
-
-############################
-
-##### Purge Data ###########
-
-get '/purge' do
-  varWash(params)
-  # find all customer ids defined in targets
-  @customersids = Targets.all(fields: [:customer_id], unique: true)
-
-  @total_target_count = 0
-  @total_cracked_count = 0
-  # count all hashes not associated with an active customer
-  @customersids.each do |custid|
-    total_targets = Targets.count(:customer_id.not => custid.customer_id)
-    total_cracked = Targets.count(:customer_id.not => custid.customer_id, :cracked => 1)
-    @total_target_count = @total_target_count + total_targets
-    @total_cracked_count = @total_cracked_count + total_cracked
-  end
-
-  haml :purge
-end
-
-post '/purge' do
-  varWash(params)
-  # delete all targets no associated with an active customer
-  @customersids = Targets.all(fields: [:customer_id], unique: true)
-  @customersids.each do |custid|
-    @targets = Targets.all(:customer_id.not => custid.customer_id)
-    @targets.destroy
-  end
-
-  redirect to('/purge')
 end
 
 ############################
@@ -1254,7 +1318,6 @@ get '/analytics' do
   varWash(params)
 
   @custid = params[:custid]
-  #@jobid = params[:jobid]
   @hashfile_id = params[:hf_id]
   @button_select_customers = Customers.all
 
@@ -1306,7 +1369,7 @@ get '/analytics' do
       # create array of all hashes to count dups
       @total_users_originalhash.each do |uh|
         unless uh.originalhash.nil?
-          hashes << uh.originalhash unless uh.originalhash.length == 0
+          hashes << uh.originalhash unless uh.originalhash.empty?
         end
       end
 
@@ -1320,7 +1383,7 @@ get '/analytics' do
         end
       end
       # this will only display top 10 hash/passwords shared by users
-      @duphashes = Hash[@duphashes.sort_by { |k, v| -v }[0..20]]
+      @duphashes = Hash[@duphashes.sort_by { |_k, v| -v }[0..20]]
 
       users_same_password = []
       @password_users = {}
@@ -1441,7 +1504,6 @@ get '/analytics/graph2' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
@@ -1452,7 +1514,7 @@ get '/analytics/graph2' do
   end
   @cracked_results.each do |crack|
     unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.length == 0
+      plaintext << crack.plaintext unless crack.plaintext.empty?
     end
   end
 
@@ -1468,9 +1530,9 @@ get '/analytics/graph2' do
   end
 
   # sort and convert to array of json objects for d3
-  @top10passwords = @top10passwords.sort_by { |key, value| value }.reverse.to_h
+  @top10passwords = @top10passwords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
-  @top10passwords = Hash[@top10passwords.sort_by { |k, v| -v }[0..9]]
+  @top10passwords = Hash[@top10passwords.sort_by { |_k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10passwords.each do |key, value|
     @toppasswords << { password: key, count: value }
@@ -1485,7 +1547,6 @@ get '/analytics/graph3' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
       @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
     else
@@ -1496,7 +1557,7 @@ get '/analytics/graph3' do
   end
   @cracked_results.each do |crack|
     unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.length == 0
+      plaintext << crack.plaintext unless crack.plaintext.empty?
     end
   end
 
@@ -1505,17 +1566,19 @@ get '/analytics/graph3' do
   # get top 10 basewords
   plaintext.each do |pass|
     word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
-    if @top10basewords[word_just_alpha].nil?
-      @top10basewords[word_just_alpha] = 1
-    else
-      @top10basewords[word_just_alpha] += 1
+    unless word_just_alpha.nil?
+      if @top10basewords[word_just_alpha].nil?
+        @top10basewords[word_just_alpha] = 1
+      else
+        @top10basewords[word_just_alpha] += 1
+      end
     end
   end
 
   # sort and convert to array of json objects for d3
-  @top10basewords = @top10basewords.sort_by { |key, value| value }.reverse.to_h
+  @top10basewords = @top10basewords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
-  @top10basewords = Hash[@top10basewords.sort_by { |k, v| -v }[0..9]]
+  @top10basewords = Hash[@top10basewords.sort_by { |_k, v| -v }[0..9]]
   # convert to array of json objects for d3
   @top10basewords.each do |key, value|
     @topbasewords << { password: key, count: value }
@@ -1589,7 +1652,15 @@ def buildCrackCmd(jobid, taskid)
   hashtype = @targets.hashtype.to_s
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
-  wordlist = Wordlists.first(id: @task.wl_id)
+
+  if attackmode == 'combinator'
+    wordlist_list = @task.wl_id
+    @wordlist_list_elements = wordlist_list.split(',')
+    wordlist_one = Wordlists.first(id: @wordlist_list_elements[0])
+    wordlist_two = Wordlists.first(id: @wordlist_list_elements[1])
+  else
+    wordlist = Wordlists.first(id: @task.wl_id)
+  end
 
   target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
 
@@ -1600,15 +1671,17 @@ def buildCrackCmd(jobid, taskid)
   File.open(crack_file, 'w')
 
   if attackmode == 'bruteforce'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
   elsif attackmode == 'maskmode'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
   elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
     else
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
     end
+  elsif attackmode == 'combinator'
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
   end
   p cmd
   cmd

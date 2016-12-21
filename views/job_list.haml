@@ -45,6 +45,8 @@
                           %td Queued
                         - elsif job.status == 'Completed'
                           %td Completed
+                        - elsif job.status == 'Importing'
+                          %td Importing
                         - else
                           %td Stopped
                         %td #{job.last_updated_by}
@@ -58,6 +60,9 @@
                           - elsif job.status == 'Completed'
                             %a.btn.btn-success{:href => ""}
                               %i.glyphicon.glyphicon-ok{:title => 'Completed'}
+                          - elsif job.status == 'Importing'
+                            %a.btn.btn-default{:href => '/home'}
+                              %i.glyphicon.glyphicon-hourglass{:title => 'Wait'}
                           - else
                             %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}
@@ -92,18 +97,13 @@
                                                       .form-group
                                                         %label.control-label.col-xs-2{:for => ""} Attack Mode
                                                         .col-xs-4
-                                                          - if task.hc_attackmode == 3
-                                                            Brute Force
-                                                          - elsif task.hc_attackmode == 0
-                                                            Dictionary
-                                                          - else
-                                                            Unknown
-                                                    - if task.hc_attackmode == 0
+                                                          #{task.hc_attackmode}
+                                                    - if task.hc_attackmode == 'dictionary'
                                                       .row
                                                         .form-group
                                                           %label.control-label.col-xs-2{:for => ""} Wordlist
                                                           .col-xs-4
-                                                            #{task.wl_id}
+                                                            #{@wordlist_id_to_name[task.wl_id]}
                                                       .row
                                                         .form-group
                                                           %label.control-label.col-xs-2{:for => ""} Dictionary Rules
