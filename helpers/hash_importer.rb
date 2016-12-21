@@ -29,37 +29,77 @@ def importPwdump(hash, customer_id, hashfile_id, type)
   if type == '3000'
     # import LM
     lm_hashes = data[2].scan(/.{16}/)
+    lm_hash_0 = lm_hashes[0].downcase
+    lm_hash_1 = lm_hashes[1].downcase
+ 
+    hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')[0].to_i
+    if hash_id == 0
+      p 'DEBUG: this is a new entry ' + hash_id.to_s
+      hashes_lm0 = Hashes.new
+      hashes_lm0.originalhash = lm_hash_0
+      hashes_lm0.hashtype = '3000'
+      hashes_lm0.cracked = false
+      hashes_lm0.save
 
-    target_lm1 = Targets.new
-    target_lm1.username = data[0]
-    target_lm1.originalhash = lm_hashes[0].downcase
-    target_lm1.hashtype = '3000'
-    target_lm1.hashfile_id = hashfile_id
-    target_lm1.customer_id = customer_id
-    target_lm1.cracked = false
-    target_lm1.save
+      hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')[0].to_i
+    else
+     p 'DEBUG: This entry already exists ' + hash_id.to_s
+    end
 
-    target_lm2 = Targets.new
-    target_lm2.username = data[0]
-    target_lm2.originalhash = lm_hashes[1].downcase
-    target_lm2.hashtype = '3000'
-    target_lm2.hashfile_id = hashfile_id
-    target_lm2.customer_id = customer_id
-    target_lm2.cracked = false
-    target_lm2.save
+    hashfileHashes_0 = Hashfilehashes.new
+    hashfileHashes_0.hash_id = hash_id
+    hashfileHashes_0.username = data[0]
+    hashfileHashes_0.hashfile_id = hashfile_id
+    hashfileHashes_0.save
+
+    hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')[0].to_i
+    if hash_id == 0
+      p 'DEBUG: this is a new entry ' + hash_id.to_s
+      hashes_lm1 = Hashes.new
+      hashes_lm1.originalhash = lm_hash_1
+      hashes_lm1.hashtype = '3000'
+      hashes_lm1.cracked = false
+      hashes_lm1.save
+
+      hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')[0].to_i
+    else
+     p 'DEBUG: This entry already exists ' + hash_id.to_s
+    end
+
+    hashfileHashes_1 = Hashfilehashes.new
+    hashfileHashes_1.hash_id = hash_id
+    hashfileHashes_1.username = data[0]
+    hashfileHashes_1.hashfile_id = hashfile_id
+    hashfileHashes_1.save
+
   end
 
   # if hashtype is ntlm
   if type == '1000'
-    # import NTLM
-    target_ntlm = Targets.new
-    target_ntlm.username = data[0]
-    target_ntlm.originalhash = data[3]
-    target_ntlm.hashtype = '1000'
-    target_ntlm.hashfile_id = hashfile_id
-    target_ntlm.customer_id = customer_id
-    target_ntlm.cracked = false
-    target_ntlm.save
+    hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: '1000')[0]
+    p 'debug hash_id class: ' + hash_id.class.to_s
+    if hash_id == 0
+      p 'DEBUG: this is a new entry ' + hash_id.to_s
+      hashes_ntlm = Hashes.new
+      hashes_ntlm.originalhash = data[3]
+      hashes_ntlm.hashtype = '3000'
+      hashes_ntlm.cracked = false
+      hashes_ntlm.save
+
+      hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: '1000')[0]
+    else
+      p 'DEBUG: This entry already exists ' + hash_id.to_s
+    end
+    p 'DEBUG: hash_id: ' + hash_id.to_s
+
+    p 'DEBUG: New entry should be created'
+    hashfileHashes_ntlm = Hashfilehashes.new
+    hashfileHashes_ntlm.hash_id = hash_id.to_i
+    hashfileHashes_ntlm.username = data[0]
+    hashfileHashes_ntlm.hashfile_id = hashfile_id
+    hashfileHashes_ntlm.save
+    p 'Debug: new Entry created'
+
   end
 end
 
