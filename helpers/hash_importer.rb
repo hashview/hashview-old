@@ -117,24 +117,25 @@ def importShadow(hash, hashfile_id, type)
   hashfileHashes.save
 end
 
-def importDsusers(hash, customer_id, hashfile_id, type)
+def importDsusers(hash, hashfile_id, type)
   data = hash.split(':')
-  target = Targets.new
-  target.username = data[0]
-  if type == '1000' # import NTLM
-    target.hashtype = '1000'
-  #  lm_hash = data[1].split('$')
-  #  target.originalhash = lm_hash[2]
-    target.originalhash = data[1]
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    hashes = Hashes.new
+    hashes.originalhash = data[1]
+    hashes.hashtype = type
+    hashes.cracked = false
+    hashes.save
+
+     @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   end
-  if type == '3000' # import LM
-    target.hashtype = '3000'
-    target.originalhash = data[1]
-  end
-  target.hashfile_id = hashfile_id
-  target.customer_id = customer_id
-  target.cracked = false
-  target.save
+
+  hashfileHashes = Hashfilehashes.new
+  hashfileHashes.hash_id = @hash_id.id.to_i
+  hashfileHashes.username = data[0]
+  hashfileHashes.hashfile_id = hashfile_id
+  hashfileHashes.save
 end
 
 def importRaw(hash, customer_id, hashfile_id, type)
