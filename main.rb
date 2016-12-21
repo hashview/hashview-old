@@ -1506,8 +1506,6 @@ get '/analytics' do
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and original hashes Table: Customer
-      # @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ?)', params[:custid])
-
       @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
       @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
 
@@ -1520,12 +1518,9 @@ get '/analytics' do
     @uncracked_pw_count = Hashes.count(cracked: 0)
 
     # Used for Total Accounts Table: Total
-    # @total_accounts = Targets.count
     @total_accounts = Hashfilehashes.count
 
     # Used for Total Unique Users and originalhashes Tables: Total
-    # @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
-
     @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes')[0].to_s
     @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(originalhash)) FROM hashes')[0].to_s
 
