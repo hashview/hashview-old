@@ -1561,17 +1561,6 @@ get '/analytics/graph1' do
         end
       end
     end
-    #unless crack.plaintext.nil?
-    #  unless crack.plaintext.length == 0
-    #    # get password count by length
-    #    len = crack.plaintext.length
-    #    if @passwords[len].nil?
-    #      @passwords[len] = 1
-    #    else
-    #      @passwords[len] = @passwords[len].to_i + 1
-    #    end
-    #  end
-    #end
   end
 
   # Sort on key
@@ -1592,16 +1581,17 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
+    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
   end
+
   @cracked_results.each do |crack|
-    unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.empty?
+    unless crack.nil?
+      plaintext << crack unless crack.empty?
     end
   end
 
