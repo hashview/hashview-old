@@ -142,55 +142,102 @@ def importRaw(hash, customer_id, hashfile_id, type)
   if type == '3000'
     # import LM
     lm_hashes = hash.scan(/.{16}/)
+    lm_hash_0 = lm_hashes[0].downcase
+    lm_hash_1 = lm_hashes[1].downcase
 
-    target_lm1 = Targets.new
-    target_lm1.originalhash = lm_hashes[0].downcase
-    target_lm1.hashtype = '3000'
-    target_lm1.hashfile_id = hashfile_id
-    target_lm1.customer_id = customer_id
-    target_lm1.cracked = false
-    target_lm1.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+    if @hash_id.nil?
+      hashes_lm0 = Hashes.new
+      hashes_lm0.originalhash = lm_hash_0
+      hashes_lm0.hashtype = '3000'
+      hashes_lm0.cracked = false
+      hashes_lm0.save
 
-    target_lm2 = Targets.new
-    target_lm2.originalhash = lm_hashes[1].downcase
-    target_lm2.hashtype = '3000'
-    target_lm2.hashfile_id = hashfile_id
-    target_lm2.customer_id = customer_id
-    target_lm2.cracked = false
-    target_lm2.save
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+    end
+
+    hashfileHashes_0 = Hashfilehashes.new
+    hashfileHashes_0.hash_id = hash_id.id.to_i
+    hashfileHashes_0.hashfile_id = hashfile_id
+    hashfileHashes_0.save
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    if @hash_id.nil?
+      hashes_lm1 = Hashes.new
+      hashes_lm1.originalhash = lm_hash_1
+      hashes_lm1.hashtype = '3000'
+      hashes_lm1.cracked = false
+      hashes_lm1.save
+
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    end
+
+    hashfileHashes_1 = Hashfilehashes.new
+    hashfileHashes_1.hash_id = @hash_id.id.to_i
+    hashfileHashes_1.hashfile_id = hashfile_id
+    hashfileHashes_1.save
 
   elsif type == '5500'
     # import NetNTLMv1
     fields = hash.split(':')
-    target_NetNTLMv1 = Targets.new
-    target_NetNTLMv1.username = fields[0]
-    target_NetNTLMv1.originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
-    target_NetNTLMv1.hashtype = '5500'
-    target_NetNTLMv1.hashfile_id = hashfile_id
-    target_NetNTLMv1.customer_id = customer_id
-    target_NetNTLMv1.cracked = false
-    target_NetNTLMv1.save    
+    originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: '5500')
+    if @hash_id.nil?
+      hashes = Hashes.new
+      hashes.originalhash = originalhash
+      hashes.hashtype = '5500'
+      hashes.cracked = false
+      hashes.save
+
+      @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: '5500')
+    end
+
+    hashfileHashes = Hashfilehashes.new
+    hashfileHashes.hash_id = @hash_id.id.to_i
+    hashfileHashes.username = fields[0]
+    hashfileHashes.hashfile_id = hashfile_id
+    hashfileHashes.save
 
   elsif type == '5600'
+    # We need to include full hash (username, salt, computername)
     # import NetNTLMv2
     fields = hash.split(':')
-    target_NetNTLMv2 = Targets.new
-    target_NetNTLMv2.username = fields[0]
-    target_NetNTLMv2.originalhash = hash # looks like we need full hash including username, salt, computername
-    target_NetNTLMv2.hashtype = '5600'
-    target_NetNTLMv2.hashfile_id = hashfile_id
-    target_NetNTLMv2.customer_id = customer_id
-    target_NetNTLMv2.cracked = false
-    target_NetNTLMv2.save
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: '5600')
+    if @hash_id.nil?
+      hashes = Hashes.new
+      hashes.originalhash = hash
+      hashes.hashtype = '5600'
+      hashes.cracked = false
+      hashes.save
+
+      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: '5600')
+    end
+
+    hashfileHashes = Hashfilehashes.new
+    hashfileHashes.hash_id = @hash_id.id.to_i
+    hashfileHashes.username = fields[0]
+    hashfileHashes.hashfile_id = hashfile_id
+    hashfileHashes.save
 
   else
-    target_raw = Targets.new
-    target_raw.originalhash = hash
-    target_raw.hashtype = type
-    target_raw.hashfile_id = hashfile_id
-    target_raw.customer_id = customer_id
-    target_raw.cracked = false
-    target_raw.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    if @hash_id.nil?
+      hashes = Hashes.new
+      hashes.originalhash = hash
+      hashes.hashtype = type
+      hashes.cracked = false
+      hashes.save
+    
+      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    end
+
+    hashfileHashes = Hashfilehashes.new
+    hashfileHashes.hash_id = @hash_id.id.to_i
+    hashfileHashes.hashfile_id = hashfile_id
+    hashfileHashes.save
+
   end
 end
 
