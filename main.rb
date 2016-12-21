@@ -1390,7 +1390,7 @@ get '/hashfiles/delete' do
   varWash(params)
   
   @hashfilehashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
-  @hashfilehashes.destroy unless @hashfile.nill?
+  @hashfilehashes.destroy unless @hashfilehashes.empty?
 
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
