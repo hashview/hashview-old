@@ -1499,41 +1499,52 @@ get '/analytics' do
 
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:custid])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:custid])[0].to_s
+      # @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)
+      @uncracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 0)
+      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[0].to_s
+      p 'DEBUG' + @cracked_pw_count
+      #@cracked_pw_count = repository(:default).adapter.select('SELECT count(id) FROM hashes WHERE cracked = 1 AND id IN (SELECT hash_id FROM hashfilehashes WHERE hashfile_id = ?)', params[:hf_id])[0].to_s
+      #@uncracked_pw_count = repository(:default).adapter.select('SELECT count(id) FROM hashes WHERE cracked = 0 AND id IN (SELECT hash_id FROM hashfilehashes WHERE hashfile_id = ?)', params[:hf_id])[0].to_s
+
 
       # Used for Total Accounts Table: Customer
-      @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
+      @total_accounts = Targets.count(customer_id: params[:custid])
 
       # Used for Total Unique Users and original hashes Table: Customer
-      # @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ?)', params[:custid])
-
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
+      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
 
       # Used for Total Run Time: Customer:
       @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:custid] })
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
-    @cracked_pw_count = Hashes.count(cracked: 1)
-    @uncracked_pw_count = Hashes.count(cracked: 0)
+    @cracked_pw_count = Targets.count(cracked: 't')
+    @uncracked_pw_count = Targets.count(cracked: 'f')
 
     # Used for Total Accounts Table: Total
-    # @total_accounts = Targets.count
-    @total_accounts = Hashfilehashes.count
+    @total_accounts = Targets.count
 
     # Used for Total Unique Users and originalhashes Tables: Total
-    # @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
-
-    @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes')[0].to_s
-    @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(originalhash)) FROM hashes')[0].to_s
+    @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
 
     # Used for Total Run Time:
     @total_run_time = Hashfiles.sum(:total_run_time)
   end
 
   @passwords = @cracked_results.to_json
+
+  # Unique Usernames
+  # @total_unique_users_count = Set.new
+
+  # Unique Passwords
+  # @total_unique_originalhash_count = Set.new
+
+  # @total_users_originalhash.each do |entry|
+  #  @total_unique_users_count.add(entry.username)
+  #  @total_unique_originalhash_count.add(entry.originalhash)
+  # end
+
+  # Total Crack Time
 
   haml :analytics
 end
