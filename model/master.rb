@@ -180,10 +180,10 @@ class Hashes
   include DataMapper::Resource
 
   property :id, Serial
-  property :originalhash, String, length: 4000
-  property :hashtype, Integer
+  property :originalhash, String, length: 255, :unique_index => true
+  property :hashtype, Integer, :index => true
   property :cracked, Boolean
-  property :plaintext, String, length: 2000
+  property :plaintext, String, length: 256
   #belongs_to :Hashfilehashes
   #has n, :hashfilehashs, 'Hashfilehash'
   #  :child_key => 'hashes_id' # We add the second 's because...bugs?
@@ -196,7 +196,7 @@ class Hashfilehashes
   property :id, 	Serial
   property :hash_id, 	Integer
   property :username, 	String, length: 2000
-  property :hashfile_id, Integer
+  property :hashfile_id, Integer, :index => true
   #belongs_to :hashes, :key => true #'Hashes'#,
   #  parent_key: ['id']
 end

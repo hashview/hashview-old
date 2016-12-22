@@ -9,7 +9,8 @@ def detectedHashFormat(hash)
   # Detect if shadow
   elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
-  #elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+  elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+    return 'dsusers'
   elsif hash =~ /^.*:\w{32}$/
     return 'dsusers'
   elsif hash =~ /^\w{32}$/
@@ -119,6 +120,10 @@ end
 
 def importDsusers(hash, hashfile_id, type)
   data = hash.split(':')
+  if data[1] =~ /NT/
+    data[1] = data[1].to_s.split('$')[2]
+    type = '3000'
+  end
 
   @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
@@ -138,7 +143,7 @@ def importDsusers(hash, hashfile_id, type)
   hashfileHashes.save
 end
 
-def importRaw(hash, customer_id, hashfile_id, type)
+def importRaw(hash, hashfile_id, type)
   if type == '3000'
     # import LM
     lm_hashes = hash.scan(/.{16}/)
@@ -157,7 +162,7 @@ def importRaw(hash, customer_id, hashfile_id, type)
     end
 
     hashfileHashes_0 = Hashfilehashes.new
-    hashfileHashes_0.hash_id = hash_id.id.to_i
+    hashfileHashes_0.hash_id = @hash_id.id.to_i
     hashfileHashes_0.hashfile_id = hashfile_id
     hashfileHashes_0.save
 

@@ -303,6 +303,9 @@ get '/customers/delete/:id' do
     @jobs.destroy unless @jobs.nil?
   end
 
+  # @hashfilehashes = Hashfilehashes.all(hashfile_id:
+  # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes 
+
   @hashfiles = Hashfiles.all(customer_id: params[:id])
   @hashfiles.destroy unless @hashfiles.nil?
 
@@ -408,6 +411,17 @@ post '/customers/upload/verify_hashtype' do
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
+  total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+
+  unless total_cnt.nil?
+    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+  end
+
+  unless previously_cracked_cnt.nil?
+    flash[:success] = previously_cracked_cnt + ' have already been cracked!'
   end
 
   # Delete file, no longer needed
@@ -998,35 +1012,6 @@ get '/jobs/start/:id' do
     end
   end
 
-  # To be added during import
-
-  # Check to see if we have any previously cracked hashes
-  #@ = Targets.first(hashfile_id: @job.hashfile_id)   
-
-  #cracks = {}
-  #hash_id = Hashfilehashes.all(fields: [:hash_id], hashfile_id: hash_file.id).hash_id
-  #hashtype = Hashes.first(fields: [:hashtype], id: hash_id).hashtype
-
-  #hashtype = Targets.first(hashfile_id: @job.hashfile_id).hashtype
-  #@all_cracked_targets = Targets.all(fields: [:plaintext, :originalhash], cracked: 1, hashtype: hashtype)
-  #@to_be_cracked_targets = Targets.all(fields: [:originalhash], cracked: 0, hashfile_id: @job.hashfile_id)
-  #@all_cracked_targets.each do |ct|
-  #  cracks[ct.originalhash] = ct.plaintext unless cracks.key?(ct.originalhash)
-  #end
-
-  # match already cracked hashes against hashes to be uploaded, update db
-  #count = 0
-  #@to_be_cracked_targets.each do |entry|
-  #  if cracks.key?(entry.originalhash)
-  #    Targets.all(fields: [:id, :cracked, :plaintext], originalhash: entry.originalhash, hashtype: hashtype, cracked: 0).update(cracked: 1, plaintext: cracks[entry.originalhash])
-  #    count += 1
-  #  end
-  #end
-
-  #if count > 0
-  #  flash[:success] = "Hashview has previous cracked #{count} of these hashes."
-  #end
-
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
@@ -1437,8 +1422,8 @@ get '/analytics' do
     # if we have a hashfile
     if params[:hf_id] && !params[:hf_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
-      @cracked_pw_count = repository(:default).adapter.select('SELECT count(id) FROM hashes WHERE cracked = 1 AND id IN (SELECT hash_id FROM hashfilehashes WHERE hashfile_id = ?)', params[:hf_id])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(id) FROM hashes WHERE cracked = 0 AND id IN (SELECT hash_id FROM hashfilehashes WHERE hashfile_id = ?)', params[:hf_id])[0].to_s
+      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hf_id])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hf_id])[0].to_s
 
       # Used for Total Accounts table: Customer: Hashfile
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
@@ -1729,7 +1714,7 @@ def buildCrackCmd(jobid, taskid)
   @task = Tasks.first(id: taskid)
   @job = Jobs.first(id: jobid)
   hashfile_id = @job.hashfile_id
-  hash_id = HashfileHashes.first(hashfile_id: hashfile_id).hash_id
+  hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
   hashtype = Hashes.first(id: hash_id).hashtype.to_s
 
   attackmode = @task.hc_attackmode.to_s
@@ -1753,17 +1738,17 @@ def buildCrackCmd(jobid, taskid)
   File.open(crack_file, 'w')
 
   if attackmode == 'bruteforce'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' -w 3'
   elsif attackmode == 'maskmode'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask + ' -w 3'
   elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
     else
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
     end
   elsif attackmode == 'combinator'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s + ' -w 3'
   end
   p cmd
   cmd
