@@ -135,14 +135,14 @@
                 -if @recentlycracked
                   %thead
                     %td
-                      %strong Username
-                    %td
                       %strong Password
+                    %td
+                      %strong Hash
                   %tbody
-                    - @recentlycracked.each do |username, password|
+                    - @recentlycracked.each do |entry|
                       %tr
-                        %td #{username}
-                        %td #{password}
+                        %td #{entry.plaintext}
+                        %td #{entry.originalhash}
                 -else
                   %b None... lets get cracking!
 %br

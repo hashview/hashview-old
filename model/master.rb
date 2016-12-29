@@ -180,6 +180,7 @@ class Hashes
   include DataMapper::Resource
 
   property :id, Serial
+  property :lastupdated, DateTime
   property :originalhash, String, length: 255, :unique_index => true
   property :hashtype, Integer, :index => true
   property :cracked, Boolean

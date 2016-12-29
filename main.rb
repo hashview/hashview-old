@@ -182,14 +182,7 @@ get '/home' do
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
 
-  @recentlycracked = {}
-  # Until we can figure out JOIN statments, we're going to have to hack it
-  @cracked_hashes = Hashes.all(fields: [:id, :plaintext], limit: 10, cracked: 1, order: [:id.desc])
-  @cracked_hashes.each do |hash|
-    password = hash[:plaintext]
-    username = Hashfilehashes.first(fields: [:username], hash_id: hash[:id])
-    @recentlycracked[username.username] = password
-  end
+  @recentlycracked = Hashes.all(fields: [:originalhash, :plaintext], cracked: 1, limit: 10, :order => [:lastupdated.desc])
 
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
