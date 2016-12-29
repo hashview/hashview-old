@@ -1,4 +1,5 @@
 require 'sinatra'
+
 require './helpers/sinatra_ssl.rb'
 
 # we default to production env b/c i want to
@@ -180,7 +181,16 @@ get '/home' do
   @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
-  @recentlycracked = Targets.all(limit: 10, cracked: 1)
+
+  @recentlycracked = {}
+  # Until we can figure out JOIN statments, we're going to have to hack it
+  @cracked_hashes = Hashes.all(fields: [:id, :plaintext], limit: 10, cracked: 1, order: [:id.desc])
+  @cracked_hashes.each do |hash|
+    password = hash[:plaintext]
+    username = Hashfilehashes.first(fields: [:username], hash_id: hash[:id])
+    @recentlycracked[username.username] = password
+  end
+
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 
 
@@ -201,8 +211,15 @@ get '/home' do
   @jobs.each do |j|
     if j.status == 'Running'
       # gather info for statistics
-      @alltargets = Targets.count(hashfile_id: j.hashfile_id)
-      @crackedtargets = Targets.count(hashfile_id: j.hashfile_id, cracked: 1)
+
+      @hash_ids = Array.new
+      Hashfilehashes.all(fields: [:hash_id], hashfile_id: j.hashfile_id).each do |entry|
+        @hash_ids.push(entry.hash_id)
+      end
+ 
+      @alltargets = Hashes.count(id: @hash_ids)
+      @crackedtargets = Hashes.count(id: @hash_ids, cracked: 1)
+
       @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
       # parse a hashcat status file
       @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
@@ -285,6 +302,9 @@ get '/customers/delete/:id' do
     end
     @jobs.destroy unless @jobs.nil?
   end
+
+  # @hashfilehashes = Hashfilehashes.all(hashfile_id:
+  # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes 
 
   @hashfiles = Hashfiles.all(customer_id: params[:id])
   @hashfiles.destroy unless @hashfiles.nil?
@@ -388,9 +408,20 @@ post '/customers/upload/verify_hashtype' do
   @job.hashfile_id = hashfile.id
   @job.save
 
-  unless importHash(hash_array, customer_id, hashfile.id, filetype, hashtype)
+  unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
+  total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+
+  unless total_cnt.nil?
+    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+  end
+
+  unless previously_cracked_cnt.nil?
+    flash[:success] = previously_cracked_cnt + ' have already been cracked!'
   end
 
   # Delete file, no longer needed
@@ -874,8 +905,13 @@ get '/jobs/assign_hashfile' do
 
   @cracked_status = Hash.new
   @hashfiles.each do |hash_file|
-    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
-    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @hash_ids = Set.new
+    Hashfilehashes.all(fields: [:hash_id], hashfile_id: hash_file.id).each do |entry|
+      @hash_ids.add(entry.hash_id)
+    end
+
+    hash_file_cracked_count = Hashes.count(id: @hash_ids.to_a, cracked: 1)
+    hash_file_total_count = Hashes.count(id: @hash_ids.to_a)
     @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
   end
 
@@ -974,30 +1010,6 @@ get '/jobs/start/:id' do
         tasks << Tasks.first(id: jt.task_id)
       end
     end
-  end
-
-  # Check to see if we have any previously cracked hashes
-  #@ = Targets.first(hashfile_id: @job.hashfile_id)   
-
-  cracks = {}
-  hashtype = Targets.first(hashfile_id: @job.hashfile_id).hashtype
-  @all_cracked_targets = Targets.all(fields: [:plaintext, :originalhash], cracked: 1, hashtype: hashtype)
-  @to_be_cracked_targets = Targets.all(fields: [:originalhash], cracked: 0, hashfile_id: @job.hashfile_id)
-  @all_cracked_targets.each do |ct|
-    cracks[ct.originalhash] = ct.plaintext unless cracks.key?(ct.originalhash)
-  end
-
-  # match already cracked hashes against hashes to be uploaded, update db
-  count = 0
-  @to_be_cracked_targets.each do |entry|
-    if cracks.key?(entry.originalhash)
-      Targets.all(fields: [:id, :cracked, :plaintext], originalhash: entry.originalhash, hashtype: hashtype, cracked: 0).update(cracked: 1, plaintext: cracks[entry.originalhash])
-      count += 1
-    end
-  end
-
-  if count > 0
-    flash[:success] = "Hashview has previous cracked #{count} of these hashes."
   end
 
   tasks.each do |task|
@@ -1165,15 +1177,81 @@ get '/download' do
 
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].nil?
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1) if params[:type] == 'cracked'
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0) if params[:type] == 'uncracked'
+
+      # Until we can figure out JOIN statments, we're going to have to hack it
+      @filecontents = Set.new
+      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hf_id]).each do |entry|
+        #@hashfilehash_ids.add(entry.hash_id)
+        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+          if entry.username.nil? # no username
+            line = ''
+          else
+            line = entry.username + ':'
+          end
+          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+          @filecontents.add(line)
+        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+          if entry.username.nil? # no username
+            line = ''
+          else
+            line = entry.username + ':'
+          end
+          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          @filecontents.add(line)
+        end
+      end
     else
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 1) if params[:type] == 'cracked'
-      @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], customer_id: params[:custid], cracked: 0) if params[:type] == 'uncracked'
+      @filecontents = Set.new
+      @hashfiles_ids = Hashfiles.all(fields: [:id], customer_id: params[:custid]).each do |hashfile|
+        Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
+          #@hashfilehash_ids.add(entry.hash_id)
+          if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+            if entry.username.nil? # no username
+              line = ''
+            else
+              line = entry.username + ':'
+            end
+            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+            line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+            @filecontents.add(line)
+          elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+            if entry.username.nil? # no username
+              line = ''
+            else
+              line = entry.username + ':'
+            end
+            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+            @filecontents.add(line)
+          end
+        end    
+      end
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 1) if params[:type] == 'cracked'
-    @cracked_results = Targets.all(fields: [:plaintext, :originalhash, :username], cracked: 0) if params[:type] == 'uncracked'
+    @filecontents = Set.new
+    @hashfiles_ids = Hashfiles.all(fields: [:id]).each do |hashfile|
+      Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
+        #@hashfilehash_ids.add(entry.hash_id)
+        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+          if entry.username.nil? # no username
+            line = ''
+          else
+            line = entry.username + ':'
+          end
+          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+          @filecontents.add(line)
+        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
+          if entry.username.nil? # no username
+            line = ''
+          else
+            line = entry.username + ':'
+          end
+          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          @filecontents.add(line)
+        end
+      end
+    end
   end
 
   # Write temp output file
@@ -1193,15 +1271,8 @@ get '/download' do
   file_name = 'control/outfiles/' + file_name
 
   File.open(file_name, 'w') do |f|
-    @cracked_results.each do |entry|
-      if entry.username.nil?
-        line = ''
-      else
-        line = entry.username + ':'
-      end
-      line = line + entry.originalhash
-      line = line + ':' + entry.plaintext if params[:type] == 'cracked'
-      f.puts line
+    @filecontents.each do |entry|
+      f.puts entry
     end
   end
 
@@ -1288,8 +1359,12 @@ get '/hashfiles/list' do
   @hashfiles = Hashfiles.all
   @cracked_status = Hash.new
   @hashfiles.each do |hash_file|
-    hash_file_cracked_count = Targets.count(hashfile_id: hash_file.id, cracked: 1)
-    hash_file_total_count = Targets.count(hashfile_id: hash_file.id)
+    @hash_ids = Set.new
+    Hashfilehashes.all(fields: [:hash_id], hashfile_id: hash_file.id).each do |entry|
+      @hash_ids.add(entry.hash_id)
+    end
+    hash_file_cracked_count = Hashes.count(id: @hash_ids, cracked: 1)
+    hash_file_total_count = Hashes.count(id: @hash_ids)
     @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
   end
 
@@ -1298,6 +1373,10 @@ end
 
 get '/hashfiles/delete' do
   varWash(params)
+  
+  @hashfilehashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
+  @hashfilehashes.destroy unless @hashfilehashes.empty?
+
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
 
@@ -1341,23 +1420,25 @@ get '/analytics' do
   end
 
   # get results of specific customer if custid is defined
+  # if we have a customer
   if params[:custid] && !params[:custid].empty?
-    # if we have a job
     # if we have a hashfile
     if params[:hf_id] && !params[:hf_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
-      @cracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 1)
-      @uncracked_pw_count = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: 0)
+      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hf_id])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hf_id])[0].to_s
 
       # Used for Total Accounts table: Customer: Hashfile
-      @total_accounts = Targets.count(customer_id: params[:custid], hashfile_id: params[:hf_id])
+      @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid], hashfile_id: params[:hf_id])
+      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:custid],params[:hf_id])
+
+      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hf_id])[0].to_s
+      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hf_id])[0].to_s
 
       # Used for Total Run Time: Customer: Hashfile
-      @total_run_time_object = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id])
-      @total_run_time = @total_run_time_object.total_run_time
+      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id]).total_run_time
 
       # make list of unique hashes
       unique_hashes = Set.new
@@ -1389,7 +1470,7 @@ get '/analytics' do
       @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
-        dups = Targets.all(fields: [:username, :plaintext, :cracked], hashfile_id: params[:hf_id], customer_id: params[:custid], originalhash: hash[0])
+        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:custid], params[:hf_id], hash[0] )
         # for each user with the same password hash add user to array
         dups.each do |d|
           if !d.username.nil?
@@ -1410,47 +1491,36 @@ get '/analytics' do
 
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 1)
-      @uncracked_pw_count = Targets.count(customer_id: params[:custid], cracked: 0)
+      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:custid])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:custid])[0].to_s
 
       # Used for Total Accounts Table: Customer
-      @total_accounts = Targets.count(customer_id: params[:custid])
+      @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and original hashes Table: Customer
-      @total_users_originalhash = Targets.all(fields: [:username, :originalhash], customer_id: params[:custid])
+      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
+      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
 
       # Used for Total Run Time: Customer:
       @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:custid] })
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
-    @cracked_pw_count = Targets.count(cracked: 't')
-    @uncracked_pw_count = Targets.count(cracked: 'f')
+    @cracked_pw_count = Hashes.count(cracked: 1)
+    @uncracked_pw_count = Hashes.count(cracked: 0)
 
     # Used for Total Accounts Table: Total
-    @total_accounts = Targets.count
+    @total_accounts = Hashfilehashes.count
 
     # Used for Total Unique Users and originalhashes Tables: Total
-    @total_users_originalhash = Targets.all(fields: [:username, :originalhash])
+    @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes')[0].to_s
+    @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(originalhash)) FROM hashes')[0].to_s
 
     # Used for Total Run Time:
     @total_run_time = Hashfiles.sum(:total_run_time)
   end
 
   @passwords = @cracked_results.to_json
-
-  # Unique Usernames
-  @total_unique_users_count = Set.new
-
-  # Unique Passwords
-  @total_unique_originalhash_count = Set.new
-
-  @total_users_originalhash.each do |entry|
-    @total_unique_users_count.add(entry.username)
-    @total_unique_originalhash_count.add(entry.originalhash)
-  end
-
-  # Total Crack Time
 
   haml :analytics
 end
@@ -1463,21 +1533,19 @@ get '/analytics/graph1' do
   @passwords = {}
 
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
+    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
   end
 
   @cracked_results.each do |crack|
-    unless crack.plaintext.nil?
-      unless crack.plaintext.length == 0
-        # get password count by length
-        len = crack.plaintext.length
+    unless crack.nil?
+      unless crack.length == 0
+        len = crack.length
         if @passwords[len].nil?
           @passwords[len] = 1
         else
@@ -1505,16 +1573,17 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
+    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
   end
+
   @cracked_results.each do |crack|
-    unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.empty?
+    unless crack.nil?
+      plaintext << crack unless crack.empty?
     end
   end
 
@@ -1548,16 +1617,16 @@ get '/analytics/graph3' do
   plaintext = []
   if params[:custid] && !params[:custid].empty?
     if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], hashfile_id: params[:hf_id], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
     else
-      @cracked_results = Targets.all(fields: [:plaintext], customer_id: params[:custid], cracked: true)
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
   else
-    @cracked_results = Targets.all(fields: [:plaintext], cracked: true)
+    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
   end
   @cracked_results.each do |crack|
-    unless crack.plaintext.nil?
-      plaintext << crack.plaintext unless crack.plaintext.empty?
+    unless crack.nil?
+      plaintext << crack unless crack.empty?
     end
   end
 
@@ -1605,11 +1674,11 @@ post '/search' do
   end
 
   if params[:search_type].to_s == 'password'
-    @results = Targets.all(plaintext: params[:value])
+    @results = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.plaintext like ?', params[:value])
   elsif params[:search_type].to_s == 'username'
-    @results = Targets.all(username: params[:value])
+    @results = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE a.username like ?', params[:value])
   elsif params[:search_type] == 'hash'
-    @results = Targets.all(originalhash: params[:value])
+    @results = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.originalhash like ?', params[:value])
   end
 
   haml :search_post
@@ -1648,8 +1717,9 @@ def buildCrackCmd(jobid, taskid)
   @task = Tasks.first(id: taskid)
   @job = Jobs.first(id: jobid)
   hashfile_id = @job.hashfile_id
-  @targets = Targets.first(hashfile_id: hashfile_id)
-  hashtype = @targets.hashtype.to_s
+  hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
+  hashtype = Hashes.first(id: hash_id).hashtype.to_s
+
   attackmode = @task.hc_attackmode.to_s
   mask = @task.hc_mask
 
@@ -1671,17 +1741,17 @@ def buildCrackCmd(jobid, taskid)
   File.open(crack_file, 'w')
 
   if attackmode == 'bruteforce'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' -w 3'
   elsif attackmode == 'maskmode'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask + ' -w 3'
   elsif attackmode == 'dictionary'
     if @task.hc_rule == 'none'
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
     else
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
     end
   elsif attackmode == 'combinator'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s + ' -w 3'
   end
   p cmd
   cmd

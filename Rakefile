@@ -176,7 +176,8 @@ namespace :db do
 
     begin
 
-      new_hashes = Array.new    
+      #new_hashes = Array.new    
+      new_hashes = Set.new
 
       puts '[*] Connecting to DB'
       conn = Mysql.new host, user, password, database 
@@ -189,21 +190,24 @@ namespace :db do
         #puts row['hashfile_id']
         hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + row['hashfile_id'] + "'")
         hashfileHashes.each_hash do |row|
-          originalhash_and_hashtype = row['originalhash'].to_str + ':' + row['hashtype'].to_str
-          new_hashes.push(originalhash_and_hashtype) unless new_hashes.include?(originalhash_and_hashtype)
+          originalhash_and_hashtype = row['originalhash'].to_str.downcase + ':' + row['hashtype'].to_str
+          #new_hashes.push(originalhash_and_hashtype) unless new_hashes.include?(originalhash_and_hashtype)
+          new_hashes.add(originalhash_and_hashtype)
         end
       end
 
-      # Create Table
+      #  Create Table
       puts '[*] Creating new Table: Hashes'
-      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, originalhash VARCHAR(4000), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
+      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, originalhash VARCHAR(255), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
 
       puts '[*] Inserting unique hash data into new table... Please wait, this can take some time....'
       new_hashes.each do | entry |
         originalhash, hashtype = entry.split(':')
         remaining_data = conn.query("SELECT cracked,plaintext FROM targets WHERE originalhash='" + originalhash + "' AND hashtype='" + hashtype + "' LIMIT 1")
         remaining_data.each_hash do | row |
-          if row['cracked'] == '1'  
+          if row['cracked'] == '1' 
+            row['plaintext'] = row['plaintext'].gsub("\\", "\\\\\\") 
+            row['plaintext'] = row['plaintext'].gsub("'", "\\\\'")
             conn.query("INSERT INTO hashes(originalhash,hashtype,cracked,plaintext) VALUES ('#{originalhash}','#{hashtype}','#{row['cracked']}','#{row['plaintext']}')")
           else
             conn.query("INSERT INTO hashes(originalhash,hashtype,cracked) VALUES ('#{originalhash}','#{hashtype}','#{row['cracked']}')")
@@ -221,6 +225,10 @@ namespace :db do
         olddata = conn.query("SELECT username,hashfile_id FROM targets WHERE originalhash='" + entry['originalhash'] + "'")
         hash_id = entry['id']
         olddata.each_hash do | row |
+          if row['username'].nil?
+            row['username'] = 'none'
+          end
+          row['username'] = row['username'].gsub("'", "\\\\'")
           conn.query("INSERT INTO hashfilehashes(hash_id,username,hashfile_id) VALUES ('#{hash_id}','#{row['username']}','#{row['hashfile_id']}')")
         end
       end

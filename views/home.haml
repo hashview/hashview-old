@@ -139,10 +139,10 @@
                     %td
                       %strong Password
                   %tbody
-                    - @recentlycracked.each do |cracked|
+                    - @recentlycracked.each do |username, password|
                       %tr
-                        %td #{cracked.username}
-                        %td #{cracked.plaintext}
+                        %td #{username}
+                        %td #{password}
                 -else
                   %b None... lets get cracking!
 %br
