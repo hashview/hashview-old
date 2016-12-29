@@ -184,9 +184,6 @@ class Hashes
   property :hashtype, Integer, :index => true
   property :cracked, Boolean
   property :plaintext, String, length: 256
-  #belongs_to :Hashfilehashes
-  #has n, :hashfilehashs, 'Hashfilehash'
-  #  :child_key => 'hashes_id' # We add the second 's because...bugs?
 end
 
 # Table for managing association between users and hashes
@@ -197,8 +194,6 @@ class Hashfilehashes
   property :hash_id, 	Integer
   property :username, 	String, length: 2000
   property :hashfile_id, Integer, :index => true
-  #belongs_to :hashes, :key => true #'Hashes'#,
-  #  parent_key: ['id']
 end
 
 # User Settings
