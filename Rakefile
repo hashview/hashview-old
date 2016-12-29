@@ -176,7 +176,6 @@ namespace :db do
 
     begin
 
-      #new_hashes = Array.new    
       new_hashes = Set.new
 
       puts '[*] Connecting to DB'
@@ -187,11 +186,9 @@ namespace :db do
  
       targets_hashfile_id.each_hash do |row|
         puts '[*] Collecting info for hashfile_id ' + row['hashfile_id']
-        #puts row['hashfile_id']
         hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + row['hashfile_id'] + "'")
         hashfileHashes.each_hash do |row|
           originalhash_and_hashtype = row['originalhash'].to_str.downcase + ':' + row['hashtype'].to_str
-          #new_hashes.push(originalhash_and_hashtype) unless new_hashes.include?(originalhash_and_hashtype)
           new_hashes.add(originalhash_and_hashtype)
         end
       end
@@ -235,7 +232,7 @@ namespace :db do
 
       # Remove old tables
       puts '[*] Removing old tables'
-      #conn.query("DROP TABLE targets")
+      conn.query("DROP TABLE targets")
 
 
     rescue Mysql::Error => e
