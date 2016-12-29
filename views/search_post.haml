@@ -42,9 +42,7 @@
                       %td #{entry.plaintext}
                       %td #{modeToFriendly(entry.hashtype.to_s)}
                       %td #{entry.originalhash}
-                      - @customers.each do |customer|
-                        - if entry.customer_id == customer.id
-                          %td #{customer.name}
+                      %td #{entry.name}
                       %tr
                   - else
                     %td "No Results"
