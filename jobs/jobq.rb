@@ -137,10 +137,11 @@ module Jobq
 
           # This will pull all hashes from DB regardless of job id
           #records = Targets.all(fields: [:id, :cracked, :plaintext], originalhash: hash, cracked: 0)
-          records = Hashes.all(fields: [:id, :cracked, :plaintext], originalhash: hash, cracked: 0 )
+          records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0 )
           # Yes its slow... we know.
           records.each do |entry|
             entry.cracked = 1
+            entry.lastupdated = Time.now
             entry.plaintext = plaintext
             entry.save
           end
