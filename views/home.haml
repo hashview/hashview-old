@@ -103,30 +103,30 @@
                                       %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
                                         %b Cancel
                     %br
-          .col-md-4
-            .table
-              %b GPUs:
-              %br
-              %br
-              - @gpustat.each do |gpu|
-                - if gpu.match(/^Adapter/)
-                  #{gpu}
-                  %br
-                - if gpu.match(/Sensor/)
-                  / hey sam look at mah dev chops!
-                  &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
-                  %br
-                - else
-                  - if gpu.split.last.to_i == nil
-                    .alert.alert-success{:role => "alert"} #{gpu}
-                  - else
-                    - if gpu.split.last.to_i < 65
-                      .alert.alert-success{:role => "alert"} #{gpu}
-                    - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
-                      .alert.alert-warning{:role => "alert"} #{gpu}
-                    - if gpu.split.last.to_i > 79
-                      .alert.alert-danger{:role => "alert"} #{gpu}
-          .col-md-4
+          /.col-md-4
+          /  .table
+          /    %b GPUs:
+          /    %br
+          /    %br
+          /    - @gpustat.each do |gpu|
+          /      - if gpu.match(/^Adapter/)
+          /        #{gpu}
+          /        %br
+          /      - if gpu.match(/Sensor/)
+          /        / hey sam look at mah dev chops!
+          /        &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
+          /        %br
+          /      - else
+          /        - if gpu.split.last.to_i == nil
+          /          .alert.alert-success{:role => "alert"} #{gpu}
+          /        - else
+          /          - if gpu.split.last.to_i < 65
+          /            .alert.alert-success{:role => "alert"} #{gpu}
+          /          - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
+          /            .alert.alert-warning{:role => "alert"} #{gpu}
+          /          - if gpu.split.last.to_i > 79
+          /            .alert.alert-danger{:role => "alert"} #{gpu}
+          .col-md-8
             .table
               %table{:class => 'table table-striped'}
                 %b Recently Cracked Passwords:
@@ -135,12 +135,21 @@
                 -if @recentlycracked
                   %thead
                     %td
+                      %strong Date / Time
+                    %td
+                      %strong Username
+                    %td
                       %strong Password
                     %td
                       %strong Hash
                   %tbody
                     - @recentlycracked.each do |entry|
                       %tr
+                        %td #{entry.lastupdated}
+                        - if entry.username.nil?
+                          %td --------
+                        - else
+                          %td #{entry.username}
                         %td #{entry.plaintext}
                         %td #{entry.originalhash}
                 -else
