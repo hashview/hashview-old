@@ -192,8 +192,8 @@ class Hashfilehashes
   include DataMapper::Resource
 
   property :id, 	Serial
-  property :hash_id, 	Integer
-  property :username, 	String, length: 2000
+  property :hash_id, 	Integer, :index => true
+  property :username, 	String, length: 256
   property :hashfile_id, Integer, :index => true
 end
 

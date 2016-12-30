@@ -182,7 +182,10 @@ get '/home' do
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
 
-  @recentlycracked = Hashes.all(fields: [:originalhash, :plaintext], cracked: 1, limit: 10, :order => [:lastupdated.desc])
+  #@recentlycracked = Hashes.all(fields: [:originalhash, :plaintext], cracked: 1, limit: 10, :order => [:lastupdated.desc])
+  #@recentlycracked = repository(:default).adapter.select('SELECT h.lastupdated, h.originalhash, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
+  @recentlycracked = repository(:default).adapter.select('SELECT CONCAT(timestampdiff(minute, h.lastupdated, NOW()) ) AS time_period, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
+
 
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') 

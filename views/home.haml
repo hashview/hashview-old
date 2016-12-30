@@ -135,14 +135,33 @@
                 -if @recentlycracked
                   %thead
                     %td
-                      %strong Password
+                      %strong Date / Time
                     %td
-                      %strong Hash
+                      %strong Username
+                    %td
+                      %strong Password
                   %tbody
                     - @recentlycracked.each do |entry|
                       %tr
+                        - elsif entry.time_period.to_i > 525600
+                          %td FOREVER
+                        - elsif entry.time_period.to_i > 2880
+                          %td #{entry.time_period.to_i/1440} Days ago
+                        - elsif entry.time_period.to_i > 1440
+                          %td 1 Day ago
+                        - elsif entry.time_period.to_i > 120
+                          %td #{entry.time_period.to_i/60} Hours ago
+                        - elsif entry.time_period.to_i > 60
+                          %td 1 Hour ago
+                        - elsif entry.time_period.to_i >= 0
+                          %td #{entry.time_period} Mins ago
+                        - else
+                          %td NOW
+                        - if entry.username.nil?
+                          %td --------
+                        - else
+                          %td #{entry.username}
                         %td #{entry.plaintext}
-                        %td #{entry.originalhash}
                 -else
                   %b None... lets get cracking!
 %br
