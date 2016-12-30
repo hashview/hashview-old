@@ -52,7 +52,7 @@
                         .form-group
                           .col-xs-offset-2.col-xs-10
                             %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
-                            %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+                            %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
                             %br
                             - if params[:edit] == '1'
                               %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
@@ -70,7 +70,7 @@
                       .col-xs-10
                         %input{:type => 'file', :name => 'file'}
                         %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
-                        %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                        %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                     .form-group
                       .col-xs-offset-2.col-xs-10
                         %br
@@ -87,7 +87,7 @@
                     .col-xs-10
                       %input{:type => 'file', :name => 'file'}
                       %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
-                      %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                      %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                   .form-group
                     .col-xs-offset-2.col-xs-10
                       %br

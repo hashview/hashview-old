@@ -60,7 +60,7 @@
                                 %td #{task.name}
                                 %td{:class => 'col-md-3'}
                                   .btn-group.btn-group-xs
-                                    %a.btn.btn-warning{:href => "/jobs/remove_task?custid=#{params[:custid]}&jobid=#{params[:jobid]}&jobtaskid=#{jt.id}&edit=1"}
+                                    %a.btn.btn-warning{:href => "/jobs/remove_task?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&jobtaskid=#{jt.id}&edit=1"}
                                       %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                       %p
                     .dropdown#dropdown
@@ -68,7 +68,7 @@
                 .form-group
                   .col-xs-offset-2.col-xs-10
                     %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
-                    %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
                     %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
                     %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
                     %button.btn.btn-primary{:type => "submit"} Save
@@ -82,6 +82,6 @@
                 .form-group
                   .col-xs-offset-2.col-xs-10
                     %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
-                    %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
                     %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
                     %button.btn.btn-primary{:type => "submit"} Create
