@@ -308,22 +308,22 @@ end
 post '/customers/upload/hashfile' do
   varWash(params)
 
-  if params[:hf_name].nil? || params[:hf_name].empty?
+  if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
-    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 
   if params[:file].nil? || params[:file].empty?
     flash[:error] = 'You must specify a hashfile.'
-    redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   return 'No such job exists' unless @job
 
   # temporarily save file for testing
   hash = rand(36**8).to_s(36)
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+  hashfile = "control/hashes/hashfile_upload_job_id-#{@job.id}-#{hash}.txt"
 
   # Parse uploaded file into an array
   hash_array = []
@@ -335,14 +335,14 @@ post '/customers/upload/hashfile' do
 
   # save location of tmp hash file
   hashfile = Hashfiles.new
-  hashfile.name = params[:hf_name]
-  hashfile.customer_id = params[:custid]
+  hashfile.name = params[:hashfile_name]
+  hashfile.customer_id = params[:customer_id]
   hashfile.hash_str = hash
   hashfile.save
 
   @job.save
 
-  redirect to("/customers/upload/verify_filetype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{hashfile.id}")
+  redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
 end
 
 get '/customers/upload/verify_filetype' do
@@ -350,15 +350,15 @@ get '/customers/upload/verify_filetype' do
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt")
-  @job = Jobs.first(id: params[:jobid])
+  @filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
+  @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
 
 post '/customers/upload/verify_filetype' do
   varWash(params)
 
-  redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
 get '/customers/upload/verify_hashtype' do
@@ -366,8 +366,8 @@ get '/customers/upload/verify_hashtype' do
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt", params[:filetype])
-  @job = Jobs.first(id: params[:jobid])
+  @hashtypes = detectHashType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt", params[:filetype])
+  @job = Jobs.first(id: params[:job_id])
   haml :verify_hashtypes
 end
 
@@ -376,7 +376,7 @@ post '/customers/upload/verify_hashtype' do
 
   if !params[:filetype] || params[:filetype].nil?
     flash[:error] = 'You must specify a valid hashfile type.'
-    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
   filetype = params[:filetype]
@@ -389,21 +389,21 @@ post '/customers/upload/verify_hashtype' do
     hashtype = params[:hashtype]
   end
 
-  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt"
+  hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
   hash_array = []
   File.open(hash_file, 'r').each do |line|
     hash_array << line
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   customer_id = @job.customer_id
   @job.hashfile_id = hashfile.id
   @job.save
 
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
-    redirect to("/customers/upload/verify_hashtype?custid=#{params[:custid]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
   previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
@@ -421,9 +421,9 @@ post '/customers/upload/verify_hashtype' do
   File.delete(hash_file)
 
   if params[:edit]
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&edit=1")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&edit=1")
   else
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 end
 
@@ -813,7 +813,7 @@ get '/jobs/create' do
   varWash(params)
 
   @customers = Customers.all
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
 
   haml :job_edit
 end
@@ -824,7 +824,7 @@ post '/jobs/create' do
   if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
     if params[:edit] == '1'
-      redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+      redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
     else
       redirect to('/jobs/create')
     end
@@ -834,7 +834,7 @@ post '/jobs/create' do
     if !params[:cust_name] || params[:cust_name].empty?
       flash[:error] = 'You must provide a customer for your job.'
       if params[:edit] == '1'
-        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
       else
         redirect to('/jobs/create')
       end
@@ -845,7 +845,7 @@ post '/jobs/create' do
     if !params[:cust_name] || params[:cust_name].empty?
       flash[:error] = 'You must provide a customer name.'
       if params[:edit] == '1'
-        redirect to("/jobs/create?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
       else
         redirect to('/jobs/create')
       end
@@ -861,20 +861,20 @@ post '/jobs/create' do
   end
 
   if params[:customer] == 'add_new' || params[:customer].nil?
-    cust_id = customer.id
+    customer_id = customer.id
   else
-    cust_id = params[:customer]
+    customer_id = params[:customer]
   end
 
   # create new or update existing job
   if params[:edit] == '1'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
   else
     job = Jobs.new
   end
   job.name = params[:job_name]
   job.last_updated_by = getUsername
-  job.customer_id = cust_id
+  job.customer_id = customer_id
 
   if params[:notify] == 'on'
     job.notify_completed = '1'
@@ -884,17 +884,17 @@ post '/jobs/create' do
   job.save
 
   if params[:edit] == '1'
-    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}&edit=1")
+    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}&edit=1")
   else
-    redirect to("/jobs/assign_hashfile?custid=#{cust_id}&jobid=#{job.id}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}")
   end
 end
 
 get '/jobs/assign_hashfile' do
   varWash(params)
 
-  @hashfiles = Hashfiles.all(customer_id: params[:custid])
-  @customer = Customers.first(id: params[:custid])
+  @hashfiles = Hashfiles.all(customer_id: params[:customer_id])
+  @customer = Customers.first(id: params[:customer_id])
 
   @cracked_status = Hash.new
   @hashfiles.each do |hash_file|
@@ -908,7 +908,7 @@ get '/jobs/assign_hashfile' do
     @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   return 'No such job exists' unless @job
 
   haml :assign_hashfile
@@ -918,29 +918,29 @@ post '/jobs/assign_hashfile' do
   varWash(params)
 
   if params[:hash_file] != 'add_new'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
     job.save
   end
 
   if params[:edit] == '1'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
     job.save
   end
 
   if params[:edit]
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}&edit=1")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
   else
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
   end
 end
 
 get '/jobs/assign_tasks' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:jobid])
-  @jobtasks = Jobtasks.all(job_id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
   @tasks = Tasks.all
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -959,11 +959,11 @@ post '/jobs/assign_tasks' do
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
       flash[:error] = 'You must assign atleast one task'
-      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&custid=#{params[:custid]}&hashid=#{params[:hash_file]}")
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
     end
   end
 
-  job = Jobs.first(id: params[:jobid])
+  job = Jobs.first(id: params[:job_id])
   job.status = 'Stopped'
   job.save
 
@@ -974,7 +974,7 @@ post '/jobs/assign_tasks' do
 
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
-    @jobtasks = Jobtasks.all(job_id: params[:jobid])
+    @jobtasks = Jobtasks.all(job_id: params[:job_id])
     @jobtasks.each do |jobtask|
       jobtask.status = 'Queued'
       jobtask.save
@@ -1061,16 +1061,16 @@ get '/jobs/stop/:id' do
   redirect to('/jobs/list')
 end
 
-get '/jobs/stop/:jobid/:taskid' do
+get '/jobs/stop/:job_id/:task_id' do
   varWash(params)
 
   # validate if running
-  jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
+  jt = Jobtasks.first(job_id: params[:job_id], task_id: params[:task_id])
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
+  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:task_id]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
   pid = pid.chomp
 
   # update jobtasks to "canceled"
@@ -1096,7 +1096,7 @@ end
 get '/jobs/remove_task' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   unless @job
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
@@ -1105,7 +1105,7 @@ get '/jobs/remove_task' do
     @jobtask.destroy
   end
 
-  redirect to("/jobs/assign_tasks?custid=#{params[:custid]}&jobid=#{params[:jobid]}&edit=1")
+  redirect to("/jobs/assign_tasks?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
 end
 
 ############################
@@ -1168,12 +1168,12 @@ end
 get '/download' do
   varWash(params)
 
-  if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].nil?
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].nil?
 
       # Until we can figure out JOIN statments, we're going to have to hack it
       @filecontents = Set.new
-      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hf_id]).each do |entry|
+      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hashfile_id]).each do |entry|
         #@hashfilehash_ids.add(entry.hash_id)
         if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
           if entry.username.nil? # no username
@@ -1196,7 +1196,7 @@ get '/download' do
       end
     else
       @filecontents = Set.new
-      @hashfiles_ids = Hashfiles.all(fields: [:id], customer_id: params[:custid]).each do |hashfile|
+      @hashfiles_ids = Hashfiles.all(fields: [:id], customer_id: params[:customer_id]).each do |hashfile|
         Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
           #@hashfilehash_ids.add(entry.hash_id)
           if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
@@ -1248,13 +1248,13 @@ get '/download' do
   end
 
   # Write temp output file
-  if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].nil?
-      file_name = "found_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'cracked'
-      file_name = "left_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'uncracked'
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].nil?
+      file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt" if params[:type] == 'uncracked'
     else
-      file_name = "found_#{params[:custid]}.txt" if params[:type] == 'cracked'
-      file_name = "left_#{params[:custid]}.txt" if params[:type] == 'uncracked'
+      file_name = "found_#{params[:customer_id]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:customer_id]}.txt" if params[:type] == 'uncracked'
     end
   else
     file_name = 'found_all.txt' if params[:type] == 'cracked'
@@ -1389,49 +1389,48 @@ end
 get '/analytics' do
   varWash(params)
 
-  @custid = params[:custid]
-  @hashfile_id = params[:hf_id]
+  @customer_id = params[:customer_id]
+  @hashfile_id = params[:hashfile_id]
   @button_select_customers = Customers.all
 
-  if params[:custid] && !params[:custid].empty?
-    @button_select_hashfiles = Hashfiles.all(customer_id: params[:custid])
+  if params[:customer_id] && !params[:customer_id].empty?
+    @button_select_hashfiles = Hashfiles.all(customer_id: params[:customer_id])
   end
 
-  if params[:custid] && !params[:custid].empty?
-    @customers = Customers.first(id: params[:custid])
+  if params[:customer_id] && !params[:customer_id].empty?
+    @customers = Customers.first(id: params[:customer_id])
   else
     @customers = Customers.all
   end
 
-  if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @hashfiles = Hashfiles.first(id: params[:hf_id])
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @hashfiles = Hashfiles.first(id: params[:hashfile_id])
     else
       @hashfiles = Hashfiles.all
     end
   end
 
-  # get results of specific customer if custid is defined
+  # get results of specific customer if customer_id is defined
   # if we have a customer
-  if params[:custid] && !params[:custid].empty?
+  if params[:customer_id] && !params[:customer_id].empty?
     # if we have a hashfile
-    if params[:hf_id] && !params[:hf_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
-      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hf_id])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hf_id])[0].to_s
+      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hashfile_id])[0].to_s
 
       # Used for Total Accounts table: Customer: Hashfile
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
-      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:custid],params[:hf_id])
+      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:customer_id],params[:hashfile_id])
 
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hf_id])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hf_id])[0].to_s
+      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[0].to_s
+      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])[0].to_s
 
       # Used for Total Run Time: Customer: Hashfile
-      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id]).total_run_time
+      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hashfile_id]).total_run_time
 
       # make list of unique hashes
       unique_hashes = Set.new
@@ -1463,7 +1462,7 @@ get '/analytics' do
       @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
-        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:custid], params[:hf_id], hash[0] )
+        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:customer_id], params[:hashfile_id], hash[0] )
         # for each user with the same password hash add user to array
         dups.each do |d|
           if !d.username.nil?
@@ -1484,18 +1483,18 @@ get '/analytics' do
 
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:custid])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:custid])[0].to_s
+      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:customer_id])[0].to_s
 
       # Used for Total Accounts Table: Customer
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and original hashes Table: Customer
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:custid])[0].to_s
+      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[0].to_s
+      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[0].to_s
 
       # Used for Total Run Time: Customer:
-      @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:custid] })
+      @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:customer_id] })
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
@@ -1525,11 +1524,11 @@ get '/analytics/graph1' do
   @counts = []
   @passwords = {}
 
-  if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
     @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
@@ -1564,11 +1563,11 @@ get '/analytics/graph2' do
   varWash(params)
 
   plaintext = []
-  if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
     @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
@@ -1608,11 +1607,11 @@ get '/analytics/graph3' do
   varWash(params)
 
   plaintext = []
-  if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+  if params[:customer_id] && !params[:customer_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
     @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
@@ -1702,13 +1701,13 @@ def isAdministrator?
 end
 
 # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
-def buildCrackCmd(jobid, taskid)
+def buildCrackCmd(job_id, task_id)
   # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
   settings = Settings.first
   hcbinpath = settings.hcbinpath
   maxtasktime = settings.maxtasktime
-  @task = Tasks.first(id: taskid)
-  @job = Jobs.first(id: jobid)
+  @task = Tasks.first(id: task_id)
+  @job = Jobs.first(id: job_id)
   hashfile_id = @job.hashfile_id
   hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
   hashtype = Hashes.first(id: hash_id).hashtype.to_s
@@ -1725,7 +1724,7 @@ def buildCrackCmd(jobid, taskid)
     wordlist = Wordlists.first(id: @task.wl_id)
   end
 
-  target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
+  target_file = 'control/hashes/hashfile_' + job_id.to_s + '_' + task_id.to_s + '.txt'
 
   # we assign and write output file before hashcat.
   # if hashcat creates its own output it does so with

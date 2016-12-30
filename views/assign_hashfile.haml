@@ -40,19 +40,19 @@
                         - @hashfiles.each do |hashfile|
                           - if params[:edit] == '1'
                             - if @job.hashfile_id == hashfile.id
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                              %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                             - else
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                              %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                           - else
-                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]} 
-                        %option{:value => "add_new", :name => "hf_id", :type => "button"} New Hashfile
+                            %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]} 
+                        %option{:value => "add_new", :name => "hashfile_id", :type => "button"} New Hashfile
                   .section
                     %div{:class => "label_leftalign field"}
                       #selectfile_div{:style => "display:inline"}
                         .form-group
                           .col-xs-offset-2.col-xs-10
-                            %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
-                            %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid].to_s}"}
+                            %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+                            %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
                             %br
                             - if params[:edit] == '1'
                               %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
@@ -64,13 +64,13 @@
                     .form-group
                       %label.control-label.col-xs-2 Name:
                       .col-xs-10
-                        %input{:type => 'textbox', :name => 'hf_name'}
+                        %input{:type => 'textbox', :name => 'hashfile_name'}
                     .form-group
                       %label.control-label.col-xs-2 Hash File:
                       .col-xs-10
                         %input{:type => 'file', :name => 'file'}
-                        %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
-                        %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                        %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
+                        %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                     .form-group
                       .col-xs-offset-2.col-xs-10
                         %br
@@ -80,14 +80,14 @@
                   .form-group
                     %label.control-label.col-xs-2 Name:
                     .col-xs-10
-                      %input{:type => 'textbox', :name => 'hf_name'}
+                      %input{:type => 'textbox', :name => 'hashfile_name'}
                   %br
                   .form-group
                     %label.control-label.col-xs-2 Hash File:
                     .col-xs-10
                       %input{:type => 'file', :name => 'file'}
-                      %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
-                      %input{:type => 'hidden', :name => 'custid', :value=>"#{params[:custid].to_s}"}
+                      %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
+                      %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                   .form-group
                     .col-xs-offset-2.col-xs-10
                       %br

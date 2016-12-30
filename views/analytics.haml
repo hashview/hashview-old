@@ -9,7 +9,7 @@
               %label.control-label{:for => ""} Customer:
               .btn-group
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if @custid.nil?
+                  - if @customer_id.nil?
                     All Time
                   - else
                     #{@customers.name}
@@ -20,29 +20,29 @@
                   %li.divider{:role => "separator"}
                   - @button_select_customers.each do |customer|
                     %li
-                      %a{:href => "/analytics?custid=#{customer.id}"} #{customer.name}
-              - if @custid
+                      %a{:href => "/analytics?customer_id=#{customer.id}"} #{customer.name}
+              - if @customer_id
                 &nbsp
                 %label.control-label.text-right{:for => ""} Hash File:
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if !params[:hf_id]
+                  - if !params[:hashfile_id]
                     All Hashes
                   - else
                     #{@hashfiles.name}
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics?custid=#{@custid}"} All Hashes
+                    %a{:href => "/analytics?customer_id=#{@customer_id}"} All Hashes
                   %li.divider{:role => "separator"}
                   - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?custid=#{@custid}&hf_id=#{hashfile.id}"} #{hashfile.name}
+                      %a{:href => "/analytics?customer_id=#{@customer_id}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
               %h1
                 Password Analysis:
-                - if @custid.nil?
+                - if @customer_id.nil?
                   All Customers
                 - else
                   #{@customers.name}
@@ -124,7 +124,7 @@
                 %b Analysis Details
               .panel-body
                 %table{:class => 'table'}
-                  - if params[:hf_id].nil?
+                  - if params[:hashfile_id].nil?
                     %td
                       %b All Hashfiles
                     %td
@@ -156,23 +156,23 @@
                     %td
                       %b Download
                     %td
-                      - if @custid.nil?
+                      - if @customer_id.nil?
                         %a.btn.btn-success.pull-left{:href => '/download?type=cracked'}
                           Cracked
                         &nbsp; 
                         %a.btn.btn-danger.pull-center{:href => '/download?type=uncracked'}
                           Uncracked 
-                      - elsif @custid && @hashfile_id.nil?
-                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}"}
+                      - elsif @customer_id && @hashfile_id.nil?
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&customer_id=#{@customer_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}"}
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&customer_id=#{@customer_id}"}
                           Uncracked 
-                      - elsif @custid && @hashfile_id
-                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                      - elsif @customer_id && @hashfile_id
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Uncracked 
 
           .col-md-12
@@ -207,7 +207,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph1?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -274,7 +274,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph2?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -341,7 +341,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph3?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph3?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -376,7 +376,7 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
-          - if @custid && @hashfile_id
+          - if @customer_id && @hashfile_id
             .col-md-12
               .panel.panel-default
                 .panel-heading

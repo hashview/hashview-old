@@ -66,7 +66,7 @@
                           - else
                             %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
                               %i.glyphicon.glyphicon-play{:title => 'stopped'}
-                          %a.btn.btn-primary{:href => "/analytics?custid=#{job.customer_id}&hf_id=#{job.hashfile_id}"}
+                          %a.btn.btn-primary{:href => "/analytics?customer_id=#{job.customer_id}&hf_id=#{job.hashfile_id}"}
                             %i.glyphicon.glyphicon-stats{:title => 'display crack stats'}
                           %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
@@ -114,7 +114,7 @@
                                   %p
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
-                          %a.btn.btn-warning{:href => "/jobs/create?custid=#{job.customer_id}&jobid=#{job.id}&edit=1"}
+                          %a.btn.btn-warning{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                           %a.btn.btn-danger{:href => "/jobs/delete/#{job.id}"}
                             %i.glyphicon.glyphicon-trash{:title => 'Delete'}
