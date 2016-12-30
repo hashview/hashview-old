@@ -1061,16 +1061,16 @@ get '/jobs/stop/:id' do
   redirect to('/jobs/list')
 end
 
-get '/jobs/stop/:job_id/:taskid' do
+get '/jobs/stop/:job_id/:task_id' do
   varWash(params)
 
   # validate if running
-  jt = Jobtasks.first(job_id: params[:job_id], task_id: params[:taskid])
+  jt = Jobtasks.first(job_id: params[:job_id], task_id: params[:task_id])
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:taskid]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
+  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:task_id]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
   pid = pid.chomp
 
   # update jobtasks to "canceled"
@@ -1701,12 +1701,12 @@ def isAdministrator?
 end
 
 # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
-def buildCrackCmd(job_id, taskid)
+def buildCrackCmd(job_id, task_id)
   # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
   settings = Settings.first
   hcbinpath = settings.hcbinpath
   maxtasktime = settings.maxtasktime
-  @task = Tasks.first(id: taskid)
+  @task = Tasks.first(id: task_id)
   @job = Jobs.first(id: job_id)
   hashfile_id = @job.hashfile_id
   hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
@@ -1724,7 +1724,7 @@ def buildCrackCmd(job_id, taskid)
     wordlist = Wordlists.first(id: @task.wl_id)
   end
 
-  target_file = 'control/hashes/hashfile_' + job_id.to_s + '_' + taskid.to_s + '.txt'
+  target_file = 'control/hashes/hashfile_' + job_id.to_s + '_' + task_id.to_s + '.txt'
 
   # we assign and write output file before hashcat.
   # if hashcat creates its own output it does so with
