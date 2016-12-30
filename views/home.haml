@@ -143,7 +143,7 @@
                   %tbody
                     - @recentlycracked.each do |entry|
                       %tr
-                        - elsif entry.time_period.to_i > 525600
+                        - if entry.time_period.to_i > 525600
                           %td FOREVER
                         - elsif entry.time_period.to_i > 2880
                           %td #{entry.time_period.to_i/1440} Days ago
