@@ -308,7 +308,7 @@ end
 post '/customers/upload/hashfile' do
   varWash(params)
 
-  if params[:hf_name].nil? || params[:hf_name].empty?
+  if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
     redirect to("/jobs/assign_hashfile?custid=#{params[:custid]}&jobid=#{params[:jobid]}")
   end
@@ -335,7 +335,7 @@ post '/customers/upload/hashfile' do
 
   # save location of tmp hash file
   hashfile = Hashfiles.new
-  hashfile.name = params[:hf_name]
+  hashfile.name = params[:hashfile_name]
   hashfile.customer_id = params[:custid]
   hashfile.hash_str = hash
   hashfile.save
@@ -1169,11 +1169,11 @@ get '/download' do
   varWash(params)
 
   if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].nil?
+    if params[:hashfile_id] && !params[:hashfile_id].nil?
 
       # Until we can figure out JOIN statments, we're going to have to hack it
       @filecontents = Set.new
-      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hf_id]).each do |entry|
+      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hashfile_id]).each do |entry|
         #@hashfilehash_ids.add(entry.hash_id)
         if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
           if entry.username.nil? # no username
@@ -1249,9 +1249,9 @@ get '/download' do
 
   # Write temp output file
   if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].nil?
-      file_name = "found_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'cracked'
-      file_name = "left_#{params[:custid]}_#{params[:hf_id]}.txt" if params[:type] == 'uncracked'
+    if params[:hashfile_id] && !params[:hashfile_id].nil?
+      file_name = "found_#{params[:custid]}_#{params[:hashfile_id]}.txt" if params[:type] == 'cracked'
+      file_name = "left_#{params[:custid]}_#{params[:hashfile_id]}.txt" if params[:type] == 'uncracked'
     else
       file_name = "found_#{params[:custid]}.txt" if params[:type] == 'cracked'
       file_name = "left_#{params[:custid]}.txt" if params[:type] == 'uncracked'
@@ -1390,7 +1390,7 @@ get '/analytics' do
   varWash(params)
 
   @custid = params[:custid]
-  @hashfile_id = params[:hf_id]
+  @hashfile_id = params[:hashfile_id]
   @button_select_customers = Customers.all
 
   if params[:custid] && !params[:custid].empty?
@@ -1404,9 +1404,8 @@ get '/analytics' do
   end
 
   if params[:custid] && !params[:custid].empty?
-#    if params[:jobid] && !params[:jobid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @hashfiles = Hashfiles.first(id: params[:hf_id])
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @hashfiles = Hashfiles.first(id: params[:hashfile_id])
     else
       @hashfiles = Hashfiles.all
     end
@@ -1416,22 +1415,22 @@ get '/analytics' do
   # if we have a customer
   if params[:custid] && !params[:custid].empty?
     # if we have a hashfile
-    if params[:hf_id] && !params[:hf_id].empty?
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
-      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hf_id])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hf_id])[0].to_s
+      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])[0].to_s
+      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hashfile_id])[0].to_s
 
       # Used for Total Accounts table: Customer: Hashfile
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
-      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:custid],params[:hf_id])
+      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:custid],params[:hashfile_id])
 
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hf_id])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hf_id])[0].to_s
+      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[0].to_s
+      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])[0].to_s
 
       # Used for Total Run Time: Customer: Hashfile
-      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hf_id]).total_run_time
+      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hashfile_id]).total_run_time
 
       # make list of unique hashes
       unique_hashes = Set.new
@@ -1463,7 +1462,7 @@ get '/analytics' do
       @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
-        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:custid], params[:hf_id], hash[0] )
+        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:custid], params[:hashfile_id], hash[0] )
         # for each user with the same password hash add user to array
         dups.each do |d|
           if !d.username.nil?
@@ -1526,8 +1525,8 @@ get '/analytics/graph1' do
   @passwords = {}
 
   if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
       @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
@@ -1565,8 +1564,8 @@ get '/analytics/graph2' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
       @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end
@@ -1609,8 +1608,8 @@ get '/analytics/graph3' do
 
   plaintext = []
   if params[:custid] && !params[:custid].empty?
-    if params[:hf_id] && !params[:hf_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hf_id])
+    if params[:hashfile_id] && !params[:hashfile_id].empty?
+      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
       @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:custid])
     end

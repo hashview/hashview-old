@@ -40,12 +40,12 @@
                         - @hashfiles.each do |hashfile|
                           - if params[:edit] == '1'
                             - if @job.hashfile_id == hashfile.id
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                              %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                             - else
-                              %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                              %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                           - else
-                            %option{:value => "#{hashfile.id}", :name => "hf_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]} 
-                        %option{:value => "add_new", :name => "hf_id", :type => "button"} New Hashfile
+                            %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]} 
+                        %option{:value => "add_new", :name => "hashfile_id", :type => "button"} New Hashfile
                   .section
                     %div{:class => "label_leftalign field"}
                       #selectfile_div{:style => "display:inline"}
@@ -64,7 +64,7 @@
                     .form-group
                       %label.control-label.col-xs-2 Name:
                       .col-xs-10
-                        %input{:type => 'textbox', :name => 'hf_name'}
+                        %input{:type => 'textbox', :name => 'hashfile_name'}
                     .form-group
                       %label.control-label.col-xs-2 Hash File:
                       .col-xs-10
@@ -80,7 +80,7 @@
                   .form-group
                     %label.control-label.col-xs-2 Name:
                     .col-xs-10
-                      %input{:type => 'textbox', :name => 'hf_name'}
+                      %input{:type => 'textbox', :name => 'hashfile_name'}
                   %br
                   .form-group
                     %label.control-label.col-xs-2 Hash File:

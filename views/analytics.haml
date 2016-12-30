@@ -25,7 +25,7 @@
                 &nbsp
                 %label.control-label.text-right{:for => ""} Hash File:
                 .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
-                  - if !params[:hf_id]
+                  - if !params[:hashfile_id]
                     All Hashes
                   - else
                     #{@hashfiles.name}
@@ -36,7 +36,7 @@
                   %li.divider{:role => "separator"}
                   - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?custid=#{@custid}&hf_id=#{hashfile.id}"} #{hashfile.name}
+                      %a{:href => "/analytics?custid=#{@custid}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
@@ -124,7 +124,7 @@
                 %b Analysis Details
               .panel-body
                 %table{:class => 'table'}
-                  - if params[:hf_id].nil?
+                  - if params[:hashfile_id].nil?
                     %td
                       %b All Hashfiles
                     %td
@@ -169,10 +169,10 @@
                         %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}"}
                           Uncracked 
                       - elsif @custid && @hashfile_id
-                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&custid=#{@custid}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}&hf_id=#{@hashfile_id}"}
+                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&custid=#{@custid}&hashfile_id=#{@hashfile_id}"}
                           Uncracked 
 
           .col-md-12
@@ -207,7 +207,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph1?custid=#{@custid}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -274,7 +274,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph2?custid=#{@custid}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
@@ -341,7 +341,7 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph3?custid=#{@custid}&hf_id=#{@hashfile_id}';
+                  var url = '/analytics/graph3?custid=#{@custid}&hashfile_id=#{@hashfile_id}';
                   d3.json(url, function(error, data) {
                     if (error) throw error;
                     console.log(data)
