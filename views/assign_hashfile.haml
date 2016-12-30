@@ -51,7 +51,7 @@
                       #selectfile_div{:style => "display:inline"}
                         .form-group
                           .col-xs-offset-2.col-xs-10
-                            %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid].to_s}"}
+                            %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
                             %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
                             %br
                             - if params[:edit] == '1'
@@ -69,7 +69,7 @@
                       %label.control-label.col-xs-2 Hash File:
                       .col-xs-10
                         %input{:type => 'file', :name => 'file'}
-                        %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
+                        %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
                         %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                     .form-group
                       .col-xs-offset-2.col-xs-10
@@ -86,7 +86,7 @@
                     %label.control-label.col-xs-2 Hash File:
                     .col-xs-10
                       %input{:type => 'file', :name => 'file'}
-                      %input{:type => 'hidden', :name => 'jobid', :value=>"#{params[:jobid].to_s}"}
+                      %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
                       %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                   .form-group
                     .col-xs-offset-2.col-xs-10

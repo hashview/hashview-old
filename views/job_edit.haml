@@ -87,7 +87,7 @@
                 .col-xs-offset-2.col-xs-10
                   - if params[:edit]
                     %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit]}"}
-                    %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid]}"}
+                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id]}"}
                     %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id]}"}
                     %button.btn.btn-primary{:type => "submit"} Update
                   -else

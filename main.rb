@@ -310,20 +310,20 @@ post '/customers/upload/hashfile' do
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
-    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 
   if params[:file].nil? || params[:file].empty?
     flash[:error] = 'You must specify a hashfile.'
-    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   return 'No such job exists' unless @job
 
   # temporarily save file for testing
   hash = rand(36**8).to_s(36)
-  hashfile = "control/hashes/hashfile_upload_jobid-#{@job.id}-#{hash}.txt"
+  hashfile = "control/hashes/hashfile_upload_job_id-#{@job.id}-#{hash}.txt"
 
   # Parse uploaded file into an array
   hash_array = []
@@ -342,7 +342,7 @@ post '/customers/upload/hashfile' do
 
   @job.save
 
-  redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&hashid=#{hashfile.id}")
+  redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
 end
 
 get '/customers/upload/verify_filetype' do
@@ -350,15 +350,15 @@ get '/customers/upload/verify_filetype' do
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt")
-  @job = Jobs.first(id: params[:jobid])
+  @filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
+  @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
 
 post '/customers/upload/verify_filetype' do
   varWash(params)
 
-  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
 get '/customers/upload/verify_hashtype' do
@@ -366,8 +366,8 @@ get '/customers/upload/verify_hashtype' do
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  @hashtypes = detectHashType("control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt", params[:filetype])
-  @job = Jobs.first(id: params[:jobid])
+  @hashtypes = detectHashType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt", params[:filetype])
+  @job = Jobs.first(id: params[:job_id])
   haml :verify_hashtypes
 end
 
@@ -376,7 +376,7 @@ post '/customers/upload/verify_hashtype' do
 
   if !params[:filetype] || params[:filetype].nil?
     flash[:error] = 'You must specify a valid hashfile type.'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
   filetype = params[:filetype]
@@ -389,21 +389,21 @@ post '/customers/upload/verify_hashtype' do
     hashtype = params[:hashtype]
   end
 
-  hash_file = "control/hashes/hashfile_upload_jobid-#{params[:jobid]}-#{hashfile.hash_str}.txt"
+  hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
   hash_array = []
   File.open(hash_file, 'r').each do |line|
     hash_array << line
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   customer_id = @job.customer_id
   @job.hashfile_id = hashfile.id
   @job.save
 
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
   previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
@@ -421,9 +421,9 @@ post '/customers/upload/verify_hashtype' do
   File.delete(hash_file)
 
   if params[:edit]
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&edit=1")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&edit=1")
   else
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 end
 
@@ -813,7 +813,7 @@ get '/jobs/create' do
   varWash(params)
 
   @customers = Customers.all
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
 
   haml :job_edit
 end
@@ -824,7 +824,7 @@ post '/jobs/create' do
   if !params[:job_name] || params[:job_name].empty?
     flash[:error] = 'You must provide a name for your job.'
     if params[:edit] == '1'
-      redirect to("/jobs/create?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&edit=1")
+      redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
     else
       redirect to('/jobs/create')
     end
@@ -834,7 +834,7 @@ post '/jobs/create' do
     if !params[:cust_name] || params[:cust_name].empty?
       flash[:error] = 'You must provide a customer for your job.'
       if params[:edit] == '1'
-        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&edit=1")
+        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
       else
         redirect to('/jobs/create')
       end
@@ -845,7 +845,7 @@ post '/jobs/create' do
     if !params[:cust_name] || params[:cust_name].empty?
       flash[:error] = 'You must provide a customer name.'
       if params[:edit] == '1'
-        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&edit=1")
+        redirect to("/jobs/create?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
       else
         redirect to('/jobs/create')
       end
@@ -868,7 +868,7 @@ post '/jobs/create' do
 
   # create new or update existing job
   if params[:edit] == '1'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
   else
     job = Jobs.new
   end
@@ -884,9 +884,9 @@ post '/jobs/create' do
   job.save
 
   if params[:edit] == '1'
-    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&jobid=#{job.id}&edit=1")
+    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}&edit=1")
   else
-    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&jobid=#{job.id}")
+    redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}")
   end
 end
 
@@ -908,7 +908,7 @@ get '/jobs/assign_hashfile' do
     @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
   end
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   return 'No such job exists' unless @job
 
   haml :assign_hashfile
@@ -918,29 +918,29 @@ post '/jobs/assign_hashfile' do
   varWash(params)
 
   if params[:hash_file] != 'add_new'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
     job.save
   end
 
   if params[:edit] == '1'
-    job = Jobs.first(id: params[:jobid])
+    job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
     job.save
   end
 
   if params[:edit]
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
   else
-    redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
   end
 end
 
 get '/jobs/assign_tasks' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:jobid])
-  @jobtasks = Jobtasks.all(job_id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
   @tasks = Tasks.all
   # we do this so we can embedded ruby into js easily
   # js handles adding/selecting tasks associated with new job
@@ -959,11 +959,11 @@ post '/jobs/assign_tasks' do
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
       flash[:error] = 'You must assign atleast one task'
-      redirect to("/jobs/assign_tasks?jobid=#{params[:jobid]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
     end
   end
 
-  job = Jobs.first(id: params[:jobid])
+  job = Jobs.first(id: params[:job_id])
   job.status = 'Stopped'
   job.save
 
@@ -974,7 +974,7 @@ post '/jobs/assign_tasks' do
 
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
-    @jobtasks = Jobtasks.all(job_id: params[:jobid])
+    @jobtasks = Jobtasks.all(job_id: params[:job_id])
     @jobtasks.each do |jobtask|
       jobtask.status = 'Queued'
       jobtask.save
@@ -1061,16 +1061,16 @@ get '/jobs/stop/:id' do
   redirect to('/jobs/list')
 end
 
-get '/jobs/stop/:jobid/:taskid' do
+get '/jobs/stop/:job_id/:taskid' do
   varWash(params)
 
   # validate if running
-  jt = Jobtasks.first(job_id: params[:jobid], task_id: params[:taskid])
+  jt = Jobtasks.first(job_id: params[:job_id], task_id: params[:taskid])
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
   # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:jobid]}_#{params[:taskid]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
+  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:taskid]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
   pid = pid.chomp
 
   # update jobtasks to "canceled"
@@ -1096,7 +1096,7 @@ end
 get '/jobs/remove_task' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:jobid])
+  @job = Jobs.first(id: params[:job_id])
   unless @job
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
@@ -1105,7 +1105,7 @@ get '/jobs/remove_task' do
     @jobtask.destroy
   end
 
-  redirect to("/jobs/assign_tasks?customer_id=#{params[:customer_id]}&jobid=#{params[:jobid]}&edit=1")
+  redirect to("/jobs/assign_tasks?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
 end
 
 ############################
@@ -1701,13 +1701,13 @@ def isAdministrator?
 end
 
 # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
-def buildCrackCmd(jobid, taskid)
+def buildCrackCmd(job_id, taskid)
   # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
   settings = Settings.first
   hcbinpath = settings.hcbinpath
   maxtasktime = settings.maxtasktime
   @task = Tasks.first(id: taskid)
-  @job = Jobs.first(id: jobid)
+  @job = Jobs.first(id: job_id)
   hashfile_id = @job.hashfile_id
   hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
   hashtype = Hashes.first(id: hash_id).hashtype.to_s
@@ -1724,7 +1724,7 @@ def buildCrackCmd(jobid, taskid)
     wordlist = Wordlists.first(id: @task.wl_id)
   end
 
-  target_file = 'control/hashes/hashfile_' + jobid.to_s + '_' + taskid.to_s + '.txt'
+  target_file = 'control/hashes/hashfile_' + job_id.to_s + '_' + taskid.to_s + '.txt'
 
   # we assign and write output file before hashcat.
   # if hashcat creates its own output it does so with
