@@ -1567,6 +1567,8 @@ end
 get '/analytics/graph2' do
   varWash(params)
 
+  # This could probably be replaced with: SELECT COUNT(a.hash_id) AS frq, h.plaintext FROM hashfilehashes a LEFT JOIN hashes h ON h.id =  a.hash_id WHERE h.cracked = '1' GROUP BY a.hash_id ORDER BY frq DESC LIMIT 10;
+
   plaintext = []
   if params[:customer_id] && !params[:customer_id].empty?
     if params[:hashfile_id] && !params[:hashfile_id].empty?
@@ -1575,7 +1577,7 @@ get '/analytics/graph2' do
       @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
-    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
+    @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
 
   @cracked_results.each do |crack|
@@ -1619,7 +1621,7 @@ get '/analytics/graph3' do
       @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
-    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
+    @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
   @cracked_results.each do |crack|
     unless crack.nil?
@@ -1632,7 +1634,7 @@ get '/analytics/graph3' do
   # get top 10 basewords
   plaintext.each do |pass|
     word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
-    unless word_just_alpha.nil?
+    unless word_just_alpha.nil? or word_just_alpha.empty?
       if @top10basewords[word_just_alpha].nil?
         @top10basewords[word_just_alpha] = 1
       else

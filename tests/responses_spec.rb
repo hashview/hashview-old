@@ -229,6 +229,9 @@ class MyTest < MiniTest::Test
 
   # download results
 
+
+  # Need to update with fake crack data in order to test download
+
   #def test_download_cracked_file_response
   #  userid = login_testuser
   #  get '/download'
@@ -238,10 +241,12 @@ class MyTest < MiniTest::Test
 
   # dummy failed test
 
+ 
+  # Needs to be updated seince we now 302 all success & failures
   #def test_jobs_start_nonexistent_response
   #  userid = login_testuser
   #  get '/jobs/start/999999'
-  #  assert_equal 200, last_response.status
+  #  #assert_equal 302, last_response.status
   #  assert last_response.body.include?("No such job exists.")
   #  delete_testuser(userid)
   #end
