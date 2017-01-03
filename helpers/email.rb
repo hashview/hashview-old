@@ -25,7 +25,7 @@ def sendEmail(recipient, sub, msg)
       :via_options => {
         :address              => smtp_server.to_s,
         :port                 => smtp_port.to_s,
-        :enable_starttls_auto => false,
+        :enable_starttls_auto => false
       }
     }
   end
