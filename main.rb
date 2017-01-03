@@ -232,7 +232,7 @@ end
 ### customer controllers ###
 
 get '/customers/list' do
-  @customers = Customers.all
+  @customers = Customers.all(order: [:name.asc])
   @total_jobs = []
   @total_hashfiles = []
 
@@ -817,7 +817,7 @@ end
 get '/jobs/create' do
   varWash(params)
 
-  @customers = Customers.all
+  @customers = Customers.all(order: [:name.asc])
   @job = Jobs.first(id: params[:job_id])
 
   haml :job_edit
@@ -1372,7 +1372,7 @@ end
 ##### Hash Lists ###########
 
 get '/hashfiles/list' do
-  @customers = Customers.all
+  @customers = Customers.all(order: [:name.asc])
   @hashfiles = Hashfiles.all
   @cracked_status = Hash.new
   @hashfiles.each do |hash_file|
@@ -1415,7 +1415,7 @@ get '/analytics' do
 
   @customer_id = params[:customer_id]
   @hashfile_id = params[:hashfile_id]
-  @button_select_customers = Customers.all
+  @button_select_customers = Customers.all(order: [:name.asc])
 
   if params[:customer_id] && !params[:customer_id].empty?
     @button_select_hashfiles = Hashfiles.all(customer_id: params[:customer_id])
@@ -1424,7 +1424,7 @@ get '/analytics' do
   if params[:customer_id] && !params[:customer_id].empty?
     @customers = Customers.first(id: params[:customer_id])
   else
-    @customers = Customers.all
+    @customers = Customers.all(order: [:name.asc])
   end
 
   if params[:customer_id] && !params[:customer_id].empty?
