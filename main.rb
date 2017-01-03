@@ -402,7 +402,6 @@ post '/customers/upload/verify_hashtype' do
   end
 
   @job = Jobs.first(id: params[:job_id])
-  customer_id = @job.customer_id
   @job.hashfile_id = hashfile.id
   @job.save
 
