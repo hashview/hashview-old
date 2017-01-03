@@ -902,15 +902,10 @@ get '/jobs/assign_hashfile' do
   @customer = Customers.first(id: params[:customer_id])
 
   @cracked_status = Hash.new
-  @hashfiles.each do |hash_file|
-    @hash_ids = Set.new
-    Hashfilehashes.all(fields: [:hash_id], hashfile_id: hash_file.id).each do |entry|
-      @hash_ids.add(entry.hash_id)
-    end
-
-    hash_file_cracked_count = Hashes.count(id: @hash_ids.to_a, cracked: 1)
-    hash_file_total_count = Hashes.count(id: @hash_ids.to_a)
-    @cracked_status[hash_file.id] = hash_file_cracked_count.to_s + "/" + hash_file_total_count.to_s
+  @hashfiles.each do |hashfile|
+    hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
+    hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+    @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + "/" + hashfile_total_count.to_s
   end
 
   @job = Jobs.first(id: params[:job_id])
