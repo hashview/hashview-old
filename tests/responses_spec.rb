@@ -229,7 +229,9 @@ class MyTest < MiniTest::Test
 
   # download results
 
+
   # Need to update with fake crack data in order to test download
+
   #def test_download_cracked_file_response
   #  userid = login_testuser
   #  get '/download'
@@ -238,6 +240,7 @@ class MyTest < MiniTest::Test
   #end
 
   # dummy failed test
+
  
   # Needs to be updated seince we now 302 all success & failures
   #def test_jobs_start_nonexistent_response

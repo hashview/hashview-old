@@ -97,6 +97,8 @@ post '/login' do
 
       redirect to('/home')
     end
+    flash[:error] = 'Invalid credentials.'
+    redirect to('/login')
   else
     flash[:error] = 'Invalid credentials.'
     redirect to('/login')
