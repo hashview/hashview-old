@@ -16,7 +16,7 @@ def sendEmail(recipient, sub, msg)
         :user_name            => smtp_settings.smtp_user.to_s,
         :password             => smtp_settings.smtp_pass.to_s,
         :authentication       => smtp_settings.smtp_auth_type.to_s, 
-        :domain               => 'localhost.localdomain'
+        :domain               => 'hashview.localdomain'
       }
     }
   else
@@ -25,13 +25,19 @@ def sendEmail(recipient, sub, msg)
       :via_options => {
         :address              => smtp_server.to_s,
         :port                 => smtp_port.to_s,
-        :enable_starttls_auto => false
+        :enable_starttls_auto => false,
       }
     }
   end
 
+  if smtp_settings.smtp_user.nil? or smtp_settings.smtp_user.empty?
+    sender_addr = 'no-reply@hashview'
+  else
+    sender_addr = smtp_settings.smtp_user.to_s
+  end
+
   Pony.mail :to => recipient,
-            :from => smtp_settings.smtp_user,
+            :from => sender_addr,
             :subject => sub,
             :body => msg
 end

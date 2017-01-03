@@ -1120,7 +1120,7 @@ end
 get '/settings' do
   @settings = Settings.first
 
-  @auth_types = %w(None, Plain, Login, cram_md5)
+  @auth_types = %w(None Plain Login cram_md5)
 
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
@@ -1164,6 +1164,25 @@ post '/settings' do
   flash[:success] = 'Settings updated successfully.'
 
   redirect to('/home')
+end
+
+############################
+
+##### Tests ################
+
+get '/test/email' do
+
+  account = User.first(username: getUsername)
+  if account.email.nil? or account.email.empty?
+    flash[:error] = 'Current logged on user has no email address associated.'
+    redirect to('/settings')
+  end
+
+  sendEmail(account.email, "Greetings from hashview", "This is a test message from hashview")
+
+  flash[:success] = 'Email sent.'
+
+  redirect to('/settings')
 end
 
 ############################
