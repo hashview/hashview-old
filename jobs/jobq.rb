@@ -34,12 +34,12 @@ def updateDbStatus(id, status)
 
   # Send email
   if job.notify_completed == true && done == true
-    p '===== Sending Email ====='
+    puts '===== Sending Email ====='
     user = User.first(username: job.last_updated_by)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
     @hash_ids = Set.new
-    HashfileHashes.all(hashfile_id: hashfile.id).each do |entry|
+    Hashfilehashes.all(hashfile_id: hashfile.id).each do |entry|
       @hash_ids.add(entry.hash_id)
     end
     total_cracked = Hashes.count(id: @hash_ids, cracked: 1)
@@ -47,7 +47,7 @@ def updateDbStatus(id, status)
     if user.email
       sendEmail(user.email, "Your Job: #{job.name} for #{customer.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
     end
-    p '===== Email Sent ====='
+    puts '===== Email Sent ====='
   end
 
   # toggle job status
