@@ -2,7 +2,7 @@ require 'resque/tasks'
 require './jobs/jobq.rb'
 require 'rake/testtask'
 require 'data_mapper'
-require "mysql"
+require 'mysql'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
