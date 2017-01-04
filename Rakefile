@@ -184,9 +184,9 @@ namespace :db do
       puts '[*] Collecting Table Information...Targets'
       targets_hashfile_id = conn.query('SELECT distinct(hashfile_id) FROM targets')
  
-      targets_hashfile_id.each_hash do |row|
-        puts '[*] Collecting info for hashfile_id ' + row['hashfile_id']
-        hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + row['hashfile_id'] + "'")
+      targets_hashfile_id.each_hash do |hashfile|
+        puts '[*] Collecting info for hashfile_id ' + hashfile['hashfile_id']
+        hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + hashfile['hashfile_id'] + "'")
         hashfileHashes.each_hash do |row|
           originalhash_and_hashtype = row['originalhash'].to_str.downcase + ':' + row['hashtype'].to_str
           new_hashes.add(originalhash_and_hashtype)

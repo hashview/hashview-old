@@ -20,6 +20,22 @@ def detectedHashFormat(hash)
   end
 end
 
+def addHash(hash, hashtype)
+  entry = Hashes.new
+  entry.originalhash = hash
+  entry.hashtype = hashtype
+  entry.cracked = false
+  entry.save
+end
+
+def updateHashfileHashes(hash_id, username, hashfile_id)
+  entry = Hashfilehashes.new
+  entry.hash_id = hash_id
+  entry.username = username
+  entry.hashfile_id = hashfile_id
+  entry.save
+end
+
 def importPwdump(hash, hashfile_id, type)
   data = hash.split(':')
   return if machineAcct?(data[0])
@@ -33,59 +49,33 @@ def importPwdump(hash, hashfile_id, type)
     lm_hash_0 = lm_hashes[0].downcase
     lm_hash_1 = lm_hashes[1].downcase
  
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
     if @hash_id.nil?
-      hashes_lm0 = Hashes.new
-      hashes_lm0.originalhash = lm_hash_0
-      hashes_lm0.hashtype = '3000'
-      hashes_lm0.cracked = false
-      hashes_lm0.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+      addHash(lm_hash_0, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
     end
 
-    hashfileHashes_0 = Hashfilehashes.new
-    hashfileHashes_0.hash_id = hash_id.id.to_i
-    hashfileHashes_0.username = data[0]
-    hashfileHashes_0.hashfile_id = hashfile_id
-    hashfileHashes_0.save
+    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
     if @hash_id.nil?
-      hashes_lm1 = Hashes.new
-      hashes_lm1.originalhash = lm_hash_1
-      hashes_lm1.hashtype = '3000'
-      hashes_lm1.cracked = false
-      hashes_lm1.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+      addHash(lm_hash_1, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
     end
 
-    hashfileHashes_1 = Hashfilehashes.new
-    hashfileHashes_1.hash_id = @hash_id.id.to_i
-    hashfileHashes_1.username = data[0]
-    hashfileHashes_1.hashfile_id = hashfile_id
-    hashfileHashes_1.save
+    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
   end
 
   # if hashtype is ntlm
   if type == '1000'
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: '1000')
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
     if @hash_id.nil?
+      addHash(data[3], type)
       hashes_ntlm = Hashes.new
-      hashes_ntlm.originalhash = data[3]
-      hashes_ntlm.hashtype = '1000'
-      hashes_ntlm.cracked = false
-      hashes_ntlm.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: '1000')
+      @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
     end
 
-    hashfileHashes_ntlm = Hashfilehashes.new
-    hashfileHashes_ntlm.hash_id = @hash_id.id.to_i
-    hashfileHashes_ntlm.username = data[0]
-    hashfileHashes_ntlm.hashfile_id = hashfile_id
-    hashfileHashes_ntlm.save
+    updateHashfileHashse(@hash_id.id_to_i, data[0], hashfile_id)
   end
 end
 
@@ -102,20 +92,11 @@ def importShadow(hash, hashfile_id, type)
   data = hash.split(':')
   @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
-    hashes = Hashes.new
-    hashes.originalhash = data[1]
-    hashes.hashtype = type
-    hashes.cracked = false
-    hashes.save
-
-     @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   end
 
-  hashfileHashes = Hashfilehashes.new
-  hashfileHashes.hash_id = @hash_id.id.to_i
-  hashfileHashes.username = data[0]
-  hashfileHashes.hashfile_id = hashfile_id
-  hashfileHashes.save
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
 def importDsusers(hash, hashfile_id, type)
@@ -127,20 +108,11 @@ def importDsusers(hash, hashfile_id, type)
 
   @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
-    hashes = Hashes.new
-    hashes.originalhash = data[1]
-    hashes.hashtype = type
-    hashes.cracked = false
-    hashes.save
-
-     @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   end
 
-  hashfileHashes = Hashfilehashes.new
-  hashfileHashes.hash_id = @hash_id.id.to_i
-  hashfileHashes.username = data[0]
-  hashfileHashes.hashfile_id = hashfile_id
-  hashfileHashes.save
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
 def importRaw(hash, hashfile_id, type)
@@ -150,98 +122,56 @@ def importRaw(hash, hashfile_id, type)
     lm_hash_0 = lm_hashes[0].downcase
     lm_hash_1 = lm_hashes[1].downcase
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
     if @hash_id.nil?
-      hashes_lm0 = Hashes.new
-      hashes_lm0.originalhash = lm_hash_0
-      hashes_lm0.hashtype = '3000'
-      hashes_lm0.cracked = false
-      hashes_lm0.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: '3000')
+      addHash(lm_hash_0, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
     end
 
-    hashfileHashes_0 = Hashfilehashes.new
-    hashfileHashes_0.hash_id = @hash_id.id.to_i
-    hashfileHashes_0.hashfile_id = hashfile_id
-    hashfileHashes_0.save
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
     if @hash_id.nil?
-      hashes_lm1 = Hashes.new
-      hashes_lm1.originalhash = lm_hash_1
-      hashes_lm1.hashtype = '3000'
-      hashes_lm1.cracked = false
-      hashes_lm1.save
-
+      addHash(lm_hash_1, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
     end
 
-    hashfileHashes_1 = Hashfilehashes.new
-    hashfileHashes_1.hash_id = @hash_id.id.to_i
-    hashfileHashes_1.hashfile_id = hashfile_id
-    hashfileHashes_1.save
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   elsif type == '5500'
     # import NetNTLMv1
     fields = hash.split(':')
     originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: '5500')
+    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
     if @hash_id.nil?
-      hashes = Hashes.new
-      hashes.originalhash = originalhash
-      hashes.hashtype = '5500'
-      hashes.cracked = false
-      hashes.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: '5500')
+      addHash(originalhash, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
     end
 
-    hashfileHashes = Hashfilehashes.new
-    hashfileHashes.hash_id = @hash_id.id.to_i
-    hashfileHashes.username = fields[0]
-    hashfileHashes.hashfile_id = hashfile_id
-    hashfileHashes.save
+    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   elsif type == '5600'
     # We need to include full hash (username, salt, computername)
     # import NetNTLMv2
     fields = hash.split(':')
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: '5600')
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     if @hash_id.nil?
-      hashes = Hashes.new
-      hashes.originalhash = hash
-      hashes.hashtype = '5600'
-      hashes.cracked = false
-      hashes.save
-
-      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: '5600')
+      addHash(hash, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
 
-    hashfileHashes = Hashfilehashes.new
-    hashfileHashes.hash_id = @hash_id.id.to_i
-    hashfileHashes.username = fields[0]
-    hashfileHashes.hashfile_id = hashfile_id
-    hashfileHashes.save
+    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   else
     @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     if @hash_id.nil?
-      hashes = Hashes.new
-      hashes.originalhash = hash
-      hashes.hashtype = type
-      hashes.cracked = false
-      hashes.save
-    
+      addhash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-
-    hashfileHashes = Hashfilehashes.new
-    hashfileHashes.hash_id = @hash_id.id.to_i
-    hashfileHashes.hashfile_id = hashfile_id
-    hashfileHashes.save
+   
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   end
 end
