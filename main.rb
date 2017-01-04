@@ -179,6 +179,9 @@ end
 ##### Home controllers #####
 
 get '/home' do
+  if isOldVersion
+    return "You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
+  end
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
   @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
@@ -1778,6 +1781,18 @@ def assignTasksToJob(tasks, job_id)
     jobtask.job_id = job_id
     jobtask.task_id = task_id
     jobtask.save
+  end
+end
+
+def isOldVersion()
+  begin
+    if Targets.all
+      return true
+    else
+      return false
+    end
+  rescue
+    puts "we should figure out a better upgrade process"
   end
 end
 
