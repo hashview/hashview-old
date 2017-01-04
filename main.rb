@@ -1791,7 +1791,8 @@ def isOldVersion()
       return false
     end
   rescue
-    puts "we should figure out a better upgrade process"
+    # we really need a better upgrade process
+    return false
   end
 end
 
