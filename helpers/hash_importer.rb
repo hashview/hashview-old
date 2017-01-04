@@ -71,7 +71,6 @@ def importPwdump(hash, hashfile_id, type)
     @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
     if @hash_id.nil?
       addHash(data[3], type)
-      hashes_ntlm = Hashes.new
       @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
     end
 
