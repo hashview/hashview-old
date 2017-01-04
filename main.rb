@@ -1384,14 +1384,14 @@ end
 get '/hashfiles/delete' do
   varWash(params)
   
+  @uncracked = repository(:default).adapter.select('SELECT h.id FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hashfile_id])
+  @uncracked.destroy unless @uncracked.nil?
+
   @hashfilehashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
   @hashfilehashes.destroy unless @hashfilehashes.empty?
 
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
-
-  @uncracked = Targets.all(hashfile_id: params[:hashfile_id], cracked: 0)
-  @uncracked.destroy unless @uncracked.nil?
 
   flash[:success] = 'Successfuly removed hashfile.'
 

@@ -161,20 +161,6 @@ class Tasks
   property :hc_mask, String
 end
 
-# Table for handle the storage of uncracked/cracked hashes per job
-class Targets
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :username, String, length: 2000
-  property :originalhash, String, length: 4000
-  property :hashtype, Integer
-  property :cracked, Boolean
-  property :plaintext, String, length: 2000
-  property :hashfile_id, Integer
-  property :customer_id, Integer
-end
-
 # Table for handling hashes cracked and uncracked
 class Hashes
   include DataMapper::Resource
