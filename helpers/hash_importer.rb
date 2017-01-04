@@ -75,7 +75,7 @@ def importPwdump(hash, hashfile_id, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
     end
 
-    updateHashfileHashse(@hash_id.id_to_i, data[0], hashfile_id)
+    updateHashfileHashse(@hash_id.id.to_i, data[0], hashfile_id)
   end
 end
 
@@ -167,7 +167,7 @@ def importRaw(hash, hashfile_id, type)
   else
     @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     if @hash_id.nil?
-      addhash(hash, type)
+      addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
    
