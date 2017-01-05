@@ -54,6 +54,8 @@ class User
     user = User.new(
       username: 'test',
       admin: true,
+      phone: '12223334444',
+      email: 'test@localhost.com',
       hashed_password: BCrypt::Password.create('omgplains')
     )
     user.save

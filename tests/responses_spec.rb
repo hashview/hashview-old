@@ -260,6 +260,13 @@ class MyTest < MiniTest::Test
     delete_testuser(userid)
   end
 
+  def test_email_response
+    userid = login_testuser
+    get '/test/email'
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
   # wordlists routes
 
   def test_wordlists_list_response
