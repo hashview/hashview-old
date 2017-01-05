@@ -1172,7 +1172,9 @@ get '/test/email' do
     redirect to('/settings')
   end
 
-  sendEmail(account.email, "Greetings from hashview", "This is a test message from hashview")
+  if ENV['RACK_ENV'] != 'test'
+    sendEmail(account.email, "Greetings from hashview", "This is a test message from hashview")
+  end
 
   flash[:success] = 'Email sent.'
 
