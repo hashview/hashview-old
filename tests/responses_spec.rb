@@ -264,7 +264,6 @@ class MyTest < MiniTest::Test
 
   def test_invalid_email_send_response
     get '/test/email'
-    assert_equal 200, last_response.status
     assert last_response.redirection?
     assert_equal "http://example.org/settings", last_response.location
     follow_redirect!
