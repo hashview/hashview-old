@@ -260,10 +260,26 @@ class MyTest < MiniTest::Test
     delete_testuser(userid)
   end
 
-  def test_email_response
-    userid = login_testuser
+  # email tests
+
+  def test_invalid_email_send_response
     get '/test/email'
     assert_equal 200, last_response.status
+    assert last_response.redirection?
+    assert_equal "http://example.org/settings", last_response.location
+    follow_redirect!
+    assert last_response.ok?
+    assert last_response.body.include?('Current logged on user has no email address associated.')
+  end
+
+  def test_valid_email_send_response
+    userid = login_testuser
+    get '/test/email'
+    assert last_response.redirection?
+    assert_equal "http://example.org/settings", last_response.location
+    follow_redirect!
+    assert last_response.ok?
+    assert last_response.body.include?('Email sent.')
     delete_testuser(userid)
   end
 
