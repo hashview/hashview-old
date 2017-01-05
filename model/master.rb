@@ -54,6 +54,8 @@ class User
     user = User.new(
       username: 'test',
       admin: true,
+      phone: '12223334444',
+      email: 'test@localhost.com',
       hashed_password: BCrypt::Password.create('omgplains')
     )
     user.save
@@ -161,18 +163,26 @@ class Tasks
   property :hc_mask, String
 end
 
-# Table for handle the storage of uncracked/cracked hashes per job
-class Targets
+# Table for handling hashes cracked and uncracked
+class Hashes
   include DataMapper::Resource
 
   property :id, Serial
-  property :username, String, length: 2000
-  property :originalhash, String, length: 4000
-  property :hashtype, Integer
+  property :lastupdated, DateTime
+  property :originalhash, String, length: 255, :unique_index => true
+  property :hashtype, Integer, :index => true
   property :cracked, Boolean
-  property :plaintext, String, length: 2000
-  property :hashfile_id, Integer
-  property :customer_id, Integer
+  property :plaintext, String, length: 256
+end
+
+# Table for managing association between users and hashes
+class Hashfilehashes
+  include DataMapper::Resource
+
+  property :id, 	Serial
+  property :hash_id, 	Integer, :index => true
+  property :username, 	String, length: 256
+  property :hashfile_id, Integer, :index => true
 end
 
 # User Settings

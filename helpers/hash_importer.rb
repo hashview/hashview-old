@@ -9,7 +9,8 @@ def detectedHashFormat(hash)
   # Detect if shadow
   elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
     return 'shadow'
-  #elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+  elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+    return 'dsusers'
   elsif hash =~ /^.*:\w{32}$/
     return 'dsusers'
   elsif hash =~ /^\w{32}$/
@@ -19,7 +20,23 @@ def detectedHashFormat(hash)
   end
 end
 
-def importPwdump(hash, customer_id, hashfile_id, type)
+def addHash(hash, hashtype)
+  entry = Hashes.new
+  entry.originalhash = hash
+  entry.hashtype = hashtype
+  entry.cracked = false
+  entry.save
+end
+
+def updateHashfileHashes(hash_id, username, hashfile_id)
+  entry = Hashfilehashes.new
+  entry.hash_id = hash_id
+  entry.username = username
+  entry.hashfile_id = hashfile_id
+  entry.save
+end
+
+def importPwdump(hash, hashfile_id, type)
   data = hash.split(':')
   return if machineAcct?(data[0])
   return if data[2].nil?
@@ -29,37 +46,35 @@ def importPwdump(hash, customer_id, hashfile_id, type)
   if type == '3000'
     # import LM
     lm_hashes = data[2].scan(/.{16}/)
+    lm_hash_0 = lm_hashes[0].downcase
+    lm_hash_1 = lm_hashes[1].downcase
+ 
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    if @hash_id.nil?
+      addHash(lm_hash_0, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    end
 
-    target_lm1 = Targets.new
-    target_lm1.username = data[0]
-    target_lm1.originalhash = lm_hashes[0].downcase
-    target_lm1.hashtype = '3000'
-    target_lm1.hashfile_id = hashfile_id
-    target_lm1.customer_id = customer_id
-    target_lm1.cracked = false
-    target_lm1.save
+    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 
-    target_lm2 = Targets.new
-    target_lm2.username = data[0]
-    target_lm2.originalhash = lm_hashes[1].downcase
-    target_lm2.hashtype = '3000'
-    target_lm2.hashfile_id = hashfile_id
-    target_lm2.customer_id = customer_id
-    target_lm2.cracked = false
-    target_lm2.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    if @hash_id.nil?
+      addHash(lm_hash_1, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    end
+
+    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
   end
 
   # if hashtype is ntlm
   if type == '1000'
-    # import NTLM
-    target_ntlm = Targets.new
-    target_ntlm.username = data[0]
-    target_ntlm.originalhash = data[3]
-    target_ntlm.hashtype = '1000'
-    target_ntlm.hashfile_id = hashfile_id
-    target_ntlm.customer_id = customer_id
-    target_ntlm.cracked = false
-    target_ntlm.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
+    if @hash_id.nil?
+      addHash(data[3], type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
+    end
+
+    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
   end
 end
 
@@ -71,91 +86,92 @@ def machineAcct?(username)
   end
 end
 
-def importShadow(hash, customer_id, hashfile_id, type)
+def importShadow(hash, hashfile_id, type)
+  # This parser needs some work
   data = hash.split(':')
-  target = Targets.new
-  target.username = data[0]
-  target.originalhash = data[1]
-  target.hashtype = type
-  target.hashfile_id = hashfile_id
-  target.customer_id = customer_id
-  target.cracked = false
-  target.save
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
-def importDsusers(hash, customer_id, hashfile_id, type)
+def importDsusers(hash, hashfile_id, type)
   data = hash.split(':')
-  target = Targets.new
-  target.username = data[0]
-  if type == '1000' # import NTLM
-    target.hashtype = '1000'
-  #  lm_hash = data[1].split('$')
-  #  target.originalhash = lm_hash[2]
-    target.originalhash = data[1]
+  if data[1] =~ /NT/
+    data[1] = data[1].to_s.split('$')[2]
+    type = '3000'
   end
-  if type == '3000' # import LM
-    target.hashtype = '3000'
-    target.originalhash = data[1]
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   end
-  target.hashfile_id = hashfile_id
-  target.customer_id = customer_id
-  target.cracked = false
-  target.save
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
-def importRaw(hash, customer_id, hashfile_id, type)
+def importRaw(hash, hashfile_id, type)
   if type == '3000'
     # import LM
     lm_hashes = hash.scan(/.{16}/)
+    lm_hash_0 = lm_hashes[0].downcase
+    lm_hash_1 = lm_hashes[1].downcase
 
-    target_lm1 = Targets.new
-    target_lm1.originalhash = lm_hashes[0].downcase
-    target_lm1.hashtype = '3000'
-    target_lm1.hashfile_id = hashfile_id
-    target_lm1.customer_id = customer_id
-    target_lm1.cracked = false
-    target_lm1.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    if @hash_id.nil?
+      addHash(lm_hash_0, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    end
 
-    target_lm2 = Targets.new
-    target_lm2.originalhash = lm_hashes[1].downcase
-    target_lm2.hashtype = '3000'
-    target_lm2.hashfile_id = hashfile_id
-    target_lm2.customer_id = customer_id
-    target_lm2.cracked = false
-    target_lm2.save
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    if @hash_id.nil?
+      addHash(lm_hash_1, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    end
+
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   elsif type == '5500'
     # import NetNTLMv1
     fields = hash.split(':')
-    target_NetNTLMv1 = Targets.new
-    target_NetNTLMv1.username = fields[0]
-    target_NetNTLMv1.originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
-    target_NetNTLMv1.hashtype = '5500'
-    target_NetNTLMv1.hashfile_id = hashfile_id
-    target_NetNTLMv1.customer_id = customer_id
-    target_NetNTLMv1.cracked = false
-    target_NetNTLMv1.save    
+    originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+    if @hash_id.nil?
+      addHash(originalhash, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+    end
+
+    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   elsif type == '5600'
+    # We need to include full hash (username, salt, computername)
     # import NetNTLMv2
     fields = hash.split(':')
-    target_NetNTLMv2 = Targets.new
-    target_NetNTLMv2.username = fields[0]
-    target_NetNTLMv2.originalhash = hash # looks like we need full hash including username, salt, computername
-    target_NetNTLMv2.hashtype = '5600'
-    target_NetNTLMv2.hashfile_id = hashfile_id
-    target_NetNTLMv2.customer_id = customer_id
-    target_NetNTLMv2.cracked = false
-    target_NetNTLMv2.save
+
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    if @hash_id.nil?
+      addHash(hash, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    end
+
+    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   else
-    target_raw = Targets.new
-    target_raw.originalhash = hash
-    target_raw.hashtype = type
-    target_raw.hashfile_id = hashfile_id
-    target_raw.customer_id = customer_id
-    target_raw.cracked = false
-    target_raw.save
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    if @hash_id.nil?
+      addHash(hash, type)
+      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    end
+   
+    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
+
   end
 end
 
@@ -167,6 +183,8 @@ def getMode(hash)
     @modes.push('0')	# MD5
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
+  elsif hash =~ /^[a-f0-9]{40}(:.+)?$/
+    @modes.push('100')  # SHA-1
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
@@ -192,6 +210,7 @@ def modeToFriendly(mode)
   return 'MD5' if mode == '0'
   return 'NTLM' if mode == '1000'
   return 'LM' if mode == '3000'
+  return 'SHA-1' if mode == '100'
   return 'md5crypt' if mode == '500'
   return 'bcrypt' if mode == '3200'
   return 'sha256crypt' if mode == '7400'
@@ -206,6 +225,7 @@ def friendlyToMode(friendly)
   return '0' if friendly == 'MD5'
   return '1000' if friendly == 'NTLM'
   return '3000' if friendly == 'LM'
+  return '100' if friendly == 'SHA-1'
   return '500' if friendly == 'md5crypt'
   return '3200' if friendly == 'bcrypt'
   return '7400' if friendly == 'sha512crypt'
@@ -215,16 +235,16 @@ def friendlyToMode(friendly)
   return '5600' if friendly == 'NetNTLMv2'
 end
 
-def importHash(hash_file, customer_id, hashfile_id, file_type, hashtype)
+def importHash(hash_file, hashfile_id, file_type, hashtype)
   hash_file.each do |entry|
     if file_type == 'pwdump'
-      importPwdump(entry.chomp, customer_id, hashfile_id, hashtype)
+      importPwdump(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'shadow'
-      importShadow(entry.chomp, customer_id, hashfile_id, hashtype)
+      importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'raw'
-      importRaw(entry.chomp, customer_id, hashfile_id, hashtype)
+      importRaw(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'dsusers'
-      importDsusers(entry.chomp, customer_id, hashfile_id, hashtype)
+      importDsusers(entry.chomp, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end

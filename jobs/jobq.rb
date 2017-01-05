@@ -34,16 +34,20 @@ def updateDbStatus(id, status)
 
   # Send email
   if job.notify_completed == true && done == true
-    p '===== Sending Email ====='
+    puts '===== Sending Email ====='
     user = User.first(username: job.last_updated_by)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
-    total_cracked = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 1)
-    total = Targets.count(customer_id: customer.id, hashfile_id: hashfile.id, cracked: 0)
-    if user.email
-      sendEmail(user.email, "Your Job: #{job.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
+    @hash_ids = Set.new
+    Hashfilehashes.all(hashfile_id: hashfile.id).each do |entry|
+      @hash_ids.add(entry.hash_id)
     end
-    p '===== Email Sent ====='
+    total_cracked = Hashes.count(id: @hash_ids, cracked: 1)
+    total = Hashes.count(id: @hash_ids, cracked: 0)
+    if user.email
+      sendEmail(user.email, "Your Job: #{job.name} for #{customer.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
+    end
+    puts '===== Email Sent ====='
   end
 
   # toggle job status
@@ -74,9 +78,16 @@ module Jobq
     unless job.status == 'Canceled'
 
       puts '===== creating hash_file ======='
-      targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
+      #targets = Targets.all(hashfile_id: job.hashfile_id, cracked: false, fields: [:originalhash])
+      @hash_ids = Set.new
+      Hashfilehashes.all(fields: [:hash_id], hashfile_id: job.hashfile_id).each do |entry|
+        @hash_ids.add(entry.hash_id)
+      end
+      targets = Hashes.all(fields: [:originalhash], id: @hash_ids, cracked: 0)
+
       hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-      hashtype_target = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+      #hashtype_target = Targets.first(hashfile_id: job.hashfile_id, fields: [:hashtype])
+      hashtype_target = Hashes.first(id: @hash_ids)
       hashtype = hashtype_target.hashtype.to_s
 
       File.open(hash_file, 'w') do |f|
@@ -123,10 +134,12 @@ module Jobq
           end
 
           # This will pull all hashes from DB regardless of job id
-          records = Targets.all(fields: [:id, :cracked, :plaintext], originalhash: hash, cracked: 0)
+          #records = Targets.all(fields: [:id, :cracked, :plaintext], originalhash: hash, cracked: 0)
+          records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0 )
           # Yes its slow... we know.
           records.each do |entry|
             entry.cracked = 1
+            entry.lastupdated = Time.now
             entry.plaintext = plaintext
             entry.save
           end

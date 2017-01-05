@@ -47,12 +47,12 @@
                       - @customers.each do |customer|
                         - if params[:edit] == '1'
                           - if customer.id == @job.customer_id
-                            %option{:value => "#{customer.id}", :name => "cust_id", :type => "button", selected: 'selected'} #{customer.name}
+                            %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button", selected: 'selected'} #{customer.name}
                           - else
-                            %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
+                            %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button"} #{customer.name}
                         - else
-                          %option{:value => "#{customer.id}", :name => "cust_id", :type => "button"} #{customer.name}
-                      %option{:value => "add_new", :name => "cust_id", :type => "button"} New Customer
+                          %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button"} #{customer.name}
+                      %option{:value => "add_new", :name => 'customer_id', :type => "button"} New Customer
                 .section
                   %div{:class => "label_leftalign field"}
                     #new_customer_div{:style => "display:none"}
@@ -87,8 +87,8 @@
                 .col-xs-offset-2.col-xs-10
                   - if params[:edit]
                     %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit]}"}
-                    %input{:type => 'hidden', :name => 'jobid', :value => "#{params[:jobid]}"}
-                    %input{:type => 'hidden', :name => 'custid', :value => "#{params[:custid]}"}
+                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id]}"}
+                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id]}"}
                     %button.btn.btn-primary{:type => "submit"} Update
                   -else
                     %button.btn.btn-primary{:type => "submit"} Create
