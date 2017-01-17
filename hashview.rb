@@ -22,4 +22,4 @@ end
 
 require_relative 'models/master'
 require_relative 'helpers/init'
-require_relative 'routes/init'
+require_relative 'routes/init.rb'
