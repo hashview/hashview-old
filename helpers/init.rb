@@ -3,7 +3,7 @@ require_relative 'email'
 HashView.helpers SendEmail
 
 require_relative 'hashimporter'
-HashView.helpers HashImorter
+HashView.helpers HashImporter
 
 require_relative 'hc_stdout_parser'
 HashView.helpers HcStdoutParser
