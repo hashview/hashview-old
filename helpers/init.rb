@@ -8,5 +8,5 @@ HashView.helpers HashImorter
 require_relative 'hc_stdout_parser'
 HashView.helpers HcStdoutParser
 
-require_relative 'sintra_ssl'
+require_relative 'sinatra_ssl'
 HashView.helpers Sinatra
