@@ -1,3 +1,4 @@
-root = ::File.dirname(__FILE__)
-require ::File.join( root, 'hashview' )
-run HashView.new
+#root = ::File.dirname(__FILE__)
+#require ::File.join( root, 'hashview' )
+require './hashview'
+run HashView
