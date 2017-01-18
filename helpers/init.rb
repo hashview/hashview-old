@@ -10,4 +10,6 @@
 
 require_relative 'sinatra_ssl'
 require_relative 'sessions'
+require_relative 'status'
+require_relative 'sanitization'
 #HashView.helpers Sinatra

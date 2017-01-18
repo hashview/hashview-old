@@ -1,6 +1,7 @@
 # encoding: utf-8
 #require 'sinatra/base'
 require 'sinatra'
+require 'sinatra/flash'
 require 'haml'
 #require_relative 'routes/init'
 #require_relative 'helpers/init'
