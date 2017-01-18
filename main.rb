@@ -21,31 +21,15 @@ require './helpers/hc_stdout_parser.rb'
 require './helpers/email.rb'
 require 'pony'
 
-set :bind, '0.0.0.0'
 
 # Check to see if SSL cert is present, if not generate
-unless File.exist?('cert/server.crt')
-  # Generate Cert
-  system('openssl req -x509 -nodes -days 365 -newkey RSA:2048 -subj "/CN=US/ST=Minnesota/L=Duluth/O=potatoFactory/CN=hashview" -keyout cert/server.key -out cert/server.crt')
-end
-
-set :ssl_certificate, 'cert/server.crt'
-set :ssl_key, 'cert/server.key'
-enable :sessions
+# Moved to helpers/sinatra_ssl
 
 #redis = Redis.new
 
 # validate every session
-before /^(?!\/(login|register|logout))/ do
-  if !validSession?
-    redirect to('/login')
-  else
-    settings = Settings.first
-    if (settings && settings.hcbinpath.nil?) || settings.nil?
-      flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
-    end
-  end
-end
+
+## moved to hashview.rb
 
 ## Moved to routes/login
 
@@ -53,7 +37,7 @@ end
 
 ### Register controllers ###
 
-## moved to routes/login
+## moved to routes/register
 
 ############################
 
@@ -211,27 +195,4 @@ helpers do
     session[:username]
   end
 
-  # Take you to the var wash baby
-  def varWash(params)
-    params.keys.each do |key|
-      if params[key].is_a?(String)
-        params[key] = cleanString(params[key])
-      end
-      if params[key].is_a?(Array)
-        params[key] = cleanArray(params[key])
-      end
-    end
-  end
-
-  def cleanString(text)
-    return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
-  end
-
-  def cleanArray(array)
-    clean_array = []
-    array.each do |entry|
-      clean_array.push(cleanString(entry))
-    end
-    return clean_array
-  end
 end

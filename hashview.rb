@@ -2,9 +2,11 @@
 require 'sinatra'
 require 'sinatra/flash'
 require 'haml'
+require 'resque'
 require_relative 'models/master'
 require_relative 'helpers/init'
 require_relative 'routes/init'
+require_relative 'jobs/jobq'
 
 enable :sessions
 
