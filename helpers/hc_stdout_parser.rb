@@ -1,7 +1,5 @@
 # encoding: utf-8
-
-# this helper parses the hashcat stdout
-module HcStdoutParser 
+helpers do
   def hashcatParser(file)
     status = {}
     File.open(file).each_line do |line|

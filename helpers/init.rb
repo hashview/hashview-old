@@ -5,7 +5,7 @@
 #require_relative 'hashimporter'
 #HashView.helpers HashImporter
 
-#require_relative 'hc_stdout_parser'
+require_relative 'hc_stdout_parser'
 #HashView.helpers HcStdoutParser
 
 require_relative 'sinatra_ssl'
