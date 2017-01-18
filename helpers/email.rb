@@ -1,6 +1,6 @@
 # encoding: utf-8
 require 'pony'
-module SendEmail
+helpers do
   def sendEmail(recipient, sub, msg)
     smtp_settings = Settings.first
     smtp_server, smtp_port = smtp_settings.smtp_server.split(':')

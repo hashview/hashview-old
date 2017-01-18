@@ -47,132 +47,13 @@ before /^(?!\/(login|register|logout))/ do
   end
 end
 
-get '/login' do
-  @users = User.all
-  if @users.empty?
-    redirect('/register')
-  else
-    haml :login
-  end
-end
-
-get '/logout' do
-  varWash(params)
-  if session[:session_id]
-    sess = Sessions.first(session_key: session[:session_id])
-    sess.destroy if sess
-  end
-  redirect to('/')
-end
-
-post '/login' do
-  varWash(params)
-  if !params[:username] || params[:username].nil?
-    flash[:error] = 'You must supply a username.'
-    redirect to('/login')
-  end
-
-  if !params[:password] || params[:password].nil?
-    flash[:error] = 'You must supply a password.'
-    redirect to('/login')
-  end
-
-  @user = User.first(username: params[:username])
-
-  if @user
-    usern = User.authenticate(params['username'], params['password'])
-
-    # if usern and session[:session_id]
-    unless usern.nil?
-      # only delete session if one exists
-      if session[:session_id]
-        # replace the session in the session table
-        # TODO : This needs an expiration, session fixation
-        @del_session = Sessions.first(username: usern)
-        @del_session.destroy if @del_session
-      end
-      # Create new session
-      @curr_session = Sessions.create(username: usern, session_key: session[:session_id])
-      @curr_session.save
-
-      redirect to('/home')
-    end
-    flash[:error] = 'Invalid credentials.'
-    redirect to('/login')
-  else
-    flash[:error] = 'Invalid credentials.'
-    redirect to('/login')
-  end
-end
-
-get '/protected' do
-  return 'This is a protected page, you must be logged in.'
-end
-
-get '/not_authorized' do
-  return 'You are not authorized.'
-end
-
-get '/' do
-  @users = User.all
-  if @users.empty?
-    redirect to('/register')
-  elsif !validSession?
-    redirect to('/login')
-  else
-    redirect to('/home')
-  end
-end
+## Moved to routes/login
 
 ############################
 
 ### Register controllers ###
 
-get '/register' do
-  @users = User.all
-
-  # Prevent registering of multiple admins
-  redirect to('/') unless @users.empty?
-
-  haml :register
-end
-
-post '/register' do
-  varWash(params)
-  if !params[:username] || params[:username].nil? || params[:username].empty?
-    flash[:error] = 'You must have a username.'
-    redirect to('/register')
-  end
-
-  if !params[:password] || params[:password].nil? || params[:password].empty?
-    flash[:error] = 'You must have a password.'
-    redirect to('/register')
-  end
-
-  if !params[:confirm] || params[:confirm].nil? || params[:confirm].empty?
-    flash[:error] = 'You must have a password.'
-    redirect to('/register')
-  end
-
-  # validate that no other user account exists
-  @users = User.all
-  if @users.empty?
-    if params[:password] != params[:confirm]
-      flash[:error] = 'Passwords do not match.'
-      redirect to('/register')
-    else
-      new_user = User.new
-      new_user.username = params[:username]
-      new_user.password = params[:password]
-      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
-      new_user.admin = 't'
-      new_user.save
-      flash[:success] = "User #{params[:username]} created successfully"
-    end
-  end
-
-  redirect to('/login')
-end
+## moved to routes/login
 
 ############################
 
@@ -286,53 +167,8 @@ def isAdministrator?
 end
 
 # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
-def buildCrackCmd(job_id, task_id)
-  # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
-  settings = Settings.first
-  hcbinpath = settings.hcbinpath
-  maxtasktime = settings.maxtasktime
-  @task = Tasks.first(id: task_id)
-  @job = Jobs.first(id: job_id)
-  hashfile_id = @job.hashfile_id
-  hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
-  hashtype = Hashes.first(id: hash_id).hashtype.to_s
 
-  attackmode = @task.hc_attackmode.to_s
-  mask = @task.hc_mask
-
-  if attackmode == 'combinator'
-    wordlist_list = @task.wl_id
-    @wordlist_list_elements = wordlist_list.split(',')
-    wordlist_one = Wordlists.first(id: @wordlist_list_elements[0])
-    wordlist_two = Wordlists.first(id: @wordlist_list_elements[1])
-  else
-    wordlist = Wordlists.first(id: @task.wl_id)
-  end
-
-  target_file = 'control/hashes/hashfile_' + job_id.to_s + '_' + task_id.to_s + '.txt'
-
-  # we assign and write output file before hashcat.
-  # if hashcat creates its own output it does so with
-  # elvated permissions and we wont be able to read it
-  crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
-  File.open(crack_file, 'w')
-
-  if attackmode == 'bruteforce'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --runtime=' + maxtasktime + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' -w 3'
-  elsif attackmode == 'maskmode'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask + ' -w 3'
-  elsif attackmode == 'dictionary'
-    if @task.hc_rule == 'none'
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
-    else
-      cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + ' --outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path + ' -w 3'
-    end
-  elsif attackmode == 'combinator'
-    cmd = hcbinpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status-timer=15' + '--outfile-format 3 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s + ' -w 3'
-  end
-  p cmd
-  cmd
-end
+## Moved to helpers/build_crack_cmd
 
 # Check if a job running
 def isBusy?

@@ -64,4 +64,3 @@ end
 get '/not_authorized' do
   return 'You are not authorized.'
 end
-

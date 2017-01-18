@@ -1,4 +1,5 @@
 # encoding: utf-8
+require 'json'
 
 # displays analytics for a specific client, job
 get '/analytics' do
