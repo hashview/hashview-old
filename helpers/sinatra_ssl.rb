@@ -14,7 +14,7 @@ module Sinatra
       set :ssl_certificate, 'cert/server.crt'
       set :ssl_key, 'cert/server.key'
       set :bind, '0.0.0.0'
-      set :port, '1138'
+      set :port, '4567'
 
       certificate_content = File.open(ssl_certificate).read
       key_content = File.open(ssl_key).read

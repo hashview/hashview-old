@@ -6,7 +6,7 @@ require 'benchmark'
 #require './helpers/email.rb'
 
 def updateDbStatus(id, status)
-  require './helpers/email.rb'
+  # require './helpers/email.rb'
 
   jobtask = Jobtasks.first(id: id)
   jobtask.status = status
