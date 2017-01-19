@@ -3,6 +3,7 @@ require './jobs/jobq.rb'
 require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'
+require './models/master.rb'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
@@ -157,8 +158,11 @@ namespace :db do
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
-    DataMapper.repository.auto_upgrade!
+    #DataMapper.repository.auto_upgrade!
+    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
     puts 'db:auto:upgrade executed'
+    #DataMapper.repository.auto_migrate!
+    #puts 'db:auto:migrate exectued'
   end
 
   desc 'Migrate From old DB to new DB schema'

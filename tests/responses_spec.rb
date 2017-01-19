@@ -64,7 +64,7 @@ class MyTest < MiniTest::Test
 
     # Should redirect user to /login if at least 1 user exists.
     puts '[+] Testing /register GET [2 of 2]'
-    user_id = User.create_test_user
+    User.create_test_user
     get '/register'
     assert last_response.redirection? 
     assert_equal 'http://example.org/', last_response.location
@@ -103,7 +103,7 @@ class MyTest < MiniTest::Test
     assert last_response.body.include?('Create a New Admin Account')
 
     puts '[+] Testing /login GET [2 of 2]'
-    user_id = User.create_test_user
+    User.create_test_user
     get '/login'
     assert last_response.ok?
     delete_all_users
@@ -152,7 +152,7 @@ class MyTest < MiniTest::Test
 
   def test_customers_create_post
     puts '[+] Testing /customers/create POST'
-    userid = login_testuser
+    login_testuser
     post '/customers/create', {name: 'cust_test', desc: 'cust_test_desc'}
     assert last_response.redirection?
     assert_equal 'http://example.org/customers/list', last_response.location

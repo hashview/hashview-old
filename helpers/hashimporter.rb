@@ -1,7 +1,5 @@
-require 'rubygems'
-require 'sinatra'
-require './model/master'
-
+# encoding: utf-8
+#require './model/master'
 def detectedHashFormat(hash)
   # Detect if pwdump file format
   if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
@@ -160,7 +158,7 @@ def importRaw(hash, hashfile_id, type)
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-
+  
     updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   else
@@ -294,6 +292,5 @@ def detectHashType(hash_file, file_type)
       end
     end
   end
-
   @hashtypes
 end
