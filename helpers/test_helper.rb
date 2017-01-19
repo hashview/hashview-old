@@ -6,4 +6,4 @@ require 'factory_girl'
 #require 'sinatra/flash'
 #require 'haml'
 
-require File.expand_path '../../main.rb', __FILE__
+require File.expand_path '../../hashview.rb', __FILE__
