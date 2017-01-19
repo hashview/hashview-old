@@ -156,7 +156,7 @@ post '/tasks/create' do
   
   @tasks = Tasks.all(name: params[:name])
   unless @tasks.nil?
-   @tasks.each do |task|
+    @tasks.each do |task|
       if task.name == params[:name]
         flash[:error] = 'Name already in use, pick another'
         redirect to('/tasks/create')
