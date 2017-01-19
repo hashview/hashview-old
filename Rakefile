@@ -159,6 +159,8 @@ namespace :db do
     end
     DataMapper.repository.auto_upgrade!
     puts 'db:auto:upgrade executed'
+    DataMapper.repository.auto_migrate!
+    puts 'db:auto:migrate exectued'
   end
 
   desc 'Migrate From old DB to new DB schema'
