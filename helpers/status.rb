@@ -8,7 +8,7 @@ helpers do
     Sinatra::Base.development?
   end
 
- def isOldVersion()
+  def isOldVersion()
     begin
       if Targets.all
         return true
