@@ -2,12 +2,6 @@ require 'sinatra'
 
 require './helpers/sinatra_ssl.rb'
 
-# we default to production env b/c i want to
-if ENV['RACK_ENV'].nil?
-  set :environment, :production
-  ENV['RACK_ENV'] = 'production'
-end
-
 require 'sinatra/flash'
 require 'haml'
 require 'data_mapper'
@@ -130,22 +124,8 @@ end
 
 # Helper Functions
 
-# Are we in development mode?
-def isDevelopment?
-  Sinatra::Base.development?
-end
-
-# Return if the user has a valid session or not
-def validSession?
-  Sessions.isValid?(session[:session_id])
-end
 
 # Get the current users, username
-def getUsername
-  Sessions.getUsername(session[:session_id])
-end
-
-# Check if the user is an administrator
 def isAdministrator?
   return true if Sessions.type(session[:session_id])
 end
@@ -153,34 +133,6 @@ end
 # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
 
 ## Moved to helpers/build_crack_cmd
-
-# Check if a job running
-def isBusy?
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  return true if @results.length > 1
-end
-
-def assignTasksToJob(tasks, job_id)
-  tasks.each do |task_id|
-    jobtask = Jobtasks.new
-    jobtask.job_id = job_id
-    jobtask.task_id = task_id
-    jobtask.save
-  end
-end
-
-def isOldVersion()
-  begin
-    if Targets.all
-      return true
-    else
-      return false
-    end
-  rescue
-    # we really need a better upgrade process
-    return false
-  end
-end
 
 helpers do
   def login?

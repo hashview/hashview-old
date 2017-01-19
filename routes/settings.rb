@@ -47,3 +47,21 @@ post '/settings' do
 
   redirect to('/home')
 end
+
+get '/test/email' do
+
+  account = User.first(username: getUsername)
+  if account.email.nil? or account.email.empty?
+    flash[:error] = 'Current logged on user has no email address associated.'
+    redirect to('/settings')
+  end
+
+  if ENV['RACK_ENV'] != 'test'
+    sendEmail(account.email, "Greetings from hashview", "This is a test message from hashview")
+  end
+
+  flash[:success] = 'Email sent.'
+
+  redirect to('/settings')
+end
+

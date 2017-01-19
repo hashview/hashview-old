@@ -8,8 +8,16 @@ require_relative 'helpers/init'
 require_relative 'routes/init'
 require_relative 'jobs/jobq'
 
+# Enable sessions
 enable :sessions
 
+# Presume production if not told otherwise
+if ENV['RACK_ENV'].nil?
+  set :environment, :production
+  ENV['RACK_ENV'] = 'production'
+end
+
+# Check for valid session before proccessing
 before /^(?!\/(login|register|logout))/ do
   if !validSession?
     redirect to('/login')
