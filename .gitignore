@@ -26,3 +26,4 @@ cudaHashcat.log
 *.restore
 Gemfile.lock
 control/wordlists/password
+*.idea
