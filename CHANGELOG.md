@@ -1,6 +1,7 @@
 # Change Log
 Notable changes will be documented here
 
+## Current Release
 ## [v0.5.1-beta] - 2016-02-19
 ### Changed
 - changed from Sinatra classic style to modular style
@@ -77,3 +78,9 @@ Notable changes will be documented here
 ## 2016-09-23
 ### Removed
 - Removed implicit downcase for non-LM hash imports
+
+
+[v0.5.1-beta]: https://github.com/hashview/hashview/compare/v0.5-beta...v0.5.1-beta
+[v0.5-beta]: https://github.com/hashview/hashview/compare/v0.4-beta...v0.5-beta
+[v0.4-beta]: https://github.com/hashview/hashview/compare/v0.3-beta...v0.4-beta
+[v0.3-beta]: https://github.com/hashview/hashview/compare/v0.1-alpha...v0.3-beta
