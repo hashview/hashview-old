@@ -27,6 +27,12 @@ post '/settings' do
   else
     params[:smtp_use_tls] = '0'
   end
+
+  # Verify HCBinpath Exists
+  unless File.file?(params[:hcbinpath])
+    flash[:error] = 'Invalid file / path for hashcat binary.'
+    redirect('/settings')
+  end
  
   settings = Settings.first
 
