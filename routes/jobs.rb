@@ -88,6 +88,12 @@ post '/jobs/create' do
 
   # Create a new customer if selected
   if params[:customer] == 'add_new' || params[:customer].nil?
+    pre_existing_customer = Customers.all(name: params[:name])
+    if !pre_existing_customer.empty? || pre_existing_customer.nil?
+      flash[:error] = 'Customer ' + params[:name] + ' already exists.'
+      redirect to ('/jobs/create')
+    end
+ 
     customer = Customers.new
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
