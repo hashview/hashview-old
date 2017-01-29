@@ -56,13 +56,7 @@ post '/tasks/edit/:id' do
     redirect to("/tasks/edit/#{params[:id]}")
   end
 
-  settings = Settings.first
   wordlist = Wordlists.first(id: params[:wordlist])
-
-  if settings && !settings.hcbinpath
-    flash[:error] = 'No hashcat binary path is defined in global settings.'
-    redirect to('/settings')
-  end
 
   # must have two word lists
   if params[:attackmode] == 'combinator'
@@ -125,9 +119,6 @@ end
 get '/tasks/create' do
   varWash(params)
   @settings = Settings.first
-  
-  # TODO present better error msg
-  flash[:warning] = 'You must define hashcat\'s binary path in global settings first.' if @settings && @settings.hcbinpath.nil?
 
   @rules = []
   # list wordlists that can be used
@@ -143,11 +134,6 @@ end
   
 post '/tasks/create' do
   varWash(params)
-  settings = Settings.first
-  if settings && !settings.hcbinpath
-    flash[:error] = 'No hashcat binary path is defined in global settings.'
-    redirect to('/settings')
-  end
   
   if !params[:name] || params[:name].empty?
     flash[:error] = 'You must provide a name for your task!'
