@@ -24,6 +24,12 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
+  pre_existing_customer = Customers.all(name: params[:name])
+  if !pre_existing_customer.empty? || pre_existing_customer.nil?
+    flash[:error] = 'Customer ' + params[:name] + ' already exists.'
+    redirect to ('/customers/create')
+  end
+
   customer = Customers.new
   customer.name = params[:name]
   customer.description = params[:desc]
