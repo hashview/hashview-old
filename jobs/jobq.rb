@@ -125,7 +125,11 @@ module Jobq
           hash_pass = line.split(/:/)
           plaintext = hash_pass[-1] # Get last entry
           plaintext = plaintext.chomp
-          if hashtype == '5500'
+          # Handle salted hashes 
+          # Theres gotta be a better way to do this
+          if hashtype == '10' or hashtype == '20' or hashtype == '30' or hashtype == '40' or hashtype == '50' or hashtype == '60' or hashtype == '110' or hashtype == '120' or hashtype == '130' or hashtype == '140' or hashtype == '150' or hashtype == '160' or hashtype == '1100' or hashtype == '1410' or hashtype == '1420' or hashtype == '1430' or hashtype == '1440' or hashtype == '1450' or hashtype == '1460' or hashtype == '2611' or hashtype == '2711'
+            hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s
+          elsif hashtype == '5500'
             hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
           elsif hashtype == '5600'
             hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s + ':' + hash_pass[2].to_s + ':' + hash_pass[3].to_s + ':' + hash_pass[4].to_s + ':' + hash_pass[5].to_s
