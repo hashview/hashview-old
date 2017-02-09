@@ -20,7 +20,6 @@ get '/hashfiles/delete' do
   @hashfilehashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
   @hashfilehashes.destroy unless @hashfilehashes.empty?
 
-  Removing this as it deletes hashes for other hashfiles
   @hashfile = Hashfiles.first(id: params[:hashfile_id])
   @hashfile.destroy unless @hashfile.nil?
 
