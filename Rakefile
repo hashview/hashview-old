@@ -1,5 +1,5 @@
 require 'resque/tasks'
-require './jobs/jobq.rb'
+require_relative 'jobs/init'
 require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'

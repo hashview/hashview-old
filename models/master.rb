@@ -207,6 +207,7 @@ class Wordlists
   include DataMapper::Resource
 
   property :id, Serial
+  property :lastupdated, DateTime
   property :name, String, length: 256
   property :path, String, length: 2000
   property :size, Integer

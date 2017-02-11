@@ -18,12 +18,11 @@ control/analysis/*
 !control/analysis/.blank
 control/status/*
 !control/status/.blank
-control/wordlists/wordlist-*
-control/wordlists/crackstation.txt
+control/wordlists/*
 !control/wordlists/.blank
+!control/wordlists/password.gz
 cudaHashcat.log
 *.pot
 *.restore
 Gemfile.lock
-control/wordlists/password
 *.idea
