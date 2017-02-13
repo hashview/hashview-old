@@ -4,6 +4,7 @@ require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'
 require './models/master.rb'
+require './helpers/email.rb'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
