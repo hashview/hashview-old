@@ -38,7 +38,7 @@ class MagicWordlist
       p 'LAST UPDATED: ' + has_magic_wordlist.lastupdated.to_s
       # Has magic wordlist already, need to check if its outdated
       @wordlists = Wordlists.all(:lastupdated.gt => has_magic_wordlist.lastupdated)
-      @plaintexts = Hashes.all(:lastupdated.gt => hash_magic_wordlist.lastupdated)
+      @plaintexts = Hashes.all(:lastupdated.gt => has_magic_wordlist.lastupdated)
       if @wordlists.size > 0 || @plaintexts.size > 0
 
         file_name = '/tmp/plaintext.txt'
