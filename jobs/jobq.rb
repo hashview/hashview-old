@@ -3,7 +3,7 @@ require 'dm-mysql-adapter'
 require 'data_mapper'
 #require './model/master.rb'
 require 'benchmark'
-#require './helpers/email.rb'
+require './helpers/email.rb'
 
 def updateDbStatus(id, status)
   # require './helpers/email.rb'
