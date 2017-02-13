@@ -18,8 +18,8 @@ control/analysis/*
 !control/analysis/.blank
 control/status/*
 !control/status/.blank
-control/wordlists/wordlist-*
-control/wordlists/crackstation.txt
+control/wordlists/*
+!control/wordlists/password.gz
 !control/wordlists/.blank
 cudaHashcat.log
 *.pot
