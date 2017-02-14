@@ -33,5 +33,6 @@ module WordlistImporter
         end
       end
     end
+    puts 'Wordlist Importer Class() - done'
   end
 end

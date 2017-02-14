@@ -10,7 +10,8 @@ class Manager
       # Start Magic Wordlist
       Resque.enqueue(MagicWordlist)
 
-      sleep(60)
+      sleep(10)
     end
+    p 'Manager Class - Done.. but why?'
   end
 end
