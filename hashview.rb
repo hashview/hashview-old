@@ -3,11 +3,12 @@ require 'sinatra'
 require 'sinatra/flash'
 require 'haml'
 require 'resque'
+require 'resque/server'
 
 require_relative 'models/master'
 require_relative 'helpers/init'
 require_relative 'routes/init'
-require_relative 'jobs/jobq'
+require_relative 'jobs/background_worker'
 
 
 # Enable sessions
@@ -20,7 +21,7 @@ if ENV['RACK_ENV'].nil?
 end
 
 # Check for valid session before proccessing
-before /^(?!\/(login|register|logout))/ do
+before /^(?!\/(login|register|logout|v1))/ do
   if !validSession?
     redirect to('/login')
   else
@@ -30,4 +31,3 @@ before /^(?!\/(login|register|logout))/ do
     end
   end
 end
-
