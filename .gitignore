@@ -19,11 +19,10 @@ control/analysis/*
 control/status/*
 !control/status/.blank
 control/wordlists/*
-!control/wordlists/password.gz
 !control/wordlists/.blank
+!control/wordlists/password.gz
 cudaHashcat.log
 *.pot
 *.restore
 Gemfile.lock
-control/wordlists/password
 *.idea
