@@ -253,7 +253,13 @@ get '/jobs/start/:id' do
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      Resque.enqueue(Jobq, jt.id, cmd)
+      # we are using a db queue instead for public api
+      queue = Taskqueues.new
+      queue.jobtask_id = jt.id
+      queue.job_id = @job.id
+      queue.command = cmd
+      queue.status = 'Queued'
+      queue.save
     end
   end
   
@@ -283,7 +289,9 @@ get '/jobs/stop/:id' do
       cmd = buildCrackCmd(@job.id, task.task_id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
-      Resque::Job.destroy('hashcat', Jobq, task.id, cmd)
+      # we are using a db queue instead for public api
+      queue = Taskqueues.first(job_id: @job_id)
+      queue.destroy if queue
     end
   end
   

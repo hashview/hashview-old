@@ -224,4 +224,18 @@ class Hashfiles
   property :total_run_time, Integer, default: 0
 end
 
+# task queue (we no logger use a resque worker)
+class Taskqueues
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :jobtask_id, Integer
+  property :job_id, Integer
+  property :updated_at, DateTime, default: DateTime.now
+  # status options should be "Running", "Completed", "Queued", "Canceled"
+  property :status, String, length: 100
+  property :agent_id, String, length: 2000
+  property :command, String, length: 4000
+end
+
 DataMapper.finalize
