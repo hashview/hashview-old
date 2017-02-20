@@ -1,4 +1,5 @@
 require 'resque/tasks'
+require 'resque/scheduler/tasks'
 require_relative 'jobs/init'
 require 'rake/testtask'
 require 'data_mapper'
@@ -10,6 +11,24 @@ Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
   t.verbose
 end
+
+# resque-scheduler needs to know basics from resque::setup
+desc 'resque scheduler setup'
+namespace :resque do
+  task :setup do
+    require 'resque'
+
+    #Resque.redis = 'localhost:6379'
+  end
+
+  task :setup_schedule => :setup do
+    require 'resque-scheduler'
+    Resque.schedule = YAML.load_file('config/resque_schedule.yml')
+  end
+
+  task :scheduler => :setup_schedule
+end
+
 
 desc 'Setup test database'
 namespace :db do

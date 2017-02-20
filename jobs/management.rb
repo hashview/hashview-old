@@ -4,10 +4,8 @@ class Manager
   def self.perform()
     p 'Manager Class'
     while(1)
-      # Start Wordlist Importer
-      Resque.enqueue(WordlistImporter)
-
       # Start Magic Wordlist
+      # TODO move this into a resque-scheduler job (see config/resque_schedule.yml)
       Resque.enqueue(MagicWordlist)
 
       sleep(10)
