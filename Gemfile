@@ -19,6 +19,7 @@ gem 'dm-mysql-adapter'
 gem 'data_objects'
 gem 'redis'
 gem 'resque'
+gem 'resque-scheduler'
 gem 'resque-web'
 gem 'json'
 gem 'pony'
@@ -26,4 +27,5 @@ gem 'bcrypt'
 gem 'mysql'
 gem 'foreman'
 gem 'rest-client'
+
 
