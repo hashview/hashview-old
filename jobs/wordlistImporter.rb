@@ -2,24 +2,22 @@ module WordlistImporter
   @queue = :management
 
   def self.perform()
-    puts 'Wordlist Importer class'
+    if ENV['RACK_ENV'] == :development
+      puts 'Wordlist Importer Class'
+    end
 
     # Identify all wordlists in directory
     @files = Dir.glob(File.join('control/wordlists/', "*")) 
     @files.each do |path_file|
       wordlist_entry = Wordlists.first(path: path_file)
-      if wordlist_entry
-        puts "IN DB: " + wordlist_entry.path.to_s
-      else
-        puts "NOT IN DB: " + path_file.to_s
-
+      unless wordlist_entry
         # Get Name
         name = path_file.split('/')[-1]
 
         # Make sure we're not dealing with a tar, gz, tgz, etc. Not 100% accurate!
         unless name.match(/\.tar|\.7z|\.gz|\.tgz/)
 
-          puts "Importing " + name
+          puts 'Importing new wordslist "' + name + '" into HashView.'
           # Finding Size
           size = File.foreach(path_file).inject(0) { |c| c + 1 }
 
@@ -33,6 +31,8 @@ module WordlistImporter
         end
       end
     end
-    puts 'Wordlist Importer Class() - done'
+    if ENV['RACK_ENV'] == :development
+      puts 'Wordlist Importer Class() - done'
+    end
   end
 end
