@@ -4,6 +4,7 @@ module WordlistImporter
   def self.perform()
     if ENV['RACK_ENV'] == :development
       puts 'Wordlist Importer Class'
+    end
 
     # Identify all wordlists in directory
     @files = Dir.glob(File.join('control/wordlists/', "*")) 
@@ -32,5 +33,6 @@ module WordlistImporter
     end
     if ENV['RACK_ENV'] == :development
       puts 'Wordlist Importer Class() - done'
+    end
   end
 end
