@@ -35,5 +35,4 @@ before /^(?!\/(login|register|logout|v1))/ do
   end
 end
 
-Resque.enqueue(LocalAgent)
 
