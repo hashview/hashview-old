@@ -28,6 +28,8 @@ module WordlistImporter
           wordlist.path = path_file
           wordlist.size = size
           wordlist.save
+
+          Resque.enqueue(MagicWordlist)
         end
       end
     end

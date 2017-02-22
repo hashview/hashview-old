@@ -14,9 +14,6 @@ require_relative 'jobs/init'
 # Enable sessions
 enable :sessions
 
-# Add to Management Queue
-Resque.enqueue(Manager)
-
 # Presume production if not told otherwise
 if ENV['RACK_ENV'].nil?
   set :environment, :production
