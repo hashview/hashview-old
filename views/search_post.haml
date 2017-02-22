@@ -14,9 +14,18 @@
               %form{:action => "/search", :method => "post"}
                 .form-group.col-xs-2
                   %select.form-control{:id => "search_type", :name => "search_type"}
-                    %option{:value => "username", :name => "search_type", :type => "button"} Username
-                    %option{:value => "hash", :name => "search_type", :type => "button"} Hash
-                    %option{:value => "password", :name => "search_type", :type => "button"} Password
+                    - if params[:search_type] == 'username'
+                      %option{:value => 'username', :name => 'search_type', :type => 'button', selected: 'selected'} Username
+                    - else
+                      %option{:value => "username", :name => "search_type", :type => "button"} Username
+                    - if params[:search_type] == 'hash'
+                      %option{:value => "hash", :name => "search_type", :type => "button", selected: 'selected'} Hash
+                    - else
+                      %option{:value => "hash", :name => "search_type", :type => "button"} Hash
+                    - if params[:search_type] == 'password'
+                      %option{:value => "password", :name => "search_type", :type => "button", selected: 'selected'} Password
+                    - else
+                      %option{:value => "password", :name => "search_type", :type => "button"} Password
                 .form-group.col-md-8
                   %input{:type => "textbox", :class => "form-control", :name => "value", :id => "value", :placeholder => "Search for..."}
                 .form-group.col-xs-2
@@ -33,7 +42,7 @@
                     %th Plaintext
                     %th Type
                     %th Hash
-                    %th Customer
+                    %th Customer #{params[:search_type]}
                 %tbody
                   %tr
                   - if @results
