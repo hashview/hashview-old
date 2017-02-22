@@ -32,25 +32,28 @@
     #1.tab-pane.active
       %br
       .col-md-10
-        %form{:name => 'settings_form', :id => 'settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+        %form{:name => 'hashcat_settings_form', :id => 'hashcat_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
           .form-group
             %label.control-label.col-xs-2{:for => ""} Hashcat Binary Path
             .col-xs-10
               - if @settings and @settings.hcbinpath
-                %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath", :value => @settings.hcbinpath}
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hcbinpath', :id => 'hcbinpath', :value => @settings.hcbinpath}
               - else
-                %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath"}
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hcbinpath', :id => 'hcbinpath'}
               Note: Make sure the user running hashview has the ability to read the hashcat root folder
           .form-group
             %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
             .col-xs-10
               - if @settings and ! @settings.maxtasktime.nil? and ! @settings.maxtasktime.empty?
-                %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
+                %input{:type => 'textbox', :class => 'form-control', :name => 'maxtasktime', :id => 'maxtasktime', :value => @settings.maxtasktime}
               - else
-                %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"}
+                %input{:type => 'textbox', :class => 'form-control', :name => 'maxtasktime', :id => 'maxtasktime', :value => '86400'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '1'}
           .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => "submit"} Save
+              %button.btn.btn-primary{:type => 'submit'} Save
     #2.tab-pane
       %br
       .col-md-10
@@ -100,6 +103,9 @@
                 %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
               - else
                 %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
           .form-group
             .col-xs-offset-2.col-xs-10
               %a.btn.btn-warning{:href => "/test/email"}

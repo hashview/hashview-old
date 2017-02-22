@@ -12,26 +12,28 @@ get '/settings' do
 end
   
 post '/settings' do
-  if params[:hcbinpath].nil? || params[:hcbinpath].empty?
-    flash[:error] = 'You must set the path for your hashcat binary.'
-    redirect('/settings')
-  end
+  if params[:form_id] == '1'
+    if params[:hcbinpath].nil? || params[:hcbinpath].empty?
+      flash[:error] = 'You must set the path for your hashcat binary.'
+      redirect('/settings')
+    end
   
-  if params[:maxtasktime].nil? || params[:maxtasktime].empty?
-    flash[:error] = 'You must set a max task time.'
-    redirect('/settings')
-  end
-  
-  if params[:smtp_use_tls] == 'on'
-    params[:smtp_use_tls] = '1'
-  else
-    params[:smtp_use_tls] = '0'
-  end
+    if params[:maxtasktime].nil? || params[:maxtasktime].empty?
+      flash[:error] = 'You must set a max task time.'
+      redirect('/settings')
+    end
 
-  # Verify HCBinpath Exists
-  unless File.file?(params[:hcbinpath])
-    flash[:error] = 'Invalid file / path for hashcat binary.'
-    redirect('/settings')
+    # Verify HCBinpath Exists
+    unless File.file?(params[:hcbinpath])
+      flash[:error] = 'Invalid file / path for hashcat binary.'
+      redirect('/settings')
+    end
+  elsif params[:form_id] == '2'
+    if params[:smtp_use_tls] == 'on'
+      params[:smtp_use_tls] = '1'
+    else
+      params[:smtp_use_tls] = '0'
+    end
   end
  
   settings = Settings.first
