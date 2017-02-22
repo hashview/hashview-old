@@ -14,72 +14,102 @@
         }
       }
     .span15
-      %br
       .container
-        %h2 Global Settings
-        %br
-        .row
-          .col-md-10
-            %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Hashcat Binary Path
-                .col-xs-10
-                  - if @settings and @settings.hcbinpath
-                    %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath", :value => @settings.hcbinpath}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath"}
-                  Note: Make sure the user running hashview has the ability to read the hashcat root folder
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
-                .col-xs-10
-                  - if @settings and ! @settings.maxtasktime.nil? and ! @settings.maxtasktime.empty?
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"}
-                  Note: Default value is 86400 seconds (24 hours)
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Server
-                .col-xs-10
-                  - if @settings and ! @settings.smtp_server.nil? and ! @settings.smtp_server.empty?
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
-                  - else
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Use TLS
-                .col-xs-1.pull-left
-                  - if @settings and @settings.smtp_use_tls == true
-                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
-                  - else
-                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Settings
+    .span15
+      .container
+#exTab2.container
+  %ul.nav.nav-tabs
+    %li.active
+      %a{"data-toggle" => "tab", :href => "#1"} Hashcat
+    %li
+      %a{"data-toggle" => "tab", :href => "#2"} Email
+  .tab-content
+    #1.tab-pane.active
+      %br
+      .col-md-10
+        %form{:name => 'hashcat_settings_form', :id => 'hashcat_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Hashcat Binary Path
+            .col-xs-10
+              - if @settings and @settings.hcbinpath
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hcbinpath', :id => 'hcbinpath', :value => @settings.hcbinpath}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hcbinpath', :id => 'hcbinpath'}
+              Note: Make sure the user running hashview has the ability to read the hashcat root folder
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
+            .col-xs-10
+              - if @settings and ! @settings.maxtasktime.nil? and ! @settings.maxtasktime.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'maxtasktime', :id => 'maxtasktime', :value => @settings.maxtasktime}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'maxtasktime', :id => 'maxtasktime', :value => '86400'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '1'}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save
+    #2.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Server
+            .col-xs-10
+              - if @settings and ! @settings.smtp_server.nil? and ! @settings.smtp_server.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Sender Address
+            .col-xs-10
+              - if @settings and ! @settings.smtp_sender.nil? and ! @settings.smtp_sender.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :value => @settings.smtp_sender}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :placeholder => 'no-reply@hashview.local'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Use TLS
+            .col-xs-1.pull-left
+              - if @settings and @settings.smtp_use_tls == true
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
+              - else
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
 
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Auth type
-                .col-xs-10
-                  %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
-                    - @auth_types.each do |auth_type|
-                      - if @settings and (@settings.smtp_auth_type == auth_type)
-                        %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
-                      - else
-                        %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
-              .section
-                %div{:class => "label_leftalign field"}
-                  #smtp_auth_div{:style => "display:none"}
-                    .form-group
-                      %label.control-label.col-xs-2{:for => ""} SMTP Username
-                      .col-xs-10
-                        - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
-                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
-                        - else
-                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'}
-                    .form-group
-                      %label.control-label.col-xs-2{:for => ""} SMTP Password
-                      .col-xs-10
-                        - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
-                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
-                        - else
-                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %a.btn.btn-primary{:href => "/test/email"}
-                    Send Test Email
-                  %button.btn.btn-primary{:type => "submit"} Save
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Auth type
+            .col-xs-10
+              %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
+                - @auth_types.each do |auth_type|
+                  - if @settings and (@settings.smtp_auth_type == auth_type)
+                    %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
+                  - else
+                    %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Username
+            .col-xs-10
+              - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Password
+            .col-xs-10
+              - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
+                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
+              - else
+                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %a.btn.btn-warning{:href => "/test/email"}
+                Send Test Email
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => "submit"} Save

@@ -12,26 +12,28 @@ get '/settings' do
 end
   
 post '/settings' do
-  if params[:hcbinpath].nil? || params[:hcbinpath].empty?
-    flash[:error] = 'You must set the path for your hashcat binary.'
-    redirect('/settings')
-  end
+  if params[:form_id] == '1'
+    if params[:hcbinpath].nil? || params[:hcbinpath].empty?
+      flash[:error] = 'You must set the path for your hashcat binary.'
+      redirect('/settings')
+    end
   
-  if params[:maxtasktime].nil? || params[:maxtasktime].empty?
-    flash[:error] = 'You must set a max task time.'
-    redirect('/settings')
-  end
-  
-  if params[:smtp_use_tls] == 'on'
-    params[:smtp_use_tls] = '1'
-  else
-    params[:smtp_use_tls] = '0'
-  end
+    if params[:maxtasktime].nil? || params[:maxtasktime].empty?
+      flash[:error] = 'You must set a max task time.'
+      redirect('/settings')
+    end
 
-  # Verify HCBinpath Exists
-  unless File.file?(params[:hcbinpath])
-    flash[:error] = 'Invalid file / path for hashcat binary.'
-    redirect('/settings')
+    # Verify HCBinpath Exists
+    unless File.file?(params[:hcbinpath])
+      flash[:error] = 'Invalid file / path for hashcat binary.'
+      redirect('/settings')
+    end
+  elsif params[:form_id] == '2'
+    if params[:smtp_use_tls] == 'on'
+      params[:smtp_use_tls] = '1'
+    else
+      params[:smtp_use_tls] = '0'
+    end
   end
  
   settings = Settings.first
@@ -42,7 +44,8 @@ post '/settings' do
   
   settings.hcbinpath = params[:hcbinpath] unless params[:hcbinpath].nil? || params[:hcbinpath].empty?
   settings.maxtasktime = params[:maxtasktime] unless params[:maxtasktime].nil? || params[:maxtasktime].empty?
-  settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].nil?
+  settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].empty?
+  settings.smtp_sender = params[:smtp_sender] unless params[:smtp_sender].nil? || params[:smtp_sender].empty?
   settings.smtp_auth_type = params[:smtp_auth_type] unless params[:smtp_auth_type].nil? || params[:smtp_auth_type].empty?
   settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
   settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
@@ -51,7 +54,7 @@ post '/settings' do
   
   flash[:success] = 'Settings updated successfully.'
 
-  redirect to('/home')
+  redirect to('/settings')
 end
 
 get '/test/email' do
