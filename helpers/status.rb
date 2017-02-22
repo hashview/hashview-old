@@ -4,7 +4,7 @@ def isBusy?
 end
 
 def isDevelopment?
- Sinatra::Base.development?
+  Sinatra::Base.development?
 end
 
 def isOldVersion()
@@ -19,21 +19,20 @@ def isOldVersion()
     return false
   end
 
-  def updateTaskqueueStatus(taskqueue_id, status)
-    queue = Taskqueues.first(id: taskqueue_id)
-    queue.status = status
-    queue.save
-  end
+def updateTaskqueueStatus(taskqueue_id, status)
+  queue = Taskqueues.first(id: taskqueue_id)
+  queue.status = status
+  queue.save
+end
 
 
-  def updateJobStatus(jobtask_id, status)
+def updateJobStatus(jobtask_id, status)
   # require './helpers/email.rb'
 
   jobtask = Jobtasks.first(id: jobtask_id)
   puts jobtask
   jobtask.status = status
   jobtask.save
-
 
   # if this is the last task for this current job, then set the job to be completed
   # find the job of the jobtask id:
@@ -78,5 +77,4 @@ def isOldVersion()
     job.status = 'Completed'
     job.save
   end
-end
 end

@@ -91,7 +91,7 @@ post '/jobs/create' do
     pre_existing_customer = Customers.all(name: params[:name])
     if !pre_existing_customer.empty? || pre_existing_customer.nil?
       flash[:error] = 'Customer ' + params[:name] + ' already exists.'
-      redirect to ('/jobs/create')
+      redirect to('/jobs/create')
     end
  
     customer = Customers.new
