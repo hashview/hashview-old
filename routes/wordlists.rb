@@ -65,6 +65,7 @@ post '/wordlists/upload/' do
   wordlist.name = upload_name 
   wordlist.path = file_name
   wordlist.size = size
+  wordlist.lastupdated = Time.now()
   wordlist.save
   
   # Update our magic wordlist
