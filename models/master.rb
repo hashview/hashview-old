@@ -195,6 +195,7 @@ class Settings
   property :maxtasktime, String, length: 2000
   property :maxjobtime, String, length: 2000
   property :smtp_server, String
+  property :smtp_sender, String
   property :smtp_user, String
   property :smtp_pass, String
   property :smtp_use_tls, Boolean
