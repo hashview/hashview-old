@@ -18,6 +18,7 @@ def isOldVersion()
     # we really need a better upgrade process
     return false
   end
+end
 
 def updateTaskqueueStatus(taskqueue_id, status)
   queue = Taskqueues.first(id: taskqueue_id)
