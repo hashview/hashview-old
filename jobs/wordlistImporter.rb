@@ -2,7 +2,7 @@ module WordlistImporter
   @queue = :management
 
   def self.perform()
-    if ENV['RACK_ENV'] == :development
+    if ENV['RACK_ENV'] == 'development'
       puts 'Wordlist Importer Class'
     end
 
@@ -33,7 +33,7 @@ module WordlistImporter
         end
       end
     end
-    if ENV['RACK_ENV'] == :development
+    if ENV['RACK_ENV'] == 'development'
       puts 'Wordlist Importer Class() - done'
     end
   end

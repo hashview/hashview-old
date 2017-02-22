@@ -1,4 +1,5 @@
 # encoding: utf-8
+require_relative '../jobs/init' # this shouldnt be needed?
 get '/wordlists/list' do
   @wordlists = Wordlists.all
 

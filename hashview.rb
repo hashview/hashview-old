@@ -9,7 +9,6 @@ require_relative 'models/master'
 require_relative 'helpers/init'
 require_relative 'routes/init'
 require_relative 'jobs/init'
-#require_relative 'jobs/background_worker'
 
 # Enable sessions
 enable :sessions
