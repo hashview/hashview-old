@@ -56,13 +56,13 @@
               %button.btn.btn-primary{:type => 'submit'} Submit
     #2.tab-pane
       %br
-      .col-md-8
+      .row
       - if !@hashfiles.empty?
         %form{:name => 'hf_form', :id => 'hf_form', :class => 'form-horizontal', :action => '/jobs/assign_hashfile', :method => 'post'}
           .form-group
             %label.control-label.col-xs-2{:for => ""} Hash Files
-            .col-xs-8
-              %select.form-control{:id => "hash_file", :name => "hash_file", :onchange => "showDiv()"}
+            .col-xs-3
+              %select.form-control{:id => 'hash_file', :name => 'hash_file', :onchange => "showDiv()"}
                 - @hashfiles.each do |hashfile|
                   - if params[:edit] == '1'
                     - if @job.hashfile_id == hashfile.id
@@ -72,39 +72,38 @@
                   - else
                     %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
                 %option{:value => "add_new", :name => "hashfile_id", :type => "button"} New Hashfile
-          .section
-            %div{:class => "label_leftalign field"}
-              #selectfile_div{:style => "display:inline"}
-                .form-group
-                  .col-xs-offset-2.col-xs-10
-                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
-                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
-                    %input{:type => 'hidden', :name => 'form_id', :value => '2'}
-                    %br
-                    - if params[:edit] == '1'
-                      %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
-                      %button.btn.btn-primary{:type => 'submit'} Update
-                    - else
-                      %button.btn.btn-primary{:type => 'submit'} Select
-              #hashfile_div{:style => "display:none"}
-                %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
-                  .form-group
-                    %label.control-label.col-xs-2 Name:
-                    .col-xs-10
-                      %input{:type => 'textbox', :name => 'hashfile_name'}
-                  .form-group
-                    %label.control-label.col-xs-2 Hash File:
-                    .col-xs-10
-                      %input{:type => 'file', :name => 'file'}
-                      %br
-                      Note: Hashivew currently supports the following file types: pwdump, shadow, newline seperated
-                      %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
-                      %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
-                      %input{:type => 'hidden', :name => 'form_id', :value => '2'}
-                  .form-group
-                    .col-xs-offset-2.col-xs-10
-                      %br
-                      %button.btn.btn-primary{:type => 'submit'} Upload
+        #selectfile_div{:style => "display:inline"}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+              %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+              %br
+              - if params[:edit] == '1'
+                %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
+                %button.btn.btn-primary{:type => 'submit'} Update
+              - else
+                %button.btn.btn-primary{:type => 'submit'} Select
+        #hashfile_div{:style => "display:none"}
+          %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+            .form-group
+              %label.control-label.col-xs-2.align-right Name:
+              .col-xs-10
+                %input{:type => 'textbox', :name => 'hashfile_name'}
+            %br
+            .form-group
+              %label.control-label.col-xs-2 Hash File:
+              .col-xs-10
+                %input{:type => 'file', :name => 'file'}
+                %br
+                Note: Hashivew currently supports the following file types: pwdump, shadow, newline seperated
+                %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
+                %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
+                %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+            .form-group
+              .col-xs-offset-2.col-xs-10
+              %br
+              %button.btn.btn-primary{:type => 'submit'} Upload
       - else
         %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
           .form-group
