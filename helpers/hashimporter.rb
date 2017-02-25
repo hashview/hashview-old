@@ -235,6 +235,7 @@ end
 
 def importHash(hash_file, hashfile_id, file_type, hashtype)
   hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
     if file_type == 'pwdump'
       importPwdump(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'shadow'
@@ -252,6 +253,7 @@ end
 def detectHashfileType(hash_file)
   @file_types = []
   File.readlines(hash_file).each do |entry|
+    entry = entry.gsub(/\s+/, "") # remove all spaces
     if detectedHashFormat(entry.chomp) == 'pwdump'
       @file_types.push('pwdump') unless @file_types.include?('pwdump')
     elsif detectedHashFormat(entry.chomp) == 'shadow'
@@ -269,6 +271,7 @@ end
 def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
+    entry = entry.gsub(/\s+/, "") # remove all spaces
     if file_type == 'pwdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
