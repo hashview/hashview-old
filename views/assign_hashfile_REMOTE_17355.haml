@@ -1,0 +1,124 @@
+!!!
+%html
+  %body
+    :javascript
+      function showDiv() {
+        var Index = document.hf_form.hash_file.options[document.hf_form.hash_file.selectedIndex].value
+        if(Index == "add_new")
+        {
+          document.getElementById('hashfile_div').style.display = 'inline';
+          document.getElementById('selectfile_div').style.display = 'none';
+        }
+        else
+        {
+          document.getElementById('hashfile_div').style.display = 'none';
+          document.getElementById('selectfile_div').style.display = 'inline';
+        }
+      }
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              - if params[:edit] == '1'
+                %h1 Edit Hashes for: #{@job.name}
+              - else
+                %h1 Assign Hashes for: #{@job.name}
+            .row
+              .col-md-10.pull-left
+                Apply hashes to be cracked. You can either copy/paste the desired hashes below, upload a new hashfile, or select from an existing file.
+            .page-header
+#exTab2.container
+  %ul.nav.nav-tabs
+    %li.active
+      %a{"data-toggle" => "tab", :href => "#1"} Individual Hashes
+    %li
+      %a{"data-toggle" => "tab", :href => "#2"} Hashfile
+  .tab-content
+    #1.tab-pane.active
+      %br
+      .col-md-8
+        %form{:name => 'individual_hashes_form', :id => 'individual_hashes_form', :class => 'form-horizontal', :action => '/customers/upload/hashes', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Name
+            .col-xs-10
+              %input{:type => 'textbox', :name => 'hashfile_name'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Hashes
+            .col-xs-10
+              %textarea{:name => 'hashes', :rows => '5', :cols => '88', :form => 'individual_hashes_form'}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+              %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Submit
+    #2.tab-pane
+      %br
+      .row
+      - if !@hashfiles.empty?
+        %form{:name => 'hf_form', :id => 'hf_form', :class => 'form-horizontal', :action => '/jobs/assign_hashfile', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Hash Files
+            .col-xs-3
+              %select.form-control{:id => 'hash_file', :name => 'hash_file', :onchange => "showDiv()"}
+                - @hashfiles.each do |hashfile|
+                  - if params[:edit] == '1'
+                    - if @job.hashfile_id == hashfile.id
+                      %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button", selected: 'selected'} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                    - else
+                      %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                  - else
+                    %option{:value => "#{hashfile.id}", :name => "hashfile_id", :type => "button"} #{hashfile.name} - #{@cracked_status[hashfile.id]}
+                %option{:value => "add_new", :name => "hashfile_id", :type => "button"} New Hashfile
+        #selectfile_div{:style => "display:inline"}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+              %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+              %br
+              - if params[:edit] == '1'
+                %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
+                %button.btn.btn-primary{:type => 'submit'} Update
+              - else
+                %button.btn.btn-primary{:type => 'submit'} Select
+        #hashfile_div{:style => "display:none"}
+          %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+            .form-group
+              %label.control-label.col-xs-2.align-right Name:
+              .col-xs-10
+                %input{:type => 'textbox', :name => 'hashfile_name'}
+            %br
+            .form-group
+              %label.control-label.col-xs-2 Hash File:
+              .col-xs-10
+                %input{:type => 'file', :name => 'file'}
+                %br
+                Note: Hashivew currently supports the following file types: pwdump, shadow, newline seperated
+                %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
+                %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
+                %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+            .form-group
+              .col-xs-offset-2.col-xs-10
+              %br
+              %button.btn.btn-primary{:type => 'submit'} Upload
+      - else
+        %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+          .form-group
+            %label.control-label.col-xs-2 Name:
+            .col-xs-10
+              %input{:type => 'textbox', :name => 'hashfile_name'}
+          %br
+          .form-group
+            %label.control-label.col-xs-2 Hash File:
+            .col-xs-10
+              %input{:type => 'file', :name => 'file'}
+              %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
+              %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %br
+              %button.btn.btn-primary{:type => 'submit'} Upload
