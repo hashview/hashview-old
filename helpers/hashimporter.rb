@@ -13,6 +13,8 @@ def detectedHashFormat(hash)
     return 'dsusers'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
+  elsif hash =~ /.*:\d*:\w{32}:\w{32}$/ 
+    return 'smart hashdump'
   else
     return 'File Format or Hash not supported'
   end
@@ -236,8 +238,8 @@ end
 def importHash(hash_file, hashfile_id, file_type, hashtype)
   hash_file.each do |entry|
     entry = entry.gsub(/\s+/, '') # remove all spaces
-    if file_type == 'pwdump'
-      importPwdump(entry.chomp, hashfile_id, hashtype)
+    if file_type == 'pwdump' or file_type == 'smart hashdump' 
+      importPwdump(entry.chomp, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
     elsif file_type == 'shadow'
       importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'raw'
@@ -260,6 +262,8 @@ def detectHashfileType(hash_file)
       @file_types.push('shadow') unless @file_types.include?('shadow')
     elsif detectedHashFormat(entry.chomp) == 'dsusers'
       @file_types.push('dsusers') unless @file_types.include?('dsusers')
+    elsif detectedHashFormat(entry.chomp) == 'smart hashdump'
+      @file_types.push('smart hashdump') unless @file_types.include?('smart hashdump')
     else
       @file_types.push('raw') unless @file_types.include?('raw')
     end
@@ -272,7 +276,7 @@ def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     entry = entry.gsub(/\s+/, "") # remove all spaces
-    if file_type == 'pwdump'
+    if file_type == 'pwdump' or file_type == 'smart hashdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
       @modes.each do |mode|
