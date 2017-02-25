@@ -102,7 +102,7 @@
                     .form-group
                       %label.control-label.col-xs-2 Hash File:
                       .col-xs-10
-                        %input{:type => 'file', :name => 'file'}
+                        %input{:type => 'file', :name => 'file', :class => 'inputFiles_cust'}
                         %br
                         Note: Hashivew currently supports the following file types: pwdump, shadow, newline seperated
                         %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
@@ -125,7 +125,7 @@
             .form-group
               %label.control-label.col-xs-2{:for => ''} Hash File
               .col-xs-10
-                %input{:type => 'file', :name => 'file'}
+                %input{:type => 'file', :name => 'file', :class => 'inputFiles_cust'}
                 %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
                 %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
                 %input{:type => 'hidden', :name => 'form_id', :value => '2'}
