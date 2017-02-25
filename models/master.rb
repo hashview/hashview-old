@@ -195,6 +195,7 @@ class Settings
   property :maxtasktime, String, length: 2000
   property :maxjobtime, String, length: 2000
   property :smtp_server, String
+  property :smtp_sender, String
   property :smtp_user, String
   property :smtp_pass, String
   property :smtp_use_tls, Boolean
@@ -207,6 +208,7 @@ class Wordlists
   include DataMapper::Resource
 
   property :id, Serial
+  property :lastupdated, DateTime
   property :name, String, length: 256
   property :path, String, length: 2000
   property :size, Integer
@@ -221,6 +223,20 @@ class Hashfiles
   property :name, String, length: 256
   property :hash_str, String, length: 256
   property :total_run_time, Integer, default: 0
+end
+
+# task queue (we no logger use a resque worker)
+class Taskqueues
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :jobtask_id, Integer
+  property :job_id, Integer
+  property :updated_at, DateTime, default: DateTime.now
+  # status options should be "Running", "Completed", "Queued", "Canceled"
+  property :status, String, length: 100
+  property :agent_id, String, length: 2000
+  property :command, String, length: 4000
 end
 
 DataMapper.finalize
