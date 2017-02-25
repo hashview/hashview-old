@@ -4,6 +4,10 @@
  * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
  */
 
+html{
+  background:red;
+}
+
 .btn-default,
 .btn-primary,
 .btn-success,
