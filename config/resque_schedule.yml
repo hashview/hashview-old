@@ -19,6 +19,13 @@ do_wordlist_importer:
   queue: management
   description: "This job automatically imports wordlists if placed in controls/wordlists dir"
 
+# schedule for cleanup task
+do_cleanUp:
+  every: 1d
+  class: 'CleanUp'
+  queue: management
+  description: 'This job automatically deletes old files on the file system if found to be older than X hours'
+
 do_local_agent:
   every: 2s
   class: LocalAgent
