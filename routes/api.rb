@@ -108,7 +108,7 @@ end
 
 # accept uploaded crack files
 post '/v1/jobtask/:jobtask_id/crackfile/upload' do
-  tmpfile = "tmp/#{rand.to_s[2..2048]}.txt"
+  tmpfile = "control/tmp/#{rand.to_s[2..2048]}.txt"
   puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
   File.open(tmpfile, 'wb') do |f|
     f.write(params[:file][:tempfile].read)

@@ -4,8 +4,6 @@ cert/*
 !cert/.blank
 cert.pem
 key.pem
-tmp/*
-!tmp/.blank
 .DS_Store
 *.swp
 *.swo
@@ -22,6 +20,8 @@ control/status/*
 control/wordlists/*
 !control/wordlists/.blank
 !control/wordlists/password.gz
+control/tmp/*
+!control/tmp/.blank
 cudaHashcat.log
 *.pot
 *.restore
