@@ -5,6 +5,7 @@ cert/*
 cert.pem
 key.pem
 tmp/*
+!tmp/.blank
 .DS_Store
 *.swp
 *.swo
