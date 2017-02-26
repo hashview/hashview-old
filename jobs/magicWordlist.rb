@@ -1,7 +1,7 @@
 def generateMagicWordlist
   # Get list of all plaintext passwords and save it to a file
   @plaintexts = Hashes.all(fields: [:plaintext], cracked: 1, unique: true, order: [:plaintext.asc])
-  file_name = '/tmp/plaintext.txt'
+  file_name = 'control/tmp/plaintext.txt'
 
   File.open(file_name, 'w') do |f|
     @plaintexts.each do |entry|
@@ -11,20 +11,20 @@ def generateMagicWordlist
    
   # Get list of all wordlists
   # TODO add --parallel #
-  shell_cmd = 'sort -u /tmp/plaintext.txt '
+  shell_cmd = 'sort -u control/tmp/plaintext.txt '
   @wordlists = Wordlists.all
   @wordlists.each do |entry|
     shell_cmd = shell_cmd + entry.path.to_s + ' '
   end
-  shell_cmd = shell_cmd + '-o /tmp/MagicWordlist.txt' # We move to temp to prevent wordlist importer from accidentally loading the magic wordlist too early
+  shell_cmd = shell_cmd + '-o control/tmp/MagicWordlist.txt' # We move to temp to prevent wordlist importer from accidentally loading the magic wordlist too early
   p "shell_cmd: " + shell_cmd
   system(shell_cmd)
 
-  shell_mv_cmd = 'mv /tmp/MagicWordlist.txt control/wordlists/MagicWordList.txt'
+  shell_mv_cmd = 'mv control/tmp/MagicWordlist.txt control/wordlists/MagicWordList.txt'
   system(shell_mv_cmd)
 
   # Remove plaintext list
-  File.delete('/tmp/plaintext.txt')
+  File.delete('control/tmp/plaintext.txt')
 end
 
 class MagicWordlist
@@ -56,12 +56,12 @@ class MagicWordlist
           @wordlists.each do |entry|
             shell_cmd = shell_cmd + entry.path.to_s + ' '
           end
-          shell_cmd = shell_cmd + '-o /tmp/MagicWordlist.txt'
+          shell_cmd = shell_cmd + '-o control/tmp/MagicWordlist.txt'
           p 'SHELL CMD: ' + shell_cmd
           system(shell_cmd)
 
           p 'Replace old MagicWordlist with new file'
-          shell_mv_cmd = 'mv /tmp/MagicWordlist.txt control/wordlists/MagicWordList.txt'
+          shell_mv_cmd = 'mv control/tmp/MagicWordlist.txt control/wordlists/MagicWordList.txt'
           system(shell_mv_cmd)
 
           p 'Update DB'
@@ -74,7 +74,7 @@ class MagicWordlist
           has_magic_wordlist.save       
 
           # Remove plaintext list
-          File.delete('/tmp/plaintext.txt')
+          File.delete('control/tmp/plaintext.txt')
 
         else
           p 'Our magic wordlist is current.'
