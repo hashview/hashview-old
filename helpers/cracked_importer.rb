@@ -18,10 +18,14 @@ def importCracked(id, crack_file, run_time=0)
   #crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
   job = Jobs.first(id: jobtasks.job_id)
 
-  # determine hashfile path and type
+  # determine hashfile path
   hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-  hashtype_target = Hashes.first(id: job.hashfile_id)
-  hashtype = hashtype_target.hashtype.to_s
+
+  # obtain the hashfile type (we always assume a crackfile will contain only one type of hashes)
+  # this isnt the best approach. consider storing hashtype in hashfiles or extract hashtype when updating a row in hashes table
+  hashfilehash = Hashfilehashes.first(hashfile_id: job.hashfile_id)
+  # hashfilehashes doesnt store hashtype, so obtain it from hashes table
+  hashtype = Hashes.first(id: hashfilehash.hash_id).to_s
 
   unless File.zero?(crack_file)
     File.open(crack_file).each_line do |line|
