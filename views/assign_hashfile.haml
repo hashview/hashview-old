@@ -27,7 +27,9 @@
             .row
               .col-md-10.pull-left
                 Apply hashes to be cracked. You can either copy/paste the desired hashes below, upload a new hashfile, or select from an existing file.
-            .page-header
+            %br
+            %br
+            .row
 #exTab2.container
   %ul.nav.nav-tabs
     %li.active
@@ -59,7 +61,6 @@
       
       %br
       .col-md-8
-
         - if !@hashfiles.empty?
           / IF triggered AFTER hash file is present
           %form{:name => 'hf_form', :id => 'hf_form', :class => 'form-horizontal', :action => '/jobs/assign_hashfile', :method => 'post'}
