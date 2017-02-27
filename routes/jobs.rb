@@ -321,7 +321,13 @@ get '/jobs/stop/:job_id/:task_id' do
   jt.save
   
   # Kill jobtask
-  `kill -9 #{pid}`
+  #`kill -9 #{pid}`
+  taskqueue = Taskqueues.all(jobtask_id: jt.id)
+  taskqueue.each do |tq|
+    tq.status = 'Canceled'
+    tq.save
+  end
+
   
   referer = request.referer.split('/')
 
