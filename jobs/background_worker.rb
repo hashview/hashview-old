@@ -4,7 +4,17 @@ require 'benchmark'
 # one day, when I grow up...I'll be a ruby dev
 # api calls
 class Api
-  @server = "localhost:4567"
+
+  # obtain remote ip and port from local config
+  begin
+    options = JSON.parse(File.read('config/agent_config.json'))
+    @server = options['ip'] + ":" + options['port']
+    @uuid = options['uuid']
+  rescue
+    "Error reading config/agent_config.json. Did you run rake db:provision_agent ???"
+  end
+
+  ######### generic api handling of GET and POST request ###########
   def self.get(url)
     begin
       response = RestClient::Request.execute(
@@ -34,6 +44,22 @@ class Api
     end
   end
 
+  ######### specific api funcions #############
+
+  # get heartbeat when we are looking for work to do
+  def self.heartbeat()
+    url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
+    puts "HEARTBEETING"
+    return self.get(url)
+  end
+
+  # post hearbeat is used when agent is working
+  def self.post_heartbeat(payload)
+    url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
+    puts "HEARTBEETING"
+    return self.post(url, payload)
+  end
+
   # change status of jobtask
   def self.post_jobtask_status(jobtask_id, status)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/status"
@@ -49,6 +75,7 @@ class Api
     payload = {}
     payload['status'] = status
     payload['taskqueue_id'] = taskqueue_id
+    payload['agent_uuid'] = @uuid
     return self.post(url, payload)
   end
 
@@ -165,55 +192,79 @@ class LocalAgent
     # other workers will be ran from a hashview agent
     begin
       sleep 4
-      puts "checking for tasks"
-      jdata = Api.queue
-      jdata = JSON.parse(jdata)
 
-      # we must have an item from the queue before we start processing
-      if jdata['type'] != 'Error'
+      heartbeat = Api.heartbeat
+      heartbeat = JSON.parse(heartbeat)
+      if heartbeat['Type'] == 'Message' and heartbeat['Message'] == 'OK'
 
-        # take queue item and set status to running
-        Api.post_queue_status(jdata['id'], 'Running')
+        puts "checking for tasks"
+        jdata = Api.queue
+        jdata = JSON.parse(jdata)
 
-        # set the jobtask to running
-        Api.post_jobtask_status(jdata['jobtask_id'], 'Running')
+        # we must have an item from the queue before we start processing
+        if jdata['type'] != 'Error'
 
-        # we need job details for hashfile id
-        job = Api.job(jdata['job_id'])
-        job = JSON.parse(job)
+          # take queue item and set status to running
+          Api.post_queue_status(jdata['id'], 'Running')
 
-        # we need to get task_id which is stored in jobtasks
-        jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+          # set the jobtask to running
+          Api.post_jobtask_status(jdata['jobtask_id'], 'Running')
 
-        # we dont need to download the wordlist b/c we are local agent, we already have them
-        # wordlists Api.wordlists()
-        # puts wordlists
-        #puts Api.wordlist()
+          # we need job details for hashfile id
+          job = Api.job(jdata['job_id'])
+          job = JSON.parse(job)
 
-        # generate hashfile via api
-        Api.hashfile(jobtask['id'], job['hashfile_id'])
+          # we need to get task_id which is stored in jobtasks
+          jobtask = Jobtasks.first(id: jdata['jobtask_id'])
 
-        # run hashcat, do real work!
-        puts "running hashcat job"
-        cmd = jdata['command']
-        puts cmd
-        run_time = Benchmark.realtime do
-          system(cmd)
+          # we dont need to download the wordlist b/c we are local agent, we already have them
+          # wordlists Api.wordlists()
+          # puts wordlists
+          #puts Api.wordlist()
+
+          # generate hashfile via api
+          Api.hashfile(jobtask['id'], job['hashfile_id'])
+
+          # run hashcat, do real work!
+          puts "running hashcat job"
+          cmd = jdata['command']
+          puts cmd
+
+          # thread off hashcat
+          thread1 = Thread.new {
+            run_time = Benchmark.realtime do
+              system(cmd)
+            end
+          }
+
+          # continue to hearbeat while running job. look for a stop command
+          while thread1
+            sleep 4
+            payload = {}
+            payload['taskqueue_id'] = jdata['id']
+            payload['agent_status'] = 'Working'
+            heartbeat = Api.post_heartbeat(payload)
+            heartbeat = JSON.parse(heartbeat)
+            puts heartbeat
+            if heartbeat['Message'] == 'Canceled'
+              Thread.kill(thread1)
+            end
+          end
+
+          # set jobtask status to importing
+          Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
+
+          # upload results
+          crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
+          Api.upload_crackfile(jobtask.id, crack_file, run_time)
+
+          # change status to completed for jobtask
+          Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+
+          # set taskqueue item to complete and remove from queue
+          Api.post_queue_status(jdata['id'], 'Completed')
+          Api.queue_remove(jdata['id'])
         end
-
-        # set jobtask status to importing
-        Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
-
-        # upload results
-        crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-        Api.upload_crackfile(jobtask.id, crack_file, run_time)
-
-        # change status to completed for jobtask
-        Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-
-        # set taskqueue item to complete and remove from queue
-        Api.post_queue_status(jdata['id'], 'Completed')
-        Api.queue_remove(jdata['id'])
       end
     rescue StandardError => e
       $stderr << e.message
