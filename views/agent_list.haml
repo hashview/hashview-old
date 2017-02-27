@@ -1,0 +1,66 @@
+!!!
+%html
+  %body
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Agents
+            .row
+              .col-md-10.pull-left
+                Agents are remote workers that process distributed hashcat jobs.
+              -#.col-md-2.pull-right
+              -#  %a.btn.btn-primary.pull-right{:href => "/agents/create"}
+              -#    Add Agent
+      %br
+      %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Agent Name
+                    %th
+                      %b Status
+                    %th
+                      %b IP
+                    %th
+                      %b Last Heartbeat
+                    %th
+                      %b Controls
+                %tbody
+                  - if @agents
+                    - @agents.each do |agent|
+                      %tr
+                        %td #{agent.name}
+                        %td #{agent.status}
+                        %td #{agent.src_ip}
+                        %td #{agent.heartbeat}
+                        %td
+                          - if agent.src_ip == '127.0.0.1' || agent.src_ip == 'localhost'
+                            - if agent.status == 'Authorized'
+                              %a.btn.btn-primary.disabled{:href => "/agents/#{agent.id}/deauthorize"}
+                                Deauthorize
+                            - else
+                              %a.btn.btn-primary{:href => "/agents/#{agent.id}/authorize"}
+                                Authorize
+                            %a.btn.btn-warning.disabled{:href => "/agents/#{agent.id}/edit"}
+                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                            %a.btn.btn-danger.disabled{:href => "/agents/#{agent.id}/delete"}
+                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          - else
+                            - if agent.status == 'Authorized'
+                              %a.btn.btn-primary{:href => "/agents/#{agent.id}/deauthorize"}
+                                Deauthorize
+                            - else
+                              %a.btn.btn-primary{:href => "/agents/#{agent.id}/authorize"}
+                                Authorize
+                            %a.btn.btn-warning.disabled{:href => "/agents/#{agent.id}/edit"}
+                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                            %a.btn.btn-danger.disabled{:href => "/agents/#{agent.id}/delete"}
+                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
