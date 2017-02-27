@@ -12,7 +12,8 @@
                 {
                   // prevent defaul submission flow and redirect
                   e.preventDefault(e);
-                  $(this).attr('action', '/customers/upload/hashfile').submit();
+                  $(this).attr('action', '/customers/upload/hashfile');
+                  $(this).attr('enctype', 'multipart/form-data').submit();
                 }
                 else
                 {
@@ -82,7 +83,7 @@
       .col-md-8
 
         - if !@hashfiles.empty?
-          / IF triggered AFTER hash file is present
+          / IF triggered AFTER atleast one hash file is assigned to customer record
           %form{:name => 'hf_form', :id => 'hf_form', :class => 'form-horizontal', :action => '/jobs/assign_hashfile', :method => 'post'}
 
             .form-group
@@ -109,13 +110,12 @@
                       %br
                       - if params[:edit] == '1'
                         %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
-                        %button.btn.btn-primary{:type => 'submit'} Update1
+                        %button.btn.btn-primary{:type => 'submit'} Update
                       - else
                         .col-md-1.pull-right
                           %button.btn.btn-primary{:type => 'submit'} Select
                 
                 #hashfile_div{:style => "display:none"}
-                  / Nested form requiring javascript submit
                   %form{:method => 'post', :class => 'form-horizontal', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
                     .form-group
                       %label.control-label.col-xs-2 Name:
@@ -133,7 +133,7 @@
                     .form-group
                       .col-xs-offset-2.col-xs-10
                         .col-xs-3.pull-right
-                          %button.btn.btn-primary{:type => 'submit'} Upload2
+                          %button.btn.btn-primary{:type => 'submit'} Upload
 
         - else
           / ELSE triggered if NO hash files have ever been uploaded
