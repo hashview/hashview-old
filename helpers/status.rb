@@ -20,9 +20,10 @@ def isOldVersion()
   end
 end
 
-def updateTaskqueueStatus(taskqueue_id, status)
+def updateTaskqueueStatus(taskqueue_id, status, agent_id)
   queue = Taskqueues.first(id: taskqueue_id)
   queue.status = status
+  queue.agent_id = agent_id
   queue.save
 end
 
