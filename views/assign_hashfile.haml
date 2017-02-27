@@ -2,23 +2,24 @@
 %html
   %body
     :javascript
-
-      function setFileName() 
-      {
-        var inFile = document.getElementById("fileUp");
-        if ('files' in inFile) 
-        {
-          {
-            for (var i = 0; i < inFile.files.length; i++)
-            {
-              var itFile = inFile.files[i];
-              if ('name' in itFile){
-                document.getElementById('hashfile_name').value = itFile.name;
-              }
-            }
-          }
-        }
-      }
+      $(document).ready(function() {
+            $("#hf_form").submit(function(e){
+                //retrieve selected index value
+                var hashFile = $('#hash_file option:selected').val();
+                var action = $(this).attr('action');
+                //perform conditional checks on Index value
+                if(hashFile == 'add_new' && action != '/customers/upload/hashfile')
+                {
+                  // prevent defaul submission flow and redirect
+                  e.preventDefault(e);
+                  $(this).attr('action', '/customers/upload/hashfile').submit();
+                }
+                else
+                {
+                  //allow parent to handle workflow
+                }
+            });
+        });
 
       function showDiv() {
         var Index = document.hf_form.hash_file.options[document.hf_form.hash_file.selectedIndex].value
@@ -108,13 +109,14 @@
                       %br
                       - if params[:edit] == '1'
                         %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
-                        %button.btn.btn-primary{:type => 'submit'} Update
+                        %button.btn.btn-primary{:type => 'submit'} Update1
                       - else
                         .col-md-1.pull-right
                           %button.btn.btn-primary{:type => 'submit'} Select
                 
                 #hashfile_div{:style => "display:none"}
-                  %form{:method => 'post', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
+                  / Nested form requiring javascript submit
+                  %form{:method => 'post', :class => 'form-horizontal', :action => '/customers/upload/hashfile', :enctype=>"multipart/form-data"}
                     .form-group
                       %label.control-label.col-xs-2 Name:
                       .col-xs-10
@@ -131,7 +133,7 @@
                     .form-group
                       .col-xs-offset-2.col-xs-10
                         .col-xs-3.pull-right
-                          %button.btn.btn-primary{:type => 'submit'} Upload
+                          %button.btn.btn-primary{:type => 'submit'} Upload2
 
         - else
           / ELSE triggered if NO hash files have ever been uploaded
