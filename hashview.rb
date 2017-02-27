@@ -19,6 +19,13 @@ if ENV['RACK_ENV'].nil?
   ENV['RACK_ENV'] = 'production'
 end
 
+# Verify upgrade steps have been performed to support distributed cracking
+unless File.exist?('config/agent_config.json')
+  puts "You need to upgrade your installation to support distributed cracking. Run the following:\n"
+  puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:provision_agent"
+  exit
+end
+
 # Check for valid session before proccessing
 before /^(?!\/(login|register|logout|v1))/ do
   if !validSession?

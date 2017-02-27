@@ -34,13 +34,13 @@ desc 'Setup test database'
 namespace :db do
 
   desc 'create, setup schema, and load defaults into db. do this on clean install'
-  task :setup => [:create, :upgrade, :provision_defaults]
+  task :setup => [:create, :upgrade, :provision_agent, :provision_defaults]
   desc 'create and setup schema'
   task :clean => [:create, :upgrade]
   desc 'destroy db, create db, setup schema, load defaults'
-  task :reset => [:destroy, :create, :upgrade, :provision_defaults]
+  task :reset => [:destroy, :create, :upgrade, :provision_agent, :provision_defaults]
   desc 'destroy db, create db, setup schema'
-  task :reset_clean => [:destroy, :create, :upgrade]
+  task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
 
   task :create do
     if ENV['RACK_ENV'].nil?
@@ -171,6 +171,38 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
+  end
+
+  desc 'Setup local agent'
+  task :provision_agent do
+    if ENV['RACK_ENV'].nil?
+      ENV['RACK_ENV'] = 'development'
+    end
+
+    puts "setting up local agent for environment: #{ENV['RACK_ENV']}"
+    config = YAML.load_file('config/database.yml')
+    config = config[ENV['RACK_ENV']]
+    user, password, host = config['user'], config['password'], config['hostname']
+    database = config['database']
+
+    agent_config = {}
+    agent_config['ip'] = '127.0.0.1'
+    agent_config['port'] = '4567'
+    agent_config['uuid'] = SecureRandom.uuid.to_s
+    File.open('config/agent_config.json', 'w') do |f|
+      f.write(JSON.pretty_generate(agent_config))
+    end
+
+    puts '[*] Setting up local agent'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO agents (name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in provisioning agent'
+    end
+    puts 'db:provision_agent executed'
   end
 
   desc 'Perform non destructive auto migration'
