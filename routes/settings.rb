@@ -3,7 +3,7 @@ get '/settings' do
 
   @auth_types = %w(None Plain Login cram_md5)
 
-  @themes = %w(Light Dark)
+  @themes = %w(Light Dark Slate Flat Superhero Solar)
 
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
