@@ -1,6 +1,5 @@
 # encoding: utf-8
 get '/settings' do
-  @settings = Settings.first
 
   @auth_types = %w(None Plain Login cram_md5)
 
