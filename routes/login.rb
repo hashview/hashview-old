@@ -1,6 +1,7 @@
 # encoding: utf-8
 get '/login' do
   @users = User.all
+  @settings = Settings.first
   if @users.empty?
     redirect('/register')
   else
