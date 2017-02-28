@@ -238,7 +238,7 @@ class LocalAgent
           }
 
           # continue to hearbeat while running job. look for a stop command
-          while thread1
+          while thread1.run
             sleep 4
             payload = {}
             payload['taskqueue_id'] = jdata['id']
