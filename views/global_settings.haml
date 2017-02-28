@@ -28,6 +28,8 @@
       %a{"data-toggle" => "tab", :href => "#1"} Hashcat
     %li
       %a{"data-toggle" => "tab", :href => "#2"} Email
+    %li
+      %a{"data-toggle" => "tab", :href => "#3"} UI
   .tab-content
     #1.tab-pane.active
       %br
@@ -113,3 +115,19 @@
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => "submit"} Save
+    #3.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'ui_settings_form', :id => 'ui_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Themes
+            .col-xs-10
+              %select.form-control{:id => 'ui_themes', :name => 'ui_themes'}
+                - @themes.each do |ui_type|
+                  - if @settings and (@settings.ui_themes == ui_type)
+                    %option{:value => "#{ui_type}", :type => 'button', selected: 'selected'} #{ui_type}
+                  - else
+                    %option{:value => "#{ui_type}", :type => 'button'} #{ui_type}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save

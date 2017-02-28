@@ -4,6 +4,8 @@ get '/settings' do
 
   @auth_types = %w(None Plain Login cram_md5)
 
+  @themes = %w(Light Dark)
+
   if @settings && @settings.maxtasktime.nil?
     flash[:info] = 'Max task time must be defined in seconds (86400 is 1 day)'
   end
@@ -34,7 +36,9 @@ post '/settings' do
     else
       params[:smtp_use_tls] = '0'
     end
+  elsif params[:form_id] == '3'
   end
+ 
  
   settings = Settings.first
 
@@ -50,6 +54,7 @@ post '/settings' do
   settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
   settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
   settings.smtp_pass = params[:smtp_pass] unless params[:smtp_pass].nil? || params[:smtp_pass].empty?
+  settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
   settings.save
   
   flash[:success] = 'Settings updated successfully.'
