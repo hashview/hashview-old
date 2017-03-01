@@ -31,4 +31,4 @@ do_local_agent:
   class: LocalAgent
   queue: hashcat
   args:
-  description: "This job queues all content for indexing in solr"
+  description: "This is our local agent that runs hashcat jobs"
