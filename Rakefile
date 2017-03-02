@@ -1,14 +1,34 @@
 require 'resque/tasks'
-require './jobs/jobq.rb'
+require 'resque/scheduler/tasks'
+require_relative 'jobs/init'
 require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'
 require './models/master.rb'
+require './helpers/email.rb'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
   t.verbose
 end
+
+# resque-scheduler needs to know basics from resque::setup
+desc 'resque scheduler setup'
+namespace :resque do
+  task :setup do
+    require 'resque'
+
+    #Resque.redis = 'localhost:6379'
+  end
+
+  task :setup_schedule => :setup do
+    require 'resque-scheduler'
+    Resque.schedule = YAML.load_file('config/resque_schedule.yml')
+  end
+
+  task :scheduler => :setup_schedule
+end
+
 
 desc 'Setup test database'
 namespace :db do
@@ -100,7 +120,7 @@ namespace :db do
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, path, size) VALUES ('DEFAULT WORDLIST', 'control/wordlists/password', '3546')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, lastupdated, path, size) VALUES ('DEFAULT WORDLIST', NOW(), 'control/wordlists/password', '3546')".inspect
     ]
     begin
       system(query.compact.join(' '))

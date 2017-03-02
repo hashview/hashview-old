@@ -4,7 +4,6 @@ cert/*
 !cert/.blank
 cert.pem
 key.pem
-tmp/*
 .DS_Store
 *.swp
 *.swo
@@ -18,12 +17,14 @@ control/analysis/*
 !control/analysis/.blank
 control/status/*
 !control/status/.blank
-control/wordlists/wordlist-*
-control/wordlists/crackstation.txt
+control/wordlists/*
 !control/wordlists/.blank
+!control/wordlists/password.gz
+control/tmp/*
+!control/tmp/.blank
 cudaHashcat.log
 *.pot
 *.restore
 Gemfile.lock
-control/wordlists/password
 *.idea
+dump.rdb

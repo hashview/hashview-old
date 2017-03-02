@@ -15,7 +15,7 @@ end
 get '/hashfiles/delete' do
   varWash(params)
   
-  repository(:default).adapter.select('DELETE hashes FROM hashes LEFT JOIN hashfilehashes ON hashes.id = hashfilehashes.hash_id WHERE (hashfilehashes.hashfile_id = ? AND hashes.cracked = 0)', params[:hashfile_id])
+  #repository(:default).adapter.select('DELETE hashes FROM hashes LEFT JOIN hashfilehashes ON hashes.id = hashfilehashes.hash_id WHERE (hashfilehashes.hashfile_id = ? AND hashes.cracked = 0)', params[:hashfile_id])
 
   @hashfilehashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
   @hashfilehashes.destroy unless @hashfilehashes.empty?

@@ -3,12 +3,12 @@ require 'sinatra'
 require 'sinatra/flash'
 require 'haml'
 require 'resque'
+require 'resque/server'
 
 require_relative 'models/master'
 require_relative 'helpers/init'
 require_relative 'routes/init'
-require_relative 'jobs/jobq'
-
+require_relative 'jobs/init'
 
 # Enable sessions
 enable :sessions
@@ -20,14 +20,16 @@ if ENV['RACK_ENV'].nil?
 end
 
 # Check for valid session before proccessing
-before /^(?!\/(login|register|logout))/ do
+before /^(?!\/(login|register|logout|v1))/ do
+  @settings = Settings.first
   if !validSession?
     redirect to('/login')
   else
-    settings = Settings.first
-    if (settings && settings.hcbinpath.nil?) || settings.nil?
-      flash[:warning] = "Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>"
+    hc_settings = HcSettings.first
+    if (hc_settings && hc_settings.hc_binpath.nil?) || hc_settings.nil?
+      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>'
     end
   end
 end
+
 

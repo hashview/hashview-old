@@ -1,6 +1,5 @@
 get '/register' do
   @users = User.all
-
   # Prevent registering of multiple admins
   redirect to('/') unless @users.empty?
 

@@ -1,0 +1,34 @@
+# This is a schedule for TestJob (see jobs/test_job.rb)
+# you can crib from this config
+do_test_job:
+  # you can use rufus-scheduler "every" syntax in place of cron if you prefer
+  # every: 1h
+  # By default the job name (hash key) will be taken as worker class name.
+  # If you want to have a different job name and class name, provide the 'class' option
+  #cron: "*/1 * * * *"
+  every: 2s
+  class: TestJob
+  queue: management
+  args:
+  description: "This job queues all content for indexing in solr"
+
+# schedule for wordlist importer
+do_wordlist_importer:
+  every: 2s
+  class: "WordlistImporter"
+  queue: management
+  description: "This job automatically imports wordlists if placed in controls/wordlists dir"
+
+# schedule for cleanup task
+do_cleanUp:
+  every: 1d
+  class: 'CleanUp'
+  queue: management
+  description: 'This job automatically deletes old files on the file system if found to be older than X hours'
+
+do_local_agent:
+  every: 2s
+  class: LocalAgent
+  queue: hashcat
+  args:
+  description: "This job queues all content for indexing in solr"
