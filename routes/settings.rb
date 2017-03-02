@@ -3,9 +3,12 @@ get '/settings' do
 
   @hc_settings = HcSettings.first
 
+  @themes = %w(Light Dark Slate Flat Superhero Solar)
+
   if @hc_settings.nil?
     @hc_settings = HcSettings.create
     @hc_settings = HcSettings.first
+
   end
 
   @settings = Settings.first
@@ -130,6 +133,8 @@ post '/settings' do
     settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
     settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
     settings.smtp_pass = params[:smtp_pass] unless params[:smtp_pass].nil? || params[:smtp_pass].empty?
+    settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
+
     settings.save
 
   end
