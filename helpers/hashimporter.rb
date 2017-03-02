@@ -119,7 +119,7 @@ def importGeneric(hash, hashfile_id, type)
   @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
     addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [id], originalhash: data[1], hashtype: type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   end
 
   updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
