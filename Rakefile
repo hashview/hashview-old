@@ -105,6 +105,17 @@ namespace :db do
       raise 'Error in creating default settings'
     end
 
+    puts '[*] Setting default theme ...'
+    # Assign Default CSS theme
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes) VALUES ('Light')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in assigning default customer'
+    end
+
     puts '[*] Setting up default customer ...'
     # Create Default customer
     query = [
