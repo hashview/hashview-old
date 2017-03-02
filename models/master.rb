@@ -190,10 +190,6 @@ class Settings
   include DataMapper::Resource
 
   property :id, Serial
-  property :hcbinpath, String, length: 2000
-  property :hcglobalopts, String, length: 2000
-  property :maxtasktime, String, length: 2000
-  property :maxjobtime, String, length: 2000
   property :smtp_server, String
   property :smtp_sender, String
   property :smtp_user, String
@@ -201,6 +197,21 @@ class Settings
   property :smtp_use_tls, Boolean
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
+end
+
+# HashCat settings
+class HcSettings
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :hc_binpath, String, length: 2000
+  property :max_task_time, String, length: 2000
+  property :opencl_device_types, Integer, default: 0
+  property :workload_profile, Integer, default: 0
+  property :gpu_temp_disable, Boolean, default: 0
+  property :gpu_temp_abort, Integer, default: 0
+  property :gpu_temp_retain, Integer, default: 0
+  property :force, Boolean, default: 0
 end
 
 # Wordlist Class
