@@ -118,7 +118,7 @@ post '/settings' do
 
     hc_settings.save
 
-  elsif params[:form_id] == '2' # Email & UI Settings
+  elsif params[:form_id] == '2' || '3' # Email & UI Settings
     settings = Settings.first
 
     if params[:smtp_use_tls] == 'on'
