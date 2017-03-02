@@ -25,10 +25,3 @@ do_cleanUp:
   class: 'CleanUp'
   queue: management
   description: 'This job automatically deletes old files on the file system if found to be older than X hours'
-
-do_local_agent:
-  every: 2s
-  class: LocalAgent
-  queue: hashcat
-  args:
-  description: "This is our local agent that runs hashcat jobs"
