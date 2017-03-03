@@ -125,6 +125,7 @@ class Agents
   property :uuid, String, length: 60
   # status can be Pending, Authorized, Error, Offline, Online, Working
   property :status, String, length: 40
+  property :hc_status, String, length: 6000
   property :heartbeat, DateTime
 end
 
