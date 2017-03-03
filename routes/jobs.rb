@@ -289,12 +289,14 @@ get '/jobs/stop/:id' do
       cmd = buildCrackCmd(@job.id, task.task_id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
-      # we are using a db queue instead for public api
-      queue = Taskqueues.first(job_id: @job_id)
-      queue.destroy if queue
     end
   end
-  
+
+  # we are using a db queue instead for public api
+  # remove all items from queue
+  queue = Taskqueues.all(job_id: @job.id)
+  queue.destroy if queue
+
   @jobtasks.each do |task|
     if task.status == 'Running'
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
@@ -319,9 +321,7 @@ get '/jobs/stop/:job_id/:task_id' do
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
-  
-  # Kill jobtask
-  #`kill -9 #{pid}`
+
   taskqueue = Taskqueues.all(jobtask_id: jt.id)
   taskqueue.each do |tq|
     tq.status = 'Canceled'
