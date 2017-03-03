@@ -191,6 +191,10 @@ def hashcatParser(filepath)
   return status
 end
 
+def getHashcatPid
+  pid = `ps -ef | grep hashcat | grep hc_cracked_ | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
+  return pid.chomp
+end
 
 class LocalAgent
   @queue = :hashcat
@@ -204,20 +208,17 @@ class LocalAgent
       sleep(4)
 
       # find pid
-      pid = `ps -ef | grep hashcat | grep hc_cracked_ | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
-      pid = pid.chomp
+      pid = getHashcatPid
 
+      # wait a bit to avoid race condition
+      if !pid.nil? and File.exist?('control/tmp/agent_current_task.txt')
+        sleep(10)
+        pid = getHashcatPid
+      end
+
+      # ok either do nothing or start working
       if pid.nil?
         puts "YOU ARE WORKING RIGHT NOW"
-
-        #current_task = data from current task tmp
-
-        # payload = {}
-        # payload['taskqueue_id'] = jdata['id']
-        # payload['agent_status'] = 'Working'
-        # payload['agent_task'] = current_task
-        # heartbeat = Api.post_heartbeat(payload)
-        # exit this process
       else
         puts "DO WORK####################"
 
@@ -279,10 +280,6 @@ class LocalAgent
               end
             }
 
-            # run_time = Benchmark.realtime do
-            #   system(cmd)
-            # end
-
             @jobid = jdata['job_id']
             # # continue to hearbeat while running job. look for a stop command
             catch :mainloop do
@@ -294,13 +291,20 @@ class LocalAgent
                 payload['agent_status'] = 'Working'
                 payload['agent_task'] = jdata['id']
                 # provide hashcat status with hearbeat
-                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_45.txt")
+                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}.txt")
                 heartbeat = Api.post_heartbeat(payload)
                 puts heartbeat
                 heartbeat = JSON.parse(heartbeat)
                 if heartbeat['msg'] == 'Canceled'
                   puts "***********killing thread"
+                  @canceled = true
                   Thread.kill(thread1)
+                  # for some reason hashcat doesnt always get killed when terminating the thread.
+                  # manually kill it to be certain
+                  pid = getHashcatPid
+                  if pid
+                    `kill -9 #{pid}`
+                  end
                   throw :mainloop
                 end
               end
@@ -317,11 +321,14 @@ class LocalAgent
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
             # change status to completed for jobtask
-            Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+            if @canceled
+              Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
+            else
+              Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+            end
 
             # set taskqueue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')
-            Api.queue_remove(jdata['id'])
           end
         end
       end
