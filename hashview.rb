@@ -38,4 +38,5 @@ before /^(?!\/(login|register|logout|v1))/ do
   end
 end
 
-
+# start our local agent
+Resque.enqueue(LocalAgent)
