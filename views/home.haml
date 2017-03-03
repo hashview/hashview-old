@@ -54,6 +54,57 @@
                     Create a New Job
               %br
             %br
+            - if @active_jobs.empty?
+              No Hashview jobs are running
+            - else
+              - @jobs.each do |job|
+                - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
+                  - @customers.each do |customer|
+                    - if customer.id == job.customer_id
+                      #accordion.panel-group
+                        .panel.panel-default
+                          - @jobtasks.each do |jt|
+                            - if job.id == jt.job_id
+                              - @tasks.each do |task|
+                                - if task.id == jt.task_id
+                                  - link = rand(36**8).to_s(36)
+                                  .panel-heading
+                                    %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                                      %td
+                                        #{customer.name}
+                                      %td
+                                        #{jt.id}
+                                      %td
+                                        #{task.name}
+                                    .span.badge.pull-right #{jt.status}
+                                  - if jt.status == 'Running'
+                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                                      .panel-body
+                                        %ul{:class =>"list-group borderless row"}
+                                          - @taskqueues.each do |tq|
+                                            - if jt.id == tq.jobtask_id
+                                              %li{:class => "list-group-item borderless"}
+                                                %table{:class => 'table'}
+                                                  %td
+                                                    #{tq.id}
+                                                  %td
+                                                    #{tq.command}
+                                                  %td
+                                                    #{tq.status}
+                                  - else
+                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                                      .panel-body
+                                        %ul{:class =>"list-group borderless row"}
+                                          - @taskqueues.each do |tq|
+                                            - if jt.id == tq.jobtask_id
+                                              %li{:class => "list-group-item borderless"}
+                                                %table{:class => 'table'}
+                                                  %td
+                                                    #{tq.id}
+                                                  %td
+                                                    #{tq.command}
+                                                  %td
+                                                    #{tq.status}
           .cold-md-12
             .table
               %h3 Job Queue
