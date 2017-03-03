@@ -38,7 +38,15 @@
                     - @agents.each do |agent|
                       %tr
                         %td #{agent.name}
-                        %td #{agent.status}
+                        %td
+                          #{agent.status}
+                          %br
+                          - if agent.hc_status
+                            %table
+                              %tr
+                                - JSON.parse(agent.hc_status).each do |line|
+                                  #{line}
+                                  %p
                         %td #{agent.src_ip}
                         %td #{agent.heartbeat}
                         %td
