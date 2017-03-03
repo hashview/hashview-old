@@ -81,33 +81,37 @@
                             - if job.id == jt.job_id
                               - @tasks.each do |task|
                                 - if task.id == jt.task_id
-                                  %tr
-                                    %td
-                                      #{customer.name}
-                                    %td
-                                      #{task.name}
-                                    %td
-                                      - @taskqueues.each do |taskqueue|
-                                        - if jt.id == taskqueue.jobtask_id
-                                          - @agents.each do |agent|
-                                            - if agent.id.to_i == taskqueue.agent_id.to_i
-                                              #{agent.name}
-                                    %td
-                                      /%div{:align => "center"}
-                                      - if jt.status == 'Queue'
-                                        %span.label.label-default #{jt.status}
-                                      - elsif jt.status == 'Completed'
-                                        %span.label.label-primary #{jt.status}
-                                      - elsif jt.status == 'Running'
-                                        %span.label.label-success #{jt.status}
-                                      - elsif jt.status == 'Importing'
-                                        %span.label.label-warning #{jt.status}
-                                      - else
-                                        %span.label.label-default #{jt.status}
-                                    %td
-                                      - if jt.status == "Running"
-                                        %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
-                                          %b Cancel
+                                  - @taskqueues.each do |tq|
+                                    - if tq.jobtask_id == jt.id
+                                      %tr
+                                        %td
+                                          #{customer.name}
+                                        %td
+                                          #{tq.id}
+                                          #{task.name}
+                                        %td
+                                          - @taskqueues.each do |taskqueue|
+                                            - if jt.id == taskqueue.jobtask_id
+                                              - @agents.each do |agent|
+                                                - if agent.id.to_i == taskqueue.agent_id.to_i
+                                                  #{agent.name}
+                                        %td
+                                          #{tq.status}
+                                          /%div{:align => "center"}
+                                          - if jt.status == 'Queue'
+                                            %span.label.label-default #{jt.status}
+                                          - elsif jt.status == 'Completed'
+                                            %span.label.label-primary #{jt.status}
+                                          - elsif jt.status == 'Running'
+                                            %span.label.label-success #{jt.status}
+                                          - elsif jt.status == 'Importing'
+                                            %span.label.label-warning #{jt.status}
+                                          - else
+                                            %span.label.label-default #{jt.status}
+                                        %td
+                                          - if jt.status == "Running"
+                                            %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                              %b Cancel
                     %br
           -# commenting this out until we redesign the dashboard
           -#.col-md-4
