@@ -2,7 +2,8 @@
 
 # our main worker queue
 get '/v1/queue' do
-  @queue = Taskqueues.first(status: "Queued")
+  # grab next task to be performed
+  @queue = Taskqueues.first(status: 'Queued')
   if @queue
     return @queue.to_json
   else
@@ -12,6 +13,35 @@ get '/v1/queue' do
         type: 'Error',
         message: 'There are no items on the queue to process'
     }.to_json
+  end
+end
+
+# force or restart a queue item
+# used when agent goes offline and comes back online
+# without a running hashcat cmd while task still assigned to them
+get '/v1/queue/:id' do
+  # get agent id from uuid in cookie
+  uuid = request.cookies['agent_uuid']
+
+  if uuid
+    @agent = Agents.first(uuid: uuid)
+    if @agent
+      # assign task from queue only if agent id is already assigned
+      @assigned_task = Taskqueues.first(id: params[:id], agent_id: @agent.id)
+    end
+  else
+    status 200
+    {
+        Status: 200,
+        Type: 'Error',
+        Message: 'Missing UUID'
+    }.to_json
+  end
+
+  # check to see if this agent is suppose to be working on something
+  if @assigned_task
+    puts @assigned_task.to_json
+    return @assigned_task.to_json
   end
 end
 
@@ -34,8 +64,9 @@ end
 post '/v1/jobtask/:jobtask_id/status' do
   jdata = JSON.parse(request.body.read)
   puts jdata
+  puts "======================================="
   puts "[+] updating jobtask id: #{params['jobtask_id']} to status: #{jdata['status']}"
-  updateJobStatus(jdata['job_id'], jdata['status'])
+  updateJobStatus(jdata['jobtask_id'], jdata['status'])
 end
 
 # return jobtask details
@@ -139,14 +170,19 @@ get '/v1/agents/:uuid/heartbeat' do
       if @agent.status == "Authorized"
         redirect to("/v1/agents/#{params[:uuid]}/authorize")
       else
+        # check to see if agent should be working on an already assigned task
+        @assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
         @agent.status = "Online"
         @agent.heartbeat = Time.now
         @agent.save
-        {
-          Status: 200,
-          Type: 'Message',
-          Message: 'OK'
-        }.to_json
+        data = {}
+        data['Status'] = 200
+        data['Type'] = 'Message'
+        data['Message'] = 'OK'
+        if @assigned_task
+          data['Working'] = @assigned_task.id
+        end
+        return data.to_json
       end
     else
       newagent = Agents.new
@@ -164,6 +200,7 @@ end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
+  # error if no uuid is set in cookie
   if params[:uuid].nil?
     status 200
     {
@@ -172,26 +209,115 @@ post '/v1/agents/:uuid/heartbeat' do
         Message: 'Missing UUID'
     }.to_json
   else
-    jdata = JSON.parse(request.body.read)
-    puts jdata['taskqueue_id']
-    puts jdata['agent_status']
+    # read payload data
+    payload = JSON.parse(request.body.read)
 
-    # check on status of agents task
-    taskqueue = Taskqueues.first(id: jdata['taskqueue_id'])
+    # get agent data from db if available
+    @agent = Agents.first(:uuid => params[:uuid])
+    if !@agent.nil?
+      if @agent.status == 'Authorized'
+        # if agent is set to authorized, continue to authorization process
+        redirect to("/v1/agents/#{params[:uuid]}/authorize")
+      else
+        # agent already exists and is authorized to do work
 
-    if taskqueue.status == 'Canceled'
-      msg = 'Canceled'
+        # is agent working?
+        if payload['agent_status'] == 'Working'
+          # read hashcat output and compare against job we think it should be working on
+          agenttask = payload['agent_task']
+          taskqueue = Taskqueues.first(id: agenttask, agent_id: @agent.id)
+          puts taskqueue
+
+          # update db with the agents hashcat status
+          if payload['hc_status']
+            puts payload['hc_status']
+            @agent.hc_status = payload['hc_status'].to_json
+            @agent.save
+          end
+
+          if taskqueue and taskqueue.status == 'Canceled'
+            puts "=============cancel task======================"
+            {
+              status: 200,
+              type: 'Message',
+              msg: 'Canceled'
+            }.to_json
+          else
+            @agent.heartbeat = Time.now
+            @agent.save
+            {
+                status: 200,
+                type: 'Message',
+                msg: 'OK'
+            }.to_json
+          end
+
+          # # are agent and server in sync
+          # if agenttask.to_i == taskqueue.id
+          #   # update heartbeat and save hc_output for ui
+          #   @agent.heartbeat = Time.now
+          #   @agent.save
+          #   {
+          #     status: 200,
+          #     type: 'Message',
+          #     msg: 'OK'
+          #   }.to_json
+          # else
+          #   # server and agent are out of sync, tell agent to stop working
+          #   {
+          #     status: 200,
+          #     type: 'Message',
+          #     msg: 'Canceled'
+          #   }.to_json
+          # end
+
+        elsif payload['agent_status'] == 'Idle'
+          # assign work to agent
+
+          # set next taskqueue item for this agent if there is anything in the queue
+          already_assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
+          if already_assigned_task and !already_assigned_task.nil?
+            taskqueue = already_assigned_task
+          else
+            taskqueue = Taskqueues.first(status: 'Queued', agent_id: nil)
+          end
+
+          if taskqueue and !taskqueue.nil?
+            p "=========== assigning agent task id: #{taskqueue.id}"
+            taskqueue.agent_id = @agent.id
+            taskqueue.save
+
+            {
+              status: 200,
+              type: 'Message',
+              msg: 'START',
+              task_id: "#{taskqueue.id}"
+            }.to_json
+          else
+            # update agent heartbeat but do nothing for now
+            p '########### I have nothing for you to do now ###########'
+            @agent.heartbeat = Time.now
+            @agent.save
+            {
+              status: 200,
+              type: 'Message',
+              msg: 'OK'
+            }.to_json
+          end
+        end
+      end
     else
-      msg = 'OK'
+      # we didnt authorize this agent. it might be new
+      newagent = Agents.new
+      newagent.uuid = params[:uuid]
+      newagent.name = params[:uuid] + " (untrusted)"
+      newagent.status = "Pending"
+      newagent.src_ip = "#{request.ip}"
+      newagent.heartbeat = Time.now
+      newagent.save
+      response['Message'] = 'Go Away'
+      return response.to_json
     end
-
-    {
-        Status: 200,
-        Type: 'Message',
-        Taskqueue_id: taskqueue.id,
-        Taskqueue_status: taskqueue.status,
-        Message: msg
-    }.to_json
   end
 end
 

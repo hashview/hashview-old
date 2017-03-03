@@ -20,6 +20,7 @@ class Api
       response = RestClient::Request.execute(
           :method => :get,
           :url => url,
+          :cookies => {:agent_uuid => @uuid},
           :verify_ssl => false
       )
       return response.body
@@ -35,6 +36,7 @@ class Api
           :url => url,
           :payload => payload.to_json,
           :headers => {:accept => :json},
+          :cookies => {:agent_uuid => @uuid},
           :verify_ssl => false
       )
       return response.body
@@ -65,7 +67,7 @@ class Api
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/status"
     payload = {}
     payload['status'] = status
-    payload['job_id'] = jobtask_id
+    payload['jobtask_id'] = jobtask_id
     return self.post(url, payload)
   end
 
@@ -82,6 +84,12 @@ class Api
   # get next item in queue
   def self.queue
     url = "https://#{@server}/v1/queue"
+    return self.get(url)
+  end
+
+  # get specific item from queue (must already be assigned to agent)
+  def self.queue_by_id(id)
+    url = "https://#{@server}/v1/queue/#{id}"
     return self.get(url)
   end
 
@@ -148,30 +156,6 @@ class Api
     end
   end
 
-  # # parses hashcat output
-  # def hashcatParser(filepath)
-  #   status = {}
-  #   File.open(filepath).each_line do |line|
-  #     if line.start_with?('Time.Started.')
-  #       status['Time_Started'] = line.split(': ')[-1].strip
-  #     elsif line.start_with?('Time.Estimated.')
-  #       status['Time_Estimated'] = line.split(': ')[-1].strip
-  #     elsif line.start_with?('Recovered.')
-  #       status['Recovered'] = line.split(': ')[-1].strip
-  #     elsif line.start_with?('Input.Mode.')
-  #       status['Input_Mode'] = line.split(': ')[-1].strip
-  #     elsif line.start_with?('Speed.Dev.')
-  #       item = line.split(': ')
-  #       gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')
-  #       status[gpu] = line.split(': ')[-1].strip
-  #     elsif line.start_with?('HWMon.Dev.')
-  #       item = line.split('.: ')
-  #       gpu = item[0].gsub!('HWMon.Dev.', 'HWMon Dev ').gsub!('.', '')
-  #       status[gpu] = line.split('.: ')[-1].strip
-  #     end
-  #     return status
-  #   end
-  # end
 
   # # api call to upload hashcat output for dashboard
   # def self.upload_hcoutput(filepath)
@@ -182,6 +166,31 @@ class Api
 
 end
 
+# parses hashcat output
+def hashcatParser(filepath)
+  status = {}
+  File.open(filepath).each_line do |line|
+    if line.start_with?('Time.Started.')
+      status['Time_Started'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Time.Estimated.')
+      status['Time_Estimated'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Recovered.')
+      status['Recovered'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Input.Mode.')
+      status['Input_Mode'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Speed.Dev.')
+      item = line.split(': ')
+      gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')
+      status[gpu] = line.split(': ')[-1].strip
+    elsif line.start_with?('HWMon.Dev.')
+      item = line.split('.: ')
+      gpu = item[0].gsub!('HWMon.Dev.', 'HWMon Dev ').gsub!('.', '')
+      status[gpu] = line.split('.: ')[-1].strip
+    end
+  end
+  return status
+end
+
 
 class LocalAgent
   @queue = :hashcat
@@ -190,87 +199,132 @@ class LocalAgent
 
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
-    begin
-      sleep 4
+    #p 'jobruning #####################'
+    while(1)
+      sleep(4)
 
-      heartbeat = Api.heartbeat
-      heartbeat = JSON.parse(heartbeat)
-      if heartbeat['Type'] == 'Message' and heartbeat['Message'] == 'OK'
+      # find pid
+      pid = `ps -ef | grep hashcat | grep hc_cracked_ | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
+      pid = pid.chomp
 
-        puts "checking for tasks"
-        jdata = Api.queue
-        jdata = JSON.parse(jdata)
+      if pid.nil?
+        puts "YOU ARE WORKING RIGHT NOW"
 
-        # we must have an item from the queue before we start processing
-        if jdata['type'] != 'Error'
+        #current_task = data from current task tmp
 
-          # take queue item and set status to running
-          Api.post_queue_status(jdata['id'], 'Running')
+        # payload = {}
+        # payload['taskqueue_id'] = jdata['id']
+        # payload['agent_status'] = 'Working'
+        # payload['agent_task'] = current_task
+        # heartbeat = Api.post_heartbeat(payload)
+        # exit this process
+      else
+        puts "DO WORK####################"
 
-          # set the jobtask to running
-          Api.post_jobtask_status(jdata['jobtask_id'], 'Running')
+        # if we have taskqueue tmp file locally, delete it
+        File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
-          # we need job details for hashfile id
-          job = Api.job(jdata['job_id'])
-          job = JSON.parse(job)
+        # send heartbeat without hashcat status
+        payload = {}
+        payload['agent_status'] = 'Idle'
+        payload['hc_benchmark'] = 'example data'
+        heartbeat = Api.post_heartbeat(payload)
+        puts '======================================'
+        heartbeat = JSON.parse(heartbeat)
+        puts heartbeat
 
-          # we need to get task_id which is stored in jobtasks
-          jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+        if heartbeat['type'] == 'Message' and heartbeat['msg'] == 'START'
 
-          # we dont need to download the wordlist b/c we are local agent, we already have them
-          # wordlists Api.wordlists()
-          # puts wordlists
-          #puts Api.wordlist()
+          jdata = Api.queue_by_id(heartbeat['task_id'])
+          jdata = JSON.parse(jdata)
 
-          # generate hashfile via api
-          Api.hashfile(jobtask['id'], job['hashfile_id'])
+          # we must have an item from the queue before we start processing
+          if jdata['type'] != 'Error'
 
-          # run hashcat, do real work!
-          puts "running hashcat job"
-          cmd = jdata['command']
-          puts cmd
-
-          # thread off hashcat
-          thread1 = Thread.new {
-            run_time = Benchmark.realtime do
-              system(cmd)
+            # save task data to tmp to signify we are working
+            File.open('control/tmp/agent_current_task.txt', 'w') do |f|
+              f.write(jdata)
             end
-          }
 
-          # continue to hearbeat while running job. look for a stop command
-          while thread1.run
-            sleep 4
-            payload = {}
-            payload['taskqueue_id'] = jdata['id']
-            payload['agent_status'] = 'Working'
-            heartbeat = Api.post_heartbeat(payload)
-            heartbeat = JSON.parse(heartbeat)
-            puts heartbeat
-            if heartbeat['Message'] == 'Canceled'
-              Thread.kill(thread1)
+            # take queue item and set status to running
+            Api.post_queue_status(jdata['id'], 'Running')
+
+            # set the jobtask to running
+            Api.post_jobtask_status(jdata['jobtask_id'], 'Running')
+
+            # we need job details for hashfile id
+            job = Api.job(jdata['job_id'])
+            job = JSON.parse(job)
+
+            # we need to get task_id which is stored in jobtasks
+            jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+
+            # we dont need to download the wordlist b/c we are local agent, we already have them
+            # wordlists Api.wordlists()
+            # puts wordlists
+            #puts Api.wordlist()
+
+            # generate hashfile via api
+            Api.hashfile(jobtask['id'], job['hashfile_id'])
+
+            # run hashcat, do real work!
+            puts "running hashcat job"
+            cmd = jdata['command']
+            puts cmd
+
+            # # thread off hashcat
+            thread1 = Thread.new {
+              @run_time = Benchmark.realtime do
+                system(cmd)
+              end
+            }
+
+            # run_time = Benchmark.realtime do
+            #   system(cmd)
+            # end
+
+            @jobid = jdata['job_id']
+            # # continue to hearbeat while running job. look for a stop command
+            catch :mainloop do
+              while thread1.status do
+                sleep 4
+                puts "WORKING IN THREAD"
+                puts "WORKING ON ID: #{jdata['id']}"
+                payload = {}
+                payload['agent_status'] = 'Working'
+                payload['agent_task'] = jdata['id']
+                # provide hashcat status with hearbeat
+                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_45.txt")
+                heartbeat = Api.post_heartbeat(payload)
+                puts heartbeat
+                heartbeat = JSON.parse(heartbeat)
+                if heartbeat['msg'] == 'Canceled'
+                  puts "***********killing thread"
+                  Thread.kill(thread1)
+                  throw :mainloop
+                end
+              end
             end
+
+            # set jobtask status to importing
+            Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
+
+            # upload results
+            crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
+            Api.upload_crackfile(jobtask.id, crack_file, @run_time)
+
+            # remove task data tmp file
+            File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
+
+            # change status to completed for jobtask
+            Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+
+            # set taskqueue item to complete and remove from queue
+            Api.post_queue_status(jdata['id'], 'Completed')
+            Api.queue_remove(jdata['id'])
           end
-
-          # set jobtask status to importing
-          Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
-
-          # upload results
-          crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-          Api.upload_crackfile(jobtask.id, crack_file, run_time)
-
-          # change status to completed for jobtask
-          Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-
-          # set taskqueue item to complete and remove from queue
-          Api.post_queue_status(jdata['id'], 'Completed')
-          Api.queue_remove(jdata['id'])
         end
       end
-    rescue StandardError => e
-      $stderr << e.message
-      $stderr << e.backtrace.join('\n')
     end
   end
 end
-
-
