@@ -29,8 +29,8 @@ get '/jobs/delete/:id' do
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
   else
-    if @job.status == 'Running' || @job.status == 'Importing'
-      flash[:error] = 'Failed to Delete Job. A task is currently running.'
+    if @job.status == 'Running' || @job.status == 'Importing' || @job.status == 'Queued'
+      flash[:error] = 'You need to stop the job before deleting it.'
       redirect to('/jobs/list')
     end
     @jobtasks = Jobtasks.all(job_id: params[:id])
@@ -48,6 +48,13 @@ get '/jobs/create' do
 
   @customers = Customers.all(order: [:name.asc])
   @job = Jobs.first(id: params[:job_id])
+
+  if @job
+    if @job.status == 'Running' || @job.status == 'Queued'
+      flash[:error] = 'You cannot edit a job that is running or queued'
+      redirect to('/jobs/list')
+    end
+  end
 
   haml :job_edit
 end
