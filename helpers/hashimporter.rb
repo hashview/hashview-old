@@ -11,6 +11,8 @@ def detectedHashFormat(hash)
     return 'dsusers'
   elsif hash =~ /^.*:\w{32}$/
     return 'dsusers'
+  elsif hash =~ /^.*:\w.*/
+    return 'generic'
   elsif hash =~ /^\w{32}$/
     return 'ntlm_only'
   elsif hash =~ /.*:\d*:\w{32}:\w{32}$/ 
@@ -105,6 +107,17 @@ def importDsusers(hash, hashfile_id, type)
     type = '3000'
   end
 
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
+def importGeneric(hash, hashfile_id, type)
+  data = hash.split(':')
   @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
     addHash(data[1], type)
@@ -246,6 +259,8 @@ def importHash(hash_file, hashfile_id, file_type, hashtype)
       importRaw(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'dsusers'
       importDsusers(entry.chomp, hashfile_id, hashtype)
+    elsif file_type == 'generic'
+      importGeneric(entry.chomp, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
@@ -262,6 +277,8 @@ def detectHashfileType(hash_file)
       @file_types.push('shadow') unless @file_types.include?('shadow')
     elsif detectedHashFormat(entry.chomp) == 'dsusers'
       @file_types.push('dsusers') unless @file_types.include?('dsusers')
+    elsif detectedHashFormat(entry.chomp) == 'generic'
+      @file_types.push('generic') unless @file_types.include?('generic')
     elsif detectedHashFormat(entry.chomp) == 'smart hashdump'
       @file_types.push('smart hashdump') unless @file_types.include?('smart hashdump')
     else
@@ -286,7 +303,7 @@ def detectHashType(hash_file, file_type)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
       end
-    elsif file_type == 'shadow' || file_type == 'dsusers'
+    elsif file_type == 'shadow' || file_type == 'dsusers' || file_type == 'generic'
       elements = entry.split(':')
       @modes = getMode(elements[1])
       @modes.each do |mode|
