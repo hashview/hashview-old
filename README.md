@@ -21,7 +21,7 @@ If you have any problems, please consult [Issues](https://github.com/hashview/ha
 
 ### Authors
 
-Contact us on Twitter
+Contact us on Twitter  
 @caseycammilleri  
 @jarsnah12  
 
