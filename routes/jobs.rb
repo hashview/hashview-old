@@ -193,14 +193,47 @@ post '/jobs/assign_tasks' do
 
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
-      flash[:error] = 'You must assign atleast one task'
+      flash[:error] = 'You must assign at least one task'
       redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
     end
   end
 
+  # create the job if it doesnt exist yet and make sure its stopped
   job = Jobs.first(id: params[:job_id])
   job.status = 'Stopped'
   job.save
+
+  # grab existing jobtasks if there are any
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+  @tasks = Tasks.all
+
+  # prevent adding duplicate tasks to a job
+  #count = Hash.new 0
+  #params[:tasks] = params[:task].uniq
+  puts params
+  if params[:tasks]
+    # make sure the task that the user is adding is not already assigned to the job
+    if params[:edit]
+      params[:tasks].each do |t|
+        @jobtasks.each do |jt|
+          if jt.task_id == t.to_i
+            flash[:error] = "Your job already has a task you are trying to add (task id: #{t})"
+            redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
+          end
+        end
+      end
+    end
+    # prevent user from adding multiples of the same task
+    if params[:tasks].uniq!
+      puts params
+      flash[:error] = 'You cannot have duplicate tasks.'
+      if params[:edit]
+        redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
+      else
+        redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
+      end
+    end
+  end
  
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
