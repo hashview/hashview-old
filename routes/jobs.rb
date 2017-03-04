@@ -88,6 +88,12 @@ post '/jobs/create' do
 
   # Create a new customer if selected
   if params[:customer] == 'add_new' || params[:customer].nil?
+    pre_existing_customer = Customers.all(name: params[:name])
+    if !pre_existing_customer.empty? || pre_existing_customer.nil?
+      flash[:error] = 'Customer ' + params[:name] + ' already exists.'
+      redirect to('/jobs/create')
+    end
+ 
     customer = Customers.new
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
@@ -247,7 +253,13 @@ get '/jobs/start/:id' do
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      Resque.enqueue(Jobq, jt.id, cmd)
+      # we are using a db queue instead for public api
+      queue = Taskqueues.new
+      queue.jobtask_id = jt.id
+      queue.job_id = @job.id
+      queue.command = cmd
+      queue.status = 'Queued'
+      queue.save
     end
   end
   
@@ -277,7 +289,9 @@ get '/jobs/stop/:id' do
       cmd = buildCrackCmd(@job.id, task.task_id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
       puts 'STOP CMD: ' + cmd
-      Resque::Job.destroy('hashcat', Jobq, task.id, cmd)
+      # we are using a db queue instead for public api
+      queue = Taskqueues.first(job_id: @job_id)
+      queue.destroy if queue
     end
   end
   
