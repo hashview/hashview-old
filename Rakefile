@@ -230,7 +230,7 @@ namespace :db do
 
       #  Create Table
       puts '[*] Creating new Table: Hashes'
-      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(255), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
+      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
 
       puts '[*] Inserting unique hash data into new table... Please wait, this can take some time....'
       new_hashes.each do | entry |
