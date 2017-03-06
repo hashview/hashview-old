@@ -7,7 +7,9 @@ services:
   - mysql
   - redis-server
 
-before_script: cp config/database.travis.yml config/database.yml
+before_script:
+  - echo -e 'innodb_large_prefix=on' >> /etc/my.cnf
+  - cp config/database.travis.yml config/database.yml
 
 script:
   - export RACK_ENV=test
