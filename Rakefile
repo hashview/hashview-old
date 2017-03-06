@@ -54,6 +54,25 @@ namespace :db do
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
+    # Query for DB Values
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_large_prefix".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_file_format".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
     # create database in mysql for datamapper
     query = [
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "CREATE DATABASE #{database} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}".inspect
