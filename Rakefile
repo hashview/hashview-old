@@ -97,7 +97,7 @@ namespace :db do
     puts '[*] Setting up default settings ...'
     # Create Default Settings
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (maxtasktime) VALUES ('86400')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hc_settings (max_task_time) VALUES ('86400')".inspect
     ]
     begin
       system(query.compact.join(' '))
