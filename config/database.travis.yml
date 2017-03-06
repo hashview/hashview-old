@@ -21,3 +21,5 @@ test:
   user: "root"
   password: ""
   database: "hashview_test"
+
+innodb_large_prefix=on
