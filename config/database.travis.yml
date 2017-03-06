@@ -25,5 +25,5 @@ test:
   user: "root"
   password: ""
   database: "hashview_test"
-  encoding: "ISO-8859-1"
+  # encoding: "ISO-8859-1"
   innodb_large_prefix: "on"

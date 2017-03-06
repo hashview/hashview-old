@@ -5,7 +5,8 @@ production:
   user: "root"
   password: "CHANGEME"
   database: "hashview"
-  encoding: "ISO-8859-1"
+  # encoding: "ISO-8859-1"
+  innodb_large_prefix: "on"
 
 development:
   adapter: mysql
@@ -14,7 +15,8 @@ development:
   user: "root"
   password: "CHANGEME"
   database: "hashview_dev"
-  encoding: "ISO-8859-1"
+  # encoding: "ISO-8859-1"
+  innodb_large_prefix: "on"
 
 test:
   adapter: mysql
@@ -23,4 +25,5 @@ test:
   user: "root"
   password: "CHANGEME"
   database: "hashview_test"
-  encoding: "ISO-8859-1"
+  # encoding: "ISO-8859-1"
+  innodb_large_prefix: "on"
