@@ -169,7 +169,7 @@ class Hashes
 
   property :id, Serial
   property :lastupdated, DateTime
-  property :originalhash, String, length: 512, :unique_index => true
+  property :originalhash, String, length: 1024, :unique_index => true
   property :hashtype, Integer, :index => true
   property :cracked, Boolean
   property :plaintext, String, length: 256
