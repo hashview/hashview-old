@@ -8,7 +8,8 @@ services:
   - redis-server
 
 before_script:
-  - sudo echo -e 'innodb_large_prefix=on' >> /etc/my.cnf
+  - sudo echo -e 'innodb_large_prefix=on' | sudo tee -a /etc/mysql/my.cnf
+  - sudo service mysql restart
   - cp config/database.travis.yml config/database.yml
 
 script:
