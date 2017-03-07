@@ -54,25 +54,6 @@ namespace :db do
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
-    # Set Global Values (does not survive reboot manual entries are required in my.cnf)
-    query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SET global innodb_file_format = BARRACUDA".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
-    end
-
-    query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SET global innodb_large_prefix = on".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
-    end
-
     # Query for DB Values
     query = [
         'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_large_prefix".inspect
@@ -101,6 +82,18 @@ namespace :db do
     rescue
       raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
     end
+
+    # Creating hashes table
+    # Wish we could do this in datamapper, but currently unsupported
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}, "--database=#{database}", '-e CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256)) ROW_FORMAT=DYNAMIC'.inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
   end
 
   task :destroy do
@@ -268,7 +261,7 @@ namespace :db do
 
       #  Create Table
       puts '[*] Creating new Table: Hashes'
-      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
+      conn.query('CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256)) ROW_FORMAT=DYNAMIC')
 
       puts '[*] Inserting unique hash data into new table... Please wait, this can take some time....'
       new_hashes.each do | entry |
