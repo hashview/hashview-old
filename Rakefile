@@ -85,8 +85,9 @@ namespace :db do
 
     # Creating hashes table
     # Wish we could do this in datamapper, but currently unsupported
+    puts 'Creating Hashes Table'
     query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", '-e CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256)) ROW_FORMAT=DYNAMIC'.inspect
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", '-e CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256)) ROW_FORMAT=DYNAMIC'.inspect
     ]
     begin
       system(query.compact.join(' '))
