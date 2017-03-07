@@ -300,7 +300,7 @@
                         %label.control-label.col-xs-2{:for => ""} Run Time:
                         .col-xs-6
                           - if @hc_settings && ! @hc_settings.max_task_time.nil?
-                            #{@settings.max_task_time} Seconds
+                            #{@hc_settings.max_task_time} Seconds
                             (Set in Hashcat Global Settings)
                           - else
                             WARNING: Set max task time in Hashcat global settings.
