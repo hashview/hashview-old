@@ -54,6 +54,25 @@ namespace :db do
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
+    # Set Global Values (does not survive reboot manual entries are required in my.cnf)
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SET global innodb_file_format = BARRACUDA".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SET global innodb_large_prefix = on".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
     # Query for DB Values
     query = [
         'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_large_prefix".inspect
