@@ -8,7 +8,7 @@ services:
   - redis-server
 
 before_script:
-  - sudo sed -i 's/\(\* InnoDB\)/\1\ninnodb_file_format = Barracuda\ninnodb_large_prefix = 1\ninnodb_file_per_table_true/' /etc/mysql/my.cnf
+  - sudo sed -i 's/\(\* InnoDB\)/\1\ninnodb_file_format = Barracuda\ninnodb_large_prefix = 1\ninnodb_file_per_table=true/' /etc/mysql/my.cnf
   - cat /etc/mysql/my.cnf
   - sudo service mysql restart
   - cp config/database.travis.yml config/database.yml
