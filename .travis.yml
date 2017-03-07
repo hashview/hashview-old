@@ -8,6 +8,11 @@ services:
   - redis-server
 
 before_script:
+  - echo -e 'innodb_large_prefix = on' | sudo tee -a /etc/mysql/my.cnf
+  - echo -e 'innodb_file_format = BARRACUDA' | sudo tee -a /etc/mysql/my.cnf
+  - echo -e 'innodb_file_per_table=true' | sudo tee -a /etc/mysql/my.cnf'
+  - cat /etc/mysql/my.cnf
+  - sudo service mysql restart
   - cp config/database.travis.yml config/database.yml
 
 script:
