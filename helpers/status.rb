@@ -47,7 +47,7 @@ def updateJobTaskStatus(jobtask_id, status)
   done = true
   jobtasks.each do |jt|
     # if a jobtask equals one of these statuses we are not done
-    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing' e
+    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
       done = false
       break
     end
@@ -75,5 +75,8 @@ def updateJobTaskStatus(jobtask_id, status)
   if done == true
     job.status = 'Completed'
     job.save
+    # purge all queued tasks
+    taskqueues = Taskqueues.all(job_id: job.id)
+    taskqueues.destroy
   end
 end

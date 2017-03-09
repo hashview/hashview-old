@@ -218,9 +218,8 @@ class LocalAgent
 
       # ok either do nothing or start working
       if pid.nil?
-        puts "YOU ARE WORKING RIGHT NOW"
+        puts "AGENT IS WORKING RIGHT NOW"
       else
-        puts "DO WORK####################"
 
         # if we have taskqueue tmp file locally, delete it
         File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
@@ -269,7 +268,6 @@ class LocalAgent
             Api.hashfile(jobtask['id'], job['hashfile_id'])
 
             # run hashcat, do real work!
-            puts "running hashcat job"
             cmd = jdata['command']
             puts cmd
 
@@ -296,10 +294,9 @@ class LocalAgent
                 # provide hashcat status with hearbeat
                 payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}.txt")
                 heartbeat = Api.post_heartbeat(payload)
-                puts heartbeat
                 heartbeat = JSON.parse(heartbeat)
+
                 if heartbeat['msg'] == 'Canceled'
-                  puts "***********killing thread"
                   @canceled = true
                   Thread.kill(thread1)
                   # for some reason hashcat doesnt always get killed when terminating the thread.

@@ -290,12 +290,9 @@ get '/jobs/stop/:id' do
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if task.status == 'Queued'
+    if task.status == 'Queued' || task.status == 'Running'
       task.status = 'Canceled'
       task.save
-      cmd = buildCrackCmd(@job.id, task.task_id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      puts 'STOP CMD: ' + cmd
     end
   end
 
@@ -304,6 +301,7 @@ get '/jobs/stop/:id' do
   queue = Taskqueues.all(job_id: @job.id)
   queue.destroy if queue
 
+  # TODO I see a problem with this once we have multiple agents. but for now, i'm too drunk to deal with it
   @jobtasks.each do |task|
     if task.status == 'Running'
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")

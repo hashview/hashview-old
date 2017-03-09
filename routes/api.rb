@@ -154,49 +154,49 @@ post '/v1/hcoutput/status' do
   return request.body.read
 end
 
-# heartbeat
-get '/v1/agents/:uuid/heartbeat' do
-  response = Hash.new
-  if params[:uuid].nil?
-    status 200
-    {
-        Status: 200,
-        Type: 'Error',
-        Message: 'Missing UUID'
-    }.to_json
-  else
-    @agent = Agents.first(:uuid => params[:uuid])
-    if !@agent.nil?
-      if @agent.status == "Authorized"
-        redirect to("/v1/agents/#{params[:uuid]}/authorize")
-      else
-        # check to see if agent should be working on an already assigned task
-        @assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
-        @agent.status = "Online"
-        @agent.heartbeat = Time.now
-        @agent.save
-        data = {}
-        data['Status'] = 200
-        data['Type'] = 'Message'
-        data['Message'] = 'OK'
-        if @assigned_task
-          data['Working'] = @assigned_task.id
-        end
-        return data.to_json
-      end
-    else
-      newagent = Agents.new
-      newagent.uuid = params[:uuid]
-      newagent.name = params[:uuid] + " (untrusted)"
-      newagent.status = "Pending"
-      newagent.src_ip = "#{request.ip}"
-      newagent.heartbeat = Time.now
-      newagent.save
-      response['Message'] = 'Go Away'
-      return response.to_json
-    end
-  end
-end
+# # heartbeat
+# get '/v1/agents/:uuid/heartbeat' do
+#   response = Hash.new
+#   if params[:uuid].nil?
+#     status 200
+#     {
+#         Status: 200,
+#         Type: 'Error',
+#         Message: 'Missing UUID'
+#     }.to_json
+#   else
+#     @agent = Agents.first(:uuid => params[:uuid])
+#     if !@agent.nil?
+#       if @agent.status == "Authorized"
+#         redirect to("/v1/agents/#{params[:uuid]}/authorize")
+#       else
+#         # check to see if agent should be working on an already assigned task
+#         @assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
+#         @agent.status = "Online"
+#         @agent.heartbeat = Time.now
+#         @agent.save
+#         data = {}
+#         data['Status'] = 200
+#         data['Type'] = 'Message'
+#         data['Message'] = 'OK'
+#         if @assigned_task
+#           data['Working'] = @assigned_task.id
+#         end
+#         return data.to_json
+#       end
+#     else
+#       newagent = Agents.new
+#       newagent.uuid = params[:uuid]
+#       newagent.name = params[:uuid] + " (untrusted)"
+#       newagent.status = "Pending"
+#       newagent.src_ip = "#{request.ip}"
+#       newagent.heartbeat = Time.now
+#       newagent.save
+#       response['Message'] = 'Go Away'
+#       return response.to_json
+#     end
+#   end
+# end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
@@ -235,8 +235,7 @@ post '/v1/agents/:uuid/heartbeat' do
             @agent.save
           end
 
-          if taskqueue and taskqueue.status == 'Canceled'
-            puts "=============cancel task======================"
+          if taskqueue.nil? || taskqueue.status == 'Canceled'
             {
               status: 200,
               type: 'Message',
