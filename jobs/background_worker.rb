@@ -273,6 +273,9 @@ class LocalAgent
             cmd = jdata['command']
             puts cmd
 
+            # this variable is used to determine if the job was canceled
+            @canceled = false
+
             # # thread off hashcat
             thread1 = Thread.new {
               @run_time = Benchmark.realtime do
