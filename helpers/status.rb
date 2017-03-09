@@ -20,18 +20,17 @@ def isOldVersion()
   end
 end
 
-def updateTaskqueueStatus(taskqueue_id, status)
+def updateTaskqueueStatus(taskqueue_id, status, agent_id)
   queue = Taskqueues.first(id: taskqueue_id)
   queue.status = status
+  queue.agent_id = agent_id
   queue.save
 end
 
 
-def updateJobStatus(jobtask_id, status)
-  # require './helpers/email.rb'
+def updateJobTaskStatus(jobtask_id, status)
 
   jobtask = Jobtasks.first(id: jobtask_id)
-  puts jobtask
   jobtask.status = status
   jobtask.save
 
@@ -44,12 +43,11 @@ def updateJobStatus(jobtask_id, status)
   end
   # find all tasks for current job:
   jobtasks = Jobtasks.all(job_id: job.id)
-  # if no more jobs are set to queue, consider the job completed
+  # if no more job are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
+    # if a jobtask equals one of these statuses we are not done
     if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
-      job.status = status
-      job.save
       done = false
       break
     end
@@ -77,5 +75,8 @@ def updateJobStatus(jobtask_id, status)
   if done == true
     job.status = 'Completed'
     job.save
+    # purge all queued tasks
+    taskqueues = Taskqueues.all(job_id: job.id)
+    taskqueues.destroy
   end
 end

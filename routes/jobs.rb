@@ -29,8 +29,8 @@ get '/jobs/delete/:id' do
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
   else
-    if @job.status == 'Running' || @job.status == 'Importing'
-      flash[:error] = 'Failed to Delete Job. A task is currently running.'
+    if @job.status == 'Running' || @job.status == 'Importing' || @job.status == 'Queued'
+      flash[:error] = 'You need to stop the job before deleting it.'
       redirect to('/jobs/list')
     end
     @jobtasks = Jobtasks.all(job_id: params[:id])
@@ -48,6 +48,13 @@ get '/jobs/create' do
 
   @customers = Customers.all(order: [:name.asc])
   @job = Jobs.first(id: params[:job_id])
+
+  if @job
+    if @job.status == 'Running' || @job.status == 'Queued'
+      flash[:error] = 'You cannot edit a job that is running or queued'
+      redirect to('/jobs/list')
+    end
+  end
 
   haml :job_edit
 end
@@ -316,18 +323,18 @@ get '/jobs/stop/:id' do
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if task.status == 'Queued'
+    if task.status == 'Queued' || task.status == 'Running'
       task.status = 'Canceled'
       task.save
-      cmd = buildCrackCmd(@job.id, task.task_id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      puts 'STOP CMD: ' + cmd
-      # we are using a db queue instead for public api
-      queue = Taskqueues.first(job_id: @job_id)
-      queue.destroy if queue
     end
   end
-  
+
+  # we are using a db queue instead for public api
+  # remove all items from queue
+  queue = Taskqueues.all(job_id: @job.id)
+  queue.destroy if queue
+
+  # TODO I see a problem with this once we have multiple agents. but for now, i'm too drunk to deal with it
   @jobtasks.each do |task|
     if task.status == 'Running'
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
@@ -352,9 +359,13 @@ get '/jobs/stop/:job_id/:task_id' do
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
-  
-  # Kill jobtask
-  `kill -9 #{pid}`
+
+  taskqueue = Taskqueues.all(jobtask_id: jt.id)
+  taskqueue.each do |tq|
+    tq.status = 'Canceled'
+    tq.save
+  end
+
   
   referer = request.referer.split('/')
 

@@ -13,7 +13,7 @@ end
 def importCracked(id, crack_file, run_time=0)
   # this assumes a job completed successfully. we need to add check for failures or killed processes
   puts '==== Importing cracked hashes ====='
-  updateJobStatus(id, 'Importing')
+  updateJobTaskStatus(id, 'Importing')
   jobtasks = Jobtasks.first(id: id)
   #crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
   job = Jobs.first(id: jobtasks.job_id)
@@ -72,6 +72,6 @@ def importCracked(id, crack_file, run_time=0)
 
   puts '==== Crack File Deleted ===='
 
-  updateJobStatus(id, 'Completed')
+  updateJobTaskStatus(id, 'Completed')
   updateDbRunTime(id, job.hashfile_id, run_time)
 end
