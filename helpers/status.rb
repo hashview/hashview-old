@@ -28,7 +28,7 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
 end
 
 
-def updateJobStatus(jobtask_id, status)
+def updateJobTaskStatus(jobtask_id, status)
 
   jobtask = Jobtasks.first(id: jobtask_id)
   jobtask.status = status
@@ -46,9 +46,8 @@ def updateJobStatus(jobtask_id, status)
   # if no more job are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
-    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
-      job.status = status
-      job.save
+    # if a jobtask equals one of these statuses we are not done
+    if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing' e
       done = false
       break
     end

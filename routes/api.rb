@@ -66,7 +66,7 @@ post '/v1/jobtask/:jobtask_id/status' do
   puts jdata
   puts "======================================="
   puts "[+] updating jobtask id: #{params['jobtask_id']} to status: #{jdata['status']}"
-  updateJobStatus(jdata['jobtask_id'], jdata['status'])
+  updateJobTaskStatus(jdata['jobtask_id'], jdata['status'])
 end
 
 # return jobtask details
