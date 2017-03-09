@@ -54,6 +54,25 @@ namespace :db do
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
+    # Query for DB Values
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_large_prefix".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_file_format".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
     # create database in mysql for datamapper
     query = [
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "CREATE DATABASE #{database} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}".inspect
@@ -63,6 +82,19 @@ namespace :db do
     rescue
       raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
     end
+
+    # Creating hashes table
+    # Wish we could do this in datamapper, but currently unsupported
+    puts 'Creating Hashes Table'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", '-e CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256), unique index index_of_orignalhashes (originalhash), index index_of_hashtypes (hashtype)) ROW_FORMAT=DYNAMIC'.inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    end
+
   end
 
   task :destroy do
@@ -97,12 +129,23 @@ namespace :db do
     puts '[*] Setting up default settings ...'
     # Create Default Settings
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (maxtasktime) VALUES ('86400')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hc_settings (max_task_time) VALUES ('86400')".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default settings'
+    end
+
+    puts '[*] Setting default theme ...'
+    # Assign Default CSS theme
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes) VALUES ('Light')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in assigning default customer'
     end
 
     puts '[*] Setting up default customer ...'
@@ -251,7 +294,7 @@ namespace :db do
 
       #  Create Table
       puts '[*] Creating new Table: Hashes'
-      conn.query("CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, LastUpdated datetime, originalhash VARCHAR(255), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256))")
+      conn.query('CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256), unique index index_of_orignalhashes (originalhash), index index_of_hashtypes (hashtype)) ROW_FORMAT=DYNAMIC')
 
       puts '[*] Inserting unique hash data into new table... Please wait, this can take some time....'
       new_hashes.each do | entry |

@@ -3,11 +3,11 @@
   %head
     %script{:src => "/js/jquery-2.1.3.min.js"}
     %script{:src => "/js/bootstrap.js"}
+    %script{:src => "/js/modules.js"}
     %meta{:charset => "utf-8"}/
     %title HashView - Password Cracking Management Console
     %meta{:content => "", :name => "All types of crack are welcome"}/
-    %link{:href => "/css/bootstrap.css", :rel => "stylesheet"}/
-    %link{:href => "/css/bootstrap.min.css", :rel => "stylesheet"}/
+    %link{:href => "/css/#{@settings.ui_themes}.css", :rel => "stylesheet"}/
     %link{:href => "/css/hashviewStyle.css", :rel => "stylesheet"}/
 
     :css
@@ -21,7 +21,7 @@
         padding-left: 15px;
         padding-right: 0px;
       }
-        %link{:href => "/css/bootstrap-responsive.css", :rel => "stylesheet"}
+      %link{:href => "/css/bootstrap-responsive.css", :rel => "stylesheet"}
   %body
     .navbar.navbar-inverse.navbar-static-top
       .container

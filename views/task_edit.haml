@@ -299,11 +299,11 @@
                       .form-group
                         %label.control-label.col-xs-2{:for => ""} Run Time:
                         .col-xs-6
-                          - if @settings && ! @settings.maxtasktime.nil? 
-                            #{@settings.maxtasktime} Seconds
-                            (Set in Global Settings)
+                          - if @hc_settings && ! @hc_settings.max_task_time.nil?
+                            #{@hc_settings.max_task_time} Seconds
+                            (Set in Hashcat Global Settings)
                           - else
-                            WARNING: Set max task time in global settings.
+                            WARNING: Set max task time in Hashcat global settings.
                       .form-group
                         .col-xs-offset-2.col-xs-1
                           %button.btn.btn-primary{:type => "submit"} Create
