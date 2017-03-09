@@ -29,10 +29,8 @@ end
 
 
 def updateJobStatus(jobtask_id, status)
-  # require './helpers/email.rb'
 
   jobtask = Jobtasks.first(id: jobtask_id)
-  puts jobtask
   jobtask.status = status
   jobtask.save
 
@@ -45,7 +43,7 @@ def updateJobStatus(jobtask_id, status)
   end
   # find all tasks for current job:
   jobtasks = Jobtasks.all(job_id: job.id)
-  # if no more jobs are set to queue, consider the job completed
+  # if no more job are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
     if jt.status == 'Queued' || jt.status == 'Running' || jt.status == 'Importing'
