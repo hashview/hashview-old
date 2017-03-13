@@ -2,7 +2,7 @@ helpers do
   # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
   def buildCrackCmd(job_id, task_id)
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
-    hc_settings = HcSettings.first
+    hc_settings = HashcatSettings.first
     hc_binpath = hc_settings.hc_binpath
     max_task_time = hc_settings.max_task_time
     @task = Tasks.first(id: task_id)
@@ -42,7 +42,7 @@ helpers do
         cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
       end
     elsif attackmode == 'combinator'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + '--outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
     end
 
     # Add global options
@@ -72,7 +72,7 @@ helpers do
     end
 
     # --force
-    if hc_settings.force == true
+    if hc_settings.hc_force == true
       cmd = cmd + ' --force'
     end
 

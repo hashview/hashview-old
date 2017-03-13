@@ -25,7 +25,7 @@ get '/tasks/edit/:id' do
   varWash(params)
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
-  @hc_settings = HcSettings.first
+  @hc_settings = HashcatSettings.first
 
   if @task.hc_attackmode == 'combinator'
     @combinator_wordlists = @task.wl_id.split(',')
@@ -118,7 +118,7 @@ end
   
 get '/tasks/create' do
   varWash(params)
-  @hc_settings = HcSettings.first
+  @hc_settings = HashcatSettings.first
 
   @rules = []
   # list wordlists that can be used

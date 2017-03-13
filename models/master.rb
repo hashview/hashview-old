@@ -213,7 +213,7 @@ class Settings
 end
 
 # HashCat settings
-class HcSettings
+class HashcatSettings
   include DataMapper::Resource
 
   property :id, Serial
@@ -224,7 +224,7 @@ class HcSettings
   property :gpu_temp_disable, Boolean, default: 0
   property :gpu_temp_abort, Integer, default: 0
   property :gpu_temp_retain, Integer, default: 0
-  property :force, Boolean, default: 0
+  property :hc_force, Boolean, default: 0
 end
 
 # Wordlist Class
@@ -235,7 +235,7 @@ class Wordlists
   property :lastupdated, DateTime
   property :name, String, length: 256
   property :path, String, length: 2000
-  property :size, Integer
+  property :size, String, length: 100
 end
 
 # Hashfile Class
