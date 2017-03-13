@@ -413,6 +413,9 @@ def upgrade_to_v060(user, password, host, database)
   conn.query('ALTER TABLE settings DROP COLUMN hcbinpath')
   conn.query('ALTER TABLE settings DROP COLUMN maxtasktime')
 
+  # Add version column
+  conn.query('ALTER TABLE settings ADD COLUMN version varchar(5)')
+
   # Add ui_themes to settings
   # conn.query('ALTER TABLE settings ADD COLUMN ui_themes varchar(')
 
@@ -455,5 +458,7 @@ def upgrade_to_v060(user, password, host, database)
   puts '[*] Updating Wordlists'
   conn.query('ALTER TABLE wordlists MODIFY size VARCHAR(100)')
 
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.6.0'")
   puts '[*] Upgrade to v0.6.0 complete.'
 end
