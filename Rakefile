@@ -34,16 +34,16 @@ desc 'Setup database'
 namespace :db do
 
   desc 'create, setup schema, and load defaults into db. do this on clean install'
-  #task :setup => [:create, :upgrade, :provision_agent, :provision_defaults]
   task :setup => [:create, :provision_defaults, :provision_agent]
   desc 'Upgrade your instance of HashView.'
   task :upgrade
 
-  desc 'create and setup schema'
-  #task :clean => [:create, :upgrade]
-  desc 'destroy db, create db, setup schema, load defaults'
-  #task :reset => [:destroy, :create, :upgrade, :provision_agent, :provision_defaults]
-  desc 'destroy db, create db, setup schema'
+  # Are the below ever needed beyond our testing?
+  #desc 'create and setup schema'
+  #task :clean => [:create] # Should really be made to a series of DELETE FROM
+  #desc 'destroy db, create db, setup schema, load defaults'
+  #task :reset => [:destroy, :create, :provision_agent, :provision_defaults]
+  #desc 'destroy db, create db, setup schema'
   #task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
 
   task :create do
