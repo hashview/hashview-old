@@ -13,7 +13,7 @@ Rake::TestTask.new do |t|
 end
 
 # resque-scheduler needs to know basics from resque::setup
-desc 'resque scheduler setup'
+desc 'Resque scheduler setup'
 namespace :resque do
   task :setup do
     require 'resque'
@@ -30,17 +30,21 @@ namespace :resque do
 end
 
 
-desc 'Setup test database'
+desc 'Setup database'
 namespace :db do
 
   desc 'create, setup schema, and load defaults into db. do this on clean install'
-  task :setup => [:create, :upgrade, :provision_agent, :provision_defaults]
-  desc 'create and setup schema'
-  task :clean => [:create, :upgrade]
-  desc 'destroy db, create db, setup schema, load defaults'
-  task :reset => [:destroy, :create, :upgrade, :provision_agent, :provision_defaults]
-  desc 'destroy db, create db, setup schema'
-  task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
+  task :setup => [:create, :provision_defaults, :provision_agent]
+  desc 'Upgrade your instance of HashView.'
+  task :upgrade
+
+  # Are the below ever needed beyond our testing?
+  #desc 'create and setup schema'
+  #task :clean => [:create] # Should really be made to a series of DELETE FROM
+  #desc 'destroy db, create db, setup schema, load defaults'
+  #task :reset => [:destroy, :create, :provision_agent, :provision_defaults]
+  #desc 'destroy db, create db, setup schema'
+  #task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
 
   task :create do
     if ENV['RACK_ENV'].nil?
@@ -55,6 +59,7 @@ namespace :db do
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     # Query for DB Values
+    # TODO check for values returned and alert if not true
     query = [
         'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "SELECT @@global.innodb_large_prefix".inspect
     ]
@@ -92,7 +97,7 @@ namespace :db do
     begin
       system(query.compact.join(' '))
     rescue
-      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+      raise "Something went wrong. double check your config/database.yml file and manually test access to mysql. \n Also verify that SELECT '@@global.innodb_large_prefix' and 'SELECT @@global.innodb_file_format' both equal 1"
     end
 
   end
@@ -250,14 +255,50 @@ namespace :db do
 
   desc 'Perform non destructive auto migration'
   task :upgrade do
+    db_version = Gem::Version.new('0.0.0')
+
+    # Check to see what version the app is at
+    application_version = File.open('VERSION') {|f| f.readline}
+
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
+
+    config = YAML.load_file('config/database.yml')
+    config = config[ENV['RACK_ENV']]
+    user, password, host = config['user'], config['password'], config['hostname']
+    database = config['database']
+    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
+    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
+
+    puts '[*] Connecting to DB'
+    conn = Mysql.new host, user, password, database
+
+    puts '[*] Collecting table information on Settings'
+    settings = conn.query('DESC settings')
+    has_version_column = false
+    settings.each_hash do |row|
+      if row['field'].to_s.downcase == 'version'
+        has_version_column = true
+        db_version = Gem::Version.new(conn.query('SELECT version FROM SETTINGS'))
+      end
+    end
+
+    if has_version_column == false
+      db_version = Gem::Version.new('0.5.1')
+    end
+
+    # TODO turn into hash where version is key, and value is method/function name?
+    if Gem::Version.new(db_version) < Gem::Version.new(application_version)
+      if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
+        upgrade_to_v060(user, password, host, database)
+      end
+    end
+
+    # Incase we missed anything
     #DataMapper.repository.auto_upgrade!
-    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
-    puts 'db:auto:upgrade executed'
-    #DataMapper.repository.auto_migrate!
-    #puts 'db:auto:migrate exectued'
+    #DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+    #puts 'db:auto:upgrade executed'
   end
 
   desc 'Migrate From old DB to new DB schema'
@@ -344,4 +385,75 @@ namespace :db do
 
   end
 
+end
+
+
+def upgrade_to_v060(user, password, host, database)
+  puts '[*] Upgrading from v0.5.1 to v0.6.0'
+  conn = Mysql.new host, user, password, database
+
+  hc_binpath = ''
+  max_task_time = ''
+
+  # Collect old settings
+  puts '[*] Reading Settings Table.'
+  settings = conn.query('SELECT * FROM settings')
+  settings.each_hash do |row|
+    hc_binpath = row['hcbinpath'].to_s
+    max_task_time = row['maxtasktime'].to_s
+  end
+
+  puts '[*] Creating new Hashcat Settings table.'
+  # Create HcSettings table
+  conn.query('CREATE TABLE IF NOT EXISTS HashcatSettings(id INT PRIMARY KEY AUTO_INCREMENT, hc_binpath VARCHAR(2000), max_task_time VARCHAR(2000), opencl_device_types INT, workload_profile INT, gpu_temp_disable BOOLEAN, gpu_temp_abort INT, gpu_temp_retain INT, hc_force BOOLEAN)')
+  conn.query("INSERT INTO HashcatSettings(hc_binpath, max_task_time, opencl_device_types, workload_profile, gpu_temp_disable, gpu_temp_abort, gpu_temp_retain, hc_force) VALUES('#{hc_binpath}', '#{max_task_time}', 0, 0, 0, 0, 0, 0)")
+
+  puts '[*] Removing duplicate data from current settings table.'
+  # Alter Settings
+  conn.query('ALTER TABLE settings DROP COLUMN hcbinpath')
+  conn.query('ALTER TABLE settings DROP COLUMN maxtasktime')
+
+  # Add ui_themes to settings
+  # conn.query('ALTER TABLE settings ADD COLUMN ui_themes varchar(')
+
+  puts '[*] Upgrading hashes table. This might take some time. Be patient.'
+  # Rename existing table
+  conn.query('RENAME TABLE hashes to hashesOld')
+
+  # Create new hashes table
+  conn.query('CREATE TABLE IF NOT EXISTS hashesNew(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256), unique index index_of_orignalhashes (originalhash), index index_of_hashtypes (hashtype)) ROW_FORMAT=DYNAMIC')
+
+  # Migrate hashes from hashesOld to hashesNew
+  old_hashes = conn.query('SELECT * FROM hashesOld')
+  old_hashes.each_hash do |row|
+    conn.query("INSERT INTO hashesNew(id, lastupdated, originalhash, hashtype, cracked, plaintext) VALUES('#{row['id']}', '#{row['lastupdated']}', '#{row['originalhash']}', '#{row['hashtype']}', '#{row['cracked']}', '#{row['plaintext']}')")
+  end
+
+  # Rename HashesNew to hashes
+  conn.query('RENAME TABLE hashesNew to hashes')
+
+  # Remove old hashes table
+  conn.query('DROP TABLE hashesOld')
+
+  # Create new Agent Table
+  conn.query('CREATE TABLE IF NOT EXISTS Agent(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime')
+
+  # Create new agent
+  puts '[*] Provisioning hashview local agent'
+
+  agent_config = {}
+  agent_config['ip'] = '127.0.0.1'
+  agent_config['port'] = '4567'
+  agent_config['uuid'] = SecureRandom.uuid.to_s
+  File.open('config/agent_config.json', 'w') do |f|
+    f.write(JSON.pretty_generate(agent_config))
+  end
+
+  conn.query.("INSERT INTO agents (name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')")
+
+  # Update size column for wordlists
+  puts '[*] Updating Wordlists'
+  conn.query('ALTER TABLE wordlists MODIFY size VARCHAR(100)')
+
+  puts '[*] Upgrade to v0.6.0 complete.'
 end

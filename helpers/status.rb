@@ -7,17 +7,37 @@ def isDevelopment?
   Sinatra::Base.development?
 end
 
-def isOldVersion()
-  begin
-    if Targets.all
+def isOldVersion?
+
+  db_version = 'null'
+  # Check to see what version the app is at
+  application_version = File.open('VERSION') {|f| f.readline}
+  puts 'APPLICATION VERSION: ' + application_version.to_s
+  application_version = application_version.to_i
+
+  # Check for v0.5.1
+  # Note this version does not have a versions table. Going forward we will check that value
+  has_version_column = false
+  @tables = repository(:default).adapter.select('SHOW TABLES')
+  @tables.each do | row |
+    if row['Tables_in_hashview'] == 'version'
+      has_version_column true
+    end
+  end
+  
+  if has_version_column == true
+    db_version = settings.first(fields: [:version], id: params[:hashfile_id]).version.to_i
+    puts 'DB:VERSION ' + db_version.to_s
+    if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       return true
     else
       return false
     end
-  rescue
-    # we really need a better upgrade process
-    return false
+  else
+    puts 'No version column found. Assuming Version 0.5.1'
+    return true
   end
+
 end
 
 def updateTaskqueueStatus(taskqueue_id, status, agent_id)

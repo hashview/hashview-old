@@ -19,20 +19,20 @@ if ENV['RACK_ENV'].nil?
   ENV['RACK_ENV'] = 'production'
 end
 
-# Verify upgrade steps have been performed to support distributed cracking
-unless File.exist?('config/agent_config.json')
-  puts "You need to upgrade your installation to support distributed cracking. Run the following:\n"
-  puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:provision_agent"
+if isOldVersion?
+  #puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
+  puts "\n\nYour installation is out of date, please run the following upgrade task.\n"
+  puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:upgrade\n\n\n"
   exit
 end
 
-# Check for valid session before proccessing
+# Check for valid session before processing
 before /^(?!\/(login|register|logout|v1))/ do
   @settings = Settings.first
   if !validSession?
     redirect to('/login')
   else
-    hc_settings = HcSettings.first
+    hc_settings = HashcatSettings.first
     if (hc_settings && hc_settings.hc_binpath.nil?) || hc_settings.nil?
       flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>'
     end

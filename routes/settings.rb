@@ -1,13 +1,13 @@
 # encoding: utf-8
 get '/settings' do
 
-  @hc_settings = HcSettings.first
+  @hc_settings = HashcatSettings.first
 
   @themes = %w(Light Dark Slate Flat Superhero Solar)
 
   if @hc_settings.nil?
-    @hc_settings = HcSettings.create
-    @hc_settings = HcSettings.first
+    @hc_settings = HashcatSettings.create
+    @hc_settings = HashcatSettings.first
 
   end
 
@@ -25,7 +25,7 @@ post '/settings' do
   if params[:form_id] == '1' # Hashcat Settings
 
     # Declare our db object first so that we can save values along the way instead of at the end
-    hc_settings = HcSettings.first
+    hc_settings = HashcatSettings.first
 
     # Hashcat Binary Path Sanity checks
     if params[:hc_binpath].nil? || params[:hc_binpath].empty?
