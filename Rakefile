@@ -392,6 +392,18 @@ def upgrade_to_v060(user, password, host, database)
   puts '[*] Upgrading from v0.5.1 to v0.6.0'
   conn = Mysql.new host, user, password, database
 
+
+  # Check for my.cnf requirements
+  puts '[*] Checking for DB requirements'
+  has_file_format = `grep 'innodb_file_format = Barracuda' /etc/mysql/my.cnf`
+  has_large_prefix = `grep 'innodb_large_prefix = 1' /etc/mysql/my.cnf`
+  has_file_per_table = `grep 'innodb_file_per_table = true' /etc/mysql/my.cnf`
+  if has_file_format.empty? or has_large_prefix.empty? or has_file_per_table.empty?
+    puts '[!] You need to update your SQL configuration: https://github.com/hashview/hashview/wiki/Upgrading-Hashview#upgrading-from-05x-beta-to-060-beta'
+    puts '[!] After modifying the file you will need to restart your mysql service'
+    exit
+  end
+
   hc_binpath = ''
   max_task_time = ''
 
