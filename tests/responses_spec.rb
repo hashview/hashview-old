@@ -117,7 +117,7 @@ class MyTest < MiniTest::Test
     assert_equal 'http://example.org/home', last_response.location
     follow_redirect!
     assert last_response.ok?
-    assert last_response.body.include?('Cracked')
+    assert last_response.body.include?('Hashview')
     delete_testuser(userid)
   end
 
