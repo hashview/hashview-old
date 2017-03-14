@@ -392,7 +392,6 @@ def upgrade_to_v060(user, password, host, database)
   puts '[*] Upgrading from v0.5.1 to v0.6.0'
   conn = Mysql.new host, user, password, database
 
-
   # Check for my.cnf requirements
   puts '[*] Checking for DB requirements'
   has_file_format = `grep 'innodb_file_format = Barracuda' /etc/mysql/my.cnf`
