@@ -147,7 +147,7 @@ namespace :db do
     puts '[*] Setting default theme ...'
     # Assign Default CSS theme
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes,version) VALUES ('Light','0.6.0')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','0.6.0')".inspect
     ]
     begin
       system(query.compact.join(' '))
