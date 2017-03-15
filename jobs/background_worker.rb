@@ -147,6 +147,7 @@ class Api
               :file => File.new(crack_file, 'rb'),
               :runtime => run_time
             },
+            :cookies => {:agent_uuid => @uuid},
             :verify_ssl => false
       )
       response = request.execute
@@ -155,15 +156,6 @@ class Api
       return '{error_msg: \'api call failed\'}'
     end
   end
-
-
-  # # api call to upload hashcat output for dashboard
-  # def self.upload_hcoutput(filepath)
-  #   url = "https://#{@server}/v1/hcoutput/status"
-  #   status = hashcatParser(filepath)
-  #   return self.post(url, status)
-  # end
-
 end
 
 # parses hashcat output
@@ -203,7 +195,7 @@ class LocalAgent
 
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
-    #p 'jobruning #####################'
+
     while(1)
       sleep(4)
 
