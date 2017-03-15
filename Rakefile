@@ -458,7 +458,7 @@ def upgrade_to_v060(user, password, host, database)
   conn.query('DROP TABLE hashesOld')
 
   # Create new Agent Table
-  conn.query('CREATE TABLE IF NOT EXISTS Agent(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime)')
+  conn.query('CREATE TABLE IF NOT EXISTS agents(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime)')
 
   # Create new agent
   puts '[*] Provisioning Hashview local agent'
@@ -471,7 +471,7 @@ def upgrade_to_v060(user, password, host, database)
     f.write(JSON.pretty_generate(agent_config))
   end
 
-  conn.query.("INSERT INTO agents (name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')")
+  conn.query.("INSERT INTO agents(name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')")
 
   # Update size column for wordlists
   puts '[*] Updating Wordlists'

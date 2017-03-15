@@ -16,12 +16,12 @@ def isOldVersion?
   application_version = application_version.to_i
 
   # Check for v0.5.1
-  # Note this version does not have a versions table. Going forward we will check that value
+  # Note this version does not have a versions column. Going forward we will check that value
   has_version_column = false
-  @tables = repository(:default).adapter.select('SHOW TABLES')
+  @tables = repository(:default).adapter.select('DESC settings')
   @tables.each do | row |
-    if row['Tables_in_hashview'] == 'version'
-      has_version_column true
+    if row['Field'] == 'version'
+      has_version_column = true
     end
   end
   
