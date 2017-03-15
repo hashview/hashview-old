@@ -210,6 +210,7 @@ class Settings
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
   property :ui_themes, String, default: 'Light', :required => true
+  property :version, String, length:
 end
 
 # HashCat settings
