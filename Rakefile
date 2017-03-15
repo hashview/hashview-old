@@ -440,6 +440,12 @@ def upgrade_to_v060(user, password, host, database)
   # Migrate hashes from hashesOld to hashesNew
   old_hashes = conn.query('SELECT * FROM hashesOld')
   old_hashes.each_hash do |row|
+    if row['cracked'] == '1'
+      row['plaintext'] = row['plaintext'].gsub("\\", "\\\\\\")
+      row['plaintext'] = row['plaintext'].gsub("'", "\\\\'")
+    end
+    row['originalhash'] = row['originalhash'].gsub("\\", "\\\\\\")
+    row['originalhash'] = row['originalhash'].gsub("'", "\\\\'")
     conn.query("INSERT INTO hashesNew(id, lastupdated, originalhash, hashtype, cracked, plaintext) VALUES('#{row['id']}', '#{row['lastupdated']}', '#{row['originalhash']}', '#{row['hashtype']}', '#{row['cracked']}', '#{row['plaintext']}')")
   end
 
@@ -453,7 +459,7 @@ def upgrade_to_v060(user, password, host, database)
   conn.query('CREATE TABLE IF NOT EXISTS Agent(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime')
 
   # Create new agent
-  puts '[*] Provisioning hashview local agent'
+  puts '[*] Provisioning Hashview local agent'
 
   agent_config = {}
   agent_config['ip'] = '127.0.0.1'
