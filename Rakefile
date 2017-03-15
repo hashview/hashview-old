@@ -100,6 +100,8 @@ namespace :db do
       raise "Something went wrong. double check your config/database.yml file and manually test access to mysql. \n Also verify that SELECT '@@global.innodb_large_prefix' and 'SELECT @@global.innodb_file_format' both equal 1"
     end
 
+    puts '[*] Building the rest of the tables from datamapper'
+    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
   end
 
   task :destroy do
@@ -456,7 +458,7 @@ def upgrade_to_v060(user, password, host, database)
   conn.query('DROP TABLE hashesOld')
 
   # Create new Agent Table
-  conn.query('CREATE TABLE IF NOT EXISTS Agent(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime')
+  conn.query('CREATE TABLE IF NOT EXISTS Agent(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(100), src_ip VARCHAR(45), uuid VARCHAR(60), status VARCHAR(40), hc_status VARCHAR(6000), heartbeat datetime)')
 
   # Create new agent
   puts '[*] Provisioning Hashview local agent'
