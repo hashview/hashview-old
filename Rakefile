@@ -471,7 +471,7 @@ def upgrade_to_v060(user, password, host, database)
     f.write(JSON.pretty_generate(agent_config))
   end
 
-  conn.query.("INSERT INTO agents(name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')")
+  conn.query("INSERT INTO agents(name, uuid, status, src_ip) VALUES ('Local Agent', '#{agent_config['uuid']}', 'Authorized', '127.0.0.1')")
 
   # Update size column for wordlists
   puts '[*] Updating Wordlists'
