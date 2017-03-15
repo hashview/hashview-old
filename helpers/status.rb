@@ -20,13 +20,14 @@ def isOldVersion?
   has_version_column = false
   @tables = repository(:default).adapter.select('DESC settings')
   @tables.each do | row |
-    if row['Field'] == 'version'
+    if row.field == 'version'
       has_version_column = true
     end
   end
   
   if has_version_column == true
-    db_version = settings.first(fields: [:version], id: params[:hashfile_id]).version.to_i
+    @settings = Settings.first
+    db_version = @settings.version
     puts 'DB:VERSION ' + db_version.to_s
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       return true
