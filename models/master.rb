@@ -203,7 +203,7 @@ class Settings
 
   property :id, Serial
   property :smtp_server, String
-  property :smtp_sender, String
+  property :smtp_sender, String, length: 50
   property :smtp_user, String
   property :smtp_pass, String
   property :smtp_use_tls, Boolean

@@ -299,7 +299,7 @@ namespace :db do
 
     # Incase we missed anything
     #DataMapper.repository.auto_upgrade!
-    #DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
     #puts 'db:auto:upgrade executed'
   end
 
@@ -426,8 +426,9 @@ def upgrade_to_v060(user, password, host, database)
   conn.query('ALTER TABLE settings DROP COLUMN hcbinpath')
   conn.query('ALTER TABLE settings DROP COLUMN maxtasktime')
 
-  # Add version column
+  # Add version & SMTP_SENDER column
   conn.query('ALTER TABLE settings ADD COLUMN version varchar(5)')
+  conn.query('ALTER TABLE settings ADD COLUMN smtp_sender varchar(50)')
 
   # Add ui_themes to settings
   # conn.query('ALTER TABLE settings ADD COLUMN ui_themes varchar(')
