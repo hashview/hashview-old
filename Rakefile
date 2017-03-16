@@ -417,9 +417,10 @@ def upgrade_to_v060(user, password, host, database)
   end
 
   puts '[*] Creating new Hashcat Settings table.'
-  # Create HcSettings table
-  conn.query('CREATE TABLE IF NOT EXISTS HashcatSettings(id INT PRIMARY KEY AUTO_INCREMENT, hc_binpath VARCHAR(2000), max_task_time VARCHAR(2000), opencl_device_types INT, workload_profile INT, gpu_temp_disable BOOLEAN, gpu_temp_abort INT, gpu_temp_retain INT, hc_force BOOLEAN)')
-  conn.query("INSERT INTO HashcatSettings(hc_binpath, max_task_time, opencl_device_types, workload_profile, gpu_temp_disable, gpu_temp_abort, gpu_temp_retain, hc_force) VALUES('#{hc_binpath}', '#{max_task_time}', 0, 0, 0, 0, 0, 0)")
+  # Create HashcatSettings table
+  # note class name HashcatSettings and tablename hashcat_settings differ... this is because ... reasons
+  conn.query('CREATE TABLE IF NOT EXISTS hashcat_settings(id INT PRIMARY KEY AUTO_INCREMENT, hc_binpath VARCHAR(2000), max_task_time VARCHAR(2000), opencl_device_types INT, workload_profile INT, gpu_temp_disable BOOLEAN, gpu_temp_abort INT, gpu_temp_retain INT, hc_force BOOLEAN)')
+  conn.query("INSERT INTO hashcat_settings(hc_binpath, max_task_time, opencl_device_types, workload_profile, gpu_temp_disable, gpu_temp_abort, gpu_temp_retain, hc_force) VALUES('#{hc_binpath}', '#{max_task_time}', 0, 0, 0, 0, 0, 0)")
 
   puts '[*] Removing duplicate data from current settings table.'
   # Alter Settings
