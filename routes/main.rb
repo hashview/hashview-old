@@ -12,9 +12,6 @@ get '/' do
 end
 
 get '/home' do
-  if isOldVersion
-    return "You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
-  end
 
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
   @jobs = Jobs.all(:order => [:id.asc])

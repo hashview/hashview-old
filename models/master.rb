@@ -203,17 +203,18 @@ class Settings
 
   property :id, Serial
   property :smtp_server, String
-  property :smtp_sender, String
+  property :smtp_sender, String, length: 50
   property :smtp_user, String
   property :smtp_pass, String
   property :smtp_use_tls, Boolean
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
   property :ui_themes, String, default: 'Light', :required => true
+  property :version, String, length: 5
 end
 
 # HashCat settings
-class HcSettings
+class HashcatSettings
   include DataMapper::Resource
 
   property :id, Serial
@@ -224,7 +225,7 @@ class HcSettings
   property :gpu_temp_disable, Boolean, default: 0
   property :gpu_temp_abort, Integer, default: 0
   property :gpu_temp_retain, Integer, default: 0
-  property :force, Boolean, default: 0
+  property :hc_force, Boolean, default: 0
 end
 
 # Wordlist Class
@@ -235,7 +236,7 @@ class Wordlists
   property :lastupdated, DateTime
   property :name, String, length: 256
   property :path, String, length: 2000
-  property :size, Integer
+  property :size, String, length: 100
 end
 
 # Hashfile Class
