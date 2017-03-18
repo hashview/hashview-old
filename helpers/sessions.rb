@@ -8,4 +8,14 @@ helpers do
   def getUsername
     Sessions.getUsername(session[:session_id])
   end
+
+  def agentAuthorized(uuid)
+    auth = Agents.first(:uuid => uuid, :status.not => 'Pending')
+
+    if auth
+      return true
+    else
+      return false
+    end
+  end
 end

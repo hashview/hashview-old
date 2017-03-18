@@ -1,7 +1,18 @@
 # my shameful attempt at implementing a REST API
 
+get '/v1/notauthorized' do
+  {
+      status: 200,
+      type: 'Error',
+      message: 'Your agent is not authorized to work with this cluster.'
+  }.to_json
+end
+
 # our main worker queue
 get '/v1/queue' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   # grab next task to be performed
   @queue = Taskqueues.first(status: 'Queued')
   if @queue
@@ -20,6 +31,9 @@ end
 # used when agent goes offline and comes back online
 # without a running hashcat cmd while task still assigned to them
 get '/v1/queue/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   # get agent id from uuid in cookie
   uuid = request.cookies['agent_uuid']
 
@@ -47,6 +61,9 @@ end
 
 # remove item from queue
 get '/v1/queue/:id/remove' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   @queue = Taskqueues.first(id: params[:id])
   @queue.destroy
   return
@@ -54,6 +71,9 @@ end
 
 # update status of taskqueue item
 post '/v1/queue/:taskqueue_id/status' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   jdata = JSON.parse(request.body.read)
   agent = Agents.first(uuid: jdata['agent_uuid'])
   puts "[+] updating taskqueue id: #{params['taskqueue_id']} to status: #{jdata['status']}"
@@ -62,6 +82,9 @@ end
 
 # update status of job
 post '/v1/jobtask/:jobtask_id/status' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   jdata = JSON.parse(request.body.read)
   puts jdata
   puts "======================================="
@@ -71,18 +94,27 @@ end
 
 # return jobtask details
 get '/v1/jobtask/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   jobtask = Jobtasks.first(id: params[:id])
   return jobtask.to_json
 end
 
 # provide job info
 get '/v1/job/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   @job = Jobs.first(id: params[:id])
   return @job.to_json
 end
 
 # provide wordlist info
 get '/v1/wordlist' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   wordlists = Wordlists.all
   data = {}
   data['wordlists'] = wordlists
@@ -91,6 +123,9 @@ end
 
 # serve a wordlist
 get '/v1/wordlist/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   wordlist = Wordlists.first(id: params[:id])
   send_file wordlist.path, :type => 'text', :filename => wordlist.path.split('/')[-1]
 end
@@ -99,6 +134,9 @@ end
 # generate and serve hashfile
 # TODO: make this a background worker in resque
 get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   puts '===== creating hash_file ======='
   jobtask_id = params[:jobtask_id]
   hashfile_id = params[:hashfile_id]
@@ -138,6 +176,9 @@ end
 
 # accept uploaded crack files
 post '/v1/jobtask/:jobtask_id/crackfile/upload' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   tmpfile = "control/tmp/#{rand.to_s[2..2048]}.txt"
   puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
   File.open(tmpfile, 'wb') do |f|
@@ -150,53 +191,13 @@ end
 # accept upload hashcat status
 # TODO complete this
 post '/v1/hcoutput/status' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
   puts "parsing uploaded hcoutput hash"
   return request.body.read
 end
 
-# # heartbeat
-# get '/v1/agents/:uuid/heartbeat' do
-#   response = Hash.new
-#   if params[:uuid].nil?
-#     status 200
-#     {
-#         Status: 200,
-#         Type: 'Error',
-#         Message: 'Missing UUID'
-#     }.to_json
-#   else
-#     @agent = Agents.first(:uuid => params[:uuid])
-#     if !@agent.nil?
-#       if @agent.status == "Authorized"
-#         redirect to("/v1/agents/#{params[:uuid]}/authorize")
-#       else
-#         # check to see if agent should be working on an already assigned task
-#         @assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
-#         @agent.status = "Online"
-#         @agent.heartbeat = Time.now
-#         @agent.save
-#         data = {}
-#         data['Status'] = 200
-#         data['Type'] = 'Message'
-#         data['Message'] = 'OK'
-#         if @assigned_task
-#           data['Working'] = @assigned_task.id
-#         end
-#         return data.to_json
-#       end
-#     else
-#       newagent = Agents.new
-#       newagent.uuid = params[:uuid]
-#       newagent.name = params[:uuid] + " (untrusted)"
-#       newagent.status = "Pending"
-#       newagent.src_ip = "#{request.ip}"
-#       newagent.heartbeat = Time.now
-#       newagent.save
-#       response['Message'] = 'Go Away'
-#       return response.to_json
-#     end
-#   end
-# end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
@@ -209,6 +210,9 @@ post '/v1/agents/:uuid/heartbeat' do
         Message: 'Missing UUID'
     }.to_json
   else
+    # is agent authorized
+    redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
     # read payload data
     payload = JSON.parse(request.body.read)
 
@@ -329,6 +333,7 @@ get '/v1/agents/:uuid/authorize' do
         Message: 'Missing UUID'
     }.to_json
   else
+    #TODO SECURITY - make sure this param is a formated as a valid uuid
     agent = Agents.first(:uuid => params[:uuid])
   end
 
