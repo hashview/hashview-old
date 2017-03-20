@@ -286,8 +286,8 @@ end
 #    end
 #  end
 
-  @file_types
-end
+#  @file_types
+#end
 
 def detectHashType(hash_file, file_type)
   @hashtypes = []
