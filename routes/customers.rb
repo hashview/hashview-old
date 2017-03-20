@@ -165,14 +165,32 @@ get '/customers/upload/verify_filetype' do
 
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
+  #@filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
+  @filetypes = %w(pwdump shadow dsusers smart_hashdump $hash $user:$hash $hash:$salt)
   @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
 
 post '/customers/upload/verify_filetype' do
   varWash(params)
-  
+
+  if !params[:filetype] || params[:filetype].nil? || params[:filetype] == '- SELECT -'
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  if params[:filetype] == '$hash'
+    params[:filetype] = 'hash_only'
+  end
+
+  if params[:filetype] == '$user:$hash'
+    params[:filetype] = 'user_hash'
+  end
+
+  if params[:filetype] == '$hash:$salt'
+    params[:filetype] = 'hash_salt'
+  end
+
   redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
@@ -189,10 +207,10 @@ end
 post '/customers/upload/verify_hashtype' do
   varWash(params)
 
-  if !params[:filetype] || params[:filetype].nil?
-    flash[:error] = 'You must specify a valid hashfile type.'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  end
+  #if !params[:filetype] || params[:filetype].nil?
+  #  flash[:error] = 'You must specify a valid hashfile type.'
+  #  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  #end
 
   filetype = params[:filetype]
 
