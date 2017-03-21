@@ -191,9 +191,31 @@ end
 def getMode(hash)
   @modes = []
   if hash =~ /^\w{32}$/
+    @modes.push('0')	  # MD5
+    # @modes.push('23')   # Skype (has backdoors)
+    @modes.push('900')  # MD4
     @modes.push('1000') # NTLM
+    @modes.push('2600') # Double MD5
     @modes.push('3000') # LM (in pwdump format)
-    @modes.push('0')	# MD5
+    @modes.push('3500') # md5(md5(md5($pass)))
+    @modes.push('4300') # md5(strtroupper(md5($pass)))
+    @modes.push('4400') # md5(sha1($pass))
+    @modes.push('8600') # Lotus Notes/Domino 5
+  elsif hash =~ /^[a-f0-9]{32}:.+$/
+    @modes.push('10')   # md5($pass.$salt)
+    @modes.push('20')   # md5($salt.$pass)
+    @modes.push('30')   # md5(unicode($pass).$salt)
+    @modes.push('40')   # md5($salt.unicode($pass))
+    @modes.push('50')   # HMAC-MD5 (key = $pass)
+    @modes.push('60')   # HMAC-MD5 (key = $salt)
+    @modes.push('3610') # md5(md5($salt).$pass)
+    @modes.push('3710') # md5($salt.md5($pass))
+    @modes.push('3720') # md5($pass.md5($salt))
+    @modes.push('3910') # md5(md5($pass).md5($salt))
+    @modes.push('4010') # md5($salt.md5($salt.$pass))
+    @modes.push('4110') # md5($salt.md5($pass.$salt))
+    # @modes.push('4210') # md5($username.0.$pass)
+    @modes.push('11000')# PrestaShop
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
   elsif hash =~ /^[a-f0-9]{40}(:.+)?$/
@@ -221,16 +243,36 @@ end
 
 def modeToFriendly(mode)
   return 'MD5' if mode == '0'
-  return 'NTLM' if mode == '1000'
-  return 'LM' if mode == '3000'
+  return 'md5($pass.$salt)' if mode == '10'
+  return 'md5($salt.$pass)' if mode == '20'
+  return 'md5(unicode($pass).$salt)' if mode == '30'
+  return 'md5($salt.unicode($pass))' if mode == '40'
+  return 'HMAC-MD5 (key = $pass)' if mode == '50'
+  return 'HMAC-MD5 (key = $salt)' if mode == '60'
   return 'SHA-1' if mode == '100'
   return 'md5crypt' if mode == '500'
-  return 'bcrypt' if mode == '3200'
-  return 'sha256crypt' if mode == '7400'
-  return 'sha512crypt' if mode == '1800'
+  return 'MD4' if mode == '900'
+  return 'NTLM' if mode == '1000'
   return 'descrypt' if mode == '1500'
+  return 'sha512crypt' if mode == '1800'
+  return 'Double MD5' if mode == '2600'
+  return 'LM' if mode == '3000'
+  return 'bcrypt' if mode == '3200'
+  return 'md5(md5(md5($pass)))' if mode == '3500'
+  return 'md5(md5($salt).$pass)' if mode == '3610'
+  return 'md5($salt.md5($pass))' if mode == '3710'
+  return 'md5($pass.md5($salt))' if mode == '3720'
+  return 'md5(md5($pass).md5($salt))' if mode == '3910'
+  return 'md5($salt.md5($salt.$pass))' if mode == '4010'
+  return 'md5($salt.md5($pass.$salt))' if mode == '4110'
+  return 'md5(strtroupper(md5($pass)))' if mode == '4300'
+  return 'md5(sha1($pass))' if mode == '4400'
+  return 'sha256crypt' if mode == '7400'
   return 'NetNTLMv1' if mode == '5500'
   return 'NetNTLMv2' if mode == '5600'
+  return 'Lotus Notes/Domino 5' if mode == '8600'
+  return 'PrestaShop' if mode == '11000'
+
   return 'unknown'
 end
 
