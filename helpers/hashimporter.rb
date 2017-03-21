@@ -241,6 +241,7 @@ def getMode(hash)
   @modes
 end
 
+# This is never called.... should probably be removed
 def modeToFriendly(mode)
   return 'MD5' if mode == '0'
   return 'md5($pass.$salt)' if mode == '10'
