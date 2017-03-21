@@ -277,13 +277,15 @@ namespace :db do
     conn = Mysql.new host, user, password, database
 
     puts '[*] Collecting table information on Settings'
-    settings = conn.query('DESC settings')
+    #settings = conn.query('DESC settings')
+    settings = conn.query('SELECT * FROM settings')
     has_version_column = false
     settings.each_hash do |row|
-      if row['field'].to_s.downcase == 'version'
+      if row['version']
         has_version_column = true
-        db_version = Gem::Version.new(conn.query('SELECT version FROM SETTINGS'))
+        db_version = Gem::Version.new(row['version'])
       end
+      puts row['version']
     end
 
     if has_version_column == false
@@ -295,6 +297,9 @@ namespace :db do
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
         upgrade_to_v060(user, password, host, database)
       end
+    else
+      puts '[*] Your version is up to date!'
+      exit 0
     end
 
     # Incase we missed anything
@@ -395,14 +400,31 @@ def upgrade_to_v060(user, password, host, database)
   conn = Mysql.new host, user, password, database
 
   # Check for my.cnf requirements
-  puts '[*] Checking for DB requirements'
-  has_file_format = `grep 'innodb_file_format = Barracuda' /etc/mysql/my.cnf`
-  has_large_prefix = `grep 'innodb_large_prefix = 1' /etc/mysql/my.cnf`
-  has_file_per_table = `grep 'innodb_file_per_table = true' /etc/mysql/my.cnf`
-  if has_file_format.empty? or has_large_prefix.empty? or has_file_per_table.empty?
-    puts '[!] You need to update your SQL configuration: https://github.com/hashview/hashview/wiki/Upgrading-Hashview#upgrading-from-05x-beta-to-060-beta'
-    puts '[!] After modifying the file you will need to restart your mysql service'
-    exit
+  # Large file Prefix?
+  value = conn.query('SELECT @@global.innodb_large_prefix')
+  value.each do |row|
+    unless row[0] == '1'
+      puts '[!] Upgrade Failed. Mysql Prerequisites not met. Did you follow the steps outlined here: https://github.com/hashview/wiki/Upgradeing-Hashview#upgrading-from-05x-to-060-beta'
+      puts '[!] After modifying the file you will need to restart your mysql service'
+    end
+  end
+
+  # Large File Format?
+  value = conn.query('SELECT @@global.innodb_file_format')
+  value.each do |row|
+    unless row[0] == 'Barracuda'
+      puts '[!] Upgrade Failed. Mysql Prerequisites not met. Did you follow the steps outlined here: https://github.com/hashview/wiki/Upgradeing-Hashview#upgrading-from-05x-to-060-beta'
+      puts '[!] After modifying the file you will need to restart your mysql service'
+    end
+  end
+
+  # File per table?
+  value = conn.query('SELECT @@global.innodb_file_per_table')
+  value.each do |row|
+    unless row[0] == '1'
+      puts '[!] Upgrade Failed. Mysql Prerequisites not met. Did you follow the steps outlined here: https://github.com/hashview/wiki/Upgradeing-Hashview#upgrading-from-05x-to-060-beta'
+      puts '[!] After modifying the file you will need to restart your mysql service'
+    end
   end
 
   hc_binpath = ''
