@@ -218,8 +218,20 @@ def getMode(hash)
     @modes.push('11000')# PrestaShop
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
-  elsif hash =~ /^[a-f0-9]{40}(:.+)?$/
+  elsif hash =~ /^[a-f0-9]{40}$/
     @modes.push('100')  # SHA-1
+    @modes.push('190')  # sha1(LinkedIn)
+    @modes.push('4500') # sha1(sha1($pass))
+    @modes.push('4600') # sha1(sha1(sha1($pass)))
+    @modes.push('4700') # sha1(md5($pass))
+    @modes.push('6000') # RipeMD160
+  elsif hash =~ /^[a-f0-9]{40}.+$/
+    @modes.push('110')  # sha1($pass.$salt)
+    @modes.push('120')  # sha1($salt.$pass)
+    @modes.push('130')  # sha1(unicode($pass).$salt)
+    @modes.push('140')  # sha1($salt.unicode($pass))
+    @modes.push('150')  # HMAC-SHA1 (key = $pass)
+    @modes.push('160')  # HMAC-SHA1 (key = $salt)
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
@@ -251,6 +263,13 @@ def modeToFriendly(mode)
   return 'HMAC-MD5 (key = $pass)' if mode == '50'
   return 'HMAC-MD5 (key = $salt)' if mode == '60'
   return 'SHA-1' if mode == '100'
+  return 'sha1($pass.$salt)' if mode == '110'
+  return 'sha1($salt.$pass)' if mode == '120'
+  return 'sha1(unicode($pass).$salt)' if mode == '130'
+  return 'sha1($salt.unicode($pass))' if mode == '140'
+  return 'HMAC-SHA1 (key = $pass)' if mode == '150'
+  return 'HMAC-SHA1 (key = $salt)' if mode == '160'
+  return 'sha1(LinkedIn)' if mode == '190'
   return 'md5crypt' if mode == '500'
   return 'MD4' if mode == '900'
   return 'NTLM' if mode == '1000'
@@ -268,9 +287,13 @@ def modeToFriendly(mode)
   return 'md5($salt.md5($pass.$salt))' if mode == '4110'
   return 'md5(strtroupper(md5($pass)))' if mode == '4300'
   return 'md5(sha1($pass))' if mode == '4400'
+  return 'sha1(sha1($pass))' if mode == '4500'
+  return 'sha1(sha1(sha1($pass)))' if mode == '4600'
+  return 'sha1(md5($pass))' if mode == '4700'
   return 'sha256crypt' if mode == '7400'
   return 'NetNTLMv1' if mode == '5500'
   return 'NetNTLMv2' if mode == '5600'
+  return 'RipeMD160' if mode == '6000'
   return 'Lotus Notes/Domino 5' if mode == '8600'
   return 'PrestaShop' if mode == '11000'
 
