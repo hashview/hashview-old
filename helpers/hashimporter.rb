@@ -235,7 +235,10 @@ def getMode(hash)
   elsif hash =~ %r{^\$1\$[\.\/0-9A-Za-z]{0,8}\$[\.\/0-9A-Za-z]{22}$}
     @modes.push('500') 	# md5crypt
   elsif hash =~ /^[0-9A-Za-z]{16}$/
+    @modes.push('200')  # MySQL323
     @modes.push('3000') # LM
+    @modes.push('3100') # Oracle 7-10g, DES(Oracle)
+    @modes.push('5100') # Half MD5
   elsif hash =~ /\$\d+\$.{53}$/
     @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
   elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
@@ -270,6 +273,7 @@ def modeToFriendly(mode)
   return 'HMAC-SHA1 (key = $pass)' if mode == '150'
   return 'HMAC-SHA1 (key = $salt)' if mode == '160'
   return 'sha1(LinkedIn)' if mode == '190'
+  return 'MySQL323' if mode == '200'
   return 'md5crypt' if mode == '500'
   return 'MD4' if mode == '900'
   return 'NTLM' if mode == '1000'
@@ -277,6 +281,7 @@ def modeToFriendly(mode)
   return 'sha512crypt' if mode == '1800'
   return 'Double MD5' if mode == '2600'
   return 'LM' if mode == '3000'
+  return 'Oracle 7-10g, DES(Oracle)' if mode == '3100'
   return 'bcrypt' if mode == '3200'
   return 'md5(md5(md5($pass)))' if mode == '3500'
   return 'md5(md5($salt).$pass)' if mode == '3610'
@@ -290,10 +295,11 @@ def modeToFriendly(mode)
   return 'sha1(sha1($pass))' if mode == '4500'
   return 'sha1(sha1(sha1($pass)))' if mode == '4600'
   return 'sha1(md5($pass))' if mode == '4700'
-  return 'sha256crypt' if mode == '7400'
+  return 'Half MD5' if mode == '5100'
   return 'NetNTLMv1' if mode == '5500'
   return 'NetNTLMv2' if mode == '5600'
   return 'RipeMD160' if mode == '6000'
+  return 'sha256crypt' if mode == '7400'
   return 'Lotus Notes/Domino 5' if mode == '8600'
   return 'PrestaShop' if mode == '11000'
 
