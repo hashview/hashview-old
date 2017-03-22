@@ -51,7 +51,7 @@
                         %td #{agent.heartbeat}
                         %td
                           - if agent.src_ip == '127.0.0.1' || agent.src_ip == 'localhost'
-                            - if agent.status == 'Authorized'
+                            - if agent.status == 'Authorized' || agent.status == 'Online' || agent.status == 'Offline'
                               %a.btn.btn-primary.disabled{:href => "/agents/#{agent.id}/deauthorize"}
                                 Deauthorize
                             - else
