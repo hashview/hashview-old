@@ -47,3 +47,9 @@ li.borderless {
 .inputFiles_cust:active::before {
   background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
 }
+
+/* used for fixed width labels on dashboard */
+.labelfixedwidth {
+  min-width: 80px;
+  display: inline-block
+}
