@@ -31,7 +31,7 @@ get '/wordlists/delete/:id' do
     @wordlist.destroy
 
     # Update our magic wordlist
-    Resque.enqueue(MagicWordlist)
+    # Resque.enqueue(MagicWordlist)
   end
   redirect to('/wordlists/list')
 end
@@ -69,6 +69,6 @@ post '/wordlists/upload/' do
   wordlist.save
   
   # Update our magic wordlist
-  Resque.enqueue(MagicWordlist)
+  # Resque.enqueue(MagicWordlist)
   redirect to('/wordlists/list')
 end
