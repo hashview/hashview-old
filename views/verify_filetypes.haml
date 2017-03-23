@@ -10,7 +10,7 @@
                 Verify File Format
             .row
               .col-md-10.pull-left
-                Hashview automatically detected the file format (raw list of hashes, pwdump, etc.). If you'd like to override the detected format type, do so below.
+                Select the format these hashes are written as.
       %br
       %br
       .container
@@ -18,11 +18,12 @@
           .row
             %form{:class => "form-horizontal", :action => "/customers/upload/verify_filetype", :method => "post"}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Detected Hash File Type:
+                %label.control-label.col-xs-2{:for => ""} Select Hash File Type:
                 .col-xs-4
-                  %select.form-control{:name => "filetype"}
+                  %select.form-control{:name => 'filetype'}
+                    %option{:value => 'none', :name => 'filetype', :type => 'button'} - SELECT -
                     - @filetypes.each do |type|
-                      %option{:value => "#{type}", :name => "filetype", :type => "button"} #{type}
+                      %option{:value => "#{type}", :name => 'filetype', :type => "button"} #{type}
                   %input{:type => 'hidden', :name => 'hashid', :value=>"#{params[:hashid].to_s}"}
               .form-group
                 .col-xs-offset-2.col-xs-10

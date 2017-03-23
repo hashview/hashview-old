@@ -1,7 +1,6 @@
 # encoding: utf-8
 get '/accounts/list' do
   @users = User.all
-
   haml :account_list
 end
 

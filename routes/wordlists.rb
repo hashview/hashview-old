@@ -1,4 +1,5 @@
 # encoding: utf-8
+require_relative '../jobs/init' # this shouldnt be needed?
 get '/wordlists/list' do
   @wordlists = Wordlists.all
 
@@ -28,6 +29,9 @@ get '/wordlists/delete/:id' do
   
     # delete from db
     @wordlist.destroy
+
+    # Update our magic wordlist
+    # Resque.enqueue(MagicWordlist)
   end
   redirect to('/wordlists/list')
 end
@@ -61,7 +65,10 @@ post '/wordlists/upload/' do
   wordlist.name = upload_name 
   wordlist.path = file_name
   wordlist.size = size
+  wordlist.lastupdated = Time.now()
   wordlist.save
   
+  # Update our magic wordlist
+  # Resque.enqueue(MagicWordlist)
   redirect to('/wordlists/list')
 end

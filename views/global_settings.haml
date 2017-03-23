@@ -14,72 +14,213 @@
         }
       }
     .span15
-      %br
       .container
-        %h2 Global Settings
-        %br
-        .row
-          .col-md-10
-            %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Hashcat Binary Path
-                .col-xs-10
-                  - if @settings and @settings.hcbinpath
-                    %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath", :value => @settings.hcbinpath}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "hcbinpath", :id => "hcbinpath"}
-                  Note: Make sure the user running hashview has the ability to read the hashcat root folder
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Max Task Runtime (seconds)
-                .col-xs-10
-                  - if @settings and ! @settings.maxtasktime.nil? and ! @settings.maxtasktime.empty?
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => @settings.maxtasktime}
-                  - else
-                    %input{:type => "textbox", :class => "form-control", :name => "maxtasktime", :id => "maxtasktime", :value => "86400"}
-                  Note: Default value is 86400 seconds (24 hours)
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Server
-                .col-xs-10
-                  - if @settings and ! @settings.smtp_server.nil? and ! @settings.smtp_server.empty?
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
-                  - else
-                    %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'}
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} Use TLS
-                .col-xs-1.pull-left
-                  - if @settings and @settings.smtp_use_tls == true
-                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
-                  - else
-                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Settings
+    .span15
+      .container
+#exTab2.container
+  %ul.nav.nav-tabs
+    %li.active
+      %a{"data-toggle" => "tab", :href => "#1"} Hashcat
+    %li
+      %a{"data-toggle" => "tab", :href => "#2"} Email
+    %li
+      %a{"data-toggle" => "tab", :href => "#3"} UI
+  .tab-content
+    #1.tab-pane.active
+      %br
+      .col-md-10
+        %form{:name => 'hashcat_settings_form', :id => 'hashcat_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Hashcat Binary Path
+            .col-xs-10
+              - if @hc_settings and @hc_settings.hc_binpath
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hc_binpath', :id => 'hc_binpath', :value => @hc_settings.hc_binpath}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'hc_binpath', :id => 'hc_binpath'}
+              Note: Make sure the user running hashview has the ability to read the hashcat root folder
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Max Task Runtime
+            .col-xs-3
+              - if @hc_settings and ! @hc_settings.max_task_time.nil? and ! @hc_settings.max_task_time.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'max_task_time', :id => 'max_task_time', :value => @hc_settings.max_task_time}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'max_task_time', :id => 'max_task_time', :value => '86400'}
+            Seconds
+          .form-group
+            %label.control-label.col-xs-2{:for => ''}
+            .col-xs-7
+              %h3 The following Hashcat settings are optional
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --opencl-device-types (-D)
+            .col-xs-6
+              %select.form-control{:name => 'opencl_device_types'}
+                - if @hc_settings.opencl_device_types.to_s == '1'
+                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
+                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 1 - CPU
+                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
+                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+                - elsif @hc_settings.opencl_device_types.to_s == '2'
+                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
+                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
+                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 2 - GPU
+                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+                - elsif @hc_settings.opencl_device_types.to_s == '3'
+                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
+                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
+                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
+                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 3 - FPGA, DSP, Co-Processor
+                - else
+                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} unset
+                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
+                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
+                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --workload-profile (-w)
+            .col-xs-3
+              %select.form-control{:name => 'workload_profile'}
+                - if @hc_settings.workload_profile.to_s == '1'
+                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
+                  %option{:value => '1', :name => 'workload_profile', :type => 'button', selected: 'selected'} 1 - Low
+                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
+                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
+                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                - elsif @hc_settings.workload_profile.to_s == '2'
+                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
+                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
+                  %option{:value => '2', :name => 'workload_profile', :type => 'button', selected: 'selected'} 2 - Medium
+                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
+                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                - elsif @hc_settings.workload_profile.to_s == '3'
+                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
+                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
+                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
+                  %option{:value => '3', :name => 'workload_profile', :type => 'button', selected: 'selected'} 3 - High
+                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                - elsif @hc_settings.workload_profile.to_s == '4'
+                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
+                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
+                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
+                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
+                  %option{:value => '4', :name => 'workload_profile', :type => 'button', selected: 'selected'} 4 - Nightmare
+                - else
+                  %option{:value => '0', :name => 'workload_profile', :type => 'button', selected: 'selected'} unset
+                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
+                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
+                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
+                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --gpu-temp-disable
+            .col-xs-1
+              - if @hc_settings.gpu_temp_disable == false
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'gpu_temp_disable'}
+              -else
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'gpu_temp_disable', :checked => 'checked'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --gpu-temp-abort
+            .col-xs-1
+              - if @hc_settings.gpu_temp_abort.to_s == '0'
+                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_abort'}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_abort', :value => @hc_settings.gpu_temp_abort}
+            Degrees celsius (blank if unused)
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --gpu-temp-retain
+            .col-xs-1
+              - if @hc_settings.gpu_temp_retain.to_s == '0'
+                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_retain'}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_retain', :value => @hc_settings.gpu_temp_retain}
+            Degrees celsius (blank if unused)
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} --force
+            .col-xs-1
+              - if @hc_settings.hc_force == false
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'force', :id => 'force'}
+              -else
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'force', :id => 'force', :checked => 'checked'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '1'}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save
+    #2.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Server
+            .col-xs-10
+              - if @settings and ! @settings.smtp_server.nil? and ! @settings.smtp_server.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Sender Address
+            .col-xs-10
+              - if @settings and ! @settings.smtp_sender.nil? and ! @settings.smtp_sender.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :value => @settings.smtp_sender}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :placeholder => 'no-reply@hashview.local'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Use TLS
+            .col-xs-1.pull-left
+              - if @settings and @settings.smtp_use_tls == true
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
+              - else
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
 
-              .form-group
-                %label.control-label.col-xs-2{:for => ""} SMTP Auth type
-                .col-xs-10
-                  %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
-                    - @auth_types.each do |auth_type|
-                      - if @settings and (@settings.smtp_auth_type == auth_type)
-                        %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
-                      - else
-                        %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
-              .section
-                %div{:class => "label_leftalign field"}
-                  #smtp_auth_div{:style => "display:none"}
-                    .form-group
-                      %label.control-label.col-xs-2{:for => ""} SMTP Username
-                      .col-xs-10
-                        - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
-                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
-                        - else
-                          %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'}
-                    .form-group
-                      %label.control-label.col-xs-2{:for => ""} SMTP Password
-                      .col-xs-10
-                        - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
-                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
-                        - else
-                          %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
-              .form-group
-                .col-xs-offset-2.col-xs-10
-                  %a.btn.btn-primary{:href => "/test/email"}
-                    Send Test Email
-                  %button.btn.btn-primary{:type => "submit"} Save
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Auth type
+            .col-xs-10
+              %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
+                - @auth_types.each do |auth_type|
+                  - if @settings and (@settings.smtp_auth_type == auth_type)
+                    %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
+                  - else
+                    %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Username
+            .col-xs-10
+              - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} SMTP Password
+            .col-xs-10
+              - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
+                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
+              - else
+                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              %a.btn.btn-warning{:href => "/test/email"}
+                Send Test Email
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => "submit"} Save
+    #3.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'ui_settings_form', :id => 'ui_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ""} Themes
+            .col-xs-10
+              %select.form-control{:id => 'ui_themes', :name => 'ui_themes'}
+                - @themes.each do |ui_type|
+                  - if @settings and (@settings.ui_themes == ui_type)
+                    %option{:value => "#{ui_type}", :type => 'button', selected: 'selected'} #{ui_type}
+                  - else
+                    %option{:value => "#{ui_type}", :type => 'button'} #{ui_type}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save

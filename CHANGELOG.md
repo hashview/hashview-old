@@ -2,6 +2,38 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.6.0-beta] - 2017-xx-xx
+### Added
+ - Resque 'management' queue for system jobs
+ - Background job for automatically importing wordlists scp'd to control/wordlists
+ - Background job for removing old temp files.
+ - Support for user to set a SMTP Sender Name
+ - Themes!! (we personally like slate)
+ - Support for new hashcat settings: --force, --opencl-device-types, --workload-profile, --gpu-temp-disable, --gpu-temp-abort, --gpu-temp-retain
+ - Ability to copy/paste hashfiles into new jobs as their being created
+ - Support for smart hashdump and username:[NTLM hash] hashfiles
+ - Two new rule sets for high and low utility
+ - Support for cracking and importing hashes with salts
+ - Support for more hashes: [import only] md5($pass.$salt), md5($salt.$pass), md5(unicode($pass).$salt), md5($salt.unicode($pass)), 	HMAC-MD5 (key = $pass), HMAC-MD5 (key = $salt), sha1($pass.$salt), sha1($salt.$pass), sha1(unicode($pass).$salt), sha1($salt.unicode($pass)), HMAC-SHA1 (key = $pass), HMAC-SHA1 (key = $salt), Domain Cached Credentials (DCC), MS Cache, 	sha256($pass.$salt), sha256($salt.$pass), sha256(unicode($pass).$salt), sha256($salt.unicode($pass)), HMAC-SHA256 (key = $pass), HMAC-SHA256 (key = $salt), vBulletin < v3.8.5 and vBulletin >= v3.8.5
+ 
+### Changed
+ - Moved queue management for cracking tasks from redis/resqueu to mysqld
+ - Expanded hashes table to allow for hashes up to 1024 characters in length
+ - Rake task db:upgrade will now automatically detect previous versions (starting with v0.5.1) and automatically upgrade your db and import current settings, users, cracked hashes, wordlists to new versions as they come out
+ - Startup proccess from two cmds to single foreman cmd
+ - Cracked output is now in hex format (better for importing symbols and other characters)
+ - Default sender address of emails from no-reply@Pony to no-reply@hashview
+ - Global settings is split into multiple panels for easier use.
+ 
+### Fixed
+ - Bug in combinator crack command
+ - Searches now include wildcards before/after submitted string
+ - Searches now remember what search type you entered
+ - Jumbo tron now properly updates status on page refresh
+ - Issue where Queued jobs are not being displayed on home page should be fixed
+ - You should now be prevented from editing a job that is running or queued
+ - Prevent the assignment of the same task twice to a job
+
 ## [v0.5.1-beta] - 2016-02-19
 ### Changed
 - changed from Sinatra classic style to modular style
