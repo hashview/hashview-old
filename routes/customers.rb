@@ -204,11 +204,6 @@ end
 post '/customers/upload/verify_hashtype' do
   varWash(params)
 
-  #if !params[:filetype] || params[:filetype].nil?
-  #  flash[:error] = 'You must specify a valid hashfile type.'
-  #  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  #end
-
   filetype = params[:filetype]
 
   hashfile = Hashfiles.first(id: params[:hashid])
