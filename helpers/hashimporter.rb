@@ -127,6 +127,16 @@ def importUserHash(hash, hashfile_id, type)
   updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
+def importHashSalt(hash, hashfile_id, type)
+  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  if @hash_id.nil?
+    addHash(hash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
+end
+
 def importHashOnly(hash, hashfile_id, type)
   if type == '3000'
     # import LM
@@ -333,6 +343,8 @@ def importHash(hash_file, hashfile_id, file_type, hashtype)
       importDsusers(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'user_hash'
       importUserHash(entry.chomp, hashfile_id, hashtype)
+    elsif file_type == 'hash_salt'
+      importHashSalt(entry.chomp, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end

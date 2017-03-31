@@ -147,7 +147,7 @@ get '/jobs/assign_hashfile' do
   @hashfiles.each do |hashfile|
     hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
     hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
-    @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + "/" + hashfile_total_count.to_s
+    @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
   end
 
   @job = Jobs.first(id: params[:job_id])
@@ -171,11 +171,9 @@ post '/jobs/assign_hashfile' do
     job.save
   end
 
-  if params[:edit]
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
-  else
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
-  end
+  url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
+  url = url + '&edit=1' if params[:edit]
+  redirect to(url)
 end
   
 get '/jobs/assign_tasks' do
@@ -234,11 +232,9 @@ post '/jobs/assign_tasks' do
     if params[:tasks].uniq!
       puts params
       flash[:error] = 'You cannot have duplicate tasks.'
-      if params[:edit]
-        redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
-      else
-        redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
-      end
+      url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
+      url = url + '&edit=1' if params[:edit]
+      redirect to (url)
     end
   end
  
@@ -352,9 +348,6 @@ get '/jobs/stop/:job_id/:task_id' do
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
-  # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:task_id]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
-  pid = pid.chomp
   
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
@@ -366,7 +359,6 @@ get '/jobs/stop/:job_id/:task_id' do
     tq.save
   end
 
-  
   referer = request.referer.split('/')
 
   if referer[3] == 'home'
