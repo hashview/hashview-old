@@ -211,7 +211,7 @@ post '/v1/agents/:uuid/heartbeat' do
     }.to_json
   else
     # is agent authorized
-    redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+    #redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
     # read payload data
     payload = JSON.parse(request.body.read)
