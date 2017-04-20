@@ -2,20 +2,44 @@
 get '/settings' do
 
   @hc_settings = HashcatSettings.first
+  @hub_settings = HubSettings.first
 
   @themes = %w(Light Dark Slate Flat Superhero Solar)
 
   if @hc_settings.nil?
-    @hc_settings = HashcatSettings.create
+    @hc_settings = HashcatSettings.create  # This shouldn't be needed
     @hc_settings = HashcatSettings.first
 
   end
 
   @settings = Settings.first
   if @settings.nil?
-    @settings = Settings.create
+    @settings = Settings.create  # This too shouldn't be needed
     @settings = Settings.first
   end
+
+  if @hub_settings.nil?
+    @hub_settings = HubSettings.create
+    @hub_settings = HubSettings.first
+  end
+  if @hub_settings.enabled
+    if @hub_settings.uuid and @hub_settings.auth_key
+      hub_response = Hub.statusAuth
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '403'
+        flash[:error] = 'Invalid Authentication to Hub, check UUID.'
+      else
+        hub_response = Hub.statusBalance
+        hub_response = JSON.parse(hub_response)
+        if hub_response['status'] == '200'
+          @hub_settings.balance = hub_response['balance']
+          @hub_settings.save
+          @hub_settings = HubSettings.first
+        end
+      end
+    end
+  end
+
   @auth_types = %w(None Plain Login cram_md5)
  
   haml :global_settings
@@ -118,7 +142,7 @@ post '/settings' do
 
     hc_settings.save
 
-  elsif params[:form_id] == '2' || '3' # Email & UI Settings
+  elsif params[:form_id] == '2' # Email
     settings = Settings.first
 
     if params[:smtp_use_tls] == 'on'
@@ -133,9 +157,20 @@ post '/settings' do
     settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
     settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
     settings.smtp_pass = params[:smtp_pass] unless params[:smtp_pass].nil? || params[:smtp_pass].empty?
-    settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
-
     settings.save
+
+  elsif params[:form_id] == '3' # UI Settings
+    settings = Settings.first
+    settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
+    settings.save
+
+  elsif params[:form_id] == '4'
+    hashview_hub = HubSettings.first
+
+    hashview_hub.enabled = '1' if params[:enabled] == 'on'
+    hashview_hub.enabled = '0' if params[:enabled] == 'off'
+    hashview_hub.uuid = params[:uuid] unless params[:uuid].nil? || params[:uuid].empty?
+    hashview_hub.save
 
   end
 
@@ -159,4 +194,6 @@ get '/test/email' do
 
   redirect to('/settings')
 end
+
+
 

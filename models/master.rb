@@ -191,9 +191,9 @@ end
 class Hashfilehashes
   include DataMapper::Resource
 
-  property :id, 	Serial
-  property :hash_id, 	Integer, :index => true
-  property :username, 	String, length: 256
+  property :id,	Serial
+  property :hash_id, Integer, :index => true
+  property :username, String, length: 256
   property :hashfile_id, Integer, :index => true
 end
 
@@ -209,8 +209,20 @@ class Settings
   property :smtp_use_tls, Boolean
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
-  property :ui_themes, String, default: 'Light', :required => true
+  property :ui_themes, String, default: 'Light', required: true
   property :version, String, length: 5
+end
+
+# Hashview Hub Settings
+class HubSettings # for some reason datamapper writes the table as hashview_hubs
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :enabled, Boolean
+  property :status, String, default: 'unregistered', required: true  # Options are registered, unregistered and pending
+  property :uuid, String
+  property :auth_key, String, length: 254
+  property :balance, Integer, default: 0
 end
 
 # HashCat settings
