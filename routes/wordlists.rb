@@ -59,15 +59,15 @@ post '/wordlists/upload/' do
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
   
   # Identify how many lines/enteries there are
-  size = File.foreach(file_name).inject(0) { |c| c + 1 }
-  
-  wordlist = Wordlists.new
-  wordlist.name = upload_name 
-  wordlist.path = file_name
-  wordlist.size = size
-  wordlist.lastupdated = Time.now()
-  wordlist.save
-  
+  # size = File.foreach(file_name).inject(0) { |c| c + 1 }
+  #
+  # wordlist = Wordlists.new
+  # wordlist.name = upload_name
+  # wordlist.path = file_name
+  # wordlist.size = size
+  # wordlist.lastupdated = Time.now()
+  # wordlist.save
+  #
   # Update our magic wordlist
   # Resque.enqueue(MagicWordlist)
   redirect to('/wordlists/list')

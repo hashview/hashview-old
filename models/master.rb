@@ -237,6 +237,8 @@ class Wordlists
   property :name, String, length: 256
   property :path, String, length: 2000
   property :size, String, length: 100
+  property :checksum, String, length: 64
+
 end
 
 # Hashfile Class
