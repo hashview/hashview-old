@@ -43,9 +43,12 @@ class Hub
   def self.get(url)
     begin
       p 'get: ' + url.to_s
+
+      hub_settings = HubSettings.first
       response = RestClient::Request.execute(
           :method => :get,
           :url => url,
+          :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
           :verify_ssl => false
       )
       p 'response: ' + response.body.to_s
@@ -58,11 +61,14 @@ class Hub
   def self.post(url, payload)
     begin
       p 'post: ' + payload.to_s
+      hub_settings = HubSettings.first
+      p 'cookie: ' + hub_settings.uuid.to_s + ' ' + hub_settings.auth_key.to_s
       response = RestClient::Request.execute(
           :method => :post,
           :url => url,
           :payload => payload.to_json,
           :headers => {:accept => :json},
+          :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
           :verify_ssl => false #TODO VALIDATE!
       )
       p 'response: ' + response.body.to_s
@@ -84,41 +90,38 @@ class Hub
   end
 
   def self.hashSearch(hash)
-    hub_settings = HubSettings.first
     url = "https://#{@server}/v1/hashes/search"
     payload = {}
-    payload['uuid'] = hub_settings.uuid
-    payload['auth_key'] = hub_settings.auth_key
     payload['hash'] = hash
     return self.post(url, payload)
   end
 
   def self.hashReveal(hash, hashtype)
-    hub_settings = HubSettings.first
     url = "https://#{@server}/v1/hashes/reveal"
     payload = {}
-    payload['uuid'] = hub_settings.uuid
-    payload['auth_key'] = hub_settings.auth_key
     payload['hash'] = hash
     payload['hashtype'] = hashtype
     return self.post(url, payload)
   end
 
+  def self.hashUpload(hash, plaintext, hashtype)
+    url = "https://#{@server}/v1/hashes/upload"
+    payload = {}
+    payload['hash'] = hash
+    payload['plaintext'] = plaintext
+    payload['hashtype'] = hashtype
+    return self.post(url, payload)
+  end
+
   def self.statusAuth()
-    hub_settings = HubSettings.first
     url = "https://#{@server}/v1/status/auth"
     payload = {}
-    payload['uuid'] = hub_settings.uuid
-    payload['auth_key'] = hub_settings.auth_key
     return self.post(url, payload)
   end
 
   def self.statusBalance()
-    hub_settings = HubSettings.first
     url = "https://#{@server}/v1/status/balance"
     payload = {}
-    payload['uuid'] = hub_settings.uuid
-    payload['auth_key'] = hub_settings.auth_key
     return self.post(url, payload)
   end
 end
@@ -150,10 +153,10 @@ end
 # Should probably be :hash_id instead of :hash for privacy sake
 get '/hub/reveal/:hashtype/:hash' do
 
-  @hub_response = Hub.hashReveal(params[:hash], params[:hashtype])
-  @hub_response = JSON.parse(@hub_response)
+  hub_response = Hub.hashReveal(params[:hash], params[:hashtype])
+  hub_response = JSON.parse(hub_response)
 
-  if @hub_response['status'] == '200'
+  if hub_response['status'] == '200'
 
     # Add to local db
     entry = Hashes.first(hashtype: params[:hashtype], originalhash: params[:hash])
@@ -163,10 +166,10 @@ get '/hub/reveal/:hashtype/:hash' do
       new_entry.originalhash = params[:hash]
       new_entry.hashtype = params[:hashtype]
       new_entry.cracked = '1'
-      new_entry.plaintext = @hub_response['plaintext']
+      new_entry.plaintext = hub_response['plaintext']
       new_entry.save
     else
-      entry.plaintext = @hub_response['plaintext']
+      entry.plaintext = hub_response['plaintext']
       entry.cracked = '1'
       entry.save
     end
@@ -185,9 +188,31 @@ get '/hub/reveal/:hashtype/:hash' do
 
   # if come from hashes search redirect back there
   # if come from hash importer redirect back there
-  elsif @hub_response['status'] == 'error'
+  elsif hub_response['status'] == 'error'
     p 'You dun goofed up'
   end
+end
+
+get '/hub/hashUpload/:id' do
+
+  hash = Hashes.first(id: params[:id], cracked: 1)
+  p 'hash: ' + hash.plaintext.to_s
+  p 'hash: ' + hash.hashtype.to_s
+  p 'hash: ' + hash.originalhash.to_s
+  if hash.nil?
+    flash[:error] = 'Error uploading hash'
+  else
+    hub_response = Hub.hashUpload(hash.originalhash, hash.plaintext, hash.hashtype.to_s)
+    hub_response = JSON.parse(hub_response)
+    flash[:error] = hub_response['message'] if hub_response['status'] != '200'
+
+    referer = request.referer.split('/')
+    if referer[3] == 'search'
+      flash[:success] = 'Successfully uploaded hash!' if hub_response['status'] == '200'
+    end
+  end
+  # TODO detect referer came from and redirect accordingly
+  redirect to('/search')
 end
 
 ### Functions ##########################################

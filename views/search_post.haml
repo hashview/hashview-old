@@ -45,24 +45,32 @@
                     %th Customer
                 %tbody
                   %tr
-                  - if @result_source == 'hub'
-                    %td -------
-                    %td
-                      // would love to turn this into an ajax call
-                      %a.btn.btn-success{:href => "/hub/reveal/#{@hub_response['hashtype']}/#{@hub_response['hash']}"}
-                        Reveal with Hub
-                    %td #{modeToFriendly(@hub_response['hashtype'])}
-                    %td #{@hub_response['hash']}
-                    %td -------
-                    %tr
-                  - elsif @result_source == 'local'
+                  - if not @results.empty?
                     - @results.each do |entry|
-                      %td #{entry.username}
-                      %td #{entry.plaintext}
-                      %td #{modeToFriendly(entry.hashtype.to_s)}
-                      %td #{entry.originalhash}
-                      %td #{entry.name}
-                      %tr
+                      %td #{entry['username']}
+                      %td
+                        // LC && RC
+                        - if entry['plaintext'] and entry['hub_cracked'] == '1'
+                          #{entry['plaintext']}
+                          // LC && RU
+                        - elsif entry['plaintext'] and entry['hub_cracked'] == '0'
+                          - if entry['show_hub_results'] == '1'
+                            %a.btn.btn-success{:href => "/hub/hashUpload/#{entry['id']}"}
+                              %i.glyphicon.glyphicon-cloud-upload{:title => 'upload'}
+                          #{entry['plaintext']}
+                          // LU && RC
+                        - elsif entry['plaintext'].nil? and entry['hub_cracked'] == '1'
+                          - if entry['show_hub_results'] == '1'
+                            %a.btn.btn-success{:href => "/hub/hashUpload/#{entry['id']}"}
+                              reveal
+                          - else
+                            %em uncracked
+                          // LU && RU
+                        - else
+                          %em uncracked
+                      %td #{modeToFriendly(entry['hashtype'].to_s)}
+                      %td #{entry['originalhash']}
+                      %td #{entry['name']}
                   - else
                     %td "No Results"
                     %tr
