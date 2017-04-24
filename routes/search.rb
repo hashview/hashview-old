@@ -8,7 +8,6 @@ post '/search' do
   @customers = Customers.all
 
   if params[:value].nil? || params[:value].empty?
-Similar code found in 1 2 other locations  (mass = 18)  …
     flash[:error] = 'Please provide a search term'
     redirect to('/search')
   end
