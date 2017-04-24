@@ -164,14 +164,6 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
-  elsif params[:form_id] == '4'
-    hashview_hub = HubSettings.first
-
-    hashview_hub.enabled = '1' if params[:enabled] == 'on'
-    hashview_hub.enabled = '0' if params[:enabled] == 'off'
-    hashview_hub.uuid = params[:uuid] unless params[:uuid].nil? || params[:uuid].empty?
-    hashview_hub.save
-
   end
 
   flash[:success] = 'Settings updated successfully.'
