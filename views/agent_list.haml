@@ -39,10 +39,7 @@
                       - link = rand(36**8).to_s(36)
                       %tr{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"}
                         %td #{agent.name}
-                        %td
-                          #{agent.status}
-                          %br
-                            test
+                        %td #{agent.status}
                         %td #{agent.src_ip}
                         %td #{agent.heartbeat}
                         %td
