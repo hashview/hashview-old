@@ -25,7 +25,7 @@ def importCracked(id, crack_file, run_time=0)
   # this isnt the best approach. consider storing hashtype in hashfiles or extract hashtype when updating a row in hashes table
   hashfilehash = Hashfilehashes.first(hashfile_id: job.hashfile_id)
   # hashfilehashes doesnt store hashtype, so obtain it from hashes table
-  hashtype = Hashes.first(id: hashfilehash.hash_id).to_s
+  hashtype = Hashes.first(id: hashfilehash.hash_id).hashtype.to_s
 
   unless File.zero?(crack_file)
     File.open(crack_file).each_line do |line|
@@ -43,10 +43,15 @@ def importCracked(id, crack_file, run_time=0)
       elsif hashtype == '5500'
         hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
       elsif hashtype == '5600'
-        hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s + ':' + hash_pass[2].to_s + ':' + hash_pass[3].to_s + ':' + hash_pass[4].to_s + ':' + hash_pass[5].to_s
+        hash = hash_pass[0] + ':' + hash_pass[1] + ':' + hash_pass[2] + ':' + hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
       else
         hash = hash_pass[0]
       end
+      p 'job.hashfile_id: ' + job.hashfile_id.to_s
+      p 'hashfilehash.hash_id: ' + hashfilehash.to_s
+      p 'hashtype: ' + hashtype.to_s
+      p 'PLAINTEXT: ' + plaintext.to_s
+      p 'Hash: ' + hash.to_s
 
       # This will pull all hashes from DB regardless of job id
       records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0 )

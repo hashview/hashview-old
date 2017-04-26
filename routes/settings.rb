@@ -6,16 +6,17 @@ get '/settings' do
   @themes = %w(Light Dark Slate Flat Superhero Solar)
 
   if @hc_settings.nil?
-    @hc_settings = HashcatSettings.create
+    @hc_settings = HashcatSettings.create  # This shouldn't be needed
     @hc_settings = HashcatSettings.first
 
   end
 
   @settings = Settings.first
   if @settings.nil?
-    @settings = Settings.create
+    @settings = Settings.create  # This too shouldn't be needed
     @settings = Settings.first
   end
+
   @auth_types = %w(None Plain Login cram_md5)
  
   haml :global_settings
@@ -118,7 +119,7 @@ post '/settings' do
 
     hc_settings.save
 
-  elsif params[:form_id] == '2' || '3' # Email & UI Settings
+  elsif params[:form_id] == '2' # Email
     settings = Settings.first
 
     if params[:smtp_use_tls] == 'on'
@@ -133,8 +134,11 @@ post '/settings' do
     settings.smtp_use_tls = params[:smtp_use_tls] unless params[:smtp_use_tls].nil? || params[:smtp_use_tls].empty?
     settings.smtp_user = params[:smtp_user] unless params[:smtp_user].nil? || params[:smtp_user].empty?
     settings.smtp_pass = params[:smtp_pass] unless params[:smtp_pass].nil? || params[:smtp_pass].empty?
-    settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
+    settings.save
 
+  elsif params[:form_id] == '3' # UI Settings
+    settings = Settings.first
+    settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
   end
@@ -159,4 +163,6 @@ get '/test/email' do
 
   redirect to('/settings')
 end
+
+
 
