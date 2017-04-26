@@ -2,7 +2,13 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.6.0-beta] - 2017-xx-xx
+## [v0.6.1-beta] - 2017-04-25
+ - Added support for 38 more hashes
+ - Fixed raced condition when importing wordlists (both via gui and cli)
+ - Fixed bug where NetNTLMv1 and NetNTLMv2 hashes were not properly importing
+ - Fixed bug where usernames were not being parsed when importing NetNTLMv1 and NetNTLMv2 hashes
+
+## [v0.6.0-beta] - 2017-03-28
 ### Added
  - Resque 'management' queue for system jobs
  - Background job for automatically importing wordlists scp'd to control/wordlists
