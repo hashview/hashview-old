@@ -127,7 +127,7 @@ get '/v1/wordlist/:id' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   wordlist = Wordlists.first(id: params[:id])
-  send_file wordlist.path, :type => 'text', :filename => wordlist.path.split('/')[-1]
+  send_file wordlist.path, :type => 'application/octet-stream', :filename => wordlist.path.split('/')[-1]
 end
 
 
@@ -230,11 +230,11 @@ post '/v1/agents/:uuid/heartbeat' do
           # read hashcat output and compare against job we think it should be working on
           agenttask = payload['agent_task']
           taskqueue = Taskqueues.first(id: agenttask, agent_id: @agent.id)
-          puts taskqueue
 
           # update db with the agents hashcat status
           if payload['hc_status']
             puts payload['hc_status']
+            @agent.status = payload['agent_status']
             @agent.hc_status = payload['hc_status'].to_json
             @agent.save
           end
@@ -247,6 +247,7 @@ post '/v1/agents/:uuid/heartbeat' do
             }.to_json
           else
             @agent.heartbeat = Time.now
+            @agent.status = payload['agent_status']
             @agent.save
             {
                 status: 200,
@@ -300,6 +301,9 @@ post '/v1/agents/:uuid/heartbeat' do
             # update agent heartbeat but do nothing for now
             p '########### I have nothing for you to do now ###########'
             @agent.heartbeat = Time.now
+            @agent.status = payload['agent_status']
+            @agent.hc_status = ''
+            @agent.src_ip = "#{request.ip}"
             @agent.save
             {
               status: 200,
@@ -341,6 +345,7 @@ get '/v1/agents/:uuid/authorize' do
     if agent.status == "Authorized"
       agent.status = "Online"
       agent.heartbeat = Time.now
+      agent.src_ip = "#{request.ip}"
       agent.save
       {
         Status: 200,
