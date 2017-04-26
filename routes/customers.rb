@@ -163,10 +163,7 @@ end
 get '/customers/upload/verify_filetype' do
   varWash(params)
 
-  hashfile = Hashfiles.first(id: params[:hashid])
-
-  #@filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
-  @filetypes = %w(pwdump shadow dsusers smart_hashdump $hash $user:$hash $hash:$salt)
+  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
   @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
@@ -191,6 +188,16 @@ post '/customers/upload/verify_filetype' do
     params[:filetype] = 'hash_salt'
   end
 
+  if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
+    params[:filetype] = 'NetNTLMv1'
+  end
+
+  if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
+    params[:filetype] = 'NetNTLMv2'
+  end
+
+  p 'PARAMS: ' + params[:filetype].to_s
+
   redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
@@ -206,11 +213,6 @@ end
 
 post '/customers/upload/verify_hashtype' do
   varWash(params)
-
-  #if !params[:filetype] || params[:filetype].nil?
-  #  flash[:error] = 'You must specify a valid hashfile type.'
-  #  redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  #end
 
   filetype = params[:filetype]
 

@@ -22,4 +22,3 @@ post '/search' do
 
   haml :search_post
 end
-
