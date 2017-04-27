@@ -362,3 +362,32 @@ get '/v1/agents/:uuid/authorize' do
     }.to_json
   end
 end
+
+post '/v1/agents/:uuid/stats' do
+  if params[:uuid].nil?
+    status 200
+    {
+        Status: 200,
+        Type: 'Error',
+        Message: 'Missing UUID'
+    }.to_json
+  else
+    # is agent authorized
+    redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+    payload = JSON.parse(request.body.read)
+    puts payload
+
+    agent = Agents.first(:uuid => params[:uuid])
+    agent.cpu_count = payload['cpu_count'].to_i
+    agent.gpu_count = payload['gpu_count'].to_i
+    agent.benchmark = payload['benchmark'].to_s
+    agent.save
+
+    {
+      Status: 200,
+      Type: 'Message',
+      Message: 'Stats received'
+    }.to_json
+  end
+end

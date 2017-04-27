@@ -3,7 +3,9 @@ helpers do
   def buildCrackCmd(job_id, task_id)
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
     hc_settings = HashcatSettings.first
-    hc_binpath = hc_settings.hc_binpath
+    # we no loger pull hc_binpath from the db. set this to a placeholder value and each
+    # agent will replace it with their local hc_binpath
+    hc_binpath = '@HASHCATBINPATH@'
     max_task_time = hc_settings.max_task_time
     @task = Tasks.first(id: task_id)
     @job = Jobs.first(id: job_id)

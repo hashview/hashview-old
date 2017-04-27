@@ -11,7 +11,25 @@
             .row
               .col-md-10.pull-left
                 Agents are remote workers that process distributed hashcat jobs.
-              -#.col-md-2.pull-right
+              .col-md-2.pull-right
+                - agents_online = 0
+                - total_gpus = 0
+                - total_cpus = 0
+                - @agents.each do |agent|
+                  - if agent.status == 'Online' || agent.status == 'Working' || agent.status == 'Idle' || agent.status == 'Authorized'
+                    - agents_online += 1
+                    - if agent.gpu_count
+                      - total_gpus += agent.gpu_count
+                    - if agent.cpu_count
+                      - total_cpus += agent.cpu_count
+                Agents online
+                .badge #{agents_online}
+                .p
+                GPUs total
+                .badge #{total_gpus}
+                .p
+                CPUs total
+                .badge #{total_cpus}
               -#  %a.btn.btn-primary.pull-right{:href => "/agents/create"}
               -#    Add Agent
       %br
@@ -50,7 +68,7 @@
                             - else
                               %a.btn.btn-primary{:href => "/agents/#{agent.id}/authorize"}
                                 Authorize
-                            %a.btn.btn-warning.disabled{:href => "/agents/#{agent.id}/edit"}
+                            %a.btn.btn-warning{:href => "/agents/#{agent.id}/edit"}
                               %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                             %a.btn.btn-danger.disabled{:href => "/agents/#{agent.id}/delete"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
@@ -67,9 +85,9 @@
                             -#- else
                             -#  %a.btn.btn-primary{:href => "/agents/#{agent.id}/authorize"}
                             -#    Authorize
-                            %a.btn.btn-warning.disabled{:href => "/agents/#{agent.id}/edit"}
+                            %a.btn.btn-warning{:href => "/agents/#{agent.id}/edit"}
                               %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                            %a.btn.btn-danger.disabled{:href => "/agents/#{agent.id}/delete"}
+                            %a.btn.btn-danger{:href => "/agents/#{agent.id}/delete"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                       - if agent.hc_status
                         %tr
