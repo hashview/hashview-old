@@ -330,6 +330,18 @@ def getMode(hash)
     @modes.push('7900') # Drupal7
   elsif hash =~ /^0x[a-f0-9]{4}[a-f0-9]{16}[a-f0-9]{64}$/
     @modes.push('8000') # Sybase ASE
+  elsif hash =~ /^[a-f0-9]{49}$/
+    @modes.push('8100') # Citrix NetScaler
+  elsif hash =~ /^[a-z0-9]{32}(:([a-z0-9-]+\.)?[a-z0-9-.]+\.[a-z]{2,7}:.+:[0-9]+)?$/
+    @modes.push('8300') # DNSSEC (NSEC3)
+  elsif hash =~ /^(\$wbb3\$\*1\*)?[a-f0-9]{40}[:*][a-f0-9]{40}$/
+    @modes.push('8400') # WBB3 (Woltlab Burning Board)
+  elsif hash =~ /^\([a-z0-9\/+]{20}\)$/
+    @modes.push('8700') # Lotus Notes/Domino 5
+  elsif hash =~ /^SCRYPT:[0-9]{1,}:[0-9]{1}:[0-9]{1}:[a-z0-9:\/+=]{1,}$/
+    @modes.push('8900') # script
+  elsif hash =~ /^\([a-z0-9\/+]{49}\)$/
+    @modes.push('9100') # Lotus Notes/Domino 8
   end
 end
 
