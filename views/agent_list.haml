@@ -20,7 +20,7 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table-striped'}
+              %table{:id => 'agenttable', :class => 'table table-striped'}
                 %thead
                   %tr
                     %th
@@ -36,22 +36,18 @@
                 %tbody
                   - if @agents
                     - @agents.each do |agent|
-                      %tr
+                      - link = rand(36**8).to_s(36)
+                      %tr{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"}
                         %td #{agent.name}
                         %td
                           #{agent.status}
                           %br
-                          - if agent.hc_status
-                            %table
-                              %tr
-                                - JSON.parse(agent.hc_status).each do |line|
-                                  #{line}
-                                  %p
+                            test
                         %td #{agent.src_ip}
                         %td #{agent.heartbeat}
                         %td
                           - if agent.src_ip == '127.0.0.1' || agent.src_ip == 'localhost'
-                            - if agent.status == 'Authorized'
+                            - if agent.status == 'Authorized' || agent.status == 'Online' || agent.status == 'Offline'
                               %a.btn.btn-primary.disabled{:href => "/agents/#{agent.id}/deauthorize"}
                                 Deauthorize
                             - else
@@ -72,3 +68,17 @@
                               %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                             %a.btn.btn-danger.disabled{:href => "/agents/#{agent.id}/delete"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                        - if agent.hc_status
+                          %tr
+                            %td{:colspan => 5}
+                              %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                                %h4 Hashcat Status
+                                %br
+                                %table{:class => 'table'}
+                                  - JSON.parse(agent.hc_status).each do |k,v|
+                                    %tr
+                                      %td.col-md-4
+                                        #{k}
+                                      %td
+                                        #{v}
+

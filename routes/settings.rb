@@ -2,7 +2,6 @@
 get '/settings' do
 
   @hc_settings = HashcatSettings.first
-  @hub_settings = HubSettings.first
 
   @themes = %w(Light Dark Slate Flat Superhero Solar)
 
@@ -16,28 +15,6 @@ get '/settings' do
   if @settings.nil?
     @settings = Settings.create  # This too shouldn't be needed
     @settings = Settings.first
-  end
-
-  if @hub_settings.nil?
-    @hub_settings = HubSettings.create
-    @hub_settings = HubSettings.first
-  end
-  if @hub_settings.enabled
-    if @hub_settings.uuid and @hub_settings.auth_key
-      hub_response = Hub.statusAuth
-      hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '403'
-        flash[:error] = 'Invalid Authentication to Hub, check UUID.'
-      else
-        hub_response = Hub.statusBalance
-        hub_response = JSON.parse(hub_response)
-        if hub_response['status'] == '200'
-          @hub_settings.balance = hub_response['balance']
-          @hub_settings.save
-          @hub_settings = HubSettings.first
-        end
-      end
-    end
   end
 
   @auth_types = %w(None Plain Login cram_md5)
@@ -163,14 +140,6 @@ post '/settings' do
     settings = Settings.first
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
-
-  elsif params[:form_id] == '4'
-    hashview_hub = HubSettings.first
-
-    hashview_hub.enabled = '1' if params[:enabled] == 'on'
-    hashview_hub.enabled = '0' if params[:enabled] == 'off'
-    hashview_hub.uuid = params[:uuid] unless params[:uuid].nil? || params[:uuid].empty?
-    hashview_hub.save
 
   end
 

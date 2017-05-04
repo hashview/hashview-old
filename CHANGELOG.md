@@ -6,16 +6,13 @@ Notable changes will be documented here
 ### Added
  - Resque 'management' queue for system jobs
  - Background job for automatically importing wordlists scp'd to control/wordlists
- - Background job for magic wordlists that will unique all existing wordlists as well as cracked results from hashes table
  - Background job for removing old temp files.
  - Support for user to set a SMTP Sender Name
  - Themes!! (we personally like slate)
- - API for future agent workers
  - Support for new hashcat settings: --force, --opencl-device-types, --workload-profile, --gpu-temp-disable, --gpu-temp-abort, --gpu-temp-retain
  - Ability to copy/paste hashfiles into new jobs as their being created
  - Support for smart hashdump and username:[NTLM hash] hashfiles
  - Two new rule sets for high and low utility
- - Local agent for local and future distributed cracking
  - Support for cracking and importing hashes with salts
  - Support for more hashes: [import only] md5($pass.$salt), md5($salt.$pass), md5(unicode($pass).$salt), md5($salt.unicode($pass)), 	HMAC-MD5 (key = $pass), HMAC-MD5 (key = $salt), sha1($pass.$salt), sha1($salt.$pass), sha1(unicode($pass).$salt), sha1($salt.unicode($pass)), HMAC-SHA1 (key = $pass), HMAC-SHA1 (key = $salt), Domain Cached Credentials (DCC), MS Cache, 	sha256($pass.$salt), sha256($salt.$pass), sha256(unicode($pass).$salt), sha256($salt.unicode($pass)), HMAC-SHA256 (key = $pass), HMAC-SHA256 (key = $salt), vBulletin < v3.8.5 and vBulletin >= v3.8.5
  

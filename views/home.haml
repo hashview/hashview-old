@@ -52,15 +52,19 @@
                   %br
                   %a.btn.btn-primary{:href => "/jobs/create"}
                     Create a New Job
-              %br
-            %br
+            /%br
             - if @active_jobs.empty?
+              .page-header
+                %h2 Job Queue
               No Hashview jobs are running
             - else
+              .page-header
+                %h2 Job Queue
               - @jobs.each do |job|
                 - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
                   - @customers.each do |customer|
                     - if customer.id == job.customer_id
+                      %h3 #{customer.name} - #{job.name}
                       #accordion.panel-group
                         .panel.panel-default
                           - @jobtasks.each do |jt|
@@ -71,12 +75,17 @@
                                   .panel-heading
                                     %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
                                       %td
-                                        #{customer.name}
-                                      %td
-                                        #{jt.id}
-                                      %td
                                         #{task.name}
-                                    .span.badge.pull-right #{jt.status}
+                                    - if jt.status == 'Queued'
+                                      %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
+                                    - elsif jt.status == 'Completed'
+                                      %span.label.label-primary.labelfixedwidth.pull-right #{jt.status}
+                                    - elsif jt.status == 'Running'
+                                      %span.label.label-success.labelfixedwidth.pull-right #{jt.status}
+                                    - elsif jt.status == 'Importing'
+                                      %span.label.label-warning.labelfixedwidth.pull-right #{jt.status}
+                                    - elsif jt.status == 'Canceled'
+                                      %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
                                       .panel-body
@@ -85,12 +94,28 @@
                                             - if jt.id == tq.jobtask_id
                                               %li{:class => "list-group-item borderless"}
                                                 %table{:class => 'table'}
-                                                  %td
-                                                    #{tq.id}
-                                                  %td
-                                                    #{tq.command}
-                                                  %td
-                                                    #{tq.status}
+                                                  %thead
+                                                    %td
+                                                      %b QID
+                                                    %td
+                                                      %b Agent
+                                                  %tbody
+                                                    %td
+                                                      #{tq.id}
+                                                    %td
+                                                      - @taskqueues.each do |taskqueue|
+                                                        - if jt.id == taskqueue.jobtask_id
+                                                          - @agents.each do |agent|
+                                                            - if agent.id.to_i == taskqueue.agent_id.to_i
+                                                              #{agent.name}
+                                                    %td
+                                                      - if tq.status == 'Running'
+                                                        %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                                          %b Cancel
+                                                      - elsif tq.status == 'Queue'
+                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
+                                                      - elsif tq.status == 'Importing'
+                                                        %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
                                   - else
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
                                       .panel-body
@@ -99,71 +124,83 @@
                                             - if jt.id == tq.jobtask_id
                                               %li{:class => "list-group-item borderless"}
                                                 %table{:class => 'table'}
-                                                  %td
-                                                    #{tq.id}
-                                                  %td
-                                                    #{tq.command}
-                                                  %td
-                                                    #{tq.status}
-          .cold-md-12
-            .table
-              %h3 Job Queue
-              %table{:class => 'table'}
-                - if @active_jobs.empty?
-                  No Hashview jobs are running
-                - else
-                  %thead
-                    %td
-                      %b Customer
-                    %td
-                      %b Task
-                    %td
-                      %b Agent
-                    %td
-                      %b Status
-                    %td
-                      %b Control
-                  - @jobs.each do |job|
-                    - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
-                      %tbody
-                      - @customers.each do |customer|
-                        - if customer.id == job.customer_id
-                          - @jobtasks.each do |jt|
-                            - if job.id == jt.job_id
-                              - @tasks.each do |task|
-                                - if task.id == jt.task_id
-                                  - @taskqueues.each do |tq|
-                                    - if tq.jobtask_id == jt.id
-                                      %tr
-                                        %td
-                                          #{customer.name}
-                                        %td
-                                          #{tq.id}
-                                          #{task.name}
-                                        %td
-                                          - @taskqueues.each do |taskqueue|
-                                            - if jt.id == taskqueue.jobtask_id
-                                              - @agents.each do |agent|
-                                                - if agent.id.to_i == taskqueue.agent_id.to_i
-                                                  #{agent.name}
-                                        %td
-                                          #{tq.status}
-                                          /%div{:align => "center"}
-                                          - if jt.status == 'Queue'
-                                            %span.label.label-default #{jt.status}
-                                          - elsif jt.status == 'Completed'
-                                            %span.label.label-primary #{jt.status}
-                                          - elsif jt.status == 'Running'
-                                            %span.label.label-success #{jt.status}
-                                          - elsif jt.status == 'Importing'
-                                            %span.label.label-warning #{jt.status}
-                                          - else
-                                            %span.label.label-default #{jt.status}
-                                        %td
-                                          - if jt.status == "Running"
-                                            %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
-                                              %b Cancel
-                    %br
+                                                  %thead
+                                                    %td
+                                                      %b QID
+                                                    %td
+                                                      %b Command
+                                                    %td
+                                                  %tbody
+                                                    %td
+                                                      #{tq.id}
+                                                    %td
+                                                      #{tq.command}
+                                                    %td
+                                                      - if tq.status == 'Completed'
+                                                        %span.label.label-primary.labelfixedwidth.pull-right #{tq.status}
+                                                      - elsif tq.status == 'Importing'
+                                                        %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
+                                                      - else
+                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
+          -#.cold-md-12
+          -#  .table
+          -#    %h3 Job Queue
+          -#    %table{:class => 'table'}
+          -#      - if @active_jobs.empty?
+          -#        No Hashview jobs are running
+          -#      - else
+          -#        %thead
+          -#          %td
+          -#            %b Customer
+          -#          %td
+          -#            %b Task
+          -#          %td
+          -#            %b Agent
+          -#          %td
+          -#            %b Status
+          -#          %td
+          -#            %b Control
+          -#        - @jobs.each do |job|
+          -#          - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
+          -#            %tbody
+          -#            - @customers.each do |customer|
+          -#              - if customer.id == job.customer_id
+          -#                - @jobtasks.each do |jt|
+          -#                  - if job.id == jt.job_id
+          -#                    - @tasks.each do |task|
+          -#                      - if task.id == jt.task_id
+          -#                        - @taskqueues.each do |tq|
+          -#                          - if tq.jobtask_id == jt.id
+          -#                            %tr
+          -#                              %td
+          -#                                #{customer.name}
+          -#                              %td
+          -#                                #{tq.id}
+          -#                                #{task.name}
+          -#                              %td
+          -#                                - @taskqueues.each do |taskqueue|
+          -#                                  - if jt.id == taskqueue.jobtask_id
+          -#                                    - @agents.each do |agent|
+          -#                                      - if agent.id.to_i == taskqueue.agent_id.to_i
+          -#                                        #{agent.name}
+          -#                              %td
+          -#                                #{tq.status}
+          -#                                /%div{:align => "center"}
+          -#                                - if jt.status == 'Queue'
+          -#                                  %span.label.label-default #{jt.status}
+          -#                                - elsif jt.status == 'Completed'
+          -#                                  %span.label.label-primary #{jt.status}
+          -#                                - elsif jt.status == 'Running'
+          -#                                  %span.label.label-success #{jt.status}
+          -#                                - elsif jt.status == 'Importing'
+          -#                                  %span.label.label-warning #{jt.status}
+          -#                                - else
+          -#                                  %span.label.label-default #{jt.status}
+          -#                              %td
+          -#                                - if jt.status == "Running"
+          -#                                  %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+          -#                                    %b Cancel
+          -#          %br
           -# commenting this out until we redesign the dashboard
           -#.col-md-4
           -#  .table
