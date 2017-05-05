@@ -249,13 +249,13 @@ def getMode(hash)
     @modes.push('3910') # md5(md5($pass).md5($salt))
     @modes.push('4010') # md5($salt.md5($salt.$pass))
     @modes.push('4110') # md5($salt.md5($pass.$salt))
-    # @modes.push('4210') # md5($username.0.$pass)
+    # @modes.push('4210') # md5($username.0.$pass) # Legacy
     @modes.push('11000')# PrestaShop
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
   elsif hash =~ /^[a-f0-9]{40}$/
     @modes.push('100')  # SHA-1
-    @modes.push('190')  # sha1(LinkedIn)
+    # @modes.push('190')  # sha1(LinkedIn) # Legacy
     @modes.push('4500') # sha1(sha1($pass))
     @modes.push('4600') # sha1(sha1(sha1($pass)))
     @modes.push('4700') # sha1(md5($pass))
@@ -307,7 +307,7 @@ def modeToFriendly(mode)
   return 'sha1($salt.unicode($pass))' if mode == '140'
   return 'HMAC-SHA1 (key = $pass)' if mode == '150'
   return 'HMAC-SHA1 (key = $salt)' if mode == '160'
-  return 'sha1(LinkedIn)' if mode == '190'
+  # return 'sha1(LinkedIn)' if mode == '190'
   return 'MySQL323' if mode == '200'
   return 'md5crypt' if mode == '500'
   return 'MD4' if mode == '900'
