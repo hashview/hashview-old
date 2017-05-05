@@ -55,13 +55,13 @@
                           // LC && RU
                         - elsif entry['plaintext'] and entry['hub_cracked'] == '0'
                           - if entry['show_hub_results'] == '1'
-                            %a.btn.btn-success{:href => "/hub/hashUpload/#{entry['id']}"}
+                            %a.btn.btn-success{:href => "/hub/hash/upload/#{entry['id']}"}
                               %i.glyphicon.glyphicon-cloud-upload{:title => 'upload'}
                           #{entry['plaintext']}
                           // LU && RC
                         - elsif entry['plaintext'].nil? and entry['hub_cracked'] == '1'
                           - if entry['show_hub_results'] == '1'
-                            %a.btn.btn-success{:href => "/hub/hashUpload/#{entry['id']}"}
+                            %a.btn.btn-success{:href => "/hub/hash/reveal/0/#{entry['hashtype'].to_s}/#{entry['originalhash'].to_s}"}
                               reveal
                           - else
                             %em uncracked

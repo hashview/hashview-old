@@ -1,0 +1,46 @@
+!!!
+%html
+  %body
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Hub Check
+            .row
+              .col-md-10
+                The following hashes are already cracked on Hashview Hub. Click reveal to show it now or click continue.
+      %br
+      %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Username
+                    %th
+                      %b Hub
+                    %th
+                      %b Type
+                    %th
+                      %b Cipher Text
+                %tbody
+                  - if @results
+                    - @results.each do |entry|
+                      -if entry['show_results'] == '1'
+                        %tr
+                          %td #{@results.size} #{entry['username']}
+                          %td
+                            %a.btn.btn-success{:href => "/hub/hash/reveal/#{@jobs.id}/#{entry['hashtype'].to_s}/#{entry['originalhash'].to_s}"}
+                              reveal
+                          %td #{modeToFriendly(entry['hashtype'].to_s)}
+                          %td #{entry['originalhash']}
+        .container
+          .row
+            .col-md-12
+              %a.btn.btn-primary{:href => "/jobs/assign_tasks?job_id=#{@jobs.id}"}
+                Continue

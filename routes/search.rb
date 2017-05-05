@@ -50,7 +50,7 @@ post '/search' do
       end
     end
 
-    if hub_settings.enabled == true and hub_settings.status == 'registered'
+    if hub_settings.enabled == true && hub_settings.status == 'registered'
       hub_response = Hub.hashSearch(params[:value])
       hub_response = JSON.parse(hub_response)
       if hub_response['status'] == '200'

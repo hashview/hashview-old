@@ -151,7 +151,7 @@ end
 
 # TODO
 # Should probably be :hash_id instead of :hash for privacy sake
-get '/hub/reveal/:hashtype/:hash' do
+get '/hub/hash/reveal/:job_id/:hashtype/:hash' do
 
   hub_response = Hub.hashReveal(params[:hash], params[:hashtype])
   hub_response = JSON.parse(hub_response)
@@ -162,7 +162,7 @@ get '/hub/reveal/:hashtype/:hash' do
     entry = Hashes.first(hashtype: params[:hashtype], originalhash: params[:hash])
     if entry.nil?
       new_entry = Hashes.new
-      new_entry.lastupdated =
+      new_entry.lastupdated = Time.now()
       new_entry.originalhash = params[:hash]
       new_entry.hashtype = params[:hashtype]
       new_entry.cracked = '1'
@@ -178,12 +178,14 @@ get '/hub/reveal/:hashtype/:hash' do
     # We redirect the user back to where he came
     if referer[3] == 'search'
       # We came from Search we send back to search
-      flash[:success] = 'Successfully unlocked password hash'
+      flash[:success] = 'Successfully unlocked hash'
       redirect to('/search')
-    elsif referer[3] == 'someuploadarea'
-      # We came from uploads we send back to uploads
-      # TODO
-      redirect to('/jobs/list')
+    elsif referer[3] == 'jobs'
+      flash[:success] = 'Unlocked 1 Hash'
+      redirect to("/jobs/hub_check?job_id=#{params[:job_id]}")
+    else
+      p request.referer.to_s
+      p referer[3].to_s
     end
 
   # if come from hashes search redirect back there
@@ -193,7 +195,7 @@ get '/hub/reveal/:hashtype/:hash' do
   end
 end
 
-get '/hub/hashUpload/:id' do
+get '/hub/hash/upload/:id' do
 
   hash = Hashes.first(id: params[:id], cracked: 1)
   p 'hash: ' + hash.plaintext.to_s

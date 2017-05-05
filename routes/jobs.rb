@@ -106,7 +106,7 @@ post '/jobs/create' do
     customer.description = params[:cust_desc]
     customer.save
   end
-  
+
   if params[:customer] == 'add_new' || params[:customer].nil?
     customer_id = customer.id
   else
@@ -114,20 +114,13 @@ post '/jobs/create' do
   end
   
   # create new or update existing job
-  if params[:edit] == '1'
-    job = Jobs.first(id: params[:job_id])
-  else
-    job = Jobs.new
-  end
+  params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
+
   job.name = params[:job_name]
   job.last_updated_by = getUsername
   job.customer_id = customer_id
 
-  if params[:notify] == 'on'
-    job.notify_completed = '1'
-  else
-    job.notify_completed = '0'
-  end
+  params[:notify] == 'on' ? job.notify_completed = '1' : job.notify_completed = '0'
   job.save
 
   if params[:edit] == '1'
@@ -298,15 +291,15 @@ get '/jobs/start/:id' do
       queue.save
     end
   end
-  
+
   if @job.status == 'Completed'
     flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
     redirect to('/jobs/list')
   end
-  
+
   redirect to('/home')
 end
-  
+
 get '/jobs/stop/:id' do
   varWash(params)
 
@@ -315,7 +308,7 @@ get '/jobs/stop/:id' do
 
   @job.status = 'Canceled'
   @job.save
-  
+
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
@@ -336,10 +329,10 @@ get '/jobs/stop/:id' do
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
     end
   end
-  
+
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/stop/:job_id/:task_id' do
   varWash(params)
 
@@ -348,7 +341,7 @@ get '/jobs/stop/:job_id/:task_id' do
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
-  
+
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
@@ -367,8 +360,43 @@ get '/jobs/stop/:job_id/:task_id' do
     redirect to('/jobs/list')
   end
 end
-  
-############################
+
+get '/jobs/hub_check' do
+  varWash(params)
+
+  @results = []
+  results_entry = {
+      username: '',
+      originalhash: '',
+      hub_hash_id: '',
+      hashtype: '',
+      show_results: '0'
+  }
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
+  # Each hashfile might have multiple duplicate hashes, we need a unique list
+  @hashfile_hashes.each do |entry|
+    hash = Hashes.first(id: entry.hash_id, cracked: '0')
+    unless hash.nil?
+      hub_response = Hub.hashSearch(hash.originalhash)
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '200' && hub_response['cracked'] == '1'
+        results_entry['username'] = entry.username
+        results_entry['originalhash'] = hash.originalhash
+        results_entry['hub_hash_id'] = hub_response['hash_id']
+        results_entry['hashtype'] = hub_response['hashtype']
+        results_entry['show_results'] = '1'
+      end
+    end
+  end
+  @results.push(results_entry)
+
+  haml :job_hub_check
+end
+
+
+################################
 
 ##### job task controllers #####
   

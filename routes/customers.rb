@@ -118,7 +118,7 @@ post '/customers/upload/hashfile' do
   hashfile.customer_id = params[:customer_id]
   hashfile.hash_str = hash
   hashfile.save
-  
+
   @job.save # <---- edit bug here
 
   redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
@@ -205,14 +205,9 @@ post '/customers/upload/verify_hashtype' do
   varWash(params)
 
   filetype = params[:filetype]
-
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  if params[:hashtype] == '99999'
-    hashtype = params[:manualHash]
-  else
-    hashtype = params[:hashtype]
-  end
+  params[:hashtype] == '99999' ? hashtype = params[:manualHash] : hashtype = params[:hashtype]
 
   hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
@@ -244,9 +239,16 @@ post '/customers/upload/verify_hashtype' do
   # Delete file, no longer needed
   File.delete(hash_file)
 
-  if params[:edit]
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&edit=1")
+  url = '/jobs'
+  hub_settings = HubSettings.first
+  if hub_settings.enabled == true && hub_settings.status == 'registered'
+    url = url + '/hub_check'
   else
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+    url = url + '/assign_tasks'
   end
+
+  url += "?job_id=#{params[:job_id]}"
+  url += '&edit=1' if params[:edit]
+  redirect to(url)
+
 end
