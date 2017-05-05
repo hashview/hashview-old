@@ -2,6 +2,7 @@ module WordlistImporter
   @queue = :management
 
   def self.perform()
+    sleep(rand(10))
     if ENV['RACK_ENV'] == 'development'
       puts 'Wordlist Importer Class'
     end
@@ -18,21 +19,36 @@ module WordlistImporter
         unless name.match(/\.tar|\.7z|\.gz|\.tgz/)
 
           puts 'Importing new wordslist "' + name + '" into HashView.'
-          # Finding Size
-          size = File.foreach(path_file).inject(0) { |c| c + 1 }
 
           # Adding to DB
           wordlist = Wordlists.new
           wordlist.lastupdated = Time.now()
           wordlist.name = name
           wordlist.path = path_file
-          wordlist.size = size
+          #wordlist.size = size
+          wordlist.size = 0
           wordlist.save
 
-          Resque.enqueue(MagicWordlist)
+          #Resque.enqueue(MagicWordlist)
         end
       end
     end
+
+    @files = Dir.glob(File.join('control/wordlists/', "*"))
+    @files.each do |path_file|
+      # Get Name
+      name = path_file.split('/')[-1]
+      unless name.match(/\.tar|\.7z|\.gz|\.tgz/)
+        wordlist = Wordlists.first(path: path_file)
+        if wordlist.size == '0'
+          size = File.foreach(path_file).inject(0) { |c| c + 1 }
+          wordlist.size = size
+          wordlist.save
+        end
+      end
+    end
+
+
     if ENV['RACK_ENV'] == 'development'
       puts 'Wordlist Importer Class() - done'
     end
