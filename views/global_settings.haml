@@ -30,6 +30,8 @@
       %a{'data-toggle' => 'tab', :href => '#2'} Email
     %li
       %a{'data-toggle' => 'tab', :href => '#3'} UI
+    %li
+      %a{'data-toggle' => 'tab', :href => '#4'} Hashview Hub
   .tab-content
     #1.tab-pane.active
       %br
@@ -224,6 +226,39 @@
           .form-group
             .col-xs-10
               %input{:type => 'hidden', :name => 'form_id', :value => '3'}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save
+    #4.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'hub_settings_form', :id => 'hub_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Enabled
+            .col-xs-1.pull-left
+              - if @hub_settings.enabled
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'enabled', :id => 'enabled', :checked => 'checked'}
+              - else
+                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'enabled', :id => 'enabled'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Tokens
+            .col-xs-10
+              #{@hub_settings.balance}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} UUID
+            .col-xs-10
+              - if @hub_settings.uuid
+                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid', :value => @hub_settings.uuid}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '4'}
+          .form-group
+            .col-xs-offset-2.col-xs-10
+              -if @hub_settings.status != 'registered'
+                %a.btn.btn-warning{:href => '/hub/register'}
+                  Register
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save

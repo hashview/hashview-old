@@ -188,8 +188,6 @@ get '/hub/hash/reveal/:job_id/:hashtype/:hash' do
       p referer[3].to_s
     end
 
-  # if come from hashes search redirect back there
-  # if come from hash importer redirect back there
   elsif hub_response['status'] == 'error'
     p 'You dun goofed up'
   end

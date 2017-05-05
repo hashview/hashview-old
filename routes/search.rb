@@ -6,6 +6,7 @@ end
 post '/search' do
   varWash(params)
   @customers = Customers.all
+  hub_settings = HubSettings.first
 
   if params[:value].nil? || params[:value].empty?
     flash[:error] = 'Please provide a search term'
