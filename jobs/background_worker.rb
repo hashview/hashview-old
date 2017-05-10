@@ -238,25 +238,25 @@ def replaceHashcatBinPath(cmd)
 end
 
 # this function provides the master server with basic information about the agent
-def hc_benchmark()
-  cmd = @hashcatbinpath + ' -b -m 1000'
+def hc_benchmark(hashcatbinpath)
+  cmd = hashcatbinpath + ' -b -m 1000'
   hc_perfstats = `#{cmd}`
   return  hc_perfstats
 end
 
-def hc_device_list()
-  cmd = @hashcatbinpath + ' -I'
+def hc_device_list(hashcatbinpath)
+  cmd = hashcatbinpath + ' -I'
   hc_devices = `#{cmd}`
   return  hc_devices
 end
 
-# is hashcat working? if so, how fast are you? provide basic information to master server
-hc_cpus, hc_gpus = hashcatDeviceParser(hc_device_list)
-hc_devices = {}
-hc_devices['gpus'] = hc_gpus
-hc_devices['cpus'] = hc_cpus
-hc_perfstats = hashcatBenchmarkParser(hc_benchmark)
-Api.stats(hc_devices, hc_perfstats)
+# # is hashcat working? if so, how fast are you? provide basic information to master server
+# hc_cpus, hc_gpus = hashcatDeviceParser(hc_device_list)
+# hc_devices = {}
+# hc_devices['gpus'] = hc_gpus
+# hc_devices['cpus'] = hc_cpus
+# hc_perfstats = hashcatBenchmarkParser(hc_benchmark)
+# Api.stats(hc_devices, hc_perfstats)
 
 
 class LocalAgent
@@ -266,6 +266,16 @@ class LocalAgent
 
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
+
+    hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
+
+    # is hashcat working? if so, how fast are you? provide basic information to master server
+    hc_cpus, hc_gpus = hashcatDeviceParser(hc_device_list(hashcatbinpath))
+    hc_devices = {}
+    hc_devices['gpus'] = hc_gpus
+    hc_devices['cpus'] = hc_cpus
+    hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
+    Api.stats(hc_devices, hc_perfstats)
 
     while(1)
       sleep(4)
@@ -296,7 +306,7 @@ class LocalAgent
         heartbeat = JSON.parse(heartbeat)
         puts heartbeat
 
-        if heartbeat['type'] == 'Message' and heartbeat['msg'] == 'START'
+        if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
           jdata = JSON.parse(jdata)
@@ -379,7 +389,11 @@ class LocalAgent
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-            Api.upload_crackfile(jobtask.id, crack_file, @run_time)
+            if File.exist?(crack_file)
+              Api.upload_crackfile(jobtask['id'], crack_file, @run_time)
+            else
+              puts "No successful cracks for this task. Skipping upload."
+            end
 
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
