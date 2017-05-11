@@ -76,8 +76,8 @@ post '/v1/queue/:taskqueue_id/status' do
 
   jdata = JSON.parse(request.body.read)
   agent = Agents.first(uuid: jdata['agent_uuid'])
-  puts "[+] updating taskqueue id: #{params['taskqueue_id']} to status: #{jdata['status']}"
-  updateTaskqueueStatus(params['taskqueue_id'], jdata['status'], agent.id)
+  puts "[+] updating taskqueue id: #{params[:taskqueue_id]} to status: #{jdata['status']}"
+  updateTaskqueueStatus(params[:taskqueue_id], jdata['status'], agent.id)
 end
 
 # update status of job
