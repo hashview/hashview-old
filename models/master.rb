@@ -177,6 +177,8 @@ class Tasks
   property :hc_attackmode, String, length: 25
   property :hc_rule, String
   property :hc_mask, String
+  # support huge keyspaces
+  property :keyspace, Integer, max: 9999999999999999999
 end
 
 # Table for handling hashes cracked and uncracked
