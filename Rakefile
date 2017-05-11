@@ -299,7 +299,6 @@ namespace :db do
       end
     else
       puts '[*] Your version is up to date!'
-      exit 0
     end
 
     # Incase we missed anything
