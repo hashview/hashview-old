@@ -211,7 +211,7 @@ post '/tasks/create' do
   end
 
   # generate keyspace of new task and save to db
-  task.keyspace = keyspace(task)
+  task.keyspace = getKeyspace(task)
 
   task.save
 

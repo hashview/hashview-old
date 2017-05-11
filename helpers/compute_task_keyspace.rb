@@ -1,6 +1,6 @@
 # this helper generates the keyspace of a given task. Helpful when chunking the task for multiple agents.
 helpers do
-  def keyspace(task)
+  def getKeyspace(task)
     p '=============== generateing keyspace for task ====================='
 
     # get hashcat binarypath from config
