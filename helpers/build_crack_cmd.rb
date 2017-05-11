@@ -1,6 +1,8 @@
 helpers do
   # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
   def buildCrackCmd(job_id, task_id)
+    cmds = []
+
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
     hc_settings = HashcatSettings.first
     # we no loger pull hc_binpath from the db. set this to a placeholder value and each
@@ -79,6 +81,7 @@ helpers do
     end
 
     p cmd
-    cmd
+    cmds << cmd
+    return cmds
   end
 end
