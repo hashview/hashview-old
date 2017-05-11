@@ -46,6 +46,12 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
   queue.status = status
   queue.agent_id = agent_id
   queue.save
+
+  # check to see if this is the last task in queue. if so, set jobtask to completed
+  remainingtasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued')
+  if remainingtasks.empty?
+    updateJobTaskStatus(queue.jobtask_id, 'Completed')
+  end
 end
 
 

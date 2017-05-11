@@ -217,6 +217,7 @@ class Settings
   property :clientmode, Boolean
   property :ui_themes, String, default: 'Light', :required => true
   property :version, String, length: 5
+  property :chunk_size, Integer, max: 9999999999999999999, default: 500000
 end
 
 # HashCat settings

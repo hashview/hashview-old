@@ -385,11 +385,12 @@ class LocalAgent
             end
 
             # set jobtask status to importing
-            Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
+            # commenting out now that we are chunking
+            Api.post_queue_status(jdata['id'], 'Importing')
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-            if File.exist?(crack_file)
+            if File.exist?(crack_file) && ! File.zero?(crack_file)
               Api.upload_crackfile(jobtask['id'], crack_file, @run_time)
             else
               puts "No successful cracks for this task. Skipping upload."
@@ -399,11 +400,12 @@ class LocalAgent
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
             # change status to completed for jobtask
-            if @canceled
-              Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
-            else
-              Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-            end
+            # commenting out now that we are chunking
+            # if @canceled
+            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
+            # else
+            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+            # end
 
             # set taskqueue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')

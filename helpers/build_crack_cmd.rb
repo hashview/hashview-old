@@ -3,6 +3,10 @@ helpers do
   def buildCrackCmd(job_id, task_id)
     cmds = []
 
+    chunk_size = Settings.first().chunk_size
+    chunks = {}
+    chunk_skip = 0
+
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
     hc_settings = HashcatSettings.first
     # we no loger pull hc_binpath from the db. set this to a placeholder value and each
@@ -17,6 +21,25 @@ helpers do
   
     attackmode = @task.hc_attackmode.to_s
     mask = @task.hc_mask
+
+    # if task contains a keyspace that is gt 0 perform chunking
+    if @task.keyspace.nil?
+      chunking = false
+    elsif @task.keyspace > 0 && @task.keyspace > chunk_size
+      chunking = true
+
+      # build a hash containing our skip and limit values
+      chunk_num = 0
+      while chunk_skip < @task.keyspace.to_i
+        skip = chunk_skip
+        limit = skip + chunk_size
+
+        chunks[chunk_num] = [skip, limit]
+
+        chunk_num = chunk_num + 1
+        chunk_skip = limit
+      end
+    end
 
     if attackmode == 'combinator'
       wordlist_list = @task.wl_id
@@ -80,8 +103,18 @@ helpers do
       cmd = cmd + ' --force'
     end
 
-    p cmd
-    cmds << cmd
+    # add skip and limit if we are chunking this task
+    if chunking
+      chunks.each do |key, value|
+        if attackmode == 'maskmode'
+          cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
+          p cmd
+        end
+      end
+    else
+      cmds << cmd
+    end
+
     return cmds
   end
 end

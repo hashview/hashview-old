@@ -89,30 +89,37 @@
                                   - if jt.status == 'Running'
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
                                       .panel-body
+                                        Remaining tasks:
+                                        %p
                                         %ul{:class =>"list-group borderless row"}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
+                                              - next if tq.status == 'Completed'
                                               %li{:class => "list-group-item borderless"}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
-                                                      %b QID
+                                                      %b Chunk
                                                     %td
-                                                      %b Agent
+                                                      - if tq.status == 'Queued'
+                                                        %b Command
+                                                      - else
+                                                        %b Agent
                                                   %tbody
                                                     %td
                                                       #{tq.id}
                                                     %td
-                                                      - @taskqueues.each do |taskqueue|
-                                                        - if jt.id == taskqueue.jobtask_id
-                                                          - @agents.each do |agent|
-                                                            - if agent.id.to_i == taskqueue.agent_id.to_i
-                                                              #{agent.name}
+                                                      - if tq.status == 'Queued'
+                                                        #{tq.command}
+                                                      - else
+                                                        - @agents.each do |agent|
+                                                          - if agent.id.to_i == tq.agent_id.to_i
+                                                            #{agent.name}
                                                     %td
                                                       - if tq.status == 'Running'
                                                         %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
                                                           %b Cancel
-                                                      - elsif tq.status == 'Queue'
+                                                      - elsif tq.status == 'Queued'
                                                         %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
@@ -126,7 +133,7 @@
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
-                                                      %b QID
+                                                      %b Chunk
                                                     %td
                                                       %b Command
                                                     %td
