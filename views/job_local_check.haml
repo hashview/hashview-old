@@ -1,0 +1,49 @@
+!!!
+%html
+  %body
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Local Check
+            .row
+              .col-md-10
+                The following hashes are already cracked in Hashview's Local database!
+      %br
+      %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{:class => 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Username
+                    %th
+                      %b Type
+                    %th
+                      %b Cipher Text
+                    %th
+                      %b Plain Text
+                %tbody
+                  - if @previously_cracked
+                    - @previously_cracked.each do |entry|
+                      %tr
+                        %td #{entry.username}
+                        %td #{modeToFriendly(entry.hashtype.to_s)}
+                        %td #{entry.originalhash}
+                        %td #{entry.plaintext}
+                  - else
+                    %tr
+                      %td
+                      %td
+                      %td
+                      %td
+        .container
+          .row
+            .col-md-12
+              %a.btn.btn-primary{:href => "#{@url}"}
+                Next

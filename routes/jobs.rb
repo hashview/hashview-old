@@ -361,6 +361,27 @@ get '/jobs/stop/:job_id/:task_id' do
   end
 end
 
+get '/jobs/local_check' do
+  varWash(params)
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
+
+  @url = '/jobs'
+  hub_settings = HubSettings.first
+  if hub_settings.enabled == true && hub_settings.status == 'registered'
+     @url = @url + '/hub_check'
+  else
+    @url = @url + '/assign_tasks'
+  end
+
+  @url += "?job_id=#{params[:job_id]}"
+  @url += '&edit=1' if params[:edit]
+
+  haml :job_local_check
+end
+
+
 get '/jobs/hub_check' do
   varWash(params)
 

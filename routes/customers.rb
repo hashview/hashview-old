@@ -235,27 +235,29 @@ post '/customers/upload/verify_hashtype' do
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
+  # previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
   total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
 
   unless total_cnt.nil?
     flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
   end
 
-  unless previously_cracked_cnt.nil?
-    flash[:success] = previously_cracked_cnt + ' have already been cracked!'
-  end
+  # unless previously_cracked_cnt.nil?
+  #  flash[:success] = previously_cracked_cnt + ' have already been cracked!'
+  #end
 
   # Delete file, no longer needed
   File.delete(hash_file)
 
-  url = '/jobs'
-  hub_settings = HubSettings.first
-  if hub_settings.enabled == true && hub_settings.status == 'registered'
-    url = url + '/hub_check'
-  else
-    url = url + '/assign_tasks'
-  end
+  url = '/jobs/local_check'
+
+  # url = '/jobs'
+  # hub_settings = HubSettings.first
+  # if hub_settings.enabled == true && hub_settings.status == 'registered'
+  #   url = url + '/hub_check'
+  # else
+  #  url = url + '/assign_tasks'
+  # end
 
   url += "?job_id=#{params[:job_id]}"
   url += '&edit=1' if params[:edit]
