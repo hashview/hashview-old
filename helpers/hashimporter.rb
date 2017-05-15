@@ -260,7 +260,7 @@ def getMode(hash)
     @modes.push('4600') # sha1(sha1(sha1($pass)))
     @modes.push('4700') # sha1(md5($pass))
     @modes.push('6000') # RipeMD160
-  elsif hash =~ /^[a-f0-9]{40}.+$/
+  elsif hash =~ /^[a-f0-9]{40}:.+$/
     @modes.push('110')  # sha1($pass.$salt)
     @modes.push('120')  # sha1($salt.$pass)
     @modes.push('130')  # sha1(unicode($pass).$salt)
