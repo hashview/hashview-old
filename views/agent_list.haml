@@ -12,26 +12,62 @@
               .col-md-10.pull-left
                 Agents are remote workers that process distributed hashcat jobs.
               .col-md-2.pull-right
-                - agents_online = 0
-                - total_gpus = 0
-                - total_cpus = 0
-                - @agents.each do |agent|
-                  - if agent.status == 'Online' || agent.status == 'Working' || agent.status == 'Idle' || agent.status == 'Authorized'
-                    - agents_online += 1
-                    - if agent.gpu_count
-                      - total_gpus += agent.gpu_count
-                    - if agent.cpu_count
-                      - total_cpus += agent.cpu_count
-                Agents online
-                .badge #{agents_online}
-                .p
-                GPUs total
-                .badge #{total_gpus}
-                .p
-                CPUs total
-                .badge #{total_cpus}
-              -#  %a.btn.btn-primary.pull-right{:href => "/agents/create"}
-              -#    Add Agent
+                .well.well-sm
+                  - agents_online = 0
+                  - total_gpus = 0
+                  - total_cpus = 0
+                  - total_speed = 0
+                  - speed = 0
+                  - @agents.each do |agent|
+                    - if agent.status == 'Online' || agent.status == 'Working' || agent.status == 'Idle'
+                      - agents_online += 1
+                      - if agent.gpu_count
+                        - total_gpus += agent.gpu_count.to_i
+                      - if agent.cpu_count
+                        - total_cpus += agent.cpu_count.to_i
+                      - if agent.benchmark
+                        - if agent.benchmark.include? 'kH/s'
+                          - speed = agent.benchmark.split()[0].to_f
+                          - speed = speed * 1000
+                          - total_speed += speed
+                        - if agent.benchmark.include? 'MH/s'
+                          - speed = agent.benchmark.split()[0].to_f
+                          - speed = speed * 1000000
+                          - total_speed += speed
+                        - if agent.benchmark.include? 'GH/s'
+                          - speed = agent.benchmark.split()[0].to_f
+                          - speed = speed * 1000000000
+                          - total_speed += speed
+                        - if agent.benchmark.include? 'TH/s'
+                          - speed = agent.benchmark.split()[0].to_f
+                          - speed = speed * 1000000000000
+                          - total_speed += speed
+                  Agents online
+                  .badge #{agents_online}
+                  .p
+                  GPUs total
+                  .badge #{total_gpus}
+                  .p
+                  CPUs total
+                  .badge #{total_cpus}
+                  .p
+                  Total Speed:
+                  .p
+                  <b>
+                  - speed_count = total_speed.to_i.to_s.size
+                  - if speed_count > 12
+                    - total_speed = total_speed / 1000000000000
+                    #{total_speed.round} TH/s
+                  - elsif speed_count > 9
+                    - total_speed = total_speed / 1000000000
+                    #{total_speed.round} GH/s
+                  - elsif speed_count > 6
+                    - total_speed = total_speed / 1000000
+                    #{total_speed.round} MH/s
+                  - elsif speed_count > 3
+                    - total_speed = total_speed / 1000000
+                    #{total_speed.round} kH/s
+                  </b>
       %br
       %br
       .container
