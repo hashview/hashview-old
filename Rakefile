@@ -239,6 +239,8 @@ namespace :db do
     agent_config['ip'] = '127.0.0.1'
     agent_config['port'] = '4567'
     agent_config['uuid'] = SecureRandom.uuid.to_s
+    agent_config['hc_binary_path'] = ''
+    agent_config['type'] = 'master'
     File.open('config/agent_config.json', 'w') do |f|
       f.write(JSON.pretty_generate(agent_config))
     end
@@ -252,7 +254,7 @@ namespace :db do
     rescue
       raise 'Error in provisioning agent'
     end
-    puts 'db:provision_agent executed'
+    puts 'provision_agent executed'
   end
 
   desc 'Perform non destructive auto migration'
@@ -490,6 +492,8 @@ def upgrade_to_v060(user, password, host, database)
   agent_config['ip'] = '127.0.0.1'
   agent_config['port'] = '4567'
   agent_config['uuid'] = SecureRandom.uuid.to_s
+  agent_config['hc_binary_path'] = ''
+  agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
   end
