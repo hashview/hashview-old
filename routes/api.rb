@@ -333,7 +333,7 @@ post '/v1/agents/:uuid/heartbeat' do
       # we didnt authorize this agent. it might be new
       newagent = Agents.new
       newagent.uuid = params[:uuid]
-      newagent.name = params[:uuid] + " (untrusted)"
+      newagent.name = params[:uuid]
       newagent.status = "Pending"
       newagent.src_ip = "#{request.ip}"
       newagent.heartbeat = Time.now
