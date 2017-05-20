@@ -522,15 +522,15 @@ def upgrade_to_v070(user, password, host, database)
 
   # this upgrade path doesnt require anything complex, just move a value from db to config file
   puts '[*] Reading Settings Table.'
-  settings = conn.query('SELECT * FROM settings')
-  settings.each_hash do |row|
-    hc_binpath = row['hcbinpath'].to_s
+  hashcat_settings = conn.query('SELECT hc_binpath FROM hashcat_settings')
+  hashcat_settings.each_hash do |row|
+    @hc_binpath = row['hc_binpath'].to_s
   end
 
   # add new parameters to local agent config
   puts '[*] Writing new parameters to agent config'
   agent_config = JSON.parse(File.read('config/agent_config.json'))
-  agent_config['hc_binary_path'] = hc_binpath
+  agent_config['hc_binary_path'] = @hc_binpath
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
