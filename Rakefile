@@ -145,9 +145,13 @@ namespace :db do
     end
 
     puts '[*] Setting default theme ...'
-    # Assign Default CSS theme
+    # Assign Default CSS theme and set version
+
+    # Check to see what version the app is at
+    application_version = File.open('VERSION') {|f| f.readline}
+
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','0.6.0')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','#{application_version}')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -298,6 +302,9 @@ namespace :db do
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
         upgrade_to_v060(user, password, host, database)
+      end      
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7')
+        upgrade_to_v070(user, password, host, database)
       end
     else
       puts '[*] Your version is up to date!'
@@ -506,5 +513,31 @@ def upgrade_to_v060(user, password, host, database)
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.6.0'")
-  puts '[*] Upgrade to v0.6.0 complete.'
+  puts '[+] Upgrade to v0.6.0 complete.'
 end
+
+def upgrade_to_v070(user, password, host, database)
+  puts '[*] Upgrading from v0.6.x to v0.7'
+  conn = Mysql.new host, user, password, database
+
+  # this upgrade path doesnt require anything complex, just move a value from db to config file
+  puts '[*] Reading Settings Table.'
+  settings = conn.query('SELECT * FROM settings')
+  settings.each_hash do |row|
+    hc_binpath = row['hcbinpath'].to_s
+  end
+
+  # add new parameters to local agent config
+  puts '[*] Writing new parameters to agent config'
+  agent_config = JSON.parse(File.read('config/agent_config.json'))
+  agent_config['hc_binary_path'] = hc_binpath
+  agent_config['type'] = 'master'
+  File.open('config/agent_config.json', 'w') do |f|
+    f.write(JSON.pretty_generate(agent_config))
+  end
+
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.7'")
+  puts '[+] Upgrade to v0.7 complete.'
+end
+
