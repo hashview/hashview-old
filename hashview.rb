@@ -40,11 +40,6 @@ before /^(?!\/(login|register|logout|v1\/))/ do
   @settings = Settings.first
   if !validSession?
     redirect to('/login')
-  else
-    hc_settings = HashcatSettings.first
-    if (hc_settings && hc_settings.hc_binpath.nil?) || hc_settings.nil?
-      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>'
-    end
   end
 end
 
