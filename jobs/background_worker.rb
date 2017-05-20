@@ -1,8 +1,6 @@
 require 'rest-client'
 require 'benchmark'
 
-@hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
-
 # one day, when I grow up...I'll be a ruby dev
 # api calls
 
@@ -249,14 +247,6 @@ def hc_device_list(hashcatbinpath)
   hc_devices = `#{cmd}`
   return  hc_devices
 end
-
-# # is hashcat working? if so, how fast are you? provide basic information to master server
-# hc_cpus, hc_gpus = hashcatDeviceParser(hc_device_list)
-# hc_devices = {}
-# hc_devices['gpus'] = hc_gpus
-# hc_devices['cpus'] = hc_cpus
-# hc_perfstats = hashcatBenchmarkParser(hc_benchmark)
-# Api.stats(hc_devices, hc_perfstats)
 
 
 class LocalAgent
