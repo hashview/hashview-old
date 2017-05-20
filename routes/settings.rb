@@ -17,6 +17,9 @@ get '/settings' do
     @settings = Settings.first
   end
   @auth_types = %w(None Plain Login cram_md5)
+
+  # get hcbinpath (stored in config file vs db)
+  @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
  
   haml :global_settings
 end
@@ -27,19 +30,10 @@ post '/settings' do
     # Declare our db object first so that we can save values along the way instead of at the end
     hc_settings = HashcatSettings.first
 
-    # Hashcat Binary Path Sanity checks
-    if params[:hc_binpath].nil? || params[:hc_binpath].empty?
-      flash[:error] = 'You must set the path for your hashcat binary.'
-      redirect('/settings')
-    end
-
     unless File.file?(params[:hc_binpath])
       flash[:error] = 'Invalid file / path for hashcat binary.'
       redirect('/settings')
     end
-
-    # hcbinpath looks good
-    hc_settings.hc_binpath = params[:hc_binpath]
 
     # Max Task Time Sanity checks
     if params[:max_task_time].nil? || params[:max_task_time].empty?
@@ -137,6 +131,12 @@ post '/settings' do
 
     settings.save
 
+  end
+ 
+  # distributed settings
+  if params[:chunk_size]
+    settings.chunk_size = params[:chunk_size].to_i
+    settings.save
   end
 
   flash[:success] = 'Settings updated successfully.'
