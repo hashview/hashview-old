@@ -106,7 +106,7 @@ helpers do
     # add skip and limit if we are chunking this task
     if chunking
       chunks.each do |key, value|
-        if attackmode == 'maskmode'
+        if attackmode == 'maskmode' || attackmode == 'dictionary'
           cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
           p cmd
         end
