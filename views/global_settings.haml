@@ -234,12 +234,12 @@
       .col-md-10
         %form{:name => 'hub_settings_form', :id => 'hub_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
           .form-group
-            %label.control-label.col-xs-2{:for => ''} Enabled
-            .col-xs-1.pull-left
-              - if @hub_settings.enabled
-                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'enabled', :id => 'enabled', :checked => 'checked'}
+            %label.control-label.col-xs-2{:for => ''} Email Address
+            .col-xs-10
+              - if @hub_settings.email
+                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email', :value => @hub_settings.email}
               - else
-                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'enabled', :id => 'enabled'}
+                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
           .form-group
             %label.control-label.col-xs-2{:for => ''} Tokens
             .col-xs-10
@@ -255,10 +255,8 @@
             .col-xs-10
               %input{:type => 'hidden', :name => 'form_id', :value => '4'}
           .form-group
-            .col-xs-offset-2.col-xs-10
-              -if @hub_settings.status != 'registered'
-                %a.btn.btn-warning{:href => '/hub/register'}
-                  Register
-          .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => 'submit'} Save
+              - if @hub_settings.status != 'registered'
+                %button.btn.btn-warning{:type => 'submit'} Register
+              - else
+                %button.btn.btn-danger{:href => 'submit'} Unregister

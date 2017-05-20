@@ -235,6 +235,7 @@ class HubSettings
   property :id, Serial
   property :enabled, Boolean
   property :status, String, default: 'unregistered', required: true # Options are registered, unregistered and pending
+  property :email, String
   property :uuid, String
   property :auth_key, String, length: 254
   property :balance, Integer, default: 0

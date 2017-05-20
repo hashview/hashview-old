@@ -42,5 +42,10 @@
         .container
           .row
             .col-md-12
+              %a.btn.btn-primary{:href => "/hub/hash/reveal/#{@jobs.hashfile_id}"}
+                Reveal All
+        .container
+          .row
+            .col-md-12
               %a.btn.btn-primary{:href => "/jobs/assign_tasks?job_id=#{@jobs.id}"}
                 Continue

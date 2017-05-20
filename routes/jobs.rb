@@ -226,16 +226,16 @@ post '/jobs/assign_tasks' do
       puts params
       flash[:error] = 'You cannot have duplicate tasks.'
       url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-      url = url + '&edit=1' if params[:edit]
-      redirect to (url)
+      url += '&edit=1' if params[:edit]
+      redirect to(url)
     end
   end
- 
+
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
     assignTasksToJob(params[:tasks], job.id)
   end
-  
+
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
     @jobtasks = Jobtasks.all(job_id: params[:job_id])
@@ -244,14 +244,14 @@ post '/jobs/assign_tasks' do
       jobtask.save
     end
   end
-  
+
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/start/:id' do
   varWash(params)
-  
+
   tasks = []
   @job = Jobs.first(id: params[:id])
   unless @job
@@ -364,23 +364,20 @@ end
 get '/jobs/local_check' do
   varWash(params)
 
+  # TODO offer the ability to upload to hub
+
   @jobs = Jobs.first(id: params[:job_id])
   @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
 
   @url = '/jobs'
   hub_settings = HubSettings.first
-  if hub_settings.enabled == true && hub_settings.status == 'registered'
-     @url = @url + '/hub_check'
-  else
-    @url = @url + '/assign_tasks'
-  end
+  hub_settings.status == 'registered' ? @url = @url + '/hub_check' : @url = @url + '/assign_tasks'
 
   @url += "?job_id=#{params[:job_id]}"
   @url += '&edit=1' if params[:edit]
 
   haml :job_local_check
 end
-
 
 get '/jobs/hub_check' do
   varWash(params)

@@ -250,15 +250,7 @@ post '/customers/upload/verify_hashtype' do
   File.delete(hash_file)
 
   url = '/jobs/local_check'
-
-  # url = '/jobs'
-  # hub_settings = HubSettings.first
-  # if hub_settings.enabled == true && hub_settings.status == 'registered'
-  #   url = url + '/hub_check'
-  # else
-  #  url = url + '/assign_tasks'
-  # end
-
+  
   url += "?job_id=#{params[:job_id]}"
   url += '&edit=1' if params[:edit]
   redirect to(url)
