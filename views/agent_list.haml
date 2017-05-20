@@ -84,6 +84,8 @@
                     %th
                       %b IP
                     %th
+                      %b Speed
+                    %th
                       %b Last Heartbeat
                     %th
                       %b Controls
@@ -95,6 +97,7 @@
                         %td{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"} #{agent.name}
                         %td{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"} #{agent.status}
                         %td{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"} #{agent.src_ip}
+                        %td{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"} #{agent.benchmark}
                         %td{:class => "accordian-toggle", "data-toggle" => "collapse", :href => "#collapse-#{link}"} #{agent.heartbeat}
                         %td
                           - if agent.src_ip == '127.0.0.1' || agent.src_ip == 'localhost'
@@ -115,19 +118,13 @@
                             - else
                               %a.btn.btn-primary{:href => "/agents/#{agent.id}/deauthorize"}
                                 Deauthorize
-                            -#- if agent.status == 'Authorized'
-                            -#  %a.btn.btn-primary{:href => "/agents/#{agent.id}/deauthorize"}
-                            -#    Deauthorize
-                            -#- else
-                            -#  %a.btn.btn-primary{:href => "/agents/#{agent.id}/authorize"}
-                            -#    Authorize
                             %a.btn.btn-warning{:href => "/agents/#{agent.id}/edit"}
                               %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                             %a.btn.btn-danger{:href => "/agents/#{agent.id}/delete"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
-                      - if agent.hc_status
+                      - unless agent.hc_status.empty?
                         %tr
-                          %td{:colspan => 5}
+                          %td{:colspan => 6}
                             %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
                               %h4 Hashcat Status
                               %br
