@@ -122,18 +122,19 @@
                               %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                             %a.btn.btn-danger{:href => "/agents/#{agent.id}/delete"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
-                      - unless agent.hc_status.empty?
-                        %tr
-                          %td{:colspan => 6}
-                            %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
-                              %h4 Hashcat Status
-                              %br
-                              %table{:class => 'table'}
-                                - unless agent.hc_status.empty?
-                                  - JSON.parse(agent.hc_status).each do |k,v|
-                                    %tr
-                                      %td.col-md-4
-                                        #{k}
-                                      %td
-                                        #{v}
+                      - if agent.hc_status
+                        - unless agent.hc_status.empty?
+                          %tr
+                            %td{:colspan => 6}
+                              %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                                %h4 Hashcat Status
+                                %br
+                                %table{:class => 'table'}
+                                  - unless agent.hc_status.empty?
+                                    - JSON.parse(agent.hc_status).each do |k,v|
+                                      %tr
+                                        %td.col-md-4
+                                          #{k}
+                                        %td
+                                          #{v}
 
