@@ -313,4 +313,47 @@ class MyTest < MiniTest::Test
     delete_testuser(userid)
   end
 
+  # agent routes
+  # get '/agents/list' do
+  # get '/agents/create' do
+  # get '/agents/:id/edit' do
+  # post '/agents/:id/edit' do
+  # get '/agents/:id/delete' do
+  # get '/agents/:id/authorize' do
+  # get '/agents/:id/deauthorize' do
+
+  def test_agents_list_response
+    userid = login_testuser
+    get '/agents/list' 
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
+  def test_agents_create_response
+    userid = login_testuser
+    get '/agents/create'
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
+  # api routes
+  # get '/v1/notauthorized' do
+  # get '/v1/queue' do
+  # get '/v1/queue/:id' do
+  # get '/v1/queue/:id/remove' do
+  # post '/v1/queue/:taskqueue_id/status' do
+  # post '/v1/jobtask/:jobtask_id/status' do
+  # get '/v1/jobtask/:id' do
+  # get '/v1/job/:id' do
+  # get '/v1/wordlist' do
+  # get '/v1/wordlist/:id' do
+  # get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
+  # post '/v1/jobtask/:jobtask_id/crackfile/upload' do
+  # post '/v1/hcoutput/status' do
+  # post '/v1/agents/:uuid/heartbeat' do
+  # get '/v1/agents/:uuid/authorize' do
+  # post '/v1/agents/:uuid/stats' do
+
+  # TODO implement api tests
+
 end
