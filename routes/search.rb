@@ -105,8 +105,6 @@ post '/search' do
 
     p 'results:' + @results.to_s
 
-
-
   elsif params[:search_type] == 'hash'
 
     @local_results = repository(:default).adapter.select("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.originalhash like '%" + params[:value] + "%'")

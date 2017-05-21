@@ -268,7 +268,7 @@ get '/jobs/start/:id' do
       end
     end
   end
-  
+
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
@@ -384,11 +384,11 @@ get '/jobs/hub_check' do
 
   @results = []
   results_entry = {
-      username: '',
-      originalhash: '',
-      hub_hash_id: '',
-      hashtype: '',
-      show_results: '0'
+    username: '',
+    originalhash: '',
+    hub_hash_id: '',
+    hashtype: '',
+    show_results: '0'
   }
 
   @jobs = Jobs.first(id: params[:job_id])
@@ -413,11 +413,10 @@ get '/jobs/hub_check' do
   haml :job_hub_check
 end
 
-
 ################################
 
 ##### job task controllers #####
-  
+
 get '/jobs/remove_task' do
   varWash(params)
 
