@@ -15,9 +15,9 @@ before_script:
   - cat /etc/mysql/my.cnf
   - sudo service mysql restart
   - cp config/database.travis.yml config/database.yml
-  - cp config/agent_config.travis.json config/agent_config.json
 
 script:
   - export RACK_ENV=test
   - rake db:setup
+  - cp config/agent_config.travis.json config/agent_config.json
   - rake test
