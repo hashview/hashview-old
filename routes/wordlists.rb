@@ -57,6 +57,7 @@ post '/wordlists/upload/' do
   # Save to file
   file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
 
+
   wordlist = Wordlists.new
   wordlist.name = upload_name 
   wordlist.path = file_name

@@ -287,15 +287,18 @@ get '/jobs/start/:id' do
       # toggle the job status to run
       @job.status = 'Queued'
       @job.save
-      cmd = buildCrackCmd(@job.id, task.id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      # we are using a db queue instead for public api
-      queue = Taskqueues.new
-      queue.jobtask_id = jt.id
-      queue.job_id = @job.id
-      queue.command = cmd
-      queue.status = 'Queued'
-      queue.save
+
+      cmds = buildCrackCmd(@job.id, task.id)
+      cmds.each do |cmd|
+        cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+        # we are using a db queue instead for public api
+        queue = Taskqueues.new
+        queue.jobtask_id = jt.id
+        queue.job_id = @job.id
+        queue.command = cmd
+        queue.status = 'Queued'
+        queue.save
+      end
     end
   end
   

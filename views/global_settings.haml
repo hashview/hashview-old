@@ -30,6 +30,8 @@
       %a{"data-toggle" => "tab", :href => "#2"} Email
     %li
       %a{"data-toggle" => "tab", :href => "#3"} UI
+    %li
+      %a{"data-toggle" => "tab", :href => "#4"} Distributed
   .tab-content
     #1.tab-pane.active
       %br
@@ -38,11 +40,9 @@
           .form-group
             %label.control-label.col-xs-2{:for => ''} Hashcat Binary Path
             .col-xs-10
-              - if @hc_settings and @hc_settings.hc_binpath
-                %input{:type => 'textbox', :class => 'form-control', :name => 'hc_binpath', :id => 'hc_binpath', :value => @hc_settings.hc_binpath}
-              - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'hc_binpath', :id => 'hc_binpath'}
-              Note: Make sure the user running hashview has the ability to read the hashcat root folder
+              - if @hc_binpath
+                %input{:type => 'textbox', :class => 'form-control', :disabled => 'disabled', :value => @hc_binpath}
+              Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it. Make sure the user running hashview has the ability to read the hashcat root folder
           .form-group
             %label.control-label.col-xs-2{:for => ''} Max Task Runtime
             .col-xs-3
@@ -221,6 +221,17 @@
                     %option{:value => "#{ui_type}", :type => 'button', selected: 'selected'} #{ui_type}
                   - else
                     %option{:value => "#{ui_type}", :type => 'button'} #{ui_type}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{:type => 'submit'} Save
+    #4.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'distributed_settings_form', :id => 'distributed_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-3{:for => ''} Chunk Size (in keyspace)
+            .col-xs-2
+              %input{:type => 'textbox', :class => 'form-control', :name => 'chunk_size', :id => 'chunk_size', :value => @settings.chunk_size}
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save

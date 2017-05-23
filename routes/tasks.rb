@@ -209,8 +209,12 @@ post '/tasks/create' do
     task.wl_id = wordlist_list
     task.hc_rule = rule_list
   end
+
+  # generate keyspace of new task and save to db
+  task.keyspace = getKeyspace(task)
+
   task.save
-  
+
   flash[:success] = "Task #{task.name} successfully created."
   
   redirect to('/tasks/list')
