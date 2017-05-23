@@ -69,6 +69,7 @@ get '/hashfiles/list' do
         @hub_hash_results = hub_response['hashes']
         @hub_hash_results.each do |entry|
           if entry['cracked'] == '1'
+            p 'ENTRY' + entry.to_s
             download_cnt += 1
           end
         end

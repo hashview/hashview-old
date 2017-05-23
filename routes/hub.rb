@@ -231,7 +231,7 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
   if referer[3] == 'jobs'
     p 'referer: ' + referer.to_s
     redirect to("/jobs/#{referer[4]}") # XSS here
-  elsif referer[3] == 'hashfile'
+  elsif referer[3] == 'hashfiles'
     redirect to('/hashfiles/list')
   else
     p request.referer.to_s
