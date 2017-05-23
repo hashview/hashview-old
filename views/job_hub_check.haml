@@ -35,15 +35,17 @@
                         %tr
                           %td #{@results.size} #{entry['username']}
                           %td
-                            %a.btn.btn-success{:href => "/hub/hash/reveal/#{@jobs.id}/#{entry['hashtype'].to_s}/#{entry['originalhash'].to_s}"}
+                            %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
                               reveal
                           %td #{modeToFriendly(entry['hashtype'].to_s)}
-                          %td #{entry['originalhash']}
-        .container
-          .row
-            .col-md-12
-              %a.btn.btn-primary{:href => "/hub/hash/reveal/#{@jobs.hashfile_id}"}
-                Reveal All
+                          %td #{entry['ciphertext']}
+                    %tr
+                      %td
+                      %td
+                        %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}"}
+                          Reveal All
+                      %td
+                      %td
         .container
           .row
             .col-md-12

@@ -61,7 +61,7 @@
                           // LU && RC
                         - elsif entry['local_cracked'] == '0' and entry['hub_cracked'] == '1'
                           - if entry['show_hub_results'] == '1'
-                            %a.btn.btn-success{:href => "/hub/hash/reveal/0/#{entry['hashtype'].to_s}/#{entry['originalhash'].to_s}"}
+                            %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
                               reveal
                           - else
                             %em uncracked

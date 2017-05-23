@@ -90,7 +90,7 @@
                                             %td
                                     .modal-footer
                                       %button.btn.btn-default{'data-dismiss' => 'modal', :type => 'button'} Close
-                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/reveal/#{hashfile.id}"} Confirm
+                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/reveal/hashfile/#{hashfile.id}"} Confirm
                             %a.btn.btn-danger{:href => "/hashfiles/delete?hashfile_id=#{hashfile.id}"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                           %tr

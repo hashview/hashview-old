@@ -150,27 +150,29 @@ get '/hub/hash/reveal/hash/:hash_id' do
   else
     @hash_array = []
     element = {}
-    element['originalhash'] = hash.originalhash
+    element['ciphertext'] = hash.originalhash
     element['hashtype'] = hash.hashtype.to_s
     @hash_array.push(element)
 
     hub_response = Hub.hashReveal(@hash_array)
     hub_response = JSON.parse(hub_response)
+    p 'HUB ReSPONSE: ' + hub_response.to_s
     if hub_response['status'] == '200'
       @hashes = hub_response['hashes']
       @hashes.each do |element|
         # Add to local db
-        entry = Hashes.first(hashtype: params[:hashtype], originalhash: params[:hash])
+        p 'CIPHER TEXT: ' + element['ciphertext'].to_s
+        entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['ciphertext'])
         if entry.nil?
           new_entry = Hashes.new
           new_entry.lastupdated = Time.now()
-          new_entry.originalhash = params[:hash]
-          new_entry.hashtype = params[:hashtype]
+          new_entry.originalhash = element['ciphertext']
+          new_entry.hashtype = element['hashtype']
           new_entry.cracked = '1'
-          new_entry.plaintext = hub_response['plaintext']
+          new_entry.plaintext = element['plaintext']
           new_entry.save
         else
-          entry.plaintext = hub_response['plaintext']
+          entry.plaintext = element['plaintext']
           entry.cracked = '1'
           entry.save
         end
@@ -186,7 +188,7 @@ get '/hub/hash/reveal/hash/:hash_id' do
     redirect to('/search')
   elsif referer[3] == 'jobs'
     flash[:success] = 'Unlocked 1 Hash'
-    redirect to("/jobs/hub_check?job_id=#{params[:job_id]}")
+    redirect to("/jobs/#{referer[4]}")
   else
     p request.referer.to_s
     p referer[3].to_s
@@ -203,7 +205,7 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
     unless hash.nil?
       element = {}
-      element['originalhash'] = hash.originalhash
+      element['ciphertext'] = hash.originalhash
       element['hashtype'] = hash.hashtype.to_s
       @hash_array.push(element)
     end
@@ -215,7 +217,8 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
     @hashes = hub_response['hashes']
     @hashes.each do |element|
       # Add to local db
-      entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['originalhash'])
+      entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['ciphertext'])
+      entry.lastupdated = Time.now()
       entry.plaintext = element['plaintext']
       entry.cracked = '1'
       entry.save
@@ -225,14 +228,11 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
   # TODO announce how many were cracked, what the remaining balance is
   referer = request.referer.split('/')
   # We redirect the user back to where he came
-  if referer[3] == 'search'
-    # We came from Search we send back to search
-    flash[:success] = 'Successfully unlocked hash'
-    redirect to('/search')
-  elsif referer[3] == 'jobs'
+  if referer[3] == 'jobs'
     p 'referer: ' + referer.to_s
-    # flash[:success] = 'Unlocked 1 Hash'
     redirect to("/jobs/#{referer[4]}") # XSS here
+  elsif referer[3] == 'hashfile'
+    redirect to('/hashfiles/list')
   else
     p request.referer.to_s
     p referer[3].to_s

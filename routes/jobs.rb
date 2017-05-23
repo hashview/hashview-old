@@ -397,19 +397,33 @@ get '/jobs/hub_check' do
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
     unless hash.nil?
-      hub_response = Hub.hashSearch(hash.originalhash)
+      @hash_array = []
+      element = {}
+      element['ciphertext'] = hash.originalhash
+      element['hashtype'] = hash.hashtype.to_s
+      @hash_array.push(element)
+
+      hub_response = Hub.hashSearch(@hash_array)
       hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '200' && hub_response['cracked'] == '1'
-        results_entry['username'] = entry.username
-        results_entry['originalhash'] = hash.originalhash
-        results_entry['hub_hash_id'] = hub_response['hash_id']
-        results_entry['hashtype'] = hub_response['hashtype']
-        results_entry['show_results'] = '1'
+      if hub_response['status'] == '200'
+        @hub_hash_results = hub_response['hashes']
+        @hub_hash_results.each do |element|
+          if element['cracked'] == '1'
+            results_entry['id'] = entry.hash_id
+            results_entry['username'] = entry.username
+            results_entry['ciphertext'] = element['ciphertext']
+            results_entry['hub_hash_id'] = element['hash_id']
+            results_entry['hashtype'] = element['hashtype']
+            results_entry['show_results'] = '1'
+            @results.push(results_entry)
+            results_entry = {}
+          end
+        end
       end
     end
   end
-  @results.push(results_entry)
 
+  p 'RESULTS: ' + @results.to_s
   haml :job_hub_check
 end
 
