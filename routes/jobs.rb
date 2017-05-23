@@ -394,31 +394,31 @@ get '/jobs/hub_check' do
   @jobs = Jobs.first(id: params[:job_id])
   @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
   # Each hashfile might have multiple duplicate hashes, we need a unique list
+  @hash_array = []
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
     unless hash.nil?
-      @hash_array = []
       element = {}
       element['ciphertext'] = hash.originalhash
       element['hashtype'] = hash.hashtype.to_s
       @hash_array.push(element)
+    end
+  end
 
-      hub_response = Hub.hashSearch(@hash_array)
-      hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '200'
-        @hub_hash_results = hub_response['hashes']
-        @hub_hash_results.each do |element|
-          if element['cracked'] == '1'
-            results_entry['id'] = entry.hash_id
-            results_entry['username'] = entry.username
-            results_entry['ciphertext'] = element['ciphertext']
-            results_entry['hub_hash_id'] = element['hash_id']
-            results_entry['hashtype'] = element['hashtype']
-            results_entry['show_results'] = '1'
-            @results.push(results_entry)
-            results_entry = {}
-          end
-        end
+  hub_response = Hub.hashSearch(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_hash_results = hub_response['hashes']
+    @hub_hash_results.each do |element|
+      if element['cracked'] == '1'
+        results_entry['id'] = entry.hash_id
+        results_entry['username'] = entry.username
+        results_entry['ciphertext'] = element['ciphertext']
+        results_entry['hub_hash_id'] = element['hash_id']
+        results_entry['hashtype'] = element['hashtype']
+        results_entry['show_results'] = '1'
+        @results.push(results_entry)
+        results_entry = {}
       end
     end
   end

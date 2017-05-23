@@ -49,9 +49,12 @@ class Hub
         :url => url,
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
         :verify_ssl => false
+        #:verify_ssl => true
       )
       p 'response: ' + response.body.to_s
       return response.body
+    rescue Errno::ECONNREFUSED
+      return '{"error_msg": "api call failed"}'
     rescue RestClient::Exception => e
       return '{"error_msg" : "api call failed"}'
     end
@@ -68,12 +71,14 @@ class Hub
         :payload => payload.to_json,
         :headers => {:accept => :json},
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :verify_ssl => false #TODO VALIDATE!
+        :verify_ssl => false #TODO VALIDATE
+        #:verify_ssl => true
       )
       p 'response: ' + response.body.to_s
       return response.body
+    rescue Errno::ECONNREFUSED
+      return '{"error_msg": "api call failed"}'
     rescue RestClient::Exception => e
-      puts e
       return '{"error_msg": "api call failed"}'
     end
   end
