@@ -208,7 +208,7 @@ def importHashOnly(hash, hashfile_id, type)
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-  
+
     updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   else
@@ -217,7 +217,7 @@ def importHashOnly(hash, hashfile_id, type)
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-   
+
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   end

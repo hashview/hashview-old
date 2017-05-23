@@ -37,15 +37,23 @@ post '/search' do
         results_entry['local_cracked'] = '0' unless local_entry.cracked
 
         if hub_settings.status == 'registered' && local_entry.originalhash
-          hub_response = Hub.hashSearch(local_entry.originalhash)
+          @hash_array = []
+          element = {}
+          element['ciphertext'] = local_entry.originalhash
+          element['hashtype'] = local_entry.hashtype.to_s
+          @hash_array.push(element)
+          hub_response = Hub.hashSearch(@hash_array)
           hub_response = JSON.parse(hub_response)
-          if hub_response['status'] == '200' or hub_response['status'] == '404'
-            results_entry['originalhash'] = hub_response['hash'] if hub_response['cracked'] == '1'
-            results_entry['hashtype'] = hub_response['hashtype'] if hub_response['cracked'] == '1'
-            results_entry['show_hub_results'] = '1'
-            results_entry['hub_hash_id'] = hub_response['hash_id']
-            results_entry['hub_cracked'] = '1' if hub_response['cracked'] == '1'
-            results_entry['hub_cracked'] = '0' if hub_response['cracked'] == '0' || hub_response['cracked'].nil?
+          if hub_response['status'] == '200'
+            @hub_hash_results = hub_response['hashes']
+            @hub_hash_results.each do |entry|
+              results_entry['originalhash'] = entry['ciphertext'] if entry['cracked'] == '1'
+              results_entry['hashtype'] = entry['hashtype'] if entry['cracked'] == '1'
+              results_entry['show_hub_results'] = '1'
+              results_entry['hub_hash_id'] = entry['hash_id']
+              results_entry['hub_cracked'] = '1' if entry['cracked'] == '1'
+              results_entry['hub_cracked'] = '0' if entry['cracked'] == '0' || entry['cracked'].nil?
+            end
           else
             flash[:error] = 'Error: Unauthorized access to Hub. Please check settings and try again.'
           end
@@ -81,15 +89,24 @@ post '/search' do
         results_entry['local_cracked'] = '0' unless local_entry.cracked
 
         if hub_settings.status == 'registered' && local_entry.originalhash
-          hub_response = Hub.hashSearch(local_entry.originalhash)
+          @hash_array = []
+          element = {}
+          element['ciphertext'] = local_entry.originalhash
+          element['hashtype'] = local_entry.hashtype.to_s
+          @hash_array.push(element)
+          hub_response = Hub.hashSearch(@hash_array)
           hub_response = JSON.parse(hub_response)
-          if hub_response['status'] == '200' or hub_response['status'] == '404'
-            results_entry['originalhash'] = hub_response['hash'] if hub_response['cracked'] == '1'
-            results_entry['hashtype'] = hub_response['hashtype'] if hub_response['cracked'] == '1'
-            results_entry['show_hub_results'] = '1'
-            results_entry['hub_hash_id'] = hub_response['hash_id']
-            results_entry['hub_cracked'] = '1' if hub_response['cracked'] == '1'
-            results_entry['hub_cracked'] = '0' if hub_response['cracked'] == '0' || hub_response['cracked'].nil?
+
+          if hub_response['status'] == '200'
+            @hub_hash_results = hub_response['hashes']
+            @hub_hash_results.each do |entry|
+              results_entry['originalhash'] = entry['ciphertext'] if entry['cracked'] == '1'
+              results_entry['hashtype'] = entry['hashtype'] if entry['cracked'] == '1'
+              results_entry['show_hub_results'] = '1'
+              results_entry['hub_hash_id'] = entry['hash_id']
+              results_entry['hub_cracked'] = '1' if entry['cracked'] == '1'
+              results_entry['hub_cracked'] = '0' if entry['cracked'] == '0' || entry['cracked'].nil?
+            end
           else
             flash[:error] = 'Error: Unauthorized access to Hub. Please check settings and try again.'
           end
@@ -128,15 +145,23 @@ post '/search' do
     end
 
     if hub_settings.status == 'registered'
-      hub_response = Hub.hashSearch(params[:value])
+      @hash_array = []
+      element = {}
+      element['ciphertext'] = params[:value]
+
+      @hash_array.push(element)
+      hub_response = Hub.hashSearch(@hash_array)
       hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '200' or hub_response['status'] == '404'
-        results_entry['originalhash'] = hub_response['hash'] if hub_response['cracked'] == '1'
-        results_entry['hashtype'] = hub_response['hashtype'] if hub_response['cracked'] == '1'
-        results_entry['show_hub_results'] = '1'
-        results_entry['hub_hash_id'] = hub_response['hash_id']
-        results_entry['hub_cracked'] = '1' if hub_response['cracked'] == '1'
-        results_entry['hub_cracked'] = '0' if hub_response['cracked'] == '0' || hub_response['cracked'].nil?
+      if hub_response['status'] == '200'
+        @hub_hash_results = hub_response['hashes']
+        @hub_hash_results.each do |entry|
+          results_entry['originalhash'] = entry['ciphertext'] if entry['cracked'] == '1'
+          results_entry['hashtype'] = entry['hashtype'] if entry['cracked'] == '1'
+          results_entry['show_hub_results'] = '1'
+          results_entry['hub_hash_id'] = entry['hash_id']
+          results_entry['hub_cracked'] = '1' if entry['cracked'] == '1'
+          results_entry['hub_cracked'] = '0' if entry['cracked'] == '0' || entry['cracked'].nil?
+        end
       else
         flash[:error] = 'Error: Unauthorized access to Hub. Please check settings and try again.'
       end
@@ -145,8 +170,6 @@ post '/search' do
     @results.push(results_entry)
     p 'results:' + @results.to_s
   end
-
-
 
   haml :search_post
 end

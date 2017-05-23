@@ -66,8 +66,8 @@
                                             %td
                                     .modal-footer
                                       %button.btn.btn-default{'data-dismiss' => 'modal', :type => 'button'} Close
-                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/reveal/#{hashfile.id}"} Confirm
-                              %a.btn.btn-success{:href => "#modal1#{hashfile.id}", "data-toggle" => 'modal'}
+                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/upload/hashfile/#{hashfile.id}"} Confirm
+                              %a.btn.btn-success{:href => "#modal1#{hashfile.id}", 'data-toggle' => 'modal'}
                                 %i.glyphicon.glyphicon-cloud-download{:title => 'Unlock from Hashview Hub'}
                               .modal.fade.modal{:id => "modal1#{hashfile.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
                                 .modal-dialog.modal-lg

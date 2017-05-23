@@ -34,7 +34,6 @@ class Hub
       @hub_settings.save
     end
 
-
   rescue
     'Error reading config/hub_config.json. Did you run rake db:provision_agent ???'
   end
@@ -91,27 +90,24 @@ class Hub
     self.post(url, payload)
   end
 
-  def self.hashSearch(hash)
+  def self.hashSearch(hash_array)
     url = "https://#{@server}/v1/hashes/search"
     payload = {}
-    payload['hash'] = hash
+    payload['hashes'] = hash_array
     self.post(url, payload)
   end
 
-  def self.hashReveal(hash, hashtype)
+  def self.hashReveal(hash_array)
     url = "https://#{@server}/v1/hashes/reveal"
     payload = {}
-    payload['hash'] = hash
-    payload['hashtype'] = hashtype
+    payload['hashes'] = hash_array
     self.post(url, payload)
   end
 
-  def self.hashUpload(hash, plaintext, hashtype)
+  def self.hashUpload(hash_array)
     url = "https://#{@server}/v1/hashes/upload"
     payload = {}
-    payload['hash'] = hash
-    payload['plaintext'] = plaintext
-    payload['hashtype'] = hashtype
+    payload['hashes'] = hash_array
     self.post(url, payload)
   end
 
@@ -121,11 +117,6 @@ class Hub
     self.post(url, payload)
   end
 
-  def self.statusBalance()
-    url = "https://#{@server}/v1/status/balance"
-    payload = {}
-    self.post(url, payload)
-  end
 end
 
 ### ROUTES #############################################
@@ -150,70 +141,84 @@ get '/hub/register' do
   redirect to('/settings')
 end
 
-# TODO
-# Should probably be :hash_id instead of :hash for privacy sake
-get '/hub/hash/reveal/:job_id/:hashtype/:hash' do
+get '/hub/hash/reveal/hash/:hash_id' do
   varWash(params)
 
-  hub_response = Hub.hashReveal(params[:hash], params[:hashtype])
-  hub_response = JSON.parse(hub_response)
+  hash = Hashes.first(id: params[:hash_id], cracked: '0')
+  if hash.nil?
+    flash[:error] = 'Failed to reveal: non-existant local hash.'
+  else
+    @hash_array = []
+    element = {}
+    element['originalhash'] = hash.originalhash
+    element['hashtype'] = hash.hashtype.to_s
+    @hash_array.push(element)
 
-  if hub_response['status'] == '200'
-
-    # Add to local db
-    entry = Hashes.first(hashtype: params[:hashtype], originalhash: params[:hash])
-    if entry.nil?
-      new_entry = Hashes.new
-      new_entry.lastupdated = Time.now()
-      new_entry.originalhash = params[:hash]
-      new_entry.hashtype = params[:hashtype]
-      new_entry.cracked = '1'
-      new_entry.plaintext = hub_response['plaintext']
-      new_entry.save
-    else
-      entry.plaintext = hub_response['plaintext']
-      entry.cracked = '1'
-      entry.save
+    hub_response = Hub.hashReveal(@hash_array)
+    hub_response = JSON.parse(hub_response)
+    if hub_response['status'] == '200'
+      @hashes = hub_response['hashes']
+      @hashes.each do |element|
+        # Add to local db
+        entry = Hashes.first(hashtype: params[:hashtype], originalhash: params[:hash])
+        if entry.nil?
+          new_entry = Hashes.new
+          new_entry.lastupdated = Time.now()
+          new_entry.originalhash = params[:hash]
+          new_entry.hashtype = params[:hashtype]
+          new_entry.cracked = '1'
+          new_entry.plaintext = hub_response['plaintext']
+          new_entry.save
+        else
+          entry.plaintext = hub_response['plaintext']
+          entry.cracked = '1'
+          entry.save
+        end
+      end
     end
+  end
 
-    referer = request.referer.split('/')
-    # We redirect the user back to where he came
-    if referer[3] == 'search'
-      # We came from Search we send back to search
-      flash[:success] = 'Successfully unlocked hash'
-      redirect to('/search')
-    elsif referer[3] == 'jobs'
-      flash[:success] = 'Unlocked 1 Hash'
-      redirect to("/jobs/hub_check?job_id=#{params[:job_id]}")
-    else
-      p request.referer.to_s
-      p referer[3].to_s
-    end
-
-  elsif hub_response['status'] == 'error'
-    p 'You dun goofed up'
+  referer = request.referer.split('/')
+  # We redirect the user back to where he came
+  if referer[3] == 'search'
+    # We came from Search we send back to search
+    flash[:success] = 'Successfully unlocked hash'
+    redirect to('/search')
+  elsif referer[3] == 'jobs'
+    flash[:success] = 'Unlocked 1 Hash'
+    redirect to("/jobs/hub_check?job_id=#{params[:job_id]}")
+  else
+    p request.referer.to_s
+    p referer[3].to_s
   end
 end
 
-get '/hub/hash/reveal/:hashfile_id' do
+get '/hub/hash/reveal/hashfile/:hashfile_id' do
   varWash(params)
 
-  # TODO verify we have enough credit
+  @hash_array = []
 
   @hashfile_hashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
     unless hash.nil?
-      hub_response = Hub.hashReveal(hash.originalhash)
-      hub_response = JSON.parse(hub_response)
+      element = {}
+      element['originalhash'] = hash.originalhash
+      element['hashtype'] = hash.hashtype.to_s
+      @hash_array.push(element)
+    end
+  end
 
-      if hub_response['status'] == '200'
-        # Add to local db
-        entry = Hashes.first(hashtype: hash.hashtype, originalhash: hash.originalhash)
-        entry.plaintext = hub_response['plaintext']
-        entry.cracked = '1'
-        entry.save
-      end
+  hub_response = Hub.hashReveal(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hashes = hub_response['hashes']
+    @hashes.each do |element|
+      # Add to local db
+      entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['originalhash'])
+      entry.plaintext = element['plaintext']
+      entry.cracked = '1'
+      entry.save
     end
   end
 
@@ -225,24 +230,27 @@ get '/hub/hash/reveal/:hashfile_id' do
     flash[:success] = 'Successfully unlocked hash'
     redirect to('/search')
   elsif referer[3] == 'jobs'
+    p 'referer: ' + referer.to_s
     # flash[:success] = 'Unlocked 1 Hash'
-    redirect to("/jobs/hub_check?job_id=#{params[:job_id]}")
+    redirect to("/jobs/#{referer[4]}") # XSS here
   else
     p request.referer.to_s
     p referer[3].to_s
   end
 end
 
-get '/hub/hash/upload/:id' do
+get '/hub/hash/upload/hash/:id' do
 
   hash = Hashes.first(id: params[:id], cracked: 1)
-  p 'hash: ' + hash.plaintext.to_s
-  p 'hash: ' + hash.hashtype.to_s
-  p 'hash: ' + hash.originalhash.to_s
   if hash.nil?
     flash[:error] = 'Error uploading hash'
   else
-    hub_response = Hub.hashUpload(hash.originalhash, hash.plaintext, hash.hashtype.to_s)
+    @hash_array
+    element = {}
+    element['originalhash'] = hash.originalhash
+    element['hashtype'] = hash.hashtype.to_s
+    @hash_array.push(element)
+    hub_response = Hub.hashUpload(@hash_array)
     hub_response = JSON.parse(hub_response)
     flash[:error] = hub_response['message'] if hub_response['status'] != '200'
 
@@ -253,6 +261,31 @@ get '/hub/hash/upload/:id' do
   end
   # TODO detect referer came from and redirect accordingly
   redirect to('/search')
+end
+
+get '/hub/hash/upload/hashfile/:hashfile_id' do
+
+  @hash_array = []
+
+  @hashfile_hashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
+  @hashfile_hashes.each do |entry|
+    hash = Hashes.first(id: entry.hash_id, cracked: '1')
+    unless hash.nil?
+      element = {}
+      element['ciphertext'] = hash.originalhash
+      element['hashtype'] = hash.hashtype.to_s
+      element['plaintext'] = hash.plaintext
+      @hash_array.push(element)
+    end
+  end
+
+  hub_response = Hub.hashUpload(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    flash[:success] = 'Successfully uploaded hashes.'
+  end
+
+  redirect to('/hashfiles/list')
 end
 
 ### Functions ##########################################

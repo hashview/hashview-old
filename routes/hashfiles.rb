@@ -20,20 +20,55 @@ get '/hashfiles/list' do
       @hashfile_hashes = Hashfilehashes.all(hashfile_id: hashfile.id)
       upload_cnt = 0
       download_cnt = 0
+      @hash_array = []
       @hashfile_hashes.each do |entry|
-        local_cracked = Hashes.first(id: entry.hash_id, cracked: '1')
+        p 'HASH ID: ' + entry.hash_id.to_s
+        # Build list of locally cracked hashes per hashfile
+        local_cracked = Hashes.all(id: entry.hash_id, cracked: '1')
         unless local_cracked.nil?
-          hub_response = Hub.hashSearch(local_cracked.originalhash)
-          hub_response = JSON.parse(hub_response)
-          if hub_response['status'] == '200' && hub_response['cracked'] == '0'
+          local_cracked.each do |hash|
+            element = {}
+            element['ciphertext'] = hash.originalhash
+            element['hashtype'] = hash.hashtype.to_s
+            p 'ELEMENT: ' + element.to_s
+            @hash_array.push(element)
+          end
+        end
+      end
+      p 'HASH_ARRAY: ' + @hash_array.to_s
+      # Submit query and record how many the hub doesnt have
+      hub_response = Hub.hashSearch(@hash_array)
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '200'
+        @hub_hash_results = hub_response['hashes']
+        @hub_hash_results.each do |entry|
+          if entry['cracked'] == '0'
             upload_cnt += 1
           end
         end
-        local_uncracked = Hashes.first(id: entry.hash_id, cracked: '0')
-        unless local_uncracked.nil?
-          hub_response = Hub.hashSearch(local_uncracked.originalhash)
-          hub_response = JSON.parse(hub_response)
-          if hub_response['status'] == '200' && hub_response['cracked'] == '1'
+      end
+
+      @hash_array = []
+      @hashfile_hashes.each do |entry|
+      # Build list of locally uncracked per hashfile
+        local_uncracked = Hashes.all(id: entry.hash_id, cracked: '0')
+        unless local_uncracked.nil? || local_uncracked.empty?
+          local_uncracked.each do |hash|
+            element = {}
+            element['ciphertext'] = hash.originalhash
+            element['hashtype'] = hash.hashtype.to_s
+            @hash_array.push(element)
+          end
+        end
+      end
+
+      # Submit query and record how many the hub doesn't have
+      hub_response = Hub.hashSearch(@hash_array)
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '200'
+        @hub_hash_results = hub_response['hashes']
+        @hub_hash_results.each do |entry|
+          if entry['cracked'] == '1'
             download_cnt += 1
           end
         end
@@ -42,6 +77,7 @@ get '/hashfiles/list' do
       upload_cnt = 0
       download_cnt = 0
     end
+
     # hub download cnt
     @hub_download_cnt[hashfile.id] = download_cnt
     @hub_upload_cnt[hashfile.id] = upload_cnt
