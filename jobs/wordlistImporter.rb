@@ -2,6 +2,7 @@ module WordlistImporter
   @queue = :management
 
   def self.perform()
+    sleep(rand(10))
     if ENV['RACK_ENV'] == 'development'
       puts 'Wordlist Importer Class'
     end
@@ -18,15 +19,13 @@ module WordlistImporter
         unless name.match(/\.tar|\.7z|\.gz|\.tgz|\.checksum/)
 
           puts 'Importing new wordslist "' + name + '" into HashView.'
-          # Finding Size
-          size = File.foreach(path_file).inject(0) { |c| c + 1 }
 
           # Adding to DB
           wordlist = Wordlists.new
           wordlist.lastupdated = Time.now()
           wordlist.name = name
           wordlist.path = path_file
-          #wordlist.size = size
+          wordlist.size = 0
           wordlist.checksum = ''
           wordlist.save
 
