@@ -69,6 +69,14 @@
                                         %label.control-label.col-xs-2{:for => ""} Dictionary Rules
                                         .col-xs-4
                                           #{task.hc_rule}
+                                  .row
+                                    .form-group
+                                      %label.control-label.col-xs-2{:for => ""} Keyspace
+                                      .col-xs-4
+                                        - if task.keyspace.nil?
+                                          Task will not be chunked
+                                        - else
+                                          #{task.keyspace}
                           %a.btn.btn-warning{:href => "/tasks/edit/#{task.id}"}
                             %i.glyphicon.glyphicon-cog{:title => 'Edit'}
                           %a.btn.btn-danger{:href => "/tasks/delete/#{task.id}"}

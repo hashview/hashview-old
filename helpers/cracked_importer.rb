@@ -13,7 +13,10 @@ end
 def importCracked(id, crack_file, run_time=0)
   # this assumes a job completed successfully. we need to add check for failures or killed processes
   puts '==== Importing cracked hashes ====='
-  updateJobTaskStatus(id, 'Importing')
+
+  # Disabling now that we are chunking. Not sure if this is a good idea yet
+  #updateJobTaskStatus(id, 'Importing')
+
   jobtasks = Jobtasks.first(id: id)
   #crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
   job = Jobs.first(id: jobtasks.job_id)
@@ -77,6 +80,8 @@ def importCracked(id, crack_file, run_time=0)
 
   puts '==== Crack File Deleted ===='
 
-  updateJobTaskStatus(id, 'Completed')
-  updateDbRunTime(id, job.hashfile_id, run_time)
+  # commenting this out now that we are chunking
+  #updateJobTaskStatus(id, 'Completed')
+  # TODO this might be broken now that we are chunking
+  #updateDbRunTime(id, job.hashfile_id, run_time)
 end

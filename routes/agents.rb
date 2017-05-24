@@ -35,6 +35,9 @@ end
 
 get '/agents/:id/deauthorize' do
   agent = Agents.first(:id => params[:id])
+  if agent.status == "Working"
+    flash[:warning] = 'Agent was working. The active task was not stopped and you will not receive the results.'
+  end
   agent.status = "Pending"
   agent.save
   redirect to('/agents/list')

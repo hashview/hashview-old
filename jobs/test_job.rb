@@ -1,8 +1,20 @@
 # this is a test job, you can crib from this module
 #
-module TestJob
+module WordlistChecksum
   @queue = :management
   def self.perform()
-    puts "============== this is a test job ========================"
+    puts "============== generating wordlist checksum ========================"
+    # Identify all wordlists without checksums
+    @wordlist = Wordlists.all(:checksum => '')
+    @wordlist.each do |wl|
+      # generate checksum
+      puts "generating checksum"
+      checksum = Digest::SHA2.hexdigest(File.read(wl.path))
+
+      # save checksum to database
+      wl.checksum = checksum
+      wl.save
+    end
+
   end
 end
