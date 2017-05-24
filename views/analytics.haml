@@ -119,6 +119,75 @@
                     </script>
                   %br
           .col-md-6
+            - if !@cracked_pw_count && !@uncracked_pw_count #@cracked_results.nil?
+              No results for this job. Perhaps it was never started?
+            - else
+              .panel.panel-default
+                .panel-heading
+                  %b Composition Breakdown
+                .panel-body
+                  %br
+                  %div{:id =>"chart2", :style => 'text-align:center'}
+                  //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
+                  :plain
+                    <script src= '/js/d3.min.js'></script>
+                    <script type= "text/javascript">
+                      var data = [{"label":"Meets Complexity", "value":"#{@meets_complexity_count}"},
+                        {"label":"Fails Complexity", "value":"#{@fails_complexity_count}"}];
+                      var w = 200;
+                      var h = 200;
+                      var r = h/2;
+                      var iw = 50;
+
+                      //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
+                      var color = d3.scaleOrdinal()
+                        .range(['#5cb85c','#d9534f']);  //'#FFBF00', '#0000FF', '#008C00']);
+                      var visual1 = d3.select('#chart2').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                      var pie = d3.pie().value(function(d){return d.value;});
+                      var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
+
+                      var arcs = visual1.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
+
+
+                      arcs.append("svg:path")
+                        .attr("fill", function(d, i){
+                          return color(i);
+                          })
+                        .attr("stroke", "white")
+                        .attr("stroke-width", 2.0)
+                        .attr("d", function (d) {
+                          console.log(arc(d));
+                          return arc(d);
+                        });
+                      arcs.append("svg:text").attr("transform", function(d){
+                        d.innerRadius = 0;
+                        d.outerRadius = r;
+                        return "translate(" + arc.centroid(d) + ")";});
+
+                      var legend = d3.select("#chart2").append("svg")
+                        .attr("class", "legend")
+                        .attr("width", r * 2)
+                        .attr("height", r * 2)
+                        .selectAll("g")
+                        .data(color.domain().slice())
+                        .enter().append("g")
+                        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+                      legend.append("rect")
+                        .attr("width", 18)
+                        .attr("height", 18)
+                        .style("fill", color);
+
+                      legend.append("text")
+                        .attr("x", 24)
+                        .attr("y", 9)
+                        .attr("dy", ".35em")
+                        .style("font-family","Calibri")
+                        .text(function( d,i ) {return data[i].label +": " + data[i].value })
+                        .style("font-size","px");
+                    </script>
+                  %br
+          .col-md-6
             .panel.panel-default
               .panel-heading
                 %b Analysis Details
@@ -174,19 +243,34 @@
                         &nbsp;
                         %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Uncracked 
-
+          .col-md-6
+            .panel.panel-default
+              .panel-heading
+                %b Composition Details
+              .panel-body
+                %table{:class => 'table'}
+                  %td
+                    %b Mask
+                  %td
+                %tr
+                  - @top_5_masks.each do |key, value|
+                    %td
+                      #{key}
+                    %td
+                      #{value} %
+                    %tr
           .col-md-12
             .panel.panel-default
               .panel-heading
                 %b Password Count by Length
               .panel-body
-                %div{:id =>"chart2"}
+                %div{:id =>"chart3"}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart2').clientWidth * .90;
+                      width = document.getElementById('chart3').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -199,7 +283,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual2 = d3.select("#chart2").append("svg")
+                  var visual2 = d3.select("#chart3").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -247,13 +331,13 @@
               .panel-heading
                 %b Top 10 Passwords
               .panel-body
-                %div{:id =>"chart3"}
+                %div{:id =>"chart4"}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart3').clientWidth * .90;
+                      width = document.getElementById('chart4').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -266,7 +350,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual3 = d3.select("#chart3").append("svg")
+                  var visual3 = d3.select("#chart4").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
