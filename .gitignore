@@ -4,10 +4,10 @@ cert/*
 !cert/.blank
 cert.pem
 key.pem
-tmp/*
 .DS_Store
 *.swp
 *.swo
+config/agent_config.json
 control/outfiles/*
 !control/outfiles/.blank
 control/hashes/*
@@ -19,11 +19,13 @@ control/analysis/*
 control/status/*
 !control/status/.blank
 control/wordlists/*
-!control/wordlists/password.gz
 !control/wordlists/.blank
+!control/wordlists/password.gz
+control/tmp/*
+!control/tmp/.blank
 cudaHashcat.log
 *.pot
 *.restore
 Gemfile.lock
-control/wordlists/password
 *.idea
+dump.rdb

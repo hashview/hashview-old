@@ -78,11 +78,11 @@
                 .col-xs-1.pull-left
                   - if params[:edit] == '1'
                     - if @job.notify_completed == true
-                      %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify', :checked => 'checked'}
+                      %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify', :checked => 'checked'}
                     - else
-                      %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
+                      %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify'}
                   - else
-                    %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'notify', :id => 'notify'}
+                    %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify'}
               .form-group
                 .col-xs-offset-2.col-xs-10
                   - if params[:edit]

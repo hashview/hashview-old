@@ -27,7 +27,7 @@ post '/customers/create' do
   pre_existing_customer = Customers.all(name: params[:name])
   if !pre_existing_customer.empty? || pre_existing_customer.nil?
     flash[:error] = 'Customer ' + params[:name] + ' already exists.'
-    redirect to ('/customers/create')
+    redirect to('/customers/create')
   end
 
   customer = Customers.new
@@ -119,7 +119,43 @@ post '/customers/upload/hashfile' do
   hashfile.hash_str = hash
   hashfile.save
   
-  @job.save
+  @job.save # <---- edit bug here
+
+  redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
+end
+
+post '/customers/upload/hashes' do
+  varWash(params)
+
+  if params[:hashfile_name].nil? || params[:hashfile_name].empty?
+    flash[:error] = 'You must specificy a name for this hash file.'
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
+  end
+
+  if params[:hashes].nil? || params[:hashes].empty?
+    flash[:error] = 'You must supply atleast one hash.'
+    redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
+  end
+
+  @job = Jobs.first(id: params[:job_id])
+  return 'No such job exists' unless @job
+
+  # temporarily save file for testing
+  hash = rand(36**8).to_s(36)
+  hashfile = "control/hashes/hashfile_upload_job_id-#{@job.id}-#{hash}.txt"
+
+  # Parse uploaded file into an array
+  hash_array = params[:hashes].to_s.gsub(/\x0d\x0a/, "\x0a") # in theory we shouldnt run into any false positives?
+  File.open(hashfile, 'w') { |f| f.puts(hash_array) } 
+
+  # save location of tmp hash file
+  hashfile = Hashfiles.new
+  hashfile.name = params[:hashfile_name]
+  hashfile.customer_id = params[:customer_id]
+  hashfile.hash_str = hash
+  hashfile.save
+
+  @job.save # Edit bug here <----
 
   redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
 end
@@ -127,16 +163,41 @@ end
 get '/customers/upload/verify_filetype' do
   varWash(params)
 
-  hashfile = Hashfiles.first(id: params[:hashid])
-
-  @filetypes = detectHashfileType("control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt")
+  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
   @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
 
 post '/customers/upload/verify_filetype' do
   varWash(params)
-  
+
+  if !params[:filetype] || params[:filetype].nil? || params[:filetype] == '- SELECT -'
+    flash[:error] = 'You must specify a valid hashfile type.'
+    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  end
+
+  if params[:filetype] == '$hash'
+    params[:filetype] = 'hash_only'
+  end
+
+  if params[:filetype] == '$user:$hash'
+    params[:filetype] = 'user_hash'
+  end
+
+  if params[:filetype] == '$hash:$salt'
+    params[:filetype] = 'hash_salt'
+  end
+
+  if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
+    params[:filetype] = 'NetNTLMv1'
+  end
+
+  if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
+    params[:filetype] = 'NetNTLMv2'
+  end
+
+  p 'PARAMS: ' + params[:filetype].to_s
+
   redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
 
@@ -152,11 +213,6 @@ end
 
 post '/customers/upload/verify_hashtype' do
   varWash(params)
-
-  if !params[:filetype] || params[:filetype].nil?
-    flash[:error] = 'You must specify a valid hashfile type.'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  end
 
   filetype = params[:filetype]
 

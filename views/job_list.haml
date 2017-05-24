@@ -114,7 +114,13 @@
                                   %p
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
-                          %a.btn.btn-warning{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
-                            %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          %a.btn.btn-danger{:href => "/jobs/delete/#{job.id}"}
-                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          - if job.status == 'Running' || job.status == 'Queued'
+                            %a.btn.btn-warning.disabled{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
+                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                            %a.btn.btn-danger.disabled{:href => "/jobs/delete/#{job.id}"}
+                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          - else
+                            %a.btn.btn-warning{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
+                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
+                            %a.btn.btn-danger{:href => "/jobs/delete/#{job.id}"}
+                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}

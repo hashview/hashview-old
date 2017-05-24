@@ -1,6 +1,7 @@
 # encoding: utf-8
 get '/' do
   @users = User.all
+  
   if @users.empty?
     redirect to('/register')
   elsif !validSession?
@@ -11,18 +12,18 @@ get '/' do
 end
 
 get '/home' do
-  if isOldVersion
-    return "You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
-  end
+
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
   @jobs = Jobs.all(:order => [:id.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
+  @taskqueues = Taskqueues.all
+  @agents = Agents.all
 
   @recentlycracked = repository(:default).adapter.select('SELECT CONCAT(timestampdiff(minute, h.lastupdated, NOW()) ) AS time_period, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
 
   @customers = Customers.all
-  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing')
+  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') | Jobs.all(fields: [:id, :status], status: 'Queued')
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`

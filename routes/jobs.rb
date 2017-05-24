@@ -29,8 +29,8 @@ get '/jobs/delete/:id' do
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
   else
-    if @job.status == 'Running' || @job.status == 'Importing'
-      flash[:error] = 'Failed to Delete Job. A task is currently running.'
+    if @job.status == 'Running' || @job.status == 'Importing' || @job.status == 'Queued'
+      flash[:error] = 'You need to stop the job before deleting it.'
       redirect to('/jobs/list')
     end
     @jobtasks = Jobtasks.all(job_id: params[:id])
@@ -48,6 +48,13 @@ get '/jobs/create' do
 
   @customers = Customers.all(order: [:name.asc])
   @job = Jobs.first(id: params[:job_id])
+
+  if @job
+    if @job.status == 'Running' || @job.status == 'Queued'
+      flash[:error] = 'You cannot edit a job that is running or queued'
+      redirect to('/jobs/list')
+    end
+  end
 
   haml :job_edit
 end
@@ -91,7 +98,7 @@ post '/jobs/create' do
     pre_existing_customer = Customers.all(name: params[:name])
     if !pre_existing_customer.empty? || pre_existing_customer.nil?
       flash[:error] = 'Customer ' + params[:name] + ' already exists.'
-      redirect to ('/jobs/create')
+      redirect to('/jobs/create')
     end
  
     customer = Customers.new
@@ -140,7 +147,7 @@ get '/jobs/assign_hashfile' do
   @hashfiles.each do |hashfile|
     hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
     hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
-    @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + "/" + hashfile_total_count.to_s
+    @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
   end
 
   @job = Jobs.first(id: params[:job_id])
@@ -164,11 +171,9 @@ post '/jobs/assign_hashfile' do
     job.save
   end
 
-  if params[:edit]
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
-  else
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
-  end
+  url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
+  url = url + '&edit=1' if params[:edit]
+  redirect to(url)
 end
   
 get '/jobs/assign_tasks' do
@@ -193,14 +198,45 @@ post '/jobs/assign_tasks' do
 
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
-      flash[:error] = 'You must assign atleast one task'
+      flash[:error] = 'You must assign at least one task'
       redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
     end
   end
 
+  # create the job if it doesnt exist yet and make sure its stopped
   job = Jobs.first(id: params[:job_id])
   job.status = 'Stopped'
   job.save
+
+  # grab existing jobtasks if there are any
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+  @tasks = Tasks.all
+
+  # prevent adding duplicate tasks to a job
+  #count = Hash.new 0
+  #params[:tasks] = params[:task].uniq
+  puts params
+  if params[:tasks]
+    # make sure the task that the user is adding is not already assigned to the job
+    if params[:edit]
+      params[:tasks].each do |t|
+        @jobtasks.each do |jt|
+          if jt.task_id == t.to_i
+            flash[:error] = "Your job already has a task you are trying to add (task id: #{t})"
+            redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
+          end
+        end
+      end
+    end
+    # prevent user from adding multiples of the same task
+    if params[:tasks].uniq!
+      puts params
+      flash[:error] = 'You cannot have duplicate tasks.'
+      url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
+      url = url + '&edit=1' if params[:edit]
+      redirect to (url)
+    end
+  end
  
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
@@ -253,7 +289,13 @@ get '/jobs/start/:id' do
       @job.save
       cmd = buildCrackCmd(@job.id, task.id)
       cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      Resque.enqueue(Jobq, jt.id, cmd)
+      # we are using a db queue instead for public api
+      queue = Taskqueues.new
+      queue.jobtask_id = jt.id
+      queue.job_id = @job.id
+      queue.command = cmd
+      queue.status = 'Queued'
+      queue.save
     end
   end
   
@@ -277,16 +319,18 @@ get '/jobs/stop/:id' do
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
-    if task.status == 'Queued'
+    if task.status == 'Queued' || task.status == 'Running'
       task.status = 'Canceled'
       task.save
-      cmd = buildCrackCmd(@job.id, task.task_id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      puts 'STOP CMD: ' + cmd
-      Resque::Job.destroy('hashcat', Jobq, task.id, cmd)
     end
   end
-  
+
+  # we are using a db queue instead for public api
+  # remove all items from queue
+  queue = Taskqueues.all(job_id: @job.id)
+  queue.destroy if queue
+
+  # TODO I see a problem with this once we have multiple agents. but for now, i'm too drunk to deal with it
   @jobtasks.each do |task|
     if task.status == 'Running'
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
@@ -304,17 +348,17 @@ get '/jobs/stop/:job_id/:task_id' do
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
-  # find pid
-  pid = `ps -ef | grep hashcat | grep hc_cracked_#{params[:job_id]}_#{params[:task_id]}.txt | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
-  pid = pid.chomp
   
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
-  
-  # Kill jobtask
-  `kill -9 #{pid}`
-  
+
+  taskqueue = Taskqueues.all(jobtask_id: jt.id)
+  taskqueue.each do |tq|
+    tq.status = 'Canceled'
+    tq.save
+  end
+
   referer = request.referer.split('/')
 
   if referer[3] == 'home'
