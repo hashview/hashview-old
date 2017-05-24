@@ -194,7 +194,7 @@ post '/v1/hcoutput/status' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  puts "parsing uploaded hcoutput hash"
+  puts 'parsing uploaded hcoutput hash'
   return request.body.read
 end
 
@@ -205,9 +205,9 @@ post '/v1/agents/:uuid/heartbeat' do
   if params[:uuid].nil?
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'Missing UUID'
+      status: 200,
+      type: 'Error',
+      msg: 'Missing UUID'
     }.to_json
   else
     # read payload data
@@ -225,9 +225,9 @@ post '/v1/agents/:uuid/heartbeat' do
         @agent.heartbeat = Time.now
         @agent.save
         {
-            status: 200,
-            type: 'message',
-            msg: 'Go Away'
+          status: 200,
+          type: 'message',
+          msg: 'Go Away'
         }.to_json
       elsif @agent.status == 'Syncing'
         @agent.heartbeat = Time.now
@@ -372,9 +372,9 @@ get '/v1/agents/:uuid/authorize' do
   else
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'Not Authorized'
+      status: 200,
+      type: 'Error',
+      msg: 'Not Authorized'
     }.to_json
   end
 end
@@ -383,9 +383,9 @@ post '/v1/agents/:uuid/stats' do
   if params[:uuid].nil?
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'Missing UUID'
+      status: 200,
+      type: 'Error',
+      msg: 'Missing UUID'
     }.to_json
   else
     # is agent authorized

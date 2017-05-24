@@ -27,7 +27,7 @@
                           .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
                         %p
                         .progress
-                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", :role => 'progressbar', :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
                     .row
                       .col-md-12
                         - @jobs.each do |job|
@@ -50,7 +50,7 @@
                 %center
                   %h4 Feed me hashes!
                   %br
-                  %a.btn.btn-primary{:href => "/jobs/create"}
+                  %a.btn.btn-primary{:href => ''/jobs/create'}
                     Create a New Job
             /%br
             - if @active_jobs.empty?
@@ -73,7 +73,7 @@
                                 - if task.id == jt.task_id
                                   - link = rand(36**8).to_s(36)
                                   .panel-heading
-                                    %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', :href => "#collapse-#{link}" }
                                       %td
                                         #{task.name}
                                     - if jt.status == 'Queued'
@@ -87,7 +87,7 @@
                                     - elsif jt.status == 'Canceled'
                                       %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
-                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                                    %div{:id => "collapse-#{link}", :class => 'panel-collapse collapse in'}
                                       .panel-body
                                         Remaining chunks:
                                         - remaining_chunks = 0
@@ -98,12 +98,12 @@
                                                 - remaining_chunks += 1
                                         #{remaining_chunks}
                                         %p
-                                        %ul{:class =>"list-group borderless row"}
+                                        %ul{:class =>'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
                                               - next if tq.status == 'Completed'
                                               - next if tq.status == 'Queued'
-                                              %li{:class => "list-group-item borderless"}
+                                              %li{:class => 'list-group-item borderless'}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
@@ -134,10 +134,10 @@
                                   - else
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
                                       .panel-body
-                                        %ul{:class =>"list-group borderless row"}
+                                        %ul{:class =>'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
-                                              %li{:class => "list-group-item borderless"}
+                                              %li{:class => 'list-group-item borderless'}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
@@ -160,4 +160,4 @@
 %br
 %br
 %br
-%meta{:content => "30", "http-equiv" => "refresh"}
+%meta{:content => '30', 'http-equiv' => 'refresh'}
