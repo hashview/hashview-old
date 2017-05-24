@@ -291,7 +291,6 @@ namespace :db do
         has_version_column = true
         db_version = Gem::Version.new(row['version'])
       end
-      puts row['version']
     end
 
     if has_version_column == false
@@ -300,8 +299,14 @@ namespace :db do
 
     # TODO turn into hash where version is key, and value is method/function name?
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
+      # Upgrade to v0.6.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
-        upgrade_to_v060(user, password, host, database)
+        db_version = upgrade_to_v060(user, password, host, database)
+      end
+
+      # Upgrade to v0.6.1
+      if Gem::Version.new(db_version) < Gem::Version.new('0.6.1')
+        db_version = upgrade_to_v061(user, password, host, database)
       end      
       if Gem::Version.new(db_version) < Gem::Version.new('0.7')
         upgrade_to_v070(user, password, host, database)
@@ -399,7 +404,6 @@ namespace :db do
     end
 
   end
-
 end
 
 
@@ -513,7 +517,20 @@ def upgrade_to_v060(user, password, host, database)
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.6.0'")
-  puts '[+] Upgrade to v0.6.0 complete.'
+  puts '[*] Upgrade to v0.6.0 complete.'
+
+  return '0.6.0'
+end
+
+def upgrade_to_v061(user, password, host, database)
+  puts '[*] Upgrading from v0.6.0 to v0.6.1'
+  conn = Mysql.new host, user, password, database
+
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.6.1'")
+  puts '[*] Upgrade to v0.6.1 complete.'
+
+  return '0.6.1'
 end
 
 def upgrade_to_v070(user, password, host, database)

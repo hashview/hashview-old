@@ -9,11 +9,10 @@ end
 
 def isOldVersion?
 
-  db_version = 'null'
   # Check to see what version the app is at
   application_version = File.open('VERSION') {|f| f.readline}
   puts 'APPLICATION VERSION: ' + application_version.to_s
-  application_version = application_version.to_i
+  # application_version = application_version.to_i
 
   # Check for v0.5.1
   # Note this version does not have a versions column. Going forward we will check that value
@@ -25,7 +24,7 @@ def isOldVersion?
     end
   end
   
-  if has_version_column == true
+  if has_version_column
     @settings = Settings.first
     db_version = @settings.version
     puts 'DB:VERSION ' + db_version.to_s

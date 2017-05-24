@@ -137,6 +137,31 @@ def importHashSalt(hash, hashfile_id, type)
   updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
 end
 
+def importNetNTLMv1(hash, hashfile_id, type)
+  data = hash.split(':')
+  originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+  if @hash_id.nil?
+    addHash(originalhash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
+def importNetNTLMv2(hash, hashfile_id, type)
+  data = hash.split(':')
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  if @hash_id.nil?
+    addHash(hash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
 def importHashOnly(hash, hashfile_id, type)
   if type == '3000'
     # import LM
@@ -345,6 +370,8 @@ def getMode(hash)
   end
 end
 
+
+# Called by search
 def modeToFriendly(mode)
   return 'MD5' if mode == '0'
   return 'md5($pass.$salt)' if mode == '10'
@@ -423,6 +450,10 @@ def importHash(hash_file, hashfile_id, file_type, hashtype)
       importUserHash(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'hash_salt'
       importHashSalt(entry.chomp, hashfile_id, hashtype)
+    elsif file_type == 'NetNTLMv1'
+      importNetNTLMv1(entry.chomp, hashfile_id, hashtype)
+    elsif file_type == 'NetNTLMv2'
+      importNetNTLMv2(entry.chomp, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end

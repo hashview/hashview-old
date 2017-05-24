@@ -25,13 +25,14 @@
 #exTab2.container
   %ul.nav.nav-tabs
     %li.active
-      %a{"data-toggle" => "tab", :href => "#1"} Hashcat
+      %a{'data-toggle' => 'tab', :href => '#1'} Hashcat
     %li
-      %a{"data-toggle" => "tab", :href => "#2"} Email
+      %a{'data-toggle' => 'tab', :href => '#2'} Email
     %li
       %a{"data-toggle" => "tab", :href => "#3"} UI
     %li
       %a{"data-toggle" => "tab", :href => "#4"} Distributed
+
   .tab-content
     #1.tab-pane.active
       %br
@@ -221,6 +222,9 @@
                     %option{:value => "#{ui_type}", :type => 'button', selected: 'selected'} #{ui_type}
                   - else
                     %option{:value => "#{ui_type}", :type => 'button'} #{ui_type}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '3'}
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save

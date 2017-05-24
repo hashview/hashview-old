@@ -197,9 +197,9 @@ end
 class Hashfilehashes
   include DataMapper::Resource
 
-  property :id, 	Serial
-  property :hash_id, 	Integer, :index => true
-  property :username, 	String, length: 256
+  property :id,	Serial
+  property :hash_id, Integer, :index => true
+  property :username, String, length: 256
   property :hashfile_id, Integer, :index => true
 end
 
@@ -215,7 +215,7 @@ class Settings
   property :smtp_use_tls, Boolean
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
   property :clientmode, Boolean
-  property :ui_themes, String, default: 'Light', :required => true
+  property :ui_themes, String, default: 'Light', required: true
   property :version, String, length: 5
   property :chunk_size, Integer, max: 9999999999999999999, default: 500000
 end
