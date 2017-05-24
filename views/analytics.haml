@@ -252,12 +252,10 @@
                   %td
                     %b Mask
                   %td
-                %tr
+                  %tr
                   - @top_5_masks.each do |key, value|
-                    %td
-                      #{key}
-                    %td
-                      #{value} %
+                    %td #{key}
+                    %td #{value.to_f.round(1)} %
                     %tr
           .col-md-12
             .panel.panel-default
@@ -398,13 +396,13 @@
               .panel-heading
                 %b Top 10 Base Words
               .panel-body
-                %div{:id =>"chart4"}
+                %div{:id =>"chart5"}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart4').clientWidth * .90;
+                      width = document.getElementById('chart5').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -417,7 +415,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual4 = d3.select("#chart4").append("svg")
+                  var visual4 = d3.select("#chart5").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -460,6 +458,21 @@
                         .call(d3.axisLeft(y));
                   });
                   </script>
+          .col-md-12
+            .panel.panel-default
+              .panel-heading
+                %b Accounts with weak passwords
+              .panel-body
+                %table{:class => 'table'}
+                  %td
+                    %b Username
+                  %td
+                    %b Password
+                  %tr
+                  - @fails_complexity.each do |key, value|
+                    %td #{key}
+                    %td #{value}
+                    %tr
           - if @customer_id && @hashfile_id
             .col-md-12
               .panel.panel-default
