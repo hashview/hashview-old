@@ -111,11 +111,7 @@ post '/settings' do
     hc_settings.gpu_temp_retain = params[:gpu_temp_retain].to_i
 
     # Save force settings
-    if params[:hc_force] == 'on'
-      hc_settings.hc_force = '1'
-    else
-      hc_settings.hc_force = '0'
-    end
+    params[:hc_force] == 'on' ? hc_settings.hc_force = 1 : hc_settings.hc_force = 0
 
     hc_settings.save
 
