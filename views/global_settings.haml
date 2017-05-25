@@ -141,9 +141,9 @@
             %label.control-label.col-xs-2{:for => ''} --force
             .col-xs-1
               - if @hc_settings.hc_force == false
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'force', :id => 'force'}
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'hc_force', :id => 'hc_force'}
               -else
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'force', :id => 'force', :checked => 'checked'}
+                %input.checkbox.pull-left{:type => 'checkbox', :name => 'hc_force', :id => 'hc_force', :checked => 'checked'}
           .form-group
             .col-xs-10
               %input{:type => 'hidden', :name => 'form_id', :value => '1'}
