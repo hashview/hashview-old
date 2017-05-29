@@ -42,7 +42,7 @@ get '/jobs/delete/:id' do
 
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/create' do
   varWash(params)
 
@@ -58,7 +58,7 @@ get '/jobs/create' do
 
   haml :job_edit
 end
-  
+
 post '/jobs/create' do
   varWash(params)
 
@@ -106,13 +106,13 @@ post '/jobs/create' do
     customer.description = params[:cust_desc]
     customer.save
   end
-  
+
   if params[:customer] == 'add_new' || params[:customer].nil?
     customer_id = customer.id
   else
     customer_id = params[:customer]
   end
-  
+
   # create new or update existing job
   if params[:edit] == '1'
     job = Jobs.first(id: params[:job_id])
@@ -136,7 +136,7 @@ post '/jobs/create' do
     redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}")
   end
 end
-  
+
 get '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -155,7 +155,7 @@ get '/jobs/assign_hashfile' do
 
   haml :assign_hashfile
 end
-  
+
 post '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -164,7 +164,7 @@ post '/jobs/assign_hashfile' do
     job.hashfile_id = params[:hash_file]
     job.save
   end
- 
+
   if params[:edit] == '1'
     job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
@@ -175,7 +175,7 @@ post '/jobs/assign_hashfile' do
   url = url + '&edit=1' if params[:edit]
   redirect to(url)
 end
-  
+
 get '/jobs/assign_tasks' do
   varWash(params)
 
@@ -189,10 +189,10 @@ get '/jobs/assign_tasks' do
     taskhashforjs[task.id] = task.name
   end
   @taskhashforjs = taskhashforjs.to_json
-  
+
   haml :assign_tasks
 end
-  
+
 post '/jobs/assign_tasks' do
   varWash(params)
 
@@ -237,12 +237,12 @@ post '/jobs/assign_tasks' do
       redirect to (url)
     end
   end
- 
+
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
     assignTasksToJob(params[:tasks], job.id)
   end
-  
+
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
     @jobtasks = Jobtasks.all(job_id: params[:job_id])
@@ -251,14 +251,14 @@ post '/jobs/assign_tasks' do
       jobtask.save
     end
   end
-  
+
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/start/:id' do
   varWash(params)
-  
+
   tasks = []
   @job = Jobs.first(id: params[:id])
   unless @job
@@ -275,7 +275,7 @@ get '/jobs/start/:id' do
       end
     end
   end
-  
+
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
@@ -285,7 +285,9 @@ get '/jobs/start/:id' do
       jt.status = 'Queued'
       jt.save
       # toggle the job status to run
+      # We shouldn't need to do this for every task, just once
       @job.status = 'Queued'
+      @job.queued_at = DateTime.now
       @job.save
 
       cmds = buildCrackCmd(@job.id, task.id)
@@ -297,19 +299,20 @@ get '/jobs/start/:id' do
         queue.job_id = @job.id
         queue.command = cmd
         queue.status = 'Queued'
+        queue.queued_at = DateTime.now
         queue.save
       end
     end
   end
-  
+
   if @job.status == 'Completed'
     flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
     redirect to('/jobs/list')
   end
-  
+
   redirect to('/home')
 end
-  
+
 get '/jobs/stop/:id' do
   varWash(params)
 
@@ -318,7 +321,7 @@ get '/jobs/stop/:id' do
 
   @job.status = 'Canceled'
   @job.save
-  
+
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
@@ -339,10 +342,10 @@ get '/jobs/stop/:id' do
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
     end
   end
-  
+
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/stop/:job_id/:task_id' do
   varWash(params)
 
@@ -351,7 +354,7 @@ get '/jobs/stop/:job_id/:task_id' do
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
-  
+
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
@@ -370,11 +373,11 @@ get '/jobs/stop/:job_id/:task_id' do
     redirect to('/jobs/list')
   end
 end
-  
+
 ############################
 
 ##### job task controllers #####
-  
+
 get '/jobs/remove_task' do
   varWash(params)
 

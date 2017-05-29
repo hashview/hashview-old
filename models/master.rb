@@ -143,6 +143,7 @@ class Jobs
   property :updated_at, DateTime, default: DateTime.now
   # status options should be "Running", "Paused", "Completed", "Queued", "Canceled", "Ready"
   property :status, String, length: 100
+  property :queued_at, DateTime
   property :targettype, String, length: 2000
   property :hashfile_id, Integer
   property :policy_min_pass_length, Integer
@@ -268,6 +269,7 @@ class Taskqueues
   property :job_id, Integer
   property :updated_at, DateTime, default: DateTime.now
   # status options should be "Running", "Completed", "Queued", "Canceled"
+  property :queued_at, DateTime
   property :status, String, length: 100
   property :agent_id, String, length: 2000
   property :command, String, length: 4000
