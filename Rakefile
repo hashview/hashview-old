@@ -534,7 +534,7 @@ def upgrade_to_v061(user, password, host, database)
 end
 
 def upgrade_to_v070(user, password, host, database)
-  puts '[*] Upgrading from v0.6.x to v0.7'
+  puts '[*] Upgrading from v0.6.1 to v0.7.0'
   conn = Mysql.new host, user, password, database
 
   # this upgrade path doesnt require anything complex, just move a value from db to config file
@@ -554,7 +554,7 @@ def upgrade_to_v070(user, password, host, database)
   end
 
   # FINALIZE UPGRADE
-  conn.query("UPDATE settings SET version = '0.7'")
-  puts '[+] Upgrade to v0.7 complete.'
+  conn.query("UPDATE settings SET version = '0.7.0'")
+  puts '[+] Upgrade to v0.7.0 complete.'
 end
 
