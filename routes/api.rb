@@ -127,7 +127,12 @@ get '/v1/wordlist/:id' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   wordlist = Wordlists.first(id: params[:id])
-  send_file wordlist.path, :type => 'application/octet-stream', :filename => wordlist.path.split('/')[-1]
+  wordlist_orig = wordlist.path.split('/')[-1]
+  cmd = "gzip -9 -k -c #{wordlist_orig} > control/tmp/#{wordlist_orig}.gz"
+  # Execute our compression
+  `#{cmd}`
+  # Serve File
+  send_file wordlist.path, :type => 'application/octet-stream', :filename => "#{wordlist.path.split('/')[-1]}.gz"
 end
 
 
