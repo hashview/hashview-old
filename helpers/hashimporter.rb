@@ -367,6 +367,8 @@ def getMode(hash)
     @modes.push('8900') # script
   elsif hash =~ /^\([a-z0-9\/+]{49}\)$/
     @modes.push('9100') # Lotus Notes/Domino 8
+  else
+    @modes.push('99999') # UNKNOWN (plaintext)
   end
 end
 
@@ -417,6 +419,7 @@ def modeToFriendly(mode)
   return 'sha256crypt' if mode == '7400'
   return 'Lotus Notes/Domino 5' if mode == '8600'
   return 'PrestaShop' if mode == '11000'
+  return 'unknown' if mode == '99999'
 
   return 'unknown'
 end
