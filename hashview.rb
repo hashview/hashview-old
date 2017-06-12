@@ -20,7 +20,7 @@ if ENV['RACK_ENV'].nil?
 end
 
 if isOldVersion?
-  puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
+  # puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
   puts "\n\nYour installation is out of date, please run the following upgrade task.\n"
   puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:upgrade\n\n\n"
   exit
