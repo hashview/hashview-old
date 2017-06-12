@@ -30,7 +30,6 @@ def isOldVersion?
     puts 'DB:VERSION ' + db_version.to_s
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       return true
-      p 'returning true'
     else
       return false
     end
