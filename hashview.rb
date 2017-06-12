@@ -19,21 +19,21 @@ if ENV['RACK_ENV'].nil?
   ENV['RACK_ENV'] = 'production'
 end
 
-#if isOldVersion?
-#  #puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
-#  puts "\n\nYour installation is out of date, please run the following upgrade task.\n"
-#  puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:upgrade\n\n\n"
-#  exit
-#end
+if isOldVersion?
+  puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
+  puts "\n\nYour installation is out of date, please run the following upgrade task.\n"
+  puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:upgrade\n\n\n"
+  exit
+end
 
 # make sure the binary path is set in the configuration file
-#options = JSON.parse(File.read('config/agent_config.json'))
-#if options['hc_binary_path'].empty? || options['hc_binary_path'].nil?
-#  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
-#  puts '[!] You must defined the full path to your hashcat binary. Do this in your config/agent_config.json file'
-#  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
-#  exit 0
-#end
+options = JSON.parse(File.read('config/agent_config.json'))
+if options['hc_binary_path'].empty? || options['hc_binary_path'].nil?
+  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
+  puts '[!] You must defined the full path to your hashcat binary. Do this in your config/agent_config.json file'
+  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
+  exit 0
+end
 
 # Check for valid session before proccessing
 before /^(?!\/(login|register|logout|v1\/))/ do
