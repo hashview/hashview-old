@@ -217,7 +217,6 @@ class Settings
   property :clientmode, Boolean
   property :ui_themes, String, default: 'Light', required: true
   property :version, String, length: 5
-  property :chunk_size, Integer, max: 9999999999999999999, default: 500000
 end
 
 # HashCat settings
@@ -237,6 +236,19 @@ end
 
 # Wordlist Class
 class Wordlists
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :lastupdated, DateTime
+  property :name, String, length: 256
+  property :path, String, length: 2000
+  property :size, String, length: 100
+  property :checksum, String, length: 64
+
+end
+
+# Rules Class
+class Rules
   include DataMapper::Resource
 
   property :id, Serial

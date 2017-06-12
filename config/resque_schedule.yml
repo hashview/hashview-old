@@ -19,6 +19,12 @@ do_wordlist_importer:
   queue: management
   description: "This job automatically imports wordlists if placed in controls/wordlists dir"
 
+do_rulelist_importer:
+  every: 5s
+  class: "RuleImporter"
+  queue: management
+  description: "This job automatically imports rule files if placed in controls/rules dir"
+
 do_wordlist_checksum:
   every: 20s
   class: WordlistChecksum

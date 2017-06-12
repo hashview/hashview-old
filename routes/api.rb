@@ -130,6 +130,25 @@ get '/v1/wordlist/:id' do
   send_file wordlist.path, :type => 'application/octet-stream', :filename => wordlist.path.split('/')[-1]
 end
 
+# provide Rules file info
+get '/v1/rules' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+  rules = Rules.all
+  data = {}
+  data['rules'] = rules
+  return data.to_json
+end
+
+# serve a Rules File
+get '/v1/rules/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+  rules = Wordlists.first(id: params[:id])
+  send_file rules.path, :type => 'application/octet-stream', :filename => rules.path.split('/')[-1]
+end
 
 # generate and serve hashfile
 # TODO: make this a background worker in resque

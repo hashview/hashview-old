@@ -1,4 +1,4 @@
-module WordlistImporter 
+module WordlistImporter
   @queue = :management
 
   def self.perform()
