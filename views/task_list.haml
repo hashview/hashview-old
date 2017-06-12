@@ -12,7 +12,7 @@
               .col-md-10.pull-left
                 Task are predefined hashcat commands. Any number of tasks can be assigned to a Job.
               .col-md-2.pull-right
-                %a.btn.btn-primary.pull-right{:href => "/tasks/create"}
+                %a.btn.btn-primary.pull-right{:href => '/tasks/create'}
                   Create Task
       %br
       %br
@@ -36,42 +36,42 @@
                         %td #{task.name}
                         %td #{task.hc_attackmode}
                         %td
-                          %a.btn.btn-info{:href => "#modal#{task.id}", "data-toggle" => 'modal'}
+                          %a.btn.btn-info{:href => "#modal#{task.id}", 'data-toggle' => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
-                          .modal.fade.modal{:id => "modal#{task.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                          .modal.fade.modal{:id => "modal#{task.id}", :role => 'dialog', :tabindex => '-1', 'aria-hidden' => 'true'}
                             .modal-dialog.modal-lg
                               .modal-content
                                 .modal-header
-                                  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
-                                    %span{"aria-hidden" => "true"} &times;
+                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', :type => 'button'}
+                                    %span{'aria-hidden' => 'true'} &times;
                                   %h4.modal-title Task details for: #{task.name}
                                 .modal-body
                                   .row
                                     .form-group
-                                      %label.control-label.col-xs-2{:for => ""} Task Name
+                                      %label.control-label.col-xs-2{:for => ''} Task Name
                                       .col-xs-10
                                         #{task.name}
                                   .row
                                     .form-group
-                                      %label.control-label.col-xs-2{:for => ""} Attack Mode
+                                      %label.control-label.col-xs-2{:for => ''} Attack Mode
                                       .col-xs-4
                                         #{task.hc_attackmode}
                                   - if task.hc_attackmode == 'dictionary'
                                     .row
                                       .form-group
-                                        %label.control-label.col-xs-2{:for => ""} Wordlist
+                                        %label.control-label.col-xs-2{:for => ''} Wordlist
                                         .col-xs-4
                                           - @wordlists.each do |wl|
                                             - if wl.id.to_i == task.wl_id.to_i
                                               #{wl.name}
                                     .row
                                       .form-group
-                                        %label.control-label.col-xs-2{:for => ""} Dictionary Rules
+                                        %label.control-label.col-xs-2{:for => ''} Dictionary Rules
                                         .col-xs-4
                                           #{task.hc_rule}
                                   .row
                                     .form-group
-                                      %label.control-label.col-xs-2{:for => ""} Keyspace
+                                      %label.control-label.col-xs-2{:for => ''} Keyspace
                                       .col-xs-4
                                         - if task.keyspace.nil?
                                           Task will not be chunked

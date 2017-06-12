@@ -260,7 +260,7 @@
                           %select.form-control{:name => "rule"}
                             %option{:value => "none", :name => "rule", :type => "button", :selected => "selected"} None
                             - @rules.each do |rule|
-                              %option{:value => "#{rule}", :name => "rule", :type => "button"} #{rule}
+                              %option{:value => "#{rule.id}", :name => "rule", :type => "button"} #{rule.name}
                       .form-group
                         .col-xs-offset-2.col-xs-10
                           %button.btn.btn-primary{:type => "submit"} Create

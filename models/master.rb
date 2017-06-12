@@ -249,6 +249,19 @@ class Wordlists
 
 end
 
+# Rules Class
+class Rules
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :lastupdated, DateTime
+  property :name, String, length: 256
+  property :path, String, length: 2000
+  property :size, String, length: 100
+  property :checksum, String, length: 64
+
+end
+
 # Hashfile Class
 class Hashfiles
   include DataMapper::Resource

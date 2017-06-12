@@ -15,10 +15,11 @@ helpers do
     max_task_time = hc_settings.max_task_time
     @task = Tasks.first(id: task_id)
     @job = Jobs.first(id: job_id)
+    rules_file = Rules.first(id: @task.hc_rule)
     hashfile_id = @job.hashfile_id
     hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
     hashtype = Hashes.first(id: hash_id).hashtype.to_s
-  
+
     attackmode = @task.hc_attackmode.to_s
     mask = @task.hc_mask
 
@@ -66,7 +67,7 @@ helpers do
       if @task.hc_rule == 'none'
         cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
       else
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
       end
     elsif attackmode == 'combinator'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s

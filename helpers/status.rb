@@ -18,12 +18,12 @@ def isOldVersion?
   # Note this version does not have a versions column. Going forward we will check that value
   has_version_column = false
   @tables = repository(:default).adapter.select('DESC settings')
-  @tables.each do | row |
+  @tables.each do |row|
     if row.field == 'version'
       has_version_column = true
     end
   end
-  
+
   if has_version_column
     @settings = Settings.first
     db_version = @settings.version
@@ -37,7 +37,7 @@ def isOldVersion?
     puts 'No version column found. Assuming Version 0.5.1'
     return true
   end
-
+  return false
 end
 
 def updateTaskqueueStatus(taskqueue_id, status, agent_id)
