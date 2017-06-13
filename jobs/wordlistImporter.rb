@@ -34,6 +34,20 @@ module WordlistImporter
       end
     end
 
+    @files = Dir.glob(File.join('control/wordlists/', "*"))
+    @files.each do |path_file|
+      # Get Name
+      name = path_file.split('/')[-1]
+      unless name.match(/\.tar|\.7z|\.gz|\.tgz|\.checksum/)
+        wordlist = Wordlists.first(path: path_file)
+        if wordlist.size == '0'
+          size = File.foreach(path_file).inject(0) { |c| c + 1 }
+          wordlist.size = size
+          wordlist.save
+        end
+      end
+    end
+
     # after importing all wordlists, generate checksums for each
     # this checksum is used to compare differences with agents
     Resque.enqueue(WordlistChecksum)
