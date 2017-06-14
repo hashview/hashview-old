@@ -1,3 +1,4 @@
+require_relative 'file_checksum'
 module RuleImporter
   @queue = :management
 
@@ -23,7 +24,7 @@ module RuleImporter
         rule_file.name = name
         rule_file.path = path_file
         rule_file.size = 0
-        rule_file.checksum = ''
+        rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
         rule_file.save
 
       end
@@ -38,7 +39,6 @@ module RuleImporter
         rule_file.size = size
         rule_file.save
       end
-      Resque.enqueue(FileChecksum('rules', id))
     end
 
     if ENV['RACK_ENV'] == 'development'

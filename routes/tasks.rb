@@ -39,12 +39,13 @@ get '/tasks/edit/:id' do
     end
   end
   
-  @rules = []
+  @rules = Rules.all
+  #@rules = []
   # list wordlists that can be used
-  Dir.foreach('control/rules/') do |item|
-    next if item == '.' || item == '..'
-      @rules << item
-  end
+  #Dir.foreach('control/rules/') do |item|
+  #  next if item == '.' || item == '..'
+  #    @rules << item
+  #end
 
   haml :task_edit
 end
@@ -100,7 +101,8 @@ post '/tasks/edit/:id' do
   
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
-    task.hc_rule = params[:rule]
+    p 'RULES ID: ' + params[:rule].to_i
+    task.hc_rule = params[:rule].to_i
     task.hc_mask = 'NULL'
   elsif params[:attackmode] == 'maskmode'
     task.wl_id = 'NULL'
@@ -203,7 +205,7 @@ post '/tasks/create' do
 
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
-    task.hc_rule = params[:rule_id]
+    task.hc_rule = params[:rule]
   elsif params[:attackmode] == 'maskmode'
     task.hc_mask = params[:mask]
   elsif params[:attackmode] == 'combinator'

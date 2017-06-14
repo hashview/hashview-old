@@ -154,7 +154,7 @@ get '/v1/rules/:id' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  rules = Wordlists.first(id: params[:id])
+  rules = Rules.first(id: params[:id])
   send_file rules.path, :type => 'application/octet-stream', :filename => rules.path.split('/')[-1]
 end
 

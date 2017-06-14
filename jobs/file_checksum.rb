@@ -1,4 +1,4 @@
-module FileChecksum
+class FileChecksum
   @queue = :management
   def self.perform(type, id)
 
