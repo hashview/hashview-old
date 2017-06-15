@@ -205,7 +205,7 @@ get '/analytics' do
   else
     # Used for Total Hash Cracked Doughnut: Total
     @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[0].to_s
-    @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[0].to_s
+    @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 0)')[0].to_s
 
     # Used for Complexity Doughnut & Complexity List: Customer: Customer
     # We have to manually scroll through the results because of limitations of regex in MySQL
