@@ -247,11 +247,11 @@ DEPENDENCIES
   resque-web
   rest-client
   rubocop
-  sinatra
+  sinatra (~> 1.4.7)
   sinatra-flash
 
 RUBY VERSION
    ruby 2.2.2p95
 
 BUNDLED WITH
-   1.13.1
+   1.14.6

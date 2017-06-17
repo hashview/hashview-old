@@ -67,6 +67,7 @@ post '/wordlists/upload/' do
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
   
+  Resque.enqueue(WordlistChecksum)
   # Update our magic wordlist
   # Resque.enqueue(MagicWordlist)
   redirect to('/wordlists/list')
