@@ -20,10 +20,10 @@ class Api
   def self.get(url)
     begin
       response = RestClient::Request.execute(
-          :method => :get,
-          :url => url,
-          :cookies => {:agent_uuid => @uuid},
-          :verify_ssl => false
+        :method => :get,
+        :url => url,
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -34,12 +34,12 @@ class Api
   def self.post(url, payload)
     begin
       response = RestClient::Request.execute(
-          :method => :post,
-          :url => url,
-          :payload => payload.to_json,
-          :headers => {:accept => :json},
-          :cookies => {:agent_uuid => @uuid},
-          :verify_ssl => false
+        :method => :post,
+        :url => url,
+        :payload => payload.to_json,
+        :headers => {:accept => :json},
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -137,20 +137,20 @@ class Api
   end
 
   # upload crack file
-  def self.upload_crackfile(jobtask_id, crack_file, run_time=0)
+  def self.upload_crackfile(jobtask_id, crack_file, run_time)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/crackfile/upload"
     puts "attempting upload #{crack_file}"
     begin
       request = RestClient::Request.new(
-            :method => :post,
-            :url => url,
-            :payload => {
-              :multipart => true,
-              :file => File.new(crack_file, 'rb'),
-              :runtime => run_time
-            },
-            :cookies => {:agent_uuid => @uuid},
-            :verify_ssl => false
+        :method => :post,
+        :url => url,
+        :payload => {
+          :multipart => true,
+          :file => File.new(crack_file, 'rb'),
+          :runtime => run_time
+        },
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       response = request.execute
     rescue RestClient::Exception => e
@@ -338,9 +338,10 @@ class LocalAgent
             # this variable is used to determine if the job was canceled
             @canceled = false
 
+            run_time = 0
             # # thread off hashcat
             thread1 = Thread.new {
-              @run_time = Benchmark.realtime do
+              run_time = Benchmark.realtime do
                 system(cmd)
               end
             }
@@ -381,7 +382,7 @@ class LocalAgent
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
             if File.exist?(crack_file) && ! File.zero?(crack_file)
-              Api.upload_crackfile(jobtask['id'], crack_file, @run_time)
+              Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
               puts "No successful cracks for this task. Skipping upload."
             end

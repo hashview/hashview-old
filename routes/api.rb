@@ -211,7 +211,7 @@ post '/v1/jobtask/:jobtask_id/crackfile/upload' do
   File.open(tmpfile, 'wb') do |f|
     f.write(params[:file][:tempfile].read)
   end
-  importCracked(params[:jobtask_id], tmpfile)
+  importCracked(params[:jobtask_id], tmpfile, params[:runtime])
   return 'upload successful'
 end
 

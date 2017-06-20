@@ -10,7 +10,7 @@ def updateDbRunTime(job_id, hashfile_id, run_time)
 end
 
 # imports the uploaded crackfile
-def importCracked(id, crack_file, run_time=0)
+def importCracked(id, crack_file, run_time)
   # this assumes a job completed successfully. we need to add check for failures or killed processes
   puts '==== Importing cracked hashes ====='
 
@@ -83,5 +83,5 @@ def importCracked(id, crack_file, run_time=0)
   # commenting this out now that we are chunking
   #updateJobTaskStatus(id, 'Completed')
   # TODO this might be broken now that we are chunking
-  #updateDbRunTime(id, job.hashfile_id, run_time)
+  updateDbRunTime(id, job.hashfile_id, run_time)
 end
