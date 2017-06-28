@@ -85,7 +85,7 @@ get '/customers/delete/:id' do
 end
 
 post '/customers/upload/hashfile' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -125,7 +125,7 @@ post '/customers/upload/hashfile' do
 end
 
 post '/customers/upload/hashes' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
