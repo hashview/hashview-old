@@ -22,6 +22,5 @@ control/tmp/*
 !control/tmp/.blank
 *.pot
 *.restore
-Gemfile.lock
 *.idea
 dump.rdb

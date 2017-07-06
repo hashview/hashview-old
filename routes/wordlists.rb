@@ -57,6 +57,7 @@ post '/wordlists/upload/' do
   # Save to file
   file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
 
+
   wordlist = Wordlists.new
   wordlist.name = upload_name 
   wordlist.path = file_name
@@ -65,7 +66,7 @@ post '/wordlists/upload/' do
   wordlist.save
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
-
+  Resque.enqueue(WordlistChecksum)
   # Update our magic wordlist
   # Resque.enqueue(MagicWordlist)
   redirect to('/wordlists/list')

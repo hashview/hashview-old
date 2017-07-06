@@ -3,6 +3,7 @@ require 'benchmark'
 
 # one day, when I grow up...I'll be a ruby dev
 # api calls
+
 class Api
 
   # obtain remote ip and port from local config
@@ -10,6 +11,7 @@ class Api
     options = JSON.parse(File.read('config/agent_config.json'))
     @server = options['ip'] + ":" + options['port']
     @uuid = options['uuid']
+    @hashcatbinpath = options['hc_binary_path'].to_s
   rescue
     "Error reading config/agent_config.json. Did you run rake db:provision_agent ???"
   end
@@ -18,10 +20,10 @@ class Api
   def self.get(url)
     begin
       response = RestClient::Request.execute(
-          :method => :get,
-          :url => url,
-          :cookies => {:agent_uuid => @uuid},
-          :verify_ssl => false
+        :method => :get,
+        :url => url,
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -32,12 +34,12 @@ class Api
   def self.post(url, payload)
     begin
       response = RestClient::Request.execute(
-          :method => :post,
-          :url => url,
-          :payload => payload.to_json,
-          :headers => {:accept => :json},
-          :cookies => {:agent_uuid => @uuid},
-          :verify_ssl => false
+        :method => :post,
+        :url => url,
+        :payload => payload.to_json,
+        :headers => {:accept => :json},
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -135,26 +137,36 @@ class Api
   end
 
   # upload crack file
-  def self.upload_crackfile(jobtask_id, crack_file, run_time=0)
+  def self.upload_crackfile(jobtask_id, crack_file, run_time)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/crackfile/upload"
     puts "attempting upload #{crack_file}"
     begin
       request = RestClient::Request.new(
-            :method => :post,
-            :url => url,
-            :payload => {
-              :multipart => true,
-              :file => File.new(crack_file, 'rb'),
-              :runtime => run_time
-            },
-            :cookies => {:agent_uuid => @uuid},
-            :verify_ssl => false
+        :method => :post,
+        :url => url,
+        :payload => {
+          :multipart => true,
+          :file => File.new(crack_file, 'rb'),
+          :runtime => run_time
+        },
+        :cookies => {:agent_uuid => @uuid},
+        :verify_ssl => false
       )
       response = request.execute
     rescue RestClient::Exception => e
       puts e
       return '{error_msg: \'api call failed\'}'
     end
+  end
+
+  def self.stats(hc_devices, hc_perfstats)
+    url = "https://#{@server}/v1/agents/#{@uuid}/stats"
+    payload = {}
+    payload['cpu_count'] = hc_devices['cpus']
+    payload['gpu_count'] = hc_devices['gpus']
+    payload['benchmark'] = hc_perfstats
+    puts payload
+    return self.post(url, payload)
   end
 end
 
@@ -183,10 +195,59 @@ def hashcatParser(filepath)
   return status
 end
 
+def hashcatDeviceParser(output)
+  gpus = 0
+  cpus = 0
+  output.each_line do |line|
+    if line.include?('Type')
+      if line.split(': ')[-1].strip.include?('CPU')
+        cpus += 1
+      elsif line.split(': ')[-1].strip.include?('GPU')
+        gpus += 1
+      end
+    end
+  end
+  puts "agent has #{cpus} CPUs"
+  puts "agent has #{gpus} GPUs"
+  return cpus, gpus
+end
+
+def hashcatBenchmarkParser(output)
+  max_speed = ""
+  output.each_line do |line|
+    if line.start_with?('Speed.Dev.#')
+      max_speed = line.split(': ')[-1].to_s
+    end
+  end
+  puts "agent max cracking speed (single NTLM hash):\n #{max_speed}"
+  return max_speed
+end
+
 def getHashcatPid
   pid = `ps -ef | grep hashcat | grep hc_cracked_ | grep -v 'ps -ef' | grep -v 'sh \-c' | awk '{print $2}'`
   return pid.chomp
 end
+
+# replace the placeholder binary path with the user defined path to hashcat binary
+def replaceHashcatBinPath(cmd)
+  hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
+  cmd = cmd.gsub('@HASHCATBINPATH@', hashcatbinpath)
+  return cmd
+end
+
+# this function provides the master server with basic information about the agent
+def hc_benchmark(hashcatbinpath)
+  cmd = hashcatbinpath + ' -b -m 1000'
+  hc_perfstats = `#{cmd}`
+  return  hc_perfstats
+end
+
+def hc_device_list(hashcatbinpath)
+  cmd = hashcatbinpath + ' -I'
+  hc_devices = `#{cmd}`
+  return  hc_devices
+end
+
 
 class LocalAgent
   @queue = :hashcat
@@ -195,6 +256,16 @@ class LocalAgent
 
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
+
+    hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
+
+    # is hashcat working? if so, how fast are you? provide basic information to master server
+    hc_cpus, hc_gpus = hashcatDeviceParser(hc_device_list(hashcatbinpath))
+    hc_devices = {}
+    hc_devices['gpus'] = hc_gpus
+    hc_devices['cpus'] = hc_cpus
+    hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
+    Api.stats(hc_devices, hc_perfstats)
 
     while(1)
       sleep(4)
@@ -225,7 +296,7 @@ class LocalAgent
         heartbeat = JSON.parse(heartbeat)
         puts heartbeat
 
-        if heartbeat['type'] == 'Message' and heartbeat['msg'] == 'START'
+        if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
           jdata = JSON.parse(jdata)
@@ -259,16 +330,18 @@ class LocalAgent
             # generate hashfile via api
             Api.hashfile(jobtask['id'], job['hashfile_id'])
 
-            # run hashcat, do real work!
+            # get our hashcat command and sub out the binary path
             cmd = jdata['command']
+            cmd = replaceHashcatBinPath(cmd)
             puts cmd
 
             # this variable is used to determine if the job was canceled
             @canceled = false
 
+            run_time = 0
             # # thread off hashcat
             thread1 = Thread.new {
-              @run_time = Benchmark.realtime do
+              run_time = Benchmark.realtime do
                 system(cmd)
               end
             }
@@ -303,21 +376,27 @@ class LocalAgent
             end
 
             # set jobtask status to importing
-            Api.post_jobtask_status(jdata['jobtask_id'], 'Importing')
+            # commenting out now that we are chunking
+            Api.post_queue_status(jdata['id'], 'Importing')
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-            Api.upload_crackfile(jobtask.id, crack_file, @run_time)
+            if File.exist?(crack_file) && ! File.zero?(crack_file)
+              Api.upload_crackfile(jobtask['id'], crack_file, run_time)
+            else
+              puts "No successful cracks for this task. Skipping upload."
+            end
 
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
             # change status to completed for jobtask
-            if @canceled
-              Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
-            else
-              Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-            end
+            # commenting out now that we are chunking
+            # if @canceled
+            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
+            # else
+            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
+            # end
 
             # set taskqueue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')

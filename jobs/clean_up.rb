@@ -21,6 +21,9 @@ module CleanUp
       p 'CleanUp Class - start'
     end
 
+    # control/tmp/*
+    cleanDir('control/tmp/*')
+
     # control/outfiles/found_*.txt
     cleanDir('control/outfiles/found_*')
 

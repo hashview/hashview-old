@@ -18,12 +18,12 @@ def isOldVersion?
   # Note this version does not have a versions column. Going forward we will check that value
   has_version_column = false
   @tables = repository(:default).adapter.select('DESC settings')
-  @tables.each do | row |
+  @tables.each do |row|
     if row.field == 'version'
       has_version_column = true
     end
   end
-  
+
   if has_version_column
     @settings = Settings.first
     db_version = @settings.version
@@ -37,14 +37,24 @@ def isOldVersion?
     puts 'No version column found. Assuming Version 0.5.1'
     return true
   end
-
+  return false
 end
 
 def updateTaskqueueStatus(taskqueue_id, status, agent_id)
   queue = Taskqueues.first(id: taskqueue_id)
-  queue.status = status
-  queue.agent_id = agent_id
-  queue.save
+  if queue
+    queue.status = status
+    queue.agent_id = agent_id
+    queue.save
+  
+    # if we are setting a status to completed, check to see if this is the last task in queue. if so, set jobtask to completed
+    if status == 'Completed'
+      remainingtasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued')
+      if remainingtasks.empty?
+        updateJobTaskStatus(queue.jobtask_id, 'Completed')
+      end
+    end
+  end
 end
 
 

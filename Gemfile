@@ -11,7 +11,7 @@ group :test do
   gem 'rake'
 end
 
-gem 'sinatra'
+gem 'sinatra', '~> 1.4.7'
 gem 'sinatra-flash'
 gem 'haml'
 gem 'data_mapper'
@@ -27,5 +27,6 @@ gem 'bcrypt'
 gem 'mysql'
 gem 'foreman'
 gem 'rest-client'
+gem 'digest'
 
 

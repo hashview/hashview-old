@@ -2,7 +2,27 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.6.0-beta] - 2017-xx-xx
+## [v0.7.0-beta] - 2017-XX-XX
+### Added
+ - Support for distributed cracking through hashview-agents
+ - New management console for agent control 
+ - Keyspace task
+ - Support for 50 more hashes
+ - 3 new analytic portlets
+
+### Fixed
+ - Calculation error on Analytics where on the global page for number of cracked hashes vs uncracked hashes.
+ 
+
+## [v0.6.1-beta] - 2017-04-25
+### Added
+ - Support for 38 more hashes
+### Fixed
+ - Raced condition when importing wordlists (both via gui and cli)
+ - Bug where NetNTLMv1 and NetNTLMv2 hashes were not properly importing
+ - Bug where usernames were not being parsed when importing NetNTLMv1 and NetNTLMv2 hashes
+
+## [v0.6.0-beta] - 2017-03-28
 ### Added
  - Resque 'management' queue for system jobs
  - Background job for automatically importing wordlists scp'd to control/wordlists

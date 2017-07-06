@@ -1,23 +1,35 @@
 # This is a schedule for TestJob (see jobs/test_job.rb)
 # you can crib from this config
-do_test_job:
-  # you can use rufus-scheduler "every" syntax in place of cron if you prefer
-  # every: 1h
-  # By default the job name (hash key) will be taken as worker class name.
-  # If you want to have a different job name and class name, provide the 'class' option
-  #cron: "*/1 * * * *"
-  every: 2s
-  class: TestJob
-  queue: management
-  args:
-  description: "This job queues all content for indexing in solr"
+#do_test_job:
+#  # you can use rufus-scheduler "every" syntax in place of cron if you prefer
+#  # every: 1h
+#  # By default the job name (hash key) will be taken as worker class name.
+#  # If you want to have a different job name and class name, provide the 'class' option
+#  #cron: "*/1 * * * *"
+#  every: 2s
+#  class: TestJob
+#  queue: management
+#  args:
+#  description: "This job queues all content for indexing in solr"
 
 # schedule for wordlist importer
 do_wordlist_importer:
-  every: 2s
+  every: 5s
   class: "WordlistImporter"
   queue: management
   description: "This job automatically imports wordlists if placed in controls/wordlists dir"
+
+do_rulelist_importer:
+  every: 5s
+  class: "RuleImporter"
+  queue: management
+  description: "This job automatically imports rule files if placed in controls/rules dir"
+
+do_wordlist_checksum:
+  every: 20s
+  class: WordlistChecksum
+  queue: management
+  description: "This job creates a sha256 checksum for all wordlists. This keeps wordlists in sync for multiple agents"
 
 # schedule for cleanup task
 do_cleanUp:

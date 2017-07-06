@@ -39,12 +39,13 @@ get '/tasks/edit/:id' do
     end
   end
   
-  @rules = []
+  @rules = Rules.all
+  #@rules = []
   # list wordlists that can be used
-  Dir.foreach('control/rules/') do |item|
-    next if item == '.' || item == '..'
-      @rules << item
-  end
+  #Dir.foreach('control/rules/') do |item|
+  #  next if item == '.' || item == '..'
+  #    @rules << item
+  #end
 
   haml :task_edit
 end
@@ -100,7 +101,8 @@ post '/tasks/edit/:id' do
   
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
-    task.hc_rule = params[:rule]
+    p 'RULES ID: ' + params[:rule].to_i
+    task.hc_rule = params[:rule].to_i
     task.hc_mask = 'NULL'
   elsif params[:attackmode] == 'maskmode'
     task.wl_id = 'NULL'
@@ -120,26 +122,27 @@ get '/tasks/create' do
   varWash(params)
   @hc_settings = HashcatSettings.first
 
-  @rules = []
+  @rules = Rules.all
+  #@rules = []
   # list wordlists that can be used
-  Dir.foreach('control/rules/') do |item|
-    next if item == '.' || item == '..'
-      @rules << item
-  end
-  
+  #Dir.foreach('control/rules/') do |item|
+  #  next if item == '.' || item == '..'
+  #    @rules << item
+  #end
+
   @wordlists = Wordlists.all
-  
+
   haml :task_edit
 end
-  
+
 post '/tasks/create' do
   varWash(params)
-  
+
   if !params[:name] || params[:name].empty?
     flash[:error] = 'You must provide a name for your task!'
     redirect to('/tasks/create')
   end
-  
+
   @tasks = Tasks.all(name: params[:name])
   unless @tasks.nil?
     @tasks.each do |task|
@@ -149,9 +152,9 @@ post '/tasks/create' do
       end
     end
   end
- 
+
   wordlist = Wordlists.first(id: params[:wordlist])
-  
+
   # mask field cannot be empty
   if params[:attackmode] == 'maskmode'
     if !params[:mask] || params[:mask].empty?
@@ -159,7 +162,7 @@ post '/tasks/create' do
       redirect to('/tasks/create')
     end
   end
-  
+
   # must have two word lists
   if params[:attackmode] == 'combinator'
     wordlist_count = 0
@@ -178,12 +181,12 @@ post '/tasks/create' do
         end
       end
     end
-  
+
     if wordlist_count != 2
       flash[:error] = 'You must specify at exactly 2 wordlists.'
       redirect to('/tasks/create')
     end
-  
+
     if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
       rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
     elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
@@ -194,12 +197,12 @@ post '/tasks/create' do
       rule_list = ''
     end
   end
-  
+
   task = Tasks.new
   task.name = params[:name]
 
   task.hc_attackmode = params[:attackmode]
- 
+
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
     task.hc_rule = params[:rule]
@@ -209,9 +212,13 @@ post '/tasks/create' do
     task.wl_id = wordlist_list
     task.hc_rule = rule_list
   end
+
+  # generate keyspace of new task and save to db
+  task.keyspace = getKeyspace(task)
+
   task.save
-  
+
   flash[:success] = "Task #{task.name} successfully created."
-  
+
   redirect to('/tasks/list')
 end

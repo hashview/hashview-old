@@ -20,10 +20,19 @@ if ENV['RACK_ENV'].nil?
 end
 
 if isOldVersion?
-  #puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
+  # puts 'You need to perform some upgrade steps. Check instructions <a href=\"https://github.com/hashview/hashview/wiki/Upgrading-Hashview\">here</a>"
   puts "\n\nYour installation is out of date, please run the following upgrade task.\n"
   puts "RACK_ENV=#{ENV['RACK_ENV']} rake db:upgrade\n\n\n"
   exit
+end
+
+# make sure the binary path is set in the configuration file
+options = JSON.parse(File.read('config/agent_config.json'))
+if options['hc_binary_path'].empty? || options['hc_binary_path'].nil?
+  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
+  puts '[!] You must defined the full path to your hashcat binary. Do this in your config/agent_config.json file'
+  puts '!!!!!!!!!! ERROR !!!!!!!!!!!!!!'
+  exit 0
 end
 
 # Check for valid session before proccessing
@@ -31,11 +40,6 @@ before /^(?!\/(login|register|logout|v1\/))/ do
   @settings = Settings.first
   if !validSession?
     redirect to('/login')
-  else
-    hc_settings = HashcatSettings.first
-    if (hc_settings && hc_settings.hc_binpath.nil?) || hc_settings.nil?
-      flash[:warning] = 'Annoying alert! You need to define hashcat\'s binary path in settings first. Do so <a href=/settings>HERE</a>'
-    end
   end
 end
 

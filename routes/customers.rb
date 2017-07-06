@@ -85,7 +85,7 @@ get '/customers/delete/:id' do
 end
 
 post '/customers/upload/hashfile' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -125,7 +125,7 @@ post '/customers/upload/hashfile' do
 end
 
 post '/customers/upload/hashes' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -133,7 +133,7 @@ post '/customers/upload/hashes' do
   end
 
   if params[:hashes].nil? || params[:hashes].empty?
-    flash[:error] = 'You must supply atleast one hash.'
+    flash[:error] = 'You must supply at least one hash.'
     redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 

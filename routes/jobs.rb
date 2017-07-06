@@ -42,7 +42,7 @@ get '/jobs/delete/:id' do
 
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/create' do
   varWash(params)
 
@@ -58,7 +58,7 @@ get '/jobs/create' do
 
   haml :job_edit
 end
-  
+
 post '/jobs/create' do
   varWash(params)
 
@@ -112,7 +112,7 @@ post '/jobs/create' do
   else
     customer_id = params[:customer]
   end
-  
+
   # create new or update existing job
   params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
 
@@ -129,7 +129,7 @@ post '/jobs/create' do
     redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}")
   end
 end
-  
+
 get '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -148,7 +148,7 @@ get '/jobs/assign_hashfile' do
 
   haml :assign_hashfile
 end
-  
+
 post '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -157,7 +157,7 @@ post '/jobs/assign_hashfile' do
     job.hashfile_id = params[:hash_file]
     job.save
   end
- 
+
   if params[:edit] == '1'
     job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
@@ -168,7 +168,7 @@ post '/jobs/assign_hashfile' do
   url = url + '&edit=1' if params[:edit]
   redirect to(url)
 end
-  
+
 get '/jobs/assign_tasks' do
   varWash(params)
 
@@ -182,10 +182,10 @@ get '/jobs/assign_tasks' do
     taskhashforjs[task.id] = task.name
   end
   @taskhashforjs = taskhashforjs.to_json
-  
+
   haml :assign_tasks
 end
-  
+
 post '/jobs/assign_tasks' do
   varWash(params)
 
@@ -278,17 +278,23 @@ get '/jobs/start/:id' do
       jt.status = 'Queued'
       jt.save
       # toggle the job status to run
+      # We shouldn't need to do this for every task, just once
       @job.status = 'Queued'
+      @job.queued_at = DateTime.now
       @job.save
-      cmd = buildCrackCmd(@job.id, task.id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      # we are using a db queue instead for public api
-      queue = Taskqueues.new
-      queue.jobtask_id = jt.id
-      queue.job_id = @job.id
-      queue.command = cmd
-      queue.status = 'Queued'
-      queue.save
+
+      cmds = buildCrackCmd(@job.id, task.id)
+      cmds.each do |cmd|
+        cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+        # we are using a db queue instead for public api
+        queue = Taskqueues.new
+        queue.jobtask_id = jt.id
+        queue.job_id = @job.id
+        queue.command = cmd
+        queue.status = 'Queued'
+        queue.queued_at = DateTime.now
+        queue.save
+      end
     end
   end
 
@@ -426,8 +432,6 @@ get '/jobs/hub_check' do
   p 'RESULTS: ' + @results.to_s
   haml :job_hub_check
 end
-
-################################
 
 ##### job task controllers #####
 

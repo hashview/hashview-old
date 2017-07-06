@@ -10,10 +10,13 @@ def updateDbRunTime(job_id, hashfile_id, run_time)
 end
 
 # imports the uploaded crackfile
-def importCracked(id, crack_file, run_time=0)
+def importCracked(id, crack_file, run_time)
   # this assumes a job completed successfully. we need to add check for failures or killed processes
   puts '==== Importing cracked hashes ====='
-  updateJobTaskStatus(id, 'Importing')
+
+  # Disabling now that we are chunking. Not sure if this is a good idea yet
+  #updateJobTaskStatus(id, 'Importing')
+
   jobtasks = Jobtasks.first(id: id)
   #crack_file = 'control/outfiles/hc_cracked_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
   job = Jobs.first(id: jobtasks.job_id)
@@ -44,6 +47,9 @@ def importCracked(id, crack_file, run_time=0)
         hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
       elsif hashtype == '5600'
         hash = hash_pass[0] + ':' + hash_pass[1] + ':' + hash_pass[2] + ':' + hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
+      elsif hashtype == '7400'
+        parts = hash_pass[0].split('$')
+        hash = '%' + parts[2].to_s + '$' + parts[3].to_s 
       else
         hash = hash_pass[0]
       end
@@ -54,7 +60,12 @@ def importCracked(id, crack_file, run_time=0)
       p 'Hash: ' + hash.to_s
 
       # This will pull all hashes from DB regardless of job id
-      records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0 )
+      if hashtype == '7400'
+        results = repository(:default).adapter.select('SELECT * FROM hashes WHERE (hashtype = 7400 AND originalhash like ?)', hash)[0]
+        records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], id: results.id)
+      else
+        records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0 )
+      end
       # Yes its slow... we know.
       records.each do |entry|
         entry.cracked = 1
@@ -77,6 +88,8 @@ def importCracked(id, crack_file, run_time=0)
 
   puts '==== Crack File Deleted ===='
 
-  updateJobTaskStatus(id, 'Completed')
+  # commenting this out now that we are chunking
+  #updateJobTaskStatus(id, 'Completed')
+  # TODO this might be broken now that we are chunking
   updateDbRunTime(id, job.hashfile_id, run_time)
 end
