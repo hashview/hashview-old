@@ -32,6 +32,8 @@
       %a{"data-toggle" => "tab", :href => "#3"} UI
     %li
       %a{"data-toggle" => "tab", :href => "#4"} Distributed
+    %li
+      %a{'data-toggle' => 'tab', :href => '#5'} Hashview Hub
 
   .tab-content
     #1.tab-pane.active
@@ -239,3 +241,34 @@
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save
+    #5.tab-pane
+      %br
+      .col-md-10
+        %form{:name => 'hub_settings_form', :id => 'hub_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} Email Address
+            .col-xs-10
+              - if @hub_settings.email
+                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email', :value => @hub_settings.email}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
+          //.form-group
+          //  %label.control-label.col-xs-2{:for => ''} Tokens
+          //  .col-xs-10
+          //    #{@hub_settings.balance}
+          .form-group
+            %label.control-label.col-xs-2{:for => ''} UUID
+            .col-xs-10
+              - if @hub_settings.uuid
+                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid', :value => @hub_settings.uuid}
+              - else
+                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid'}
+          .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '5'}
+          .form-group
+            .col-md-1.pull-right
+              - if @hub_settings.status != 'registered'
+                %button.btn.btn-warning{:type => 'submit'} Register
+              - else
+                %button.btn.btn-danger{:href => 'submit'} Unregister

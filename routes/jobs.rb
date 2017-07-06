@@ -114,20 +114,13 @@ post '/jobs/create' do
   end
 
   # create new or update existing job
-  if params[:edit] == '1'
-    job = Jobs.first(id: params[:job_id])
-  else
-    job = Jobs.new
-  end
+  params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
+
   job.name = params[:job_name]
   job.last_updated_by = getUsername
   job.customer_id = customer_id
 
-  if params[:notify] == 'on'
-    job.notify_completed = '1'
-  else
-    job.notify_completed = '0'
-  end
+  params[:notify] == 'on' ? job.notify_completed = '1' : job.notify_completed = '0'
   job.save
 
   if params[:edit] == '1'
@@ -233,8 +226,8 @@ post '/jobs/assign_tasks' do
       puts params
       flash[:error] = 'You cannot have duplicate tasks.'
       url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-      url = url + '&edit=1' if params[:edit]
-      redirect to (url)
+      url += '&edit=1' if params[:edit]
+      redirect to(url)
     end
   end
 
@@ -374,7 +367,71 @@ get '/jobs/stop/:job_id/:task_id' do
   end
 end
 
-############################
+get '/jobs/local_check' do
+  varWash(params)
+
+  # TODO offer the ability to upload to hub
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
+
+  @url = '/jobs'
+  hub_settings = HubSettings.first
+  hub_settings.status == 'registered' ? @url = @url + '/hub_check' : @url = @url + '/assign_tasks'
+
+  @url += "?job_id=#{params[:job_id]}"
+  @url += '&edit=1' if params[:edit]
+
+  haml :job_local_check
+end
+
+get '/jobs/hub_check' do
+  varWash(params)
+
+  @results = []
+  results_entry = {
+    username: '',
+    originalhash: '',
+    hub_hash_id: '',
+    hashtype: '',
+    show_results: '0'
+  }
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
+  # Each hashfile might have multiple duplicate hashes, we need a unique list
+  @hash_array = []
+  @hashfile_hashes.each do |entry|
+    hash = Hashes.first(id: entry.hash_id, cracked: '0')
+    unless hash.nil?
+      element = {}
+      element['ciphertext'] = hash.originalhash
+      element['hashtype'] = hash.hashtype.to_s
+      @hash_array.push(element)
+    end
+  end
+
+  hub_response = Hub.hashSearch(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_hash_results = hub_response['hashes']
+    @hub_hash_results.each do |element|
+      if element['cracked'] == '1'
+        results_entry['id'] = entry.hash_id
+        results_entry['username'] = entry.username
+        results_entry['ciphertext'] = element['ciphertext']
+        results_entry['hub_hash_id'] = element['hash_id']
+        results_entry['hashtype'] = element['hashtype']
+        results_entry['show_results'] = '1'
+        @results.push(results_entry)
+        results_entry = {}
+      end
+    end
+  end
+
+  p 'RESULTS: ' + @results.to_s
+  haml :job_hub_check
+end
 
 ##### job task controllers #####
 

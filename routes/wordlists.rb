@@ -46,14 +46,14 @@ post '/wordlists/upload/' do
     flash[:error] = 'You must specify a name for your wordlist.'
     redirect to('/wordlists/add')
   end
-  
+
   # Replace white space with underscore.  We need more filtering here too
   upload_name = params[:name]
   upload_name = upload_name.downcase.tr(' ', '_')
-  
+
   # Change to date/time ?
   rand_str = rand(36**36).to_s(36)
-  
+
   # Save to file
   file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
 
@@ -66,7 +66,6 @@ post '/wordlists/upload/' do
   wordlist.save
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
-  
   Resque.enqueue(WordlistChecksum)
   # Update our magic wordlist
   # Resque.enqueue(MagicWordlist)

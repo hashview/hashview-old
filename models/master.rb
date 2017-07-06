@@ -236,6 +236,20 @@ class HashcatSettings
   property :hc_force, Boolean, default: 0
 end
 
+# Hashview Hub Settings
+class HubSettings
+  include DataMapper::Resource
+
+  property :id, Serial
+  property :enabled, Boolean
+  property :status, String, default: 'unregistered', required: true # Options are registered, unregistered and pending
+  property :email, String
+  property :uuid, String
+  property :auth_key, String, length: 254
+  property :balance, Integer, default: 0
+end
+
+
 # Wordlist Class
 class Wordlists
   include DataMapper::Resource

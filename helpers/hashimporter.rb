@@ -208,7 +208,7 @@ def importHashOnly(hash, hashfile_id, type)
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-  
+
     updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
 
   else
@@ -217,7 +217,7 @@ def importHashOnly(hash, hashfile_id, type)
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
     end
-   
+
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   end
@@ -250,7 +250,7 @@ def getMode(hash)
     @modes.push('3910') # md5(md5($pass).md5($salt))
     @modes.push('4010') # md5($salt.md5($salt.$pass))
     @modes.push('4110') # md5($salt.md5($pass.$salt))
-    # @modes.push('4210') # md5($username.0.$pass)
+    # @modes.push('4210') # md5($username.0.$pass) # Legacy
     @modes.push('11000')# PrestaShop
   elsif hash =~ %r{\$NT\$\w{32}} # NTLM
     @modes.push('1000')
@@ -389,7 +389,7 @@ def modeToFriendly(mode)
   return 'sha1($salt.unicode($pass))' if mode == '140'
   return 'HMAC-SHA1 (key = $pass)' if mode == '150'
   return 'HMAC-SHA1 (key = $salt)' if mode == '160'
-  return 'sha1(LinkedIn)' if mode == '190'
+  # return 'sha1(LinkedIn)' if mode == '190'
   return 'MySQL323' if mode == '200'
   return 'md5crypt' if mode == '500'
   return 'MD4' if mode == '900'
