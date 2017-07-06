@@ -31,7 +31,7 @@
     %li
       %a{'data-toggle' => 'tab', :href => '#3'} UI
     %li
-      %a{'data-toggle' => 'tab', :href => '#4'} Hashview Hub
+      %a{'data-toggle' => 'tab', :href => '#5'} Hashview Hub
   .tab-content
     #1.tab-pane.active
       %br
@@ -229,7 +229,7 @@
           .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save
-    #4.tab-pane
+    #5.tab-pane
       %br
       .col-md-10
         %form{:name => 'hub_settings_form', :id => 'hub_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
@@ -253,7 +253,7 @@
                 %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid'}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '4'}
+              %input{:type => 'hidden', :name => 'form_id', :value => '5'}
           .form-group
             .col-md-1.pull-right
               - if @hub_settings.status != 'registered'

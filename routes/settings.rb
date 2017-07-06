@@ -40,14 +40,9 @@ get '/settings' do
       hub_response = JSON.parse(hub_response)
       if hub_response['status'] == '403'
         flash[:error] = 'Invalid Authentication to Hub, check UUID.'
-      else
-        hub_response = Hub.statusBalance
-        hub_response = JSON.parse(hub_response)
-        if hub_response['status'] == '200'
-          @hub_settings.balance = hub_response['balance']
-          @hub_settings.save
-          @hub_settings = HubSettings.first
-        end
+      elsif hub_response['status'] == '200'
+        @hub_settings.save
+        @hub_settings = HubSettings.first
       end
     end
   end
@@ -164,7 +159,7 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
-  elsif params[:form_id] == '4' # Hub
+  elsif params[:form_id] == '5' # Hub
 
     if params[:email].nil? || params[:email].empty?
       flash[:error] = 'You must provide an email address.'

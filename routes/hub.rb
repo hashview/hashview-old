@@ -11,7 +11,7 @@ class Hub
     unless File.exist?('config/hub_config.json')
       hub_config = {
           :host => 'hub.hashview.io',
-          :port => '8443',
+          :port => '443',
       }
       File.open('config/hub_config.json', 'w') do |f|
         f.write(JSON.pretty_generate(hub_config))
@@ -48,8 +48,8 @@ class Hub
         :method => :get,
         :url => url,
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :verify_ssl => false
-        #:verify_ssl => true
+        #:verify_ssl => false
+        :verify_ssl => true
       )
       p 'response: ' + response.body.to_s
       return response.body
@@ -71,8 +71,8 @@ class Hub
         :payload => payload.to_json,
         :headers => {:accept => :json},
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :verify_ssl => false #TODO VALIDATE
-        #:verify_ssl => true
+        #:verify_ssl => false #TODO VALIDATE
+        :verify_ssl => true
       )
       p 'response: ' + response.body.to_s
       return response.body
@@ -245,15 +245,16 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
 end
 
 get '/hub/hash/upload/hash/:id' do
-
+  varWash(params)
   hash = Hashes.first(id: params[:id], cracked: 1)
   if hash.nil?
     flash[:error] = 'Error uploading hash'
   else
-    @hash_array
+    @hash_array = []
     element = {}
-    element['originalhash'] = hash.originalhash
+    element['ciphertext'] = hash.originalhash
     element['hashtype'] = hash.hashtype.to_s
+    element['plaintext'] = hash.plaintext
     @hash_array.push(element)
     hub_response = Hub.hashUpload(@hash_array)
     hub_response = JSON.parse(hub_response)
@@ -269,7 +270,7 @@ get '/hub/hash/upload/hash/:id' do
 end
 
 get '/hub/hash/upload/hashfile/:hashfile_id' do
-
+  varWash(params)
   @hash_array = []
 
   @hashfile_hashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])

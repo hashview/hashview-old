@@ -161,6 +161,16 @@ post '/search' do
           results_entry['hub_hash_id'] = entry['hash_id']
           results_entry['hub_cracked'] = '1' if entry['cracked'] == '1'
           results_entry['hub_cracked'] = '0' if entry['cracked'] == '0' || entry['cracked'].nil?
+          if results_entry['local_cracked'] == '0'
+            # We dont have a local entry for this, so we're adding it to the db now so its present when we 'reveal'
+            new_hash_entry = Hashes.new
+            new_hash_entry.originalhash = entry['ciphertext']
+            new_hash_entry.hashtype = entry['hashtype']
+            new_hash_entry.cracked = '0';
+            new_hash_entry.save
+            db_entry = Hashes.first(originalhash: entry['ciphertext'])
+            results_entry['id'] = db_entry.id
+          end
         end
       else
         flash[:error] = 'Error: Unauthorized access to Hub. Please check settings and try again.'
