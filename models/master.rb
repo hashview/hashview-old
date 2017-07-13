@@ -296,7 +296,7 @@ class Taskqueues
   property :jobtask_id, Integer
   property :job_id, Integer
   property :updated_at, DateTime, default: DateTime.now
-  # status options should be "Running", "Completed", "Queued", "Canceled"
+  # status options should be "Running", "Completed", "Queued", "Canceled", "Paused"
   property :queued_at, DateTime
   property :status, String, length: 100
   property :agent_id, String, length: 2000

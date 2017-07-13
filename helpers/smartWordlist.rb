@@ -1,5 +1,12 @@
 def updateSmartWordlist
 
+  # Set all jobqueue items that are 'queued' to 'paused'
+  taskqueues = Taskqueues.all(status: 'Queued')
+  taskqueues.each do |entry|
+    entry.status = 'Paused'
+    entry.save
+  end
+
   wordlist = Wordlists.first(name: 'Smart Wordlist')
   # Create Smart word list if one doesnt exists
   if wordlist.nil?
@@ -53,5 +60,12 @@ def updateSmartWordlist
   Resque.enqueue(WordlistChecksum)
 
   # Remove plaintext list
-  File.delete('control/tmp/plaintext.txt')
+  File.delete('control/tmp/plaintext.txt') if File.exist?('control/tmp/plaintext.txt')
+
+  # resume all jobqueue items that are 'paused' to 'queued'
+  taskqueues = Taskqueues.all(status: 'Paused')
+  taskqueues.each do |entry|
+    entry.status = 'Queued'
+    entry.save
+  end
 end

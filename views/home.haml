@@ -94,7 +94,7 @@
                                         - @taskqueues.each do |tq|
                                           - if job.id == tq.job_id
                                             - if jt.id == tq.jobtask_id
-                                              - if tq.status == 'Queued'
+                                              - if tq.status == 'Queued' || tq.status == 'Paused'
                                                 - remaining_chunks += 1
                                         #{remaining_chunks}
                                         %p
@@ -102,14 +102,14 @@
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
                                               - next if tq.status == 'Completed'
-                                              - next if tq.status == 'Queued'
+                                              - next if tq.status == 'Queued' || tq.status == 'Paused'
                                               %li{:class => 'list-group-item borderless'}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
                                                       %b Chunk
                                                     %td
-                                                      - if tq.status == 'Queued'
+                                                      - if tq.status == 'Queued' || tq.status == 'Paused'
                                                         %b Command
                                                       - else
                                                         %b Agent
@@ -117,7 +117,7 @@
                                                     %td
                                                       #{tq.id}
                                                     %td
-                                                      - if tq.status == 'Queued'
+                                                      - if tq.status == 'Queued' || tq.status == 'Paused'
                                                         #{tq.command}
                                                       - else
                                                         - @agents.each do |agent|
@@ -127,8 +127,8 @@
                                                       - if tq.status == 'Running'
                                                         %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
                                                           %b Cancel
-                                                      - elsif tq.status == 'Queued'
-                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
+                                                      - elsif tq.status == 'Queued' || tq.status == 'Paused'
+                                                        %span.label.label-default.labelfixedwidth.pull-right Queued
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
                                   - else
@@ -156,7 +156,7 @@
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
                                                       - else
-                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
+                                                        %span.label.label-default.labelfixedwidth.pull-right Queued
 %br
 %br
 %br
