@@ -18,8 +18,6 @@ module WordlistImporter
         # Make sure we're not dealing with a tar, gz, tgz, etc. Not 100% accurate!
         unless name.match(/\.tar|\.7z|\.gz|\.tgz|\.checksum/)
 
-          puts 'Importing new wordslist "' + name + '" into HashView.'
-
           # Adding to DB
           wordlist = Wordlists.new
           wordlist.lastupdated = Time.now()
