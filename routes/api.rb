@@ -138,6 +138,20 @@ get '/v1/wordlist/:id' do
   send_file "control/tmp/#{wordlist_orig}.gz", :type => 'application/octet-stream', :filename => "#{wordlist_orig}.gz"
 end
 
+# Initiate an update to smart wordlist
+get '/v1/wordlist/updateSmartWordlist' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+  updateSmartWordlist
+
+  {
+      status: 200,
+      type: 'message',
+      msg: 'OK'
+  }.to_json
+
+end
+
 # provide Rules file info
 get '/v1/rules' do
   # is agent authorized
@@ -434,3 +448,4 @@ post '/v1/agents/:uuid/stats' do
     }.to_json
   end
 end
+

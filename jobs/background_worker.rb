@@ -239,13 +239,13 @@ end
 def hc_benchmark(hashcatbinpath)
   cmd = hashcatbinpath + ' -b -m 1000'
   hc_perfstats = `#{cmd}`
-  return  hc_perfstats
+  return hc_perfstats
 end
 
 def hc_device_list(hashcatbinpath)
   cmd = hashcatbinpath + ' -I'
   hc_devices = `#{cmd}`
-  return  hc_devices
+  return hc_devices
 end
 
 

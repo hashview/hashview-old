@@ -1,15 +1,15 @@
 # encoding: utf-8
-require_relative '../jobs/init' # this shouldnt be needed?
+# require_relative '../jobs/init' # this shouldn't be needed?
 get '/wordlists/list' do
   @wordlists = Wordlists.all
 
   haml :wordlist_list
 end
-  
+
 get '/wordlists/add' do
   haml :wordlist_add
 end
-  
+
 get '/wordlists/delete/:id' do
   varWash(params)
 
@@ -23,10 +23,10 @@ get '/wordlists/delete/:id' do
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
       redirect to('/wordlists/list')
     end
-  
+
     # remove from filesystem
     File.delete(@wordlist.path)
-  
+
     # delete from db
     @wordlist.destroy
 
@@ -35,7 +35,7 @@ get '/wordlists/delete/:id' do
   end
   redirect to('/wordlists/list')
 end
-  
+
 post '/wordlists/upload/' do
   varWash(params)
   if !params[:file] || params[:file].nil?
@@ -59,10 +59,11 @@ post '/wordlists/upload/' do
 
 
   wordlist = Wordlists.new
-  wordlist.name = upload_name 
+  wordlist.type = 'static'
+  wordlist.name = upload_name
   wordlist.path = file_name
   wordlist.size = 0
-  wordlist.lastupdated = Time.now()
+  wordlist.lastupdated = Time.now
   wordlist.save
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }

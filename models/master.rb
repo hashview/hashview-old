@@ -256,6 +256,7 @@ class Wordlists
 
   property :id, Serial
   property :lastupdated, DateTime
+  property :type, String, length: 25 # Options are Static or Dynamic
   property :name, String, length: 256
   property :path, String, length: 2000
   property :size, String, length: 100
