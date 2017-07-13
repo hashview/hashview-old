@@ -62,6 +62,13 @@ def updateSmartWordlist
   # Remove plaintext list
   File.delete('control/tmp/plaintext.txt') if File.exist?('control/tmp/plaintext.txt')
 
+  # Update keyspace per task ( really shouldbe done at runtime)
+  tasks = Tasks(wl_id: wordlist.id)
+  tasks.each do |task|
+    task.keyspace = getKeyspace(task)
+    task.save
+  end
+
   # resume all jobqueue items that are 'paused' to 'queued'
   taskqueues = Taskqueues.all(status: 'Paused')
   taskqueues.each do |entry|
