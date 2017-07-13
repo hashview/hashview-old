@@ -40,7 +40,7 @@ def importCracked(id, crack_file, run_time)
       hash_pass.pop # removes tail entry which should have been the plaintext (in hex)
       # Handle salted hashes
       # There's gotta be a better way to do this
-      if hashtype == '10' or hashtype == '20' or hashtype == '30' or hashtype == '40' or hashtype == '50' or hashtype == '60' or hashtype == '110' or hashtype == '120' or hashtype == '130' or hashtype == '140' or hashtype == '150' or hashtype == '160' or hashtype == '1100' or hashtype == '1410' or hashtype == '1420' or hashtype == '1430' or hashtype == '1440' or hashtype == '1450' or hashtype == '1460' or hashtype == '2611' or hashtype == '2711' or hashtype == '3610' or hashtype == '3710' or hashtype == '3720' or hashtype == '3910' or hashtype == '4010' or hashtype == '4110' or hashtype == '2711' or hashtype == '11000'
+      if hashtype == '10' or hashtype == '20' or hashtype == '30' or hashtype == '40' or hashtype == '50' or hashtype == '60' or hashtype == '110' or hashtype == '120' or hashtype == '121' or hashtype == '130' or hashtype == '140' or hashtype == '150' or hashtype == '160' or hashtype == '1100' or hashtype == '1410' or hashtype == '1420' or hashtype == '1430' or hashtype == '1440' or hashtype == '1450' or hashtype == '1460' or hashtype == '2611' or hashtype == '2711' or hashtype == '3610' or hashtype == '3710' or hashtype == '3720' or hashtype == '3910' or hashtype == '4010' or hashtype == '4110' or hashtype == '2711' or hashtype == '11000'
         #hash = hash_pass[0].to_s + ':' + hash_pass[1].to_s
         hash = hash_pass.join(":")
       elsif hashtype == '5500'
@@ -49,7 +49,8 @@ def importCracked(id, crack_file, run_time)
         hash = hash_pass[0] + ':' + hash_pass[1] + ':' + hash_pass[2] + ':' + hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
       elsif hashtype == '7400'
         parts = hash_pass[0].split('$')
-        hash = '%' + parts[2].to_s + '$' + parts[3].to_s 
+        p 'PARTS: ' + parts.to_s
+        hash = '%' + parts[3].to_s + '$' + parts[4].to_s 
       else
         hash = hash_pass[0]
       end
@@ -83,7 +84,7 @@ def importCracked(id, crack_file, run_time)
     File.delete(hash_file)
 
   rescue SystemCallError
-    p 'ERROR: ' + $!
+    p 'ERROR: ' + $!.to_s
   end
 
   puts '==== Crack File Deleted ===='

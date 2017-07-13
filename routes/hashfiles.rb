@@ -22,7 +22,7 @@ get '/hashfiles/list' do
       download_cnt = 0
       @hash_array = []
       @hashfile_hashes.each do |entry|
-        p 'HASH ID: ' + entry.hash_id.to_s
+        # p 'HASH ID: ' + entry.hash_id.to_s
         # Build list of locally cracked hashes per hashfile
         local_cracked = Hashes.all(id: entry.hash_id, cracked: '1')
         unless local_cracked.nil?
@@ -30,12 +30,12 @@ get '/hashfiles/list' do
             element = {}
             element['ciphertext'] = hash.originalhash
             element['hashtype'] = hash.hashtype.to_s
-            p 'ELEMENT: ' + element.to_s
+            # p 'ELEMENT: ' + element.to_s
             @hash_array.push(element)
           end
         end
       end
-      p 'HASH_ARRAY: ' + @hash_array.to_s
+      # p 'HASH_ARRAY: ' + @hash_array.to_s
       # Submit query and record how many the hub doesnt have
       hub_response = Hub.hashSearch(@hash_array)
       hub_response = JSON.parse(hub_response)
@@ -69,7 +69,7 @@ get '/hashfiles/list' do
         @hub_hash_results = hub_response['hashes']
         @hub_hash_results.each do |entry|
           if entry['cracked'] == '1'
-            p 'ENTRY' + entry.to_s
+            # p 'ENTRY' + entry.to_s
             download_cnt += 1
           end
         end

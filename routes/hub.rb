@@ -161,12 +161,12 @@ get '/hub/hash/reveal/hash/:hash_id' do
 
     hub_response = Hub.hashReveal(@hash_array)
     hub_response = JSON.parse(hub_response)
-    p 'HUB ReSPONSE: ' + hub_response.to_s
+    # p 'HUB ReSPONSE: ' + hub_response.to_s
     if hub_response['status'] == '200'
       @hashes = hub_response['hashes']
       @hashes.each do |element|
         # Add to local db
-        p 'CIPHER TEXT: ' + element['ciphertext'].to_s
+        # p 'CIPHER TEXT: ' + element['ciphertext'].to_s
         entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['ciphertext'])
         if entry.nil?
           new_entry = Hashes.new
