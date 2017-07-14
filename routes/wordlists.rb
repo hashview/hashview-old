@@ -15,7 +15,8 @@ get '/wordlists/delete/:id' do
 
   @wordlist = Wordlists.first(id: params[:id])
   if !@wordlist
-    return 'no such wordlist exists'
+    flash[:error] = 'No such wordlist exists. '
+    redirect to('/wordlists/list')
   else
     # check if wordlist is in use
     @task_list = Tasks.all(wl_id: @wordlist.id)
@@ -56,7 +57,6 @@ post '/wordlists/upload/' do
 
   # Save to file
   file_name = "control/wordlists/wordlist-#{upload_name}-#{rand_str}.txt"
-
 
   wordlist = Wordlists.new
   wordlist.type = 'static'
