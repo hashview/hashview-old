@@ -256,6 +256,7 @@ class Wordlists
 
   property :id, Serial
   property :lastupdated, DateTime
+  property :type, String, length: 25 # Options are Static or Dynamic
   property :name, String, length: 256
   property :path, String, length: 2000
   property :size, String, length: 100
@@ -295,7 +296,7 @@ class Taskqueues
   property :jobtask_id, Integer
   property :job_id, Integer
   property :updated_at, DateTime, default: DateTime.now
-  # status options should be "Running", "Completed", "Queued", "Canceled"
+  # status options should be "Running", "Completed", "Queued", "Canceled", "Paused"
   property :queued_at, DateTime
   property :status, String, length: 100
   property :agent_id, String, length: 2000

@@ -35,5 +35,6 @@
                         %td #{wordlist.name}
                         %td #{wordlist.size}
                         %td
-                          %a.btn.btn-danger{:href => "/wordlists/delete/#{wordlist.id}"}
-                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          - unless wordlist.name == 'Smart Wordlist'
+                            %a.btn.btn-danger{:href => "/wordlists/delete/#{wordlist.id}"}
+                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}

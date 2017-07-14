@@ -21,6 +21,7 @@ module WordlistImporter
           # Adding to DB
           wordlist = Wordlists.new
           wordlist.lastupdated = Time.now()
+          wordlist.type = 'static'
           wordlist.name = name
           wordlist.path = path_file
           wordlist.size = 0

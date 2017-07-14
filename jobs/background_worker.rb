@@ -101,6 +101,12 @@ class Api
     return self.get(url)
   end
 
+  # task details
+  def self.task(task_id)
+    url = "https://#{@server}/v1/task/#{task_id}"
+    return self.get(url)
+  end
+
   # jobtask details
   def self.jobtask(jobtask_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}"
@@ -120,21 +126,26 @@ class Api
   end
 
   # wordlists
+  def self.get_updateSmartWordlist()
+    url = "https://#{@server}/v1/updateSmartWordlist"
+    return self.get(url)
+  end
+
   def self.wordlists()
     url = "https://#{@server}/v1/wordlist"
     return self.get(url)
   end
 
   # download a wordlist
-  def self.wordlist()
-    url = "https://#{@server}/v1/wordlist/:id"
-    return self.get(url)
-  end
+  #def self.wordlist()
+  #  url = "https://#{@server}/v1/wordlist/:id"
+  #  return self.get(url)
+  #end
 
   # save wordlist to disk
-  def self.save_wordlist(localpath='control/wordlists/thisisjustatest.txt')
-    File.write(localpath)
-  end
+  #def self.save_wordlist(localpath='control/wordlists/thisisjustatest.txt')
+  #  File.write(localpath)
+  #end
 
   # upload crack file
   def self.upload_crackfile(jobtask_id, crack_file, run_time)
@@ -239,13 +250,13 @@ end
 def hc_benchmark(hashcatbinpath)
   cmd = hashcatbinpath + ' -b -m 1000'
   hc_perfstats = `#{cmd}`
-  return  hc_perfstats
+  return hc_perfstats
 end
 
 def hc_device_list(hashcatbinpath)
   cmd = hashcatbinpath + ' -I'
   hc_devices = `#{cmd}`
-  return  hc_devices
+  return hc_devices
 end
 
 
@@ -322,10 +333,24 @@ class LocalAgent
             # we need to get task_id which is stored in jobtasks
             jobtask = Jobtasks.first(id: jdata['jobtask_id'])
 
-            # we dont need to download the wordlist b/c we are local agent, we already have them
-            # wordlists Api.wordlists()
-            # puts wordlists
-            #puts Api.wordlist()
+            # We need to know if the wordlist we're working on is a smart wordlist
+            # This is kinda dumb we should really be building the cmd on the agents size
+            # Might be nice to pause the task instead of claim its running
+            # what happens if the next chunk also uses this smart hashfile?
+            task = Api.task(jobtask.task_id)
+            task = JSON.parse(task)
+
+            wordlists = Api.wordlists
+            wordlists = JSON.parse(wordlists)
+
+            wordlists['wordlists'].each do |wordlist|
+              if wordlist['id'].to_i == task['wl_id'].to_i
+                # we're working with our target wordlist
+                if wordlist['name'] == 'Smart Wordlist'
+                  Api.get_updateSmartWordlist
+                end
+              end
+            end
 
             # generate hashfile via api
             Api.hashfile(jobtask['id'], job['hashfile_id'])
@@ -351,7 +376,7 @@ class LocalAgent
             catch :mainloop do
               while thread1.status do
                 sleep 4
-                puts "WORKING IN THREAD"
+                puts 'WORKING IN THREAD'
                 puts "WORKING ON ID: #{jdata['id']}"
                 payload = {}
                 payload['agent_status'] = 'Working'

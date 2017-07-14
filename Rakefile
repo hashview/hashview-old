@@ -1,11 +1,14 @@
 require 'resque/tasks'
 require 'resque/scheduler/tasks'
-require_relative 'jobs/init'
 require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'
 require './models/master.rb'
 require './helpers/email.rb'
+require './helpers/smartWordlist.rb'
+
+require_relative 'jobs/init'
+#require_relative 'helpers/init'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
@@ -113,8 +116,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     # destroy database in mysql for datamapper
     query = [
@@ -170,11 +171,23 @@ namespace :db do
       raise 'Error in creating default customer'
     end
 
-    system('gunzip -k control/wordlists/password.gz')
+    # Create Smart Wordlist
+    puts '[*] Setting up default Smart Wordlist ...'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('Smart Wordlist', 'dynamic', NOW(), 'control/wordlists/SmartWordlist.txt', '0')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+      system('touch control/wordlists/SmartWordlist.txt')
+    rescue
+      raise 'Error in creating smart wordlist'
+    end
+
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
+    system('gunzip -k control/wordlists/password.gz')
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, lastupdated, path, size) VALUES ('DEFAULT WORDLIST', NOW(), 'control/wordlists/password', '3546')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('DEFAULT WORDLIST', 'static', NOW(), 'control/wordlists/password', '3546')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -276,8 +289,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     puts '[*] Connecting to DB'
     conn = Mysql.new host, user, password, database
@@ -331,8 +342,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     begin
 
@@ -537,7 +546,7 @@ def upgrade_to_v070(user, password, host, database)
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
   conn = Mysql.new host, user, password, database
 
-  # this upgrade path doesnt require anything complex, just move a value from db to config file
+  # this upgrade path doesn't require anything complex, just move a value from db to config file
   puts '[*] Reading Settings Table.'
   hashcat_settings = conn.query('SELECT hc_binpath FROM hashcat_settings')
   hashcat_settings.each_hash do |row|
@@ -552,6 +561,22 @@ def upgrade_to_v070(user, password, host, database)
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
   end
+
+  # Update wordlist table schema to support type
+  puts '[*] Updating wordlist table schema'
+  conn.query('ALTER TABLE wordlists ADD type varchar(25)')
+  # Set existing wordlists to static (we should have any smart word lists atm)
+  puts '[*] Setting existing wordlist types'
+  @wordlists = Wordlists.all
+  @wordlists.each do |entry|
+    entry.type = 'static'
+    entry.save
+  end
+
+  # Create new smart word list
+  # should probably be moved to first but we'd break existing tasks
+  puts '[*] Generating Smart Wordlist ... this could take some time be patient'
+  updateSmartWordlist
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")

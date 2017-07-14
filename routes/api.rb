@@ -92,6 +92,15 @@ post '/v1/jobtask/:jobtask_id/status' do
   updateJobTaskStatus(jdata['jobtask_id'], jdata['status'])
 end
 
+# return task details
+get '/v1/task/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+  task = Tasks.first(id: params[:id])
+  return task.to_json
+end
+
 # return jobtask details
 get '/v1/jobtask/:id' do
   # is agent authorized
@@ -136,6 +145,35 @@ get '/v1/wordlist/:id' do
   #send_file wordlist.path, :type => 'application/octet-stream', :filename => "#{wordlist.path.split('/')[-1]}.gz"
   #send_file wordlist.path, :type => 'application/octet-stream', :filename => "control/tmp/#{wordlist_orig}.gz"
   send_file "control/tmp/#{wordlist_orig}.gz", :type => 'application/octet-stream', :filename => "#{wordlist_orig}.gz"
+end
+
+# Get info on a wordlist by jobtask id
+get 'v1/wordlist/by_jobtask_id/:id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+  # First we have to get the jobtask
+  jobtask = Jobtasks.first(id: params[:id])
+
+  # Next we have to get the task
+  task = Tasks.first(id: jobtask.task_id)
+
+  # finally we can get the wordlist info
+  wordlist = Wordlists.first(id: task.wl_id)
+
+end
+
+# Initiate an update to smart wordlist
+get '/v1/updateSmartWordlist' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+  updateSmartWordlist
+  data = {
+      status: 200,
+      type: 'message',
+      msg: 'OK'
+  }
+  return data.to_json
 end
 
 # provide Rules file info
@@ -434,3 +472,4 @@ post '/v1/agents/:uuid/stats' do
     }.to_json
   end
 end
+
