@@ -63,7 +63,7 @@ def updateSmartWordlist
   File.delete('control/tmp/plaintext.txt') if File.exist?('control/tmp/plaintext.txt')
 
   # Update keyspace per task ( really shouldbe done at runtime)
-  tasks = Tasks(wl_id: wordlist.id)
+  tasks = Tasks.all(wl_id: wordlist.id)
   tasks.each do |task|
     task.keyspace = getKeyspace(task)
     task.save
