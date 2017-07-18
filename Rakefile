@@ -532,6 +532,9 @@ def upgrade_to_v060(user, password, host, database)
 end
 
 def upgrade_to_v061(user, password, host, database)
+  #DataMapper.repository.auto_upgrade!
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
   conn = Mysql.new host, user, password, database
 
@@ -543,6 +546,9 @@ def upgrade_to_v061(user, password, host, database)
 end
 
 def upgrade_to_v070(user, password, host, database)
+  #DataMapper.repository.auto_upgrade!
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
   conn = Mysql.new host, user, password, database
 
@@ -562,9 +568,6 @@ def upgrade_to_v070(user, password, host, database)
     f.write(JSON.pretty_generate(agent_config))
   end
 
-  # Update wordlist table schema to support type
-  puts '[*] Updating wordlist table schema'
-  conn.query('ALTER TABLE wordlists ADD type varchar(25)')
   # Set existing wordlists to static (we should have any smart word lists atm)
   puts '[*] Setting existing wordlist types'
   @wordlists = Wordlists.all
@@ -577,6 +580,18 @@ def upgrade_to_v070(user, password, host, database)
   # should probably be moved to first but we'd break existing tasks
   puts '[*] Generating Smart Wordlist ... this could take some time be patient'
   updateSmartWordlist
+
+  # Identify all wordlists without checksums
+  @wordlist = Wordlists.all(checksum: nil)
+  @wordlist.each do |wl|
+    # generate checksum
+    puts 'generating checksum'
+    checksum = Digest::SHA2.hexdigest(File.read(wl.path))
+
+    # save checksum to database
+    wl.checksum = checksum
+    wl.save
+  end
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")

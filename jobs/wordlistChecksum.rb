@@ -1,4 +1,4 @@
-# this is a test job, you can crib from this module
+# this job generates checksums for each wordlist
 #
 module WordlistChecksum
   @queue = :management
