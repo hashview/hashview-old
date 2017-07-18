@@ -101,7 +101,6 @@ post '/tasks/edit/:id' do
   
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
-    p 'RULES ID: ' + params[:rule].to_i
     task.hc_rule = params[:rule].to_i
     task.hc_mask = 'NULL'
   elsif params[:attackmode] == 'maskmode'
