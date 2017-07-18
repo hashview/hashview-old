@@ -347,6 +347,7 @@ class LocalAgent
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
                 if wordlist['name'] == 'Smart Wordlist'
+                  p 'Updating Smart Wordlist'
                   Api.get_updateSmartWordlist
                 end
               end

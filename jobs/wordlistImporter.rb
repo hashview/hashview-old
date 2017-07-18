@@ -25,7 +25,7 @@ module WordlistImporter
           wordlist.name = name
           wordlist.path = path_file
           wordlist.size = 0
-          wordlist.checksum = ''
+          wordlist.checksum = nil
           wordlist.save
 
           #Resque.enqueue(MagicWordlist)

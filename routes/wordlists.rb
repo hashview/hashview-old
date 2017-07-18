@@ -63,6 +63,7 @@ post '/wordlists/upload/' do
   wordlist.name = upload_name
   wordlist.path = file_name
   wordlist.size = 0
+  wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
 
