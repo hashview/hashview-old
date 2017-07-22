@@ -61,11 +61,6 @@ post '/settings' do
     # Declare our db object first so that we can save values along the way instead of at the end
     hc_settings = HashcatSettings.first
 
-    unless File.file?(params[:hc_binpath])
-      flash[:error] = 'Invalid file / path for hashcat binary.'
-      redirect('/settings')
-    end
-
     # Max Task Time Sanity checks
     if params[:max_task_time].nil? || params[:max_task_time].empty?
       flash[:error] = 'You must set a max task time.'
@@ -153,6 +148,14 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
+  elsif params[:form_id] == '4' # Distributed settings
+    settings = Settings.first
+    # distributed settings
+    if params[:chunk_size]
+      settings.chunk_size = params[:chunk_size].to_i
+      settings.save
+    end
+
   elsif params[:form_id] == '5' # Hub
 
     if params[:email].nil? || params[:email].empty?
@@ -189,12 +192,6 @@ post '/settings' do
       end
     end
     redirect to('/settings')
-  end
- 
-  # distributed settings
-  if params[:chunk_size]
-    settings.chunk_size = params[:chunk_size].to_i
-    settings.save
   end
 
   flash[:success] = 'Settings updated successfully.'

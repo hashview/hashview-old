@@ -239,6 +239,9 @@
             .col-xs-2
               %input{:type => 'textbox', :class => 'form-control', :name => 'chunk_size', :id => 'chunk_size', :value => @settings.chunk_size}
           .form-group
+            .col-xs-10
+              %input{:type => 'hidden', :name => 'form_id', :value => '4'}
+          .form-group
             .col-md-1.pull-right
               %button.btn.btn-primary{:type => 'submit'} Save
     #5.tab-pane
