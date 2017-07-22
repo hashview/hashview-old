@@ -5,10 +5,11 @@ Notable changes will be documented here
 ## [v0.7.0-beta] - 2017-XX-XX
 ### Added
  - Support for distributed cracking through hashview-agents
- - New management console for agent control 
- - Keyspace task
- - Support for 50 more hashes
+ - New type of wordlist 'Smart Wordlist'
+ - Beta Hashview Hub (tm) integration
+ - New management console for agents and Rules (you can now edit your rules within the app)
  - 3 new analytic portlets
+ - Support for 50 more hashes
 
 ### Fixed
  - Calculation error on Analytics where on the global page for number of cracked hashes vs uncracked hashes.
