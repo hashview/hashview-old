@@ -230,7 +230,7 @@ namespace :db do
     end
 
     # Create Default Raw Brute
-    puts '[*] Setting up default bute task'
+    puts '[*] Setting up default brute task'
     query = [
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode) VALUES ('Raw Brute', 'bruteforce')".inspect
     ]
@@ -239,6 +239,17 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
+    
+    # Create Default Hub Settings
+    puts '[*] Setting up default hub settings'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hub_settings (status) VALUES ('unregistered')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating default hub settings'
+    end    
   end
 
   desc 'Setup local agent'
