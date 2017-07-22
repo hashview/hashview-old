@@ -6,6 +6,7 @@ require 'mysql'
 require './models/master.rb'
 require './helpers/email.rb'
 require './helpers/smartWordlist.rb'
+require './helpers/compute_task_keyspace.rb'
 
 require_relative 'jobs/init'
 #require_relative 'helpers/init'
@@ -591,6 +592,14 @@ def upgrade_to_v070(user, password, host, database)
     # save checksum to database
     wl.checksum = checksum
     wl.save
+  end
+
+  # compute keyspace for existing tasks
+  puts '[*] Computing keyspace for existing tasks'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    task.keyspace = getKeyspace(task)
+    task.save
   end
 
   # FINALIZE UPGRADE
