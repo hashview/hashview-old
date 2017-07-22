@@ -123,9 +123,8 @@ post '/rules/save/:id' do
   # update file size
   size = File.foreach(rules_file.path).inject(0) { |c| c + 1}
   rules_file.size = size
+  rules_file.checksum = Digest::SHA2.hexdigest(File.read(rules_file.path))
   rules_file.save
-
-  Resque.enqueue(FileChecksum('rules', params[:id]))
 
   flash[:success] = 'Successfully uploaded rules file.'
   redirect to('/rules/list')
