@@ -230,7 +230,7 @@ namespace :db do
     end
 
     # Create Default Raw Brute
-    puts '[*] Setting up default bute task'
+    puts '[*] Setting up default brute task'
     query = [
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode) VALUES ('Raw Brute', 'bruteforce')".inspect
     ]
@@ -239,6 +239,17 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
+    
+    # Create Default Hub Settings
+    puts '[*] Setting up default hub settings'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hub_settings (status) VALUES ('unregistered')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating default hub settings'
+    end    
   end
 
   desc 'Setup local agent'
@@ -639,6 +650,24 @@ def upgrade_to_v070(user, password, host, database)
     end
   end
 
+  # Populating hub settings table entry
+  puts '[*] Populating Hub Settings'
+  @hub_settings = HubSettings.first
+  if @hub_settings.nil?
+    @hub_settings = HubSettings.create
+    @hub_settings = HubSettings.first
+
+    if @hub_settings.uuid.nil?
+      uuid = SecureRandom.hex(10)
+      # Add hyphens, (i am ashamed at how dumb this is)
+      uuid.insert(15, '-')
+      uuid.insert(10, '-')
+      uuid.insert(5, '-')
+      @hub_settings.uuid = uuid
+      @hub_settings.save
+    end
+  end
+  
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")
   puts '[+] Upgrade to v0.7.0 complete.'
