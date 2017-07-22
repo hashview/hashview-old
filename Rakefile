@@ -639,6 +639,24 @@ def upgrade_to_v070(user, password, host, database)
     end
   end
 
+  # Populating hub settings table entry
+  puts '[*] Populating Hub Settings'
+  @hub_settings = HubSettings.first
+  if @hub_settings.nil?
+    @hub_settings = HubSettings.create
+    @hub_settings = HubSettings.first
+
+    if @hub_settings.uuid.nil?
+      uuid = SecureRandom.hex(10)
+      # Add hyphens, (i am ashamed at how dumb this is)
+      uuid.insert(15, '-')
+      uuid.insert(10, '-')
+      uuid.insert(5, '-')
+      @hub_settings.uuid = uuid
+      @hub_settings.save
+    end
+  end
+  
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")
   puts '[+] Upgrade to v0.7.0 complete.'
