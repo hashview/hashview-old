@@ -602,6 +602,17 @@ def upgrade_to_v070(user, password, host, database)
     task.save
   end
 
+  # transpose rules from name to id in existing tasks
+  puts '[*] Edit how rules are defined in existing tasks'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    rule = Rules.first(name: task.hc_rule)
+    unless rule.nil?
+      task.hc_rule = rule.id
+      task.save
+    end
+  end
+
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")
   puts '[+] Upgrade to v0.7.0 complete.'
