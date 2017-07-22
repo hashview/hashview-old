@@ -594,6 +594,32 @@ def upgrade_to_v070(user, password, host, database)
     wl.save
   end
 
+  # add existing rules to db
+  # this is not DRY, oh well, gotta ship code before blackhat!
+  puts '[*] Add existing rules to database'
+  # Identify all rules in directory
+  @files = Dir.glob(File.join('control/rules/', '*.rule'))
+  @files.each do |path_file|
+    rule_entry = Rules.first(path: path_file)
+    unless rule_entry
+      # Get Name
+      name = path_file.split('/')[-1]
+
+      puts 'Importing new Rule file "' + name + '" into HashView.'
+
+      # Adding to DB
+      rule_file = Rules.new
+      rule_file.lastupdated = Time.now()
+      rule_file.name = name
+      rule_file.path = path_file
+      rule_file.size = 0
+      rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
+      rule_file.save
+
+    end
+  end
+
+
   # compute keyspace for existing tasks
   puts '[*] Computing keyspace for existing tasks'
   @tasks = Tasks.all
