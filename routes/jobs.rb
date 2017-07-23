@@ -417,8 +417,11 @@ get '/jobs/hub_check' do
     @hub_hash_results = hub_response['hashes']
     @hub_hash_results.each do |element|
       if element['cracked'] == '1'
-        results_entry['id'] = entry.hash_id
-        results_entry['username'] = entry.username
+        hash = Hashes.first(originalhash: element['ciphertext'])
+        results_entry['id'] = hash.id
+        # TODO
+        # Adding usernames to this result would be great
+        #results_entry['username'] = entry.username      
         results_entry['ciphertext'] = element['ciphertext']
         results_entry['hub_hash_id'] = element['hash_id']
         results_entry['hashtype'] = element['hashtype']
