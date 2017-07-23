@@ -21,8 +21,6 @@
                 %thead
                   %tr
                     %th
-                      %b Username
-                    %th
                       %b Hub
                     %th
                       %b Type
@@ -33,7 +31,6 @@
                     - @results.each do |entry|
                       -if entry['show_results'] == '1'
                         %tr
-                          %td #{@results.size} #{entry['username']}
                           %td
                             %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
                               reveal
