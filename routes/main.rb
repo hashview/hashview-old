@@ -14,16 +14,17 @@ end
 get '/home' do
 
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
-  @jobs = Jobs.all(:order => [:id.asc])
+  @jobs = Jobs.all(:order => [:queued_at.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all
   @agents = Agents.all
 
-  @recentlycracked = repository(:default).adapter.select('SELECT CONCAT(timestampdiff(minute, h.lastupdated, NOW()) ) AS time_period, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
+  # not used anymore
+  # @recentlycracked = repository(:default).adapter.select('SELECT CONCAT(timestampdiff(minute, h.lastupdated, NOW()) ) AS time_period, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
 
   @customers = Customers.all
-  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running') | Jobs.all(fields: [:id, :status], status: 'Importing') | Jobs.all(fields: [:id, :status], status: 'Queued')
+  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running')
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`

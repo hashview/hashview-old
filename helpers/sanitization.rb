@@ -12,7 +12,7 @@ helpers do
   end
 
   def cleanString(text)
-    return text.gsub(/[<>'"()\/\\]*/i, '') unless text.nil?
+    return text.gsub(/[<>'"()\/\\;#&]*/i, '') unless text.nil?
   end
 
   def cleanArray(array)

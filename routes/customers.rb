@@ -85,7 +85,7 @@ get '/customers/delete/:id' do
 end
 
 post '/customers/upload/hashfile' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -118,14 +118,14 @@ post '/customers/upload/hashfile' do
   hashfile.customer_id = params[:customer_id]
   hashfile.hash_str = hash
   hashfile.save
-  
+
   @job.save # <---- edit bug here
 
   redirect to("/customers/upload/verify_filetype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{hashfile.id}")
 end
 
 post '/customers/upload/hashes' do
-  varWash(params)
+  # varWash(params)
 
   if params[:hashfile_name].nil? || params[:hashfile_name].empty?
     flash[:error] = 'You must specificy a name for this hash file.'
@@ -133,7 +133,7 @@ post '/customers/upload/hashes' do
   end
 
   if params[:hashes].nil? || params[:hashes].empty?
-    flash[:error] = 'You must supply atleast one hash.'
+    flash[:error] = 'You must supply at least one hash.'
     redirect to("/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}")
   end
 
@@ -215,14 +215,9 @@ post '/customers/upload/verify_hashtype' do
   varWash(params)
 
   filetype = params[:filetype]
-
   hashfile = Hashfiles.first(id: params[:hashid])
 
-  if params[:hashtype] == '99999'
-    hashtype = params[:manualHash]
-  else
-    hashtype = params[:hashtype]
-  end
+  params[:hashtype] == '99999' ? hashtype = params[:manualHash] : hashtype = params[:hashtype]
 
   hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
@@ -240,23 +235,24 @@ post '/customers/upload/verify_hashtype' do
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
+  # previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
   total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
 
   unless total_cnt.nil?
     flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
   end
 
-  unless previously_cracked_cnt.nil?
-    flash[:success] = previously_cracked_cnt + ' have already been cracked!'
-  end
+  # unless previously_cracked_cnt.nil?
+  #  flash[:success] = previously_cracked_cnt + ' have already been cracked!'
+  #end
 
   # Delete file, no longer needed
   File.delete(hash_file)
 
-  if params[:edit]
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&edit=1")
-  else
-    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
-  end
+  url = '/jobs/local_check'
+  
+  url += "?job_id=#{params[:job_id]}"
+  url += '&edit=1' if params[:edit]
+  redirect to(url)
+
 end

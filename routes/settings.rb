@@ -2,22 +2,54 @@
 get '/settings' do
 
   @hc_settings = HashcatSettings.first
+  @hub_settings = HubSettings.first
 
   @themes = %w(Light Dark Slate Flat Superhero Solar)
 
   if @hc_settings.nil?
-    @hc_settings = HashcatSettings.create  # This shouldn't be needed
+    @hc_settings = HashcatSettings.create # This shouldn't be needed
     @hc_settings = HashcatSettings.first
 
   end
 
   @settings = Settings.first
   if @settings.nil?
-    @settings = Settings.create  # This too shouldn't be needed
+    @settings = Settings.create # This too shouldn't be needed
     @settings = Settings.first
   end
 
+  if @hub_settings.nil?
+    @hub_settings = HubSettings.create
+    @hub_settings = HubSettings.first
+
+    if @hub_settings.uuid.nil?
+      p 'Generating new UUID'
+      uuid = SecureRandom.hex(10)
+      # Add hyphens, (i am ashamed at how dumb this is)
+      uuid.insert(15, '-')
+      uuid.insert(10, '-')
+      uuid.insert(5, '-')
+      @hub_settings.uuid = uuid
+      @hub_settings.save
+    end
+
+  end
+  if @hub_settings.status == 'registered'
+    if @hub_settings.uuid and @hub_settings.auth_key
+      hub_response = Hub.statusAuth
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '403'
+        flash[:error] = 'Invalid Authentication to Hub, check UUID.'
+      elsif hub_response['status'] == '200'
+        @hub_settings.save
+        @hub_settings = HubSettings.first
+      end
+    end
+  end
   @auth_types = %w(None Plain Login cram_md5)
+
+  # get hcbinpath (stored in config file vs db)
+  @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
  
   haml :global_settings
 end
@@ -27,20 +59,6 @@ post '/settings' do
 
     # Declare our db object first so that we can save values along the way instead of at the end
     hc_settings = HashcatSettings.first
-
-    # Hashcat Binary Path Sanity checks
-    if params[:hc_binpath].nil? || params[:hc_binpath].empty?
-      flash[:error] = 'You must set the path for your hashcat binary.'
-      redirect('/settings')
-    end
-
-    unless File.file?(params[:hc_binpath])
-      flash[:error] = 'Invalid file / path for hashcat binary.'
-      redirect('/settings')
-    end
-
-    # hcbinpath looks good
-    hc_settings.hc_binpath = params[:hc_binpath]
 
     # Max Task Time Sanity checks
     if params[:max_task_time].nil? || params[:max_task_time].empty?
@@ -80,11 +98,7 @@ post '/settings' do
     end
 
     # Save gpu temp disable setting
-    if params[:gpu_temp_disable] == 'on'
-      hc_settings.gpu_temp_disable = '1'
-    else
-      hc_settings.gpu_temp_disable = '0'
-    end
+    params[:gpu_temp_disable] == 'on' ? hc_settings.gpu_temp_disable = '1' : hc_settings.gpu_temp_disable = '0'
 
     # Sanity check for gpu temp abort
     if params[:gpu_temp_abort] !~ /^\d*$/
@@ -111,22 +125,14 @@ post '/settings' do
     hc_settings.gpu_temp_retain = params[:gpu_temp_retain].to_i
 
     # Save force settings
-    if params[:hc_force] == 'on'
-      hc_settings.hc_force = '1'
-    else
-      hc_settings.hc_force = '0'
-    end
+    params[:hc_force] == 'on' ? hc_settings.hc_force = 1 : hc_settings.hc_force = 0
 
     hc_settings.save
 
   elsif params[:form_id] == '2' # Email
     settings = Settings.first
 
-    if params[:smtp_use_tls] == 'on'
-      params[:smtp_use_tls] = '1'
-    else
-      params[:smtp_use_tls] = '0'
-    end
+    params[:smtp_use_tls] == 'on' ? params[:smtp_use_tls] = '1' : params[:smtp_use_tls] = '0'
 
     settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].empty?
     settings.smtp_sender = params[:smtp_sender] unless params[:smtp_sender].nil? || params[:smtp_sender].empty?
@@ -141,6 +147,50 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
+  elsif params[:form_id] == '4' # Distributed settings
+    settings = Settings.first
+    # distributed settings
+    if params[:chunk_size]
+      settings.chunk_size = params[:chunk_size].to_i
+      settings.save
+    end
+
+  elsif params[:form_id] == '5' # Hub
+
+    if params[:email].nil? || params[:email].empty?
+      flash[:error] = 'You must provide an email address.'
+      redirect to('/settings')
+    end
+
+    hub_settings = HubSettings.first
+    hub_settings.email = params[:email] unless params[:email].nil? || params[:email].empty?
+    hub_settings.uuid = params[:uuid] unless params[:uuid].nil? || params[:uuid].empty?
+    hub_settings.save
+
+    if hub_settings.status != 'registered'
+      hub_response = Hub.register('new')
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '200'
+        hub_settings = HubSettings.first
+        hub_settings.auth_key = hub_response['auth_key']
+        hub_settings.status = 'registered'
+        hub_settings.save
+        flash[:success] = 'Hub registration success.'
+      else
+        flash[:error] = 'Hub registration failed.'
+      end
+    else
+      hub_response = Hub.register('remove')
+      hub_response = JSON.parse(hub_response)
+      if hub_response['status'] == '200'
+        hub_settings = HubSettings.first
+        hub_settings.destroy
+        flash[:success] = 'Successfully unregistered.'
+      else
+        flash[:error] = 'Failed to unregister.'
+      end
+    end
+    redirect to('/settings')
   end
 
   flash[:success] = 'Settings updated successfully.'

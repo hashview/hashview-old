@@ -42,7 +42,7 @@ get '/jobs/delete/:id' do
 
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/create' do
   varWash(params)
 
@@ -58,7 +58,7 @@ get '/jobs/create' do
 
   haml :job_edit
 end
-  
+
 post '/jobs/create' do
   varWash(params)
 
@@ -106,28 +106,21 @@ post '/jobs/create' do
     customer.description = params[:cust_desc]
     customer.save
   end
-  
+
   if params[:customer] == 'add_new' || params[:customer].nil?
     customer_id = customer.id
   else
     customer_id = params[:customer]
   end
-  
+
   # create new or update existing job
-  if params[:edit] == '1'
-    job = Jobs.first(id: params[:job_id])
-  else
-    job = Jobs.new
-  end
+  params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
+
   job.name = params[:job_name]
   job.last_updated_by = getUsername
   job.customer_id = customer_id
 
-  if params[:notify] == 'on'
-    job.notify_completed = '1'
-  else
-    job.notify_completed = '0'
-  end
+  params[:notify] == 'on' ? job.notify_completed = '1' : job.notify_completed = '0'
   job.save
 
   if params[:edit] == '1'
@@ -136,7 +129,7 @@ post '/jobs/create' do
     redirect to("/jobs/assign_hashfile?customer_id=#{customer_id}&job_id=#{job.id}")
   end
 end
-  
+
 get '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -155,7 +148,7 @@ get '/jobs/assign_hashfile' do
 
   haml :assign_hashfile
 end
-  
+
 post '/jobs/assign_hashfile' do
   varWash(params)
 
@@ -164,7 +157,7 @@ post '/jobs/assign_hashfile' do
     job.hashfile_id = params[:hash_file]
     job.save
   end
- 
+
   if params[:edit] == '1'
     job = Jobs.first(id: params[:job_id])
     job.hashfile_id = params[:hash_file]
@@ -175,7 +168,7 @@ post '/jobs/assign_hashfile' do
   url = url + '&edit=1' if params[:edit]
   redirect to(url)
 end
-  
+
 get '/jobs/assign_tasks' do
   varWash(params)
 
@@ -189,10 +182,10 @@ get '/jobs/assign_tasks' do
     taskhashforjs[task.id] = task.name
   end
   @taskhashforjs = taskhashforjs.to_json
-  
+
   haml :assign_tasks
 end
-  
+
 post '/jobs/assign_tasks' do
   varWash(params)
 
@@ -233,16 +226,16 @@ post '/jobs/assign_tasks' do
       puts params
       flash[:error] = 'You cannot have duplicate tasks.'
       url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-      url = url + '&edit=1' if params[:edit]
-      redirect to (url)
+      url += '&edit=1' if params[:edit]
+      redirect to(url)
     end
   end
- 
+
   # assign tasks to the job
   if params[:tasks] && !params[:tasks].nil?
     assignTasksToJob(params[:tasks], job.id)
   end
-  
+
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
     @jobtasks = Jobtasks.all(job_id: params[:job_id])
@@ -251,14 +244,14 @@ post '/jobs/assign_tasks' do
       jobtask.save
     end
   end
-  
+
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/start/:id' do
   varWash(params)
-  
+
   tasks = []
   @job = Jobs.first(id: params[:id])
   unless @job
@@ -275,7 +268,7 @@ get '/jobs/start/:id' do
       end
     end
   end
-  
+
   tasks.each do |task|
     jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
     # do not start tasks if they have already been completed.
@@ -285,28 +278,34 @@ get '/jobs/start/:id' do
       jt.status = 'Queued'
       jt.save
       # toggle the job status to run
+      # We shouldn't need to do this for every task, just once
       @job.status = 'Queued'
+      @job.queued_at = DateTime.now
       @job.save
-      cmd = buildCrackCmd(@job.id, task.id)
-      cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-      # we are using a db queue instead for public api
-      queue = Taskqueues.new
-      queue.jobtask_id = jt.id
-      queue.job_id = @job.id
-      queue.command = cmd
-      queue.status = 'Queued'
-      queue.save
+
+      cmds = buildCrackCmd(@job.id, task.id)
+      cmds.each do |cmd|
+        cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
+        # we are using a db queue instead for public api
+        queue = Taskqueues.new
+        queue.jobtask_id = jt.id
+        queue.job_id = @job.id
+        queue.command = cmd
+        queue.status = 'Queued'
+        queue.queued_at = DateTime.now
+        queue.save
+      end
     end
   end
-  
+
   if @job.status == 'Completed'
     flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
     redirect to('/jobs/list')
   end
-  
+
   redirect to('/home')
 end
-  
+
 get '/jobs/stop/:id' do
   varWash(params)
 
@@ -315,7 +314,7 @@ get '/jobs/stop/:id' do
 
   @job.status = 'Canceled'
   @job.save
-  
+
   @jobtasks.each do |task|
     # do not stop tasks if they have already been completed.
     # set all other tasks to status of Canceled
@@ -336,10 +335,10 @@ get '/jobs/stop/:id' do
       redirect to("/jobs/stop/#{task.job_id}/#{task.task_id}")
     end
   end
-  
+
   redirect to('/jobs/list')
 end
-  
+
 get '/jobs/stop/:job_id/:task_id' do
   varWash(params)
 
@@ -348,7 +347,7 @@ get '/jobs/stop/:job_id/:task_id' do
   unless jt.status == 'Running'
     return 'That specific Job and Task is not currently running.'
   end
-  
+
   # update jobtasks to "canceled"
   jt.status = 'Canceled'
   jt.save
@@ -367,11 +366,78 @@ get '/jobs/stop/:job_id/:task_id' do
     redirect to('/jobs/list')
   end
 end
-  
-############################
+
+get '/jobs/local_check' do
+  varWash(params)
+
+  # TODO offer the ability to upload to hub
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
+
+  @url = '/jobs'
+  hub_settings = HubSettings.first
+  hub_settings.status == 'registered' ? @url = @url + '/hub_check' : @url = @url + '/assign_tasks'
+
+  @url += "?job_id=#{params[:job_id]}"
+  @url += '&edit=1' if params[:edit]
+
+  haml :job_local_check
+end
+
+get '/jobs/hub_check' do
+  varWash(params)
+
+  @results = []
+  results_entry = {
+    username: '',
+    originalhash: '',
+    hub_hash_id: '',
+    hashtype: '',
+    show_results: '0'
+  }
+
+  @jobs = Jobs.first(id: params[:job_id])
+  @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
+  # Each hashfile might have multiple duplicate hashes, we need a unique list
+  @hash_array = []
+  @hashfile_hashes.each do |entry|
+    hash = Hashes.first(id: entry.hash_id, cracked: '0')
+    unless hash.nil?
+      element = {}
+      element['ciphertext'] = hash.originalhash
+      element['hashtype'] = hash.hashtype.to_s
+      @hash_array.push(element)
+    end
+  end
+
+  hub_response = Hub.hashSearch(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_hash_results = hub_response['hashes']
+    @hub_hash_results.each do |element|
+      if element['cracked'] == '1'
+        hash = Hashes.first(originalhash: element['ciphertext'])
+        results_entry['id'] = hash.id
+        # TODO
+        # Adding usernames to this result would be great
+        #results_entry['username'] = entry.username      
+        results_entry['ciphertext'] = element['ciphertext']
+        results_entry['hub_hash_id'] = element['hash_id']
+        results_entry['hashtype'] = element['hashtype']
+        results_entry['show_results'] = '1'
+        @results.push(results_entry)
+        results_entry = {}
+      end
+    end
+  end
+
+  p 'RESULTS: ' + @results.to_s
+  haml :job_hub_check
+end
 
 ##### job task controllers #####
-  
+
 get '/jobs/remove_task' do
   varWash(params)
 

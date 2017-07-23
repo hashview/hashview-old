@@ -1,11 +1,15 @@
 require 'resque/tasks'
 require 'resque/scheduler/tasks'
-require_relative 'jobs/init'
 require 'rake/testtask'
 require 'data_mapper'
 require 'mysql'
 require './models/master.rb'
 require './helpers/email.rb'
+require './helpers/smartWordlist.rb'
+require './helpers/compute_task_keyspace.rb'
+
+require_relative 'jobs/init'
+#require_relative 'helpers/init'
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
@@ -113,8 +117,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     # destroy database in mysql for datamapper
     query = [
@@ -136,7 +138,7 @@ namespace :db do
     puts '[*] Setting up default settings ...'
     # Create Default Settings
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO HashcatSettings (max_task_time) VALUES ('86400')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hashcat_settings (max_task_time) VALUES ('86400')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -145,9 +147,13 @@ namespace :db do
     end
 
     puts '[*] Setting default theme ...'
-    # Assign Default CSS theme
+    # Assign Default CSS theme and set version
+
+    # Check to see what version the app is at
+    application_version = File.open('VERSION') {|f| f.readline}
+
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','0.6.0')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','#{application_version}')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -166,11 +172,23 @@ namespace :db do
       raise 'Error in creating default customer'
     end
 
-    system('gunzip -k control/wordlists/password.gz')
+    # Create Smart Wordlist
+    puts '[*] Setting up default Smart Wordlist ...'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('Smart Wordlist', 'dynamic', NOW(), 'control/wordlists/SmartWordlist.txt', '0')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+      system('touch control/wordlists/SmartWordlist.txt')
+    rescue
+      raise 'Error in creating smart wordlist'
+    end
+
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
+    system('gunzip -k control/wordlists/password.gz')
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, lastupdated, path, size) VALUES ('DEFAULT WORDLIST', NOW(), 'control/wordlists/password', '3546')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('DEFAULT WORDLIST', 'static', NOW(), 'control/wordlists/password', '3546')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -181,7 +199,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '1', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '2', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -192,13 +210,37 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + Best64 Rules', '1', 'dictionary', 'best64.rule')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '2', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default dictionary task + rule'
     end
+    
+    # Create Default SmartWordlist Dictionary
+    puts '[*] Setting up default smart wordlist task'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('Smart Wordlist Dictionary', '1', 'dictionary')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating default SmartWordlist task'
+    end
+    
+    # Create Default SmartWordlist Dictionary + Rule Task
+    puts '[*] Setting up Smart Wordlist dictionary + rule task'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Smart Wordlist Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating Smart Wordlist dictionary task + rule'
+    end
+    
+    
 
     # Create Default Mask task
     puts '[*] Setting up default mask task'
@@ -212,7 +254,7 @@ namespace :db do
     end
 
     # Create Default Raw Brute
-    puts '[*] Setting up default bute task'
+    puts '[*] Setting up default brute task'
     query = [
       'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, hc_attackmode) VALUES ('Raw Brute', 'bruteforce')".inspect
     ]
@@ -221,6 +263,17 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
+    
+    # Create Default Hub Settings
+    puts '[*] Setting up default hub settings'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hub_settings (status) VALUES ('unregistered')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating default hub settings'
+    end    
   end
 
   desc 'Setup local agent'
@@ -239,6 +292,8 @@ namespace :db do
     agent_config['ip'] = '127.0.0.1'
     agent_config['port'] = '4567'
     agent_config['uuid'] = SecureRandom.uuid.to_s
+    agent_config['hc_binary_path'] = ''
+    agent_config['type'] = 'master'
     File.open('config/agent_config.json', 'w') do |f|
       f.write(JSON.pretty_generate(agent_config))
     end
@@ -252,7 +307,7 @@ namespace :db do
     rescue
       raise 'Error in provisioning agent'
     end
-    puts 'db:provision_agent executed'
+    puts 'provision_agent executed'
   end
 
   desc 'Perform non destructive auto migration'
@@ -270,8 +325,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     puts '[*] Connecting to DB'
     conn = Mysql.new host, user, password, database
@@ -301,10 +354,13 @@ namespace :db do
       # Upgrade to v0.6.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.1')
         db_version = upgrade_to_v061(user, password, host, database)
+      end 
+      # Upgrade to v0.7.0
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7')
+        upgrade_to_v070(user, password, host, database)
       end
     else
       puts '[*] Your version is up to date!'
-      exit 0
     end
 
     # Incase we missed anything
@@ -323,8 +379,6 @@ namespace :db do
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
-    charset = config['charset'] || ENV['CHARSET'] || 'utf8'
-    collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
 
     begin
 
@@ -495,6 +549,8 @@ def upgrade_to_v060(user, password, host, database)
   agent_config['ip'] = '127.0.0.1'
   agent_config['port'] = '4567'
   agent_config['uuid'] = SecureRandom.uuid.to_s
+  agent_config['hc_binary_path'] = ''
+  agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
   end
@@ -513,6 +569,9 @@ def upgrade_to_v060(user, password, host, database)
 end
 
 def upgrade_to_v061(user, password, host, database)
+  #DataMapper.repository.auto_upgrade!
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
   conn = Mysql.new host, user, password, database
 
@@ -521,4 +580,120 @@ def upgrade_to_v061(user, password, host, database)
   puts '[*] Upgrade to v0.6.1 complete.'
 
   return '0.6.1'
+end
+
+def upgrade_to_v070(user, password, host, database)
+  #DataMapper.repository.auto_upgrade!
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
+  puts '[*] Upgrading from v0.6.1 to v0.7.0'
+  conn = Mysql.new host, user, password, database
+
+  # this upgrade path doesn't require anything complex, just move a value from db to config file
+  puts '[*] Reading Settings Table.'
+  hashcat_settings = conn.query('SELECT hc_binpath FROM hashcat_settings')
+  hashcat_settings.each_hash do |row|
+    @hc_binpath = row['hc_binpath'].to_s
+  end
+
+  # add new parameters to local agent config
+  puts '[*] Writing new parameters to agent config'
+  agent_config = JSON.parse(File.read('config/agent_config.json'))
+  agent_config['hc_binary_path'] = @hc_binpath
+  agent_config['type'] = 'master'
+  File.open('config/agent_config.json', 'w') do |f|
+    f.write(JSON.pretty_generate(agent_config))
+  end
+
+  # Set existing wordlists to static (we should have any smart word lists atm)
+  puts '[*] Setting existing wordlist types'
+  @wordlists = Wordlists.all
+  @wordlists.each do |entry|
+    entry.type = 'static'
+    entry.save
+  end
+
+  # Create new smart word list
+  # should probably be moved to first but we'd break existing tasks
+  puts '[*] Generating Smart Wordlist ... this could take some time be patient'
+  updateSmartWordlist
+
+  # Identify all wordlists without checksums
+  @wordlist = Wordlists.all(checksum: nil)
+  @wordlist.each do |wl|
+    # generate checksum
+    puts 'generating checksum'
+    checksum = Digest::SHA2.hexdigest(File.read(wl.path))
+
+    # save checksum to database
+    wl.checksum = checksum
+    wl.save
+  end
+
+  # add existing rules to db
+  # this is not DRY, oh well, gotta ship code before blackhat!
+  puts '[*] Add existing rules to database'
+  # Identify all rules in directory
+  @files = Dir.glob(File.join('control/rules/', '*.rule'))
+  @files.each do |path_file|
+    rule_entry = Rules.first(path: path_file)
+    unless rule_entry
+      # Get Name
+      name = path_file.split('/')[-1]
+
+      puts 'Importing new Rule file "' + name + '" into HashView.'
+
+      # Adding to DB
+      rule_file = Rules.new
+      rule_file.lastupdated = Time.now()
+      rule_file.name = name
+      rule_file.path = path_file
+      rule_file.size = 0
+      rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
+      rule_file.save
+
+    end
+  end
+
+
+  # compute keyspace for existing tasks
+  puts '[*] Computing keyspace for existing tasks'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    task.keyspace = getKeyspace(task)
+    task.save
+  end
+
+  # transpose rules from name to id in existing tasks
+  puts '[*] Edit how rules are defined in existing tasks'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    rule = Rules.first(name: task.hc_rule)
+    unless rule.nil?
+      task.hc_rule = rule.id
+      task.save
+    end
+  end
+
+  # Populating hub settings table entry
+  puts '[*] Populating Hub Settings'
+  @hub_settings = HubSettings.first
+  if @hub_settings.nil?
+    @hub_settings = HubSettings.create
+    @hub_settings = HubSettings.first
+
+    if @hub_settings.uuid.nil?
+      uuid = SecureRandom.hex(10)
+      # Add hyphens, (i am ashamed at how dumb this is)
+      uuid.insert(15, '-')
+      uuid.insert(10, '-')
+      uuid.insert(5, '-')
+      @hub_settings.uuid = uuid
+      @hub_settings.save
+    end
+  end
+  
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.7.0'")
+  puts '[+] Upgrade to v0.7.0 complete.'
 end

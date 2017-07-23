@@ -27,7 +27,7 @@
                           .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
                         %p
                         .progress
-                          .progress-bar{"aria-valuemax" => "100", "aria-valuemin" => "0", "aria-valuenow" => "#{@crackedtargets}", :role => "progressbar", :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", :role => 'progressbar', :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
                     .row
                       .col-md-12
                         - @jobs.each do |job|
@@ -50,7 +50,7 @@
                 %center
                   %h4 Feed me hashes!
                   %br
-                  %a.btn.btn-primary{:href => "/jobs/create"}
+                  %a.btn.btn-primary{:href => '/jobs/create'}
                     Create a New Job
             /%br
             - if @active_jobs.empty?
@@ -73,7 +73,7 @@
                                 - if task.id == jt.task_id
                                   - link = rand(36**8).to_s(36)
                                   .panel-heading
-                                    %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', :href => "#collapse-#{link}" }
                                       %td
                                         #{task.name}
                                     - if jt.status == 'Queued'
@@ -87,46 +87,61 @@
                                     - elsif jt.status == 'Canceled'
                                       %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
-                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse in"}
+                                    %div{:id => "collapse-#{link}", :class => 'panel-collapse collapse in'}
                                       .panel-body
-                                        %ul{:class =>"list-group borderless row"}
+                                        Remaining chunks:
+                                        - remaining_chunks = 0
+                                        - @taskqueues.each do |tq|
+                                          - if job.id == tq.job_id
+                                            - if jt.id == tq.jobtask_id
+                                              - if tq.status == 'Queued' || tq.status == 'Paused'
+                                                - remaining_chunks += 1
+                                        #{remaining_chunks}
+                                        %p
+                                        %ul{:class =>'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
-                                              %li{:class => "list-group-item borderless"}
+                                              - next if tq.status == 'Completed'
+                                              - next if tq.status == 'Queued' || tq.status == 'Paused'
+                                              %li{:class => 'list-group-item borderless'}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
-                                                      %b QID
+                                                      %b Chunk
                                                     %td
-                                                      %b Agent
+                                                      - if tq.status == 'Queued' || tq.status == 'Paused'
+                                                        %b Command
+                                                      - else
+                                                        %b Agent
                                                   %tbody
                                                     %td
                                                       #{tq.id}
                                                     %td
-                                                      - @taskqueues.each do |taskqueue|
-                                                        - if jt.id == taskqueue.jobtask_id
-                                                          - @agents.each do |agent|
-                                                            - if agent.id.to_i == taskqueue.agent_id.to_i
-                                                              #{agent.name}
+                                                      - if tq.status == 'Queued' || tq.status == 'Paused'
+                                                        #{tq.command}
+                                                      - else
+                                                        - @agents.each do |agent|
+                                                          - if agent.id.to_i == tq.agent_id.to_i
+                                                            #{agent.name} 
                                                     %td
                                                       - if tq.status == 'Running'
                                                         %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
                                                           %b Cancel
-                                                      - elsif tq.status == 'Queue'
-                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
+                                                      - elsif tq.status == 'Queued' || tq.status == 'Paused'
+                                                        %span.label.label-default.labelfixedwidth.pull-right Queued
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
                                   - else
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
                                       .panel-body
-                                        %ul{:class =>"list-group borderless row"}
+                                        %ul{:class =>'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
-                                              %li{:class => "list-group-item borderless"}
+                                              %li{:class => 'list-group-item borderless'}
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
-                                                      %b QID
+                                                      %b Chunk
                                                     %td
                                                       %b Command
                                                     %td
@@ -141,129 +156,8 @@
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
                                                       - else
-                                                        %span.label.label-default.labelfixedwidth.pull-right #{tq.status}
-          -#.cold-md-12
-          -#  .table
-          -#    %h3 Job Queue
-          -#    %table{:class => 'table'}
-          -#      - if @active_jobs.empty?
-          -#        No Hashview jobs are running
-          -#      - else
-          -#        %thead
-          -#          %td
-          -#            %b Customer
-          -#          %td
-          -#            %b Task
-          -#          %td
-          -#            %b Agent
-          -#          %td
-          -#            %b Status
-          -#          %td
-          -#            %b Control
-          -#        - @jobs.each do |job|
-          -#          - if job.status == 'Running' || job.status == 'Queued' || job.status == 'Importing'
-          -#            %tbody
-          -#            - @customers.each do |customer|
-          -#              - if customer.id == job.customer_id
-          -#                - @jobtasks.each do |jt|
-          -#                  - if job.id == jt.job_id
-          -#                    - @tasks.each do |task|
-          -#                      - if task.id == jt.task_id
-          -#                        - @taskqueues.each do |tq|
-          -#                          - if tq.jobtask_id == jt.id
-          -#                            %tr
-          -#                              %td
-          -#                                #{customer.name}
-          -#                              %td
-          -#                                #{tq.id}
-          -#                                #{task.name}
-          -#                              %td
-          -#                                - @taskqueues.each do |taskqueue|
-          -#                                  - if jt.id == taskqueue.jobtask_id
-          -#                                    - @agents.each do |agent|
-          -#                                      - if agent.id.to_i == taskqueue.agent_id.to_i
-          -#                                        #{agent.name}
-          -#                              %td
-          -#                                #{tq.status}
-          -#                                /%div{:align => "center"}
-          -#                                - if jt.status == 'Queue'
-          -#                                  %span.label.label-default #{jt.status}
-          -#                                - elsif jt.status == 'Completed'
-          -#                                  %span.label.label-primary #{jt.status}
-          -#                                - elsif jt.status == 'Running'
-          -#                                  %span.label.label-success #{jt.status}
-          -#                                - elsif jt.status == 'Importing'
-          -#                                  %span.label.label-warning #{jt.status}
-          -#                                - else
-          -#                                  %span.label.label-default #{jt.status}
-          -#                              %td
-          -#                                - if jt.status == "Running"
-          -#                                  %a.label.label-danger{:href => "/jobs/stop/#{job.id}/#{task.id}"}
-          -#                                    %b Cancel
-          -#          %br
-          -# commenting this out until we redesign the dashboard
-          -#.col-md-4
-          -#  .table
-          -#    %b GPUs:
-          -#    %br
-          -#    %br
-          -#    - @gpustat.each do |gpu|
-          -#      - if gpu.match(/^Adapter/)
-          -#        #{gpu}
-          -#        %br
-          -#      - if gpu.match(/Sensor/)
-          -#        / hey sam look at mah dev chops!
-          -#        &nbsp; &nbsp; &nbsp; &nbsp;#{gpu}
-          -#        %br
-          -#      - else
-          -#        - if gpu.split.last.to_i == nil
-          -#          .alert.alert-success{:role => "alert"} #{gpu}
-          -#        - else
-          -#          - if gpu.split.last.to_i < 65
-          -#            .alert.alert-success{:role => "alert"} #{gpu}
-          -#          - if gpu.split.last.to_i >= 65 and gpu.split.last.to_i <= 79
-          -#            .alert.alert-warning{:role => "alert"} #{gpu}
-          -#          - if gpu.split.last.to_i > 79
-          -#            .alert.alert-danger{:role => "alert"} #{gpu}
-          -#.col-md-4
-          -#  .table
-          -#    %table{:class => 'table table-striped'}
-          -#      %b Recently Cracked Passwords:
-          -#      %br
-          -#      %br
-          -#      -if @recentlycracked
-          -#        %thead
-          -#          %td
-          -#            %strong Date / Time
-          -#          %td
-          -#            %strong Username
-          -#          %td
-          -#            %strong Password
-          -#        %tbody
-          -#          - @recentlycracked.each do |entry|
-          -#            %tr
-          -#              - if entry.time_period.to_i > 525600
-          -#                %td FOREVER
-          -#              - elsif entry.time_period.to_i > 2880
-          -#                %td #{entry.time_period.to_i/1440} Days ago
-          -#              - elsif entry.time_period.to_i > 1440
-          -#                %td 1 Day ago
-          -#              - elsif entry.time_period.to_i > 120
-          -#                %td #{entry.time_period.to_i/60} Hours ago
-          -#              - elsif entry.time_period.to_i > 60
-          -#                %td 1 Hour ago
-          -#              - elsif entry.time_period.to_i >= 0
-          -#                %td #{entry.time_period} Mins ago
-          -#              - else
-          -#                %td NOW
-          -#              - if entry.username.nil?
-          -#                %td --------
-          -#              - else
-          -#                %td #{entry.username}
-          -#              %td #{entry.plaintext}
-          -#      -else
-          -#        %b None... lets get cracking!
+                                                        %span.label.label-default.labelfixedwidth.pull-right Queued
 %br
 %br
 %br
-%meta{:content => "15", "http-equiv" => "refresh"}
+%meta{:content => '30', 'http-equiv' => 'refresh'}

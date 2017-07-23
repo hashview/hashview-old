@@ -2,11 +2,26 @@
 Notable changes will be documented here
 
 ## Current Release
+
+## [v0.7.0-beta] - 2017-07-22
+### Added
+ - Support for distributed cracking through hashview-agents
+ - New type of wordlist 'Smart Wordlist'
+ - Beta Hashview Hub (tm) integration
+ - New management console for agents and Rules (you can now edit your rules within the app)
+ - 3 new analytic portlets
+ - Support for 50 more hashes
+
+### Fixed
+ - Calculation error on Analytics where on the global page for number of cracked hashes vs uncracked hashes.
+ 
 ## [v0.6.1-beta] - 2017-04-25
- - Added support for 38 more hashes
- - Fixed raced condition when importing wordlists (both via gui and cli)
- - Fixed bug where NetNTLMv1 and NetNTLMv2 hashes were not properly importing
- - Fixed bug where usernames were not being parsed when importing NetNTLMv1 and NetNTLMv2 hashes
+### Added
+ - Support for 38 more hashes
+### Fixed
+ - Raced condition when importing wordlists (both via gui and cli)
+ - Bug where NetNTLMv1 and NetNTLMv2 hashes were not properly importing
+ - Bug where usernames were not being parsed when importing NetNTLMv1 and NetNTLMv2 hashes
 
 ## [v0.6.0-beta] - 2017-03-28
 ### Added

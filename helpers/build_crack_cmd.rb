@@ -1,18 +1,46 @@
 helpers do
   # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
   def buildCrackCmd(job_id, task_id)
+    cmds = []
+
+    chunk_size = Settings.first().chunk_size
+    chunks = {}
+    chunk_skip = 0
+
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
     hc_settings = HashcatSettings.first
-    hc_binpath = hc_settings.hc_binpath
+    # we no loger pull hc_binpath from the db. set this to a placeholder value and each
+    # agent will replace it with their local hc_binpath
+    hc_binpath = '@HASHCATBINPATH@'
     max_task_time = hc_settings.max_task_time
     @task = Tasks.first(id: task_id)
     @job = Jobs.first(id: job_id)
+    rules_file = Rules.first(id: @task.hc_rule)
     hashfile_id = @job.hashfile_id
     hash_id = Hashfilehashes.first(hashfile_id: hashfile_id).hash_id
     hashtype = Hashes.first(id: hash_id).hashtype.to_s
-  
+
     attackmode = @task.hc_attackmode.to_s
     mask = @task.hc_mask
+
+    # if task contains a keyspace that is gt 0 perform chunking
+    if @task.keyspace.nil?
+      chunking = false
+    elsif @task.keyspace > 0 && @task.keyspace > chunk_size
+      chunking = true
+
+      # build a hash containing our skip and limit values
+      chunk_num = 0
+      while chunk_skip < @task.keyspace.to_i
+        skip = chunk_skip
+        limit = skip + chunk_size
+
+        chunks[chunk_num] = [skip, limit]
+
+        chunk_num = chunk_num + 1
+        chunk_skip = limit
+      end
+    end
 
     if attackmode == 'combinator'
       wordlist_list = @task.wl_id
@@ -36,10 +64,10 @@ helpers do
     elsif attackmode == 'maskmode'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
     elsif attackmode == 'dictionary'
-      if @task.hc_rule == 'none'
+      if @task.hc_rule.nil? || @task.hc_rule == 'none' 
         cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
       else
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + 'control/rules/' + @task.hc_rule + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
       end
     elsif attackmode == 'combinator'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
@@ -76,7 +104,18 @@ helpers do
       cmd = cmd + ' --force'
     end
 
-    p cmd
-    cmd
+    # add skip and limit if we are chunking this task
+    if chunking
+      chunks.each do |_unused, value|
+        if attackmode == 'maskmode' || attackmode == 'dictionary'
+          cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
+          p cmd
+        end
+      end
+    else
+      cmds << cmd
+    end
+
+    return cmds
   end
 end
