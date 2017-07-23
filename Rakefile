@@ -210,7 +210,7 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + Best64 Rules', '1', 'dictionary', 'best64.rule')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
