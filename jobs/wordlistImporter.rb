@@ -17,6 +17,7 @@ module WordlistImporter
 
         # Make sure we're not dealing with a tar, gz, tgz, etc. Not 100% accurate!
         unless name.match(/\.tar|\.7z|\.gz|\.tgz|\.checksum/)
+          puts 'Importing new wordslist "' + name + '" into HashView.'
 
           # Adding to DB
           wordlist = Wordlists.new
@@ -27,11 +28,10 @@ module WordlistImporter
           wordlist.size = 0
           wordlist.checksum = nil
           wordlist.save
-
-          #Resque.enqueue(MagicWordlist)
         end
       end
     end
+
 
     @files = Dir.glob(File.join('control/wordlists/', "*"))
     @files.each do |path_file|

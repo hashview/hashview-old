@@ -46,7 +46,6 @@ get '/settings' do
       end
     end
   end
-
   @auth_types = %w(None Plain Login cram_md5)
 
   # get hcbinpath (stored in config file vs db)

@@ -2,7 +2,8 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.7.0-beta] - 2017-XX-XX
+
+## [v0.7.0-beta] - 2017-07-22
 ### Added
  - Support for distributed cracking through hashview-agents
  - New type of wordlist 'Smart Wordlist'
@@ -14,7 +15,6 @@ Notable changes will be documented here
 ### Fixed
  - Calculation error on Analytics where on the global page for number of cracked hashes vs uncracked hashes.
  
-
 ## [v0.6.1-beta] - 2017-04-25
 ### Added
  - Support for 38 more hashes

@@ -54,11 +54,11 @@ def importCracked(id, crack_file, run_time)
       else
         hash = hash_pass[0]
       end
-      p 'job.hashfile_id: ' + job.hashfile_id.to_s
-      p 'hashfilehash.hash_id: ' + hashfilehash.to_s
-      p 'hashtype: ' + hashtype.to_s
-      p 'PLAINTEXT: ' + plaintext.to_s
-      p 'Hash: ' + hash.to_s
+      # p 'job.hashfile_id: ' + job.hashfile_id.to_s
+      # p 'hashfilehash.hash_id: ' + hashfilehash.to_s
+      # p 'hashtype: ' + hashtype.to_s
+      # p 'PLAINTEXT: ' + plaintext.to_s
+      # p 'Hash: ' + hash.to_s
 
       # This will pull all hashes from DB regardless of job id
       if hashtype == '7400'

@@ -372,7 +372,6 @@ def getMode(hash)
   end
 end
 
-
 # Called by search
 def modeToFriendly(mode)
   return 'MD5' if mode == '0'
@@ -420,7 +419,6 @@ def modeToFriendly(mode)
   return 'Lotus Notes/Domino 5' if mode == '8600'
   return 'PrestaShop' if mode == '11000'
   return 'unknown' if mode == '99999'
-
   return 'unknown'
 end
 
