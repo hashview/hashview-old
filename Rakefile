@@ -199,7 +199,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '1', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '2', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -210,13 +210,37 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '2', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default dictionary task + rule'
     end
+    
+    # Create Default SmartWordlist Dictionary
+    puts '[*] Setting up default smart wordlist task'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('Smart Wordlist Dictionary', '1', 'dictionary')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating default SmartWordlist task'
+    end
+    
+    # Create Default SmartWordlist Dictionary + Rule Task
+    puts '[*] Setting up Smart Wordlist dictionary + rule task'
+    query = [
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Smart Wordlist Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in creating Smart Wordlist dictionary task + rule'
+    end
+    
+    
 
     # Create Default Mask task
     puts '[*] Setting up default mask task'
