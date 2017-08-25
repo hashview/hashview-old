@@ -229,7 +229,7 @@ post '/customers/upload/verify_hashtype' do
   @job = Jobs.first(id: params[:job_id])
   @job.hashfile_id = hashfile.id
   @job.save
-
+  
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
@@ -250,7 +250,7 @@ post '/customers/upload/verify_hashtype' do
   File.delete(hash_file)
 
   url = '/jobs/local_check'
-  
+
   url += "?job_id=#{params[:job_id]}"
   url += '&edit=1' if params[:edit]
   redirect to(url)

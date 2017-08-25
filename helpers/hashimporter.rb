@@ -50,7 +50,7 @@ def importPwdump(hash, hashfile_id, type)
     lm_hashes = data[2].scan(/.{16}/)
     lm_hash_0 = lm_hashes[0].downcase
     lm_hash_1 = lm_hashes[1].downcase
- 
+
     @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
     if @hash_id.nil?
       addHash(lm_hash_0, type)
