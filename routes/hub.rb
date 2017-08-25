@@ -48,6 +48,8 @@ class Hub
         :method => :get,
         :url => url,
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
+        :timeout => -1,
+        :open_timeout => -1,
         #:verify_ssl => false
         :verify_ssl => true
       )
@@ -71,6 +73,8 @@ class Hub
         :payload => payload.to_json,
         :headers => {:accept => :json},
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
+        :timeout => -1,
+        :open_timeout => -1,
         #:verify_ssl => false #TODO VALIDATE
         :verify_ssl => true
       )
@@ -100,6 +104,11 @@ class Hub
     payload = {}
     payload['hashes'] = hash_array
     self.post(url, payload)
+  end
+
+  def self.getSupportedHashtypes()
+    url = "https://#{@server}/v1/hashes/supported_hashtypes"
+    self.get(url)
   end
 
   def self.hashReveal(hash_array)
@@ -234,8 +243,9 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
   referer = request.referer.split('/')
   # We redirect the user back to where he came
   if referer[3] == 'jobs'
-    p 'referer: ' + referer.to_s
-    redirect to("/jobs/#{referer[4]}") # XSS here
+    args = referer.split('?')
+    redirect to("/jobs/assign_tasks?#{args[1]}") # XSS here
+    #redirect to("/jobs/#{referer[4]}") # XSS here
   elsif referer[3] == 'hashfiles'
     redirect to('/hashfiles/list')
   else

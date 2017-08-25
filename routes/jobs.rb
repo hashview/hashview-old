@@ -376,8 +376,10 @@ get '/jobs/local_check' do
   @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
 
   @url = '/jobs'
+
+  # Check to see if we're going to use the hub
   hub_settings = HubSettings.first
-  hub_settings.status == 'registered' ? @url = @url + '/hub_check' : @url = @url + '/assign_tasks'
+  hub_settings.status == 'registered' ? @url += '/hub_permission_check' : @url += '/assign_tasks'
 
   @url += "?job_id=#{params[:job_id]}"
   @url += '&edit=1' if params[:edit]
@@ -385,9 +387,33 @@ get '/jobs/local_check' do
   haml :job_local_check
 end
 
+get '/jobs/hub_permission_check' do
+  varWash(params)
+  @jobs = Jobs.first(id: params[:job_id])
+
+  haml :job_hub_permission_check
+end
+
 get '/jobs/hub_check' do
   varWash(params)
 
+  @jobs = Jobs.first(id: params[:job_id])
+  @hashfile_hashes = Hashfilehashes.first(hashfile_id: @jobs.hashfile_id)
+  @hashes = Hashes.first(id: @hashfile_hashes.hash_id)
+
+  # Check to see if the hash type is even supported
+  hub_response = Hub.getSupportedHashtypes
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_supported_hashtypes = hub_response['hashtypes']
+    unless @hub_supported_hashtypes.include? @hashes.hashtype.to_s
+      p 'UNSUPPORTED HASHTYPE: ' + @hub_supported_hashtypes.to_s + ' vs ' + @hashes.hashtype.to_s
+      flash[:error] = 'Sorry. The hub does not support that hashtype.'
+      redirect to("jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+  end
+
+  # Looks like our hashes are supported by the hub
   @results = []
   results_entry = {
     username: '',
@@ -397,7 +423,6 @@ get '/jobs/hub_check' do
     show_results: '0'
   }
 
-  @jobs = Jobs.first(id: params[:job_id])
   @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
   # Each hashfile might have multiple duplicate hashes, we need a unique list
   @hash_array = []
@@ -430,6 +455,11 @@ get '/jobs/hub_check' do
         results_entry = {}
       end
     end
+  end
+
+  if @results.empty?
+    flash[:error] = 'No Hub results found.'
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 
   p 'RESULTS: ' + @results.to_s

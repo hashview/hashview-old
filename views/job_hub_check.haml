@@ -27,22 +27,21 @@
                     %th
                       %b Cipher Text
                 %tbody
-                  - if @results
-                    - @results.each do |entry|
-                      -if entry['show_results'] == '1'
-                        %tr
-                          %td
-                            %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
-                              reveal
-                          %td #{modeToFriendly(entry['hashtype'].to_s)}
-                          %td #{entry['ciphertext']}
-                    %tr
-                      %td
-                      %td
-                        %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}"}
-                          Reveal All
-                      %td
-                      %td
+                  - @results.each do |entry|
+                    -if entry['show_results'] == '1'
+                      %tr
+                        %td
+                          %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
+                            reveal
+                        %td #{modeToFriendly(entry['hashtype'].to_s)}
+                        %td #{entry['ciphertext']}
+                  %tr
+                    %td
+                      %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}"}
+                        Reveal All
+                    %td
+                    %td
+                    %td
         .container
           .row
             .col-md-12
