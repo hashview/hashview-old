@@ -1,0 +1,23 @@
+!!!
+%html
+  %body
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Hub Check
+            .row
+              .col-md-10
+                Would you like to check to see if Hashview Hub has these hashes already cracked? Note if you click 'check', only the HASHES will be submitted online.
+                Click 'skip' to skip this step
+      %br
+      %br
+        .container
+          .row
+            .col-md-12.pull-right
+              %a.btn.btn-success{:href => "/jobs/hub_check?job_id=#{@jobs.id}"}
+                Check
+              %a.btn.btn-primary{:href => "/jobs/assign_tasks?job_id=#{@jobs.id}"}
+                Skip

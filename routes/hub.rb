@@ -102,6 +102,11 @@ class Hub
     self.post(url, payload)
   end
 
+  def self.getSupportedHashtypes()
+    url = "https://#{@server}/v1/hashes/supported_hashtypes"
+    self.get(url)
+  end
+
   def self.hashReveal(hash_array)
     url = "https://#{@server}/v1/hashes/reveal"
     payload = {}
