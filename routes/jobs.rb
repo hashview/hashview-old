@@ -457,6 +457,11 @@ get '/jobs/hub_check' do
     end
   end
 
+  if @results.empty?
+    flash[:error] = 'No Hub results found.'
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+  end
+
   p 'RESULTS: ' + @results.to_s
   haml :job_hub_check
 end
