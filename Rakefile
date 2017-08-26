@@ -354,10 +354,14 @@ namespace :db do
       # Upgrade to v0.6.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.1')
         db_version = upgrade_to_v061(user, password, host, database)
-      end 
+      end
       # Upgrade to v0.7.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.7')
         upgrade_to_v070(user, password, host, database)
+      end
+      # Upgrade to v0.7.1
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.1')
+        upgrade_to_v071(user, password, host, database)
       end
     else
       puts '[*] Your version is up to date!'
@@ -389,7 +393,7 @@ namespace :db do
 
       puts '[*] Collecting Table Information...Targets'
       targets_hashfile_id = conn.query('SELECT distinct(hashfile_id) FROM targets')
- 
+
       targets_hashfile_id.each_hash do |hashfile|
         puts '[*] Collecting info for hashfile_id ' + hashfile['hashfile_id']
         hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + hashfile['hashfile_id'] + "'")
@@ -655,7 +659,6 @@ def upgrade_to_v070(user, password, host, database)
     end
   end
 
-
   # compute keyspace for existing tasks
   puts '[*] Computing keyspace for existing tasks'
   @tasks = Tasks.all
@@ -692,8 +695,19 @@ def upgrade_to_v070(user, password, host, database)
       @hub_settings.save
     end
   end
-  
+
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.0'")
   puts '[+] Upgrade to v0.7.0 complete.'
+end
+
+def upgrade_to_v071(user, password, host, database)
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
+  puts '[*] Upgrading from v0.7.0 to v0.7.1'
+  conn = Mysql.new host, user, password, database
+
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.7.1'")
+  puts '[+] Upgrade to v0.7.1 complete.'
 end
