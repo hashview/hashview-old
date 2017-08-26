@@ -48,8 +48,8 @@ class Hub
         :method => :get,
         :url => url,
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :timeout => -1,
-        :open_timeout => -1,
+        :timeout => nil,
+        :open_timeout => nil,
         #:verify_ssl => false
         :verify_ssl => true
       )
@@ -73,8 +73,8 @@ class Hub
         :payload => payload.to_json,
         :headers => {:accept => :json},
         :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :timeout => -1,
-        :open_timeout => -1,
+        :timeout => nil,
+        :open_timeout => nil,
         #:verify_ssl => false #TODO VALIDATE
         :verify_ssl => true
       )
@@ -134,6 +134,27 @@ class Hub
 end
 
 ### ROUTES #############################################
+
+get '/hub' do
+  varWash(params)
+  @hub_settings = HubSettings.first
+  @customers = Customers.all(order: [:name.asc])
+  @hashfiles = Hashfiles.all
+
+  @cracked_by_hashtype_count = {}
+  hub_response = Hub.getSupportedHashtypes
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_supported_hashtypes = hub_response['hashtypes']
+    @hub_supported_hashtypes.each do |hashtype|
+      hashtype_cracked_count = repository(:default).adapter.select('SELECT COUNT(originalhash) FROM hashes WHERE (hashtype = ? AND cracked = 1)', hashtype)[0].to_s
+      hashtype_total_count = repository(:default).adapter.select('SELECT COUNT(originalhash) FROM hashes WHERE hashtype = ?', hashtype)[0].to_s
+      @cracked_by_hashtype_count[hashtype] = hashtype_cracked_count.to_s + '/' + hashtype_total_count.to_s unless hashtype_total_count.to_s == '0'
+    end
+  end
+
+  haml :hub
+end
 
 get '/hub/register' do
   varWash(params)
@@ -302,6 +323,41 @@ get '/hub/hash/upload/hashfile/:hashfile_id' do
   end
 
   redirect to('/hashfiles/list')
+end
+
+get '/hub/hash/reveal/hashtype/:hashtype' do
+  varWash(params)
+
+  @hash_array = []
+  @hashes = Hashes.all(hashtype: params[:hashtype], cracked: '0')
+  unless @hashes.nil?
+    @hashes.each do |entry|
+      element = {}
+      element['ciphertext'] = entry.originalhash
+      element['hashtype'] = params[:hashtype]
+      @hash_array.push(element)
+
+    end
+  end
+
+  cnt = 0
+  hub_response = Hub.hashReveal(@hash_array)
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hashes = hub_response['hashes']
+    @hashes.each do |element|
+      cnt = cnt + 1
+      # Add to local db
+      entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['ciphertext'])
+      entry.lastupdated = Time.now
+      entry.plaintext = element['plaintext']
+      entry.cracked = '1'
+      entry.save
+    end
+    flash[:success] = 'Successfully unlocked: ' + cnt.to_s + ' hashes!'
+  end
+
+  redirect to('/hub')
 end
 
 ### Functions ##########################################

@@ -42,55 +42,8 @@
                           %td 
                             #{@cracked_status[hashfile.id]}
                           %td
-                            - if @hub_settings.status == 'registered'
-                              %a.btn.btn-success{:href => "#modal0#{hashfile.id}", "data-toggle" => 'modal'}
-                                %i.glyphicon.glyphicon-cloud-upload{:title => 'Submit to Hashview Hub'}
-                              .modal.fade.modal{:id => "modal0#{hashfile.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
-                                .modal-dialog.modal-lg
-                                  .modal-content
-                                    .modal-header
-                                      %button.close{'aria-label' => 'Close', 'data-dismiss' => "modal", :type => "button"}
-                                        %span{'aria-hidden' => 'true'} &times;
-                                      %h4.modal-title Submit locally cracked hashes to hashview hub?
-                                    .modal-body
-                                      %p
-                                        By confirming, all cracked hashes for this hashfile will be uploaded. No usernames or company names will be submitted. Note: hashview will only submit hashes that the Hub current does not have.
-                                      %br
-                                      .table
-                                        %table{:class => 'table'}
-                                          %tr
-                                            %td Total number of locally cracked hashes: #{@local_cracked_cnt[hashfile.id]}
-                                          %tr
-                                            %td Total number of hashes to be uploaded: #{@hub_upload_cnt[hashfile.id]}
-                                          %tr
-                                            %td
-                                    .modal-footer
-                                      %button.btn.btn-default{'data-dismiss' => 'modal', :type => 'button'} Close
-                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/upload/hashfile/#{hashfile.id}"} Confirm
-                              %a.btn.btn-success{:href => "#modal1#{hashfile.id}", 'data-toggle' => 'modal'}
-                                %i.glyphicon.glyphicon-cloud-download{:title => 'Unlock from Hashview Hub'}
-                              .modal.fade.modal{:id => "modal1#{hashfile.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
-                                .modal-dialog.modal-lg
-                                  .modal-content
-                                    .modal-header
-                                      %button.close{'aria-label' => 'Close', 'data-dismiss' => "modal", :type => "button"}
-                                        %span{'aria-hidden' => 'true'} &times;
-                                      %h4.modal-title Unlock all hashes in this hashfile?
-                                    .modal-body
-                                      %p
-                                        Hashview will check the Hub for matching hashes that have already been cracked and unlock them locally.
-                                      %br
-                                      .table
-                                        %table{:class => 'table'}
-                                          %tr
-                                            %td Total number of locally uncracked hashes: #{@local_uncracked_cnt[hashfile.id]}
-                                          %tr
-                                            %td Total number of matching cracked hashes on hub: #{@hub_download_cnt[hashfile.id]}
-                                          %tr
-                                            %td
-                                    .modal-footer
-                                      %button.btn.btn-default{'data-dismiss' => 'modal', :type => 'button'} Close
-                                      %a.btn.btn-success{:type => 'button', :href => "/hub/hash/reveal/hashfile/#{hashfile.id}"} Confirm
+                            %a.btn.btn-primary{:href => "/analytics?customer_id=#{customer.id}&hashfile_id=#{hashfile.id}"}
+                              %i.glyphicon.glyphicon-stats{:title => 'Display crack stats'}
                             %a.btn.btn-danger{:href => "/hashfiles/delete?hashfile_id=#{hashfile.id}"}
                               %i.glyphicon.glyphicon-trash{:title => 'Delete'}
                           %tr

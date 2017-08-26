@@ -369,7 +369,7 @@ namespace :db do
 
     # Incase we missed anything
     #DataMapper.repository.auto_upgrade!
-    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+    # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
     #puts 'db:auto:upgrade executed'
   end
 
@@ -702,7 +702,7 @@ def upgrade_to_v070(user, password, host, database)
 end
 
 def upgrade_to_v071(user, password, host, database)
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
 
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
   conn = Mysql.new host, user, password, database
