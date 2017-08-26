@@ -43,6 +43,9 @@
                 %a(href="/jobs/list") Jobs
               %li
                 %a(href="/tasks/list") Tasks
+              - if hubEnabled?
+                %li
+                  %a(href="/hub") Hub
               %li.dropdown
                 %a.dropdown-toggle(data-toggle="dropdown" href="#")
                   Manage
