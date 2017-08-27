@@ -37,7 +37,7 @@
                         %td #{entry['ciphertext']}
                   %tr
                     %td
-                      %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}"}
+                      %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}?job_id=#{@jobs.id}"}
                         Reveal All
                     %td
                     %td

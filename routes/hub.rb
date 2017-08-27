@@ -248,6 +248,7 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
 
   hub_response = Hub.hashReveal(@hash_array)
   hub_response = JSON.parse(hub_response)
+  hub_count = 0
   if hub_response['status'] == '200'
     @hashes = hub_response['hashes']
     @hashes.each do |element|
@@ -257,22 +258,12 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
       entry.plaintext = element['plaintext']
       entry.cracked = '1'
       entry.save
+      hub_count = hub_count + 1
     end
   end
 
-  # TODO announce how many were cracked, what the remaining balance is
-  referer = request.referer.split('/')
-  # We redirect the user back to where he came
-  if referer[3] == 'jobs'
-    args = referer.split('?')
-    redirect to("/jobs/assign_tasks?#{args[1]}") # XSS here
-    #redirect to("/jobs/#{referer[4]}") # XSS here
-  elsif referer[3] == 'hashfiles'
-    redirect to('/hashfiles/list')
-  else
-    p request.referer.to_s
-    p referer[3].to_s
-  end
+  flash[:success] = 'Hashview Hub unlocked ' + hub_count.to_s + ' hashes!'
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
 end
 
 get '/hub/hash/upload/hash/:id' do

@@ -1,0 +1,87 @@
+!!!
+%html
+  - @taskarray = Hash.new
+  - @tasks.each do |task|
+    - @taskarray[task.id] = task.name
+  /https://jsfiddle.net/vigneshmoha/bbxMe/2/
+  %body
+    %script{:type => "text/javascript"}
+      :plain
+        function dateGenerate() {
+        var date = new Date()
+        var dateArray = #{@taskhashforjs};
+
+        return dateArray;
+        }
+        // The Above function will create an array of five consecutive year from the the current year.
+        function addSelect(divname) {
+        var newDiv=document.createElement('div');
+        var html = '<select class="form-control" name="tasks[]">', dates = dateGenerate(), i;
+        for (var k in dates) {
+          if (dates.hasOwnProperty(k)) {
+            html += "<option value='"+k+"'>"+dates[k]+"</option>";
+          }
+        }
+        html += '</select><p>';
+        newDiv.innerHTML= html;
+        document.getElementById(divname).appendChild(newDiv);
+        }
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              - if params[:edit] == '1'
+                %h1 Edit Your Assigned Tasks.
+              - else
+                %h1 Assign Tasks to Job: #{@job.name}
+            .row
+              .col-md-10.pull-left
+                Each task will be ran once
+                = succeed "." do
+                  %u in order selected
+                You can create new tasks by selecting 'tasks' in the above menu.
+      %br
+      %br
+      .container
+        .col-md-12
+          .row
+            - if params[:edit]
+              %form{:class => "form-horizontal", :action => "/jobs/assign_tasks", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Assigned Tasks
+                  .col-xs-6
+                    .table
+                      %table{:class => 'table'}
+                        - @jobtasks.each do |jt|
+                          - @tasks.each do |task|
+                            - if jt.task_id == task.id
+                              %tr
+                                %td #{task.name}
+                                %td{:class => 'col-md-3'}
+                                  .btn-group.btn-group-xs
+                                    %a.btn.btn-warning{:href => "/jobs/remove_task?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&jobtaskid=#{jt.id}&edit=1"}
+                                      %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                      %p
+                    .dropdown#dropdown
+                    %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+                    %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
+                    %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit].to_s}"}
+                    %button.btn.btn-primary{:type => "submit"} Save
+            - else
+              %form{:name => "jobs_form", :id => "jobs_form", :class => "form-horizontal", :action => "/jobs/assign_tasks", :method => "post"}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} Assigned Tasks
+                  .col-xs-6
+                    .dropdown#dropdown
+                    %button.btn.btn-default#add{:type => "button", :onclick => "addSelect('dropdown');"} Add Task
+                .form-group
+                  .col-xs-offset-2.col-xs-10
+                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
+                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+                    %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
+                    %button.btn.btn-primary{:type => "submit"} Create

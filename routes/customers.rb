@@ -62,10 +62,10 @@ end
 
 get '/customers/delete/:id' do
   varWash(params)
-  
+
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
- 
+
   @jobs = Jobs.all(customer_id: params[:id])
   unless @jobs.nil?
     @jobs.each do |job|
@@ -80,7 +80,7 @@ get '/customers/delete/:id' do
 
   @hashfiles = Hashfiles.all(customer_id: params[:id])
   @hashfiles.destroy unless @hashfiles.nil?
-  
+
   redirect to('/customers/list')
 end
 
