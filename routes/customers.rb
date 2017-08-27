@@ -62,10 +62,10 @@ end
 
 get '/customers/delete/:id' do
   varWash(params)
-  
+
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
- 
+
   @jobs = Jobs.all(customer_id: params[:id])
   unless @jobs.nil?
     @jobs.each do |job|
@@ -80,7 +80,7 @@ get '/customers/delete/:id' do
 
   @hashfiles = Hashfiles.all(customer_id: params[:id])
   @hashfiles.destroy unless @hashfiles.nil?
-  
+
   redirect to('/customers/list')
 end
 
@@ -229,22 +229,17 @@ post '/customers/upload/verify_hashtype' do
   @job = Jobs.first(id: params[:job_id])
   @job.hashfile_id = hashfile.id
   @job.save
-  
+
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  # previously_cracked_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s
   total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
 
   unless total_cnt.nil?
     flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
   end
-
-  # unless previously_cracked_cnt.nil?
-  #  flash[:success] = previously_cracked_cnt + ' have already been cracked!'
-  #end
 
   # Delete file, no longer needed
   File.delete(hash_file)

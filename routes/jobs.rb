@@ -175,19 +175,130 @@ get '/jobs/assign_tasks' do
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.all(job_id: params[:job_id])
   @tasks = Tasks.all
-  # we do this so we can embedded ruby into js easily
-  # js handles adding/selecting tasks associated with new job
-  taskhashforjs = {}
-  @tasks.each do |task|
-    taskhashforjs[task.id] = task.name
+
+  # Create jobtasks_task object
+  # not a fan of this approach, but not sure if there's a better way
+  @jobtasks_tasks = []
+  @jobtasks.each do |jobtask_entry|
+    element = {}
+    element['jobtask_id'] = jobtask_entry.id
+    element['task_id'] = jobtask_entry.task_id
+    task = Tasks.first(id: jobtask_entry.task_id)
+    element['task_name'] = task.name
+    element['task_type'] = task.hc_attackmode
+    @jobtasks_tasks.push(element)
   end
-  @taskhashforjs = taskhashforjs.to_json
 
   haml :assign_tasks
 end
 
-post '/jobs/assign_tasks' do
+get '/jobs/move_task' do
   varWash(params)
+
+  # We create an array of all related jobtasks, remove existing jobtasks, re-arrange, and create new jobtasks (this way we dont have to worry about non-contigous jobtasks ids)
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+
+  @temp_jobtasks = []
+  @new_jobtasks = []
+  @jobtasks.each do |entry|
+    @temp_jobtasks << entry.task_id
+  end
+
+  if params[:action] == 'UP'
+    if @temp_jobtasks[0] == params[:task_id].to_i
+      flash[:error] = 'Task is already at the top.'
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+
+    @temp_jobtasks.each_with_index do |task_id, index|
+      if @temp_jobtasks[index + 1] == params[:task_id].to_i
+        @new_jobtasks << params[:task_id].to_i
+        @new_jobtasks << @temp_jobtasks[index]
+        @temp_jobtasks.delete_at(index)
+      else
+        @new_jobtasks << @temp_jobtasks[index].to_i
+      end
+    end
+
+  elsif params[:action] == 'DOWN'
+    if @temp_jobtasks[-1] == params[:task_id].to_i
+      flash[:error] = 'Task is already at the bottom.'
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+
+    @temp_jobtasks.each_with_index do |task_id, index|
+      if @temp_jobtasks[index] == params[:task_id].to_i
+        @new_jobtasks << @temp_jobtasks[index+1]
+        @new_jobtasks << params[:task_id].to_i
+        @temp_jobtasks.delete_at(index+1)
+      else
+        @new_jobtasks << @temp_jobtasks[index].to_i
+      end
+    end
+  end
+
+  @jobtasks.destroy
+  @new_jobtasks.each do |task|
+    jobtask = Jobtasks.new
+    jobtask.job_id = params[:job_id]
+    jobtask.task_id = task.to_i
+    jobtask.save
+  end
+
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/remove_task' do
+  varWash(params)
+  jobtask = Jobtasks.first(id: params[:jobtask_id])
+  jobtask.destroy unless jobtask.nil?
+
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/assign_task' do
+  varWash(params)
+
+  # Check if task already exists
+  existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: params[:task_id])
+  unless existing_jobtask.nil?
+    flash[:error] = 'Task is already assigned to the job. You can not run the same task twice.'
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+  end
+
+  # Append task to job
+  jobtask = Jobtasks.new
+  jobtask.job_id = params[:job_id]
+  jobtask.task_id = params[:task_id]
+  jobtask.save
+
+  # return to assign_tasks
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/complete' do
+  varWash(params)
+
+  jobtasks = Jobtasks.all(job_id: params[:job_id])
+  jobtasks.each do |task|
+    task.status = 'Queued'
+    task.save
+  end
+
+  job = Jobs.first(id: params[:job_id])
+  job.status = 'Ready'
+  job.save
+
+  if params[:edit].to_s == '1'
+    flash[:success] = 'Job updated.'
+  else
+    flash[:success] = 'Job created.'
+  end
+  redirect to('/jobs/list')
+end
+
+post '/jobs/complete' do
+
 
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
@@ -247,6 +358,7 @@ post '/jobs/assign_tasks' do
 
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
+
 end
 
 get '/jobs/start/:id' do
