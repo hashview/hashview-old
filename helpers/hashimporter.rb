@@ -1,27 +1,4 @@
 # encoding: utf-8
-#require './model/master'
-#def detectedHashFormat(hash)
-#  # Detect if pwdump file format
-#  if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
-#    return 'pwdump'
-#  # Detect if shadow
-#  elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
-#    return 'shadow'
-#  elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
-#    return 'dsusers'
-#  elsif hash =~ /^.*:\w{32}$/
-#    return 'dsusers'
-#  elsif hash =~ /^.*:\w.*/
-#    return 'generic'
-#  elsif hash =~ /^\w{32}$/
-#    return 'ntlm_only'
-#  elsif hash =~ /.*:\d*:\w{32}:\w{32}$/
-#    return 'smart hashdump'
-#  else
-#    return 'File Format or Hash not supported'
-#  end
-#end
-
 def addHash(hash, hashtype)
   entry = Hashes.new
   entry.originalhash = hash
@@ -55,6 +32,11 @@ def importPwdump(hash, hashfile_id, type)
     if @hash_id.nil?
       addHash(lm_hash_0, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
@@ -63,6 +45,11 @@ def importPwdump(hash, hashfile_id, type)
     if @hash_id.nil?
       addHash(lm_hash_1, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
@@ -74,6 +61,11 @@ def importPwdump(hash, hashfile_id, type)
     if @hash_id.nil?
       addHash(data[3], type)
       @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
@@ -95,68 +87,11 @@ def importShadow(hash, hashfile_id, type)
   if @hash_id.nil?
     addHash(data[1], type)
     @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
-end
-
-def importDsusers(hash, hashfile_id, type)
-  data = hash.split(':')
-  if data[1] =~ /NT/
-    data[1] = data[1].to_s.split('$')[2]
-    type = '3000'
-  end
-
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
-end
-
-def importUserHash(hash, hashfile_id, type)
-  data = hash.split(':')
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
-end
-
-def importHashSalt(hash, hashfile_id, type)
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  if @hash_id.nil?
-    addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
-end
-
-def importNetNTLMv1(hash, hashfile_id, type)
-  data = hash.split(':')
-  originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
-
-  @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-  if @hash_id.nil?
-    addHash(originalhash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
-end
-
-def importNetNTLMv2(hash, hashfile_id, type)
-  data = hash.split(':')
-
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  if @hash_id.nil?
-    addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
   end
 
   updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
@@ -173,6 +108,11 @@ def importHashOnly(hash, hashfile_id, type)
     if @hash_id.nil?
       addHash(lm_hash_0, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
@@ -181,46 +121,116 @@ def importHashOnly(hash, hashfile_id, type)
     if @hash_id.nil?
       addHash(lm_hash_1, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
-
-  elsif type == '5500'
-    # import NetNTLMv1
-    fields = hash.split(':')
-    originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
-
-    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-    if @hash_id.nil?
-      addHash(originalhash, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
-
-  elsif type == '5600'
-    # We need to include full hash (username, salt, computername)
-    # import NetNTLMv2
-    fields = hash.split(':')
-
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-    if @hash_id.nil?
-      addHash(hash, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, fields[0], hashfile_id)
-
   else
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash)
     if @hash_id.nil?
       addHash(hash, type)
       @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+      unless @hash_id.cracked
+        @hash_id.hashtype = type.to_i
+        @hash_id.save
+      end
     end
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
   end
+end
+
+def importDsusers(hash, hashfile_id, type)
+  data = hash.split(':')
+  if data[1] =~ /NT/
+    data[1] = data[1].to_s.split('$')[2]
+    type = '3000'
+  end
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
+def importUserHash(hash, hashfile_id, type)
+  data = hash.split(':')
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
+def importHashSalt(hash, hashfile_id, type)
+  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  if @hash_id.nil?
+    addHash(hash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
+end
+
+def importNetNTLMv1(hash, hashfile_id, type)
+  data = hash.split(':')
+  originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+  if @hash_id.nil?
+    addHash(originalhash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
+def importNetNTLMv2(hash, hashfile_id, type)
+  data = hash.split(':')
+
+  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  if @hash_id.nil?
+    addHash(hash, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
 def getMode(hash)
@@ -436,8 +446,8 @@ def friendlyToMode(friendly)
   return '5600' if friendly == 'NetNTLMv2'
 end
 
-def importHash(hash_file, hashfile_id, file_type, hashtype)
-  hash_file.each do |entry|
+def importHash(hash_array, hashfile_id, file_type, hashtype)
+  hash_array.each do |entry|
     entry = entry.gsub(/\s+/, '') # remove all spaces
     if file_type == 'pwdump' or file_type == 'smart hashdump' 
       importPwdump(entry.chomp, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
@@ -460,28 +470,6 @@ def importHash(hash_file, hashfile_id, file_type, hashtype)
     end
   end
 end
-
-#def detectHashfileType(hash_file)
-#  @file_types = []
-#  File.readlines(hash_file).each do |entry|
-#    entry = entry.gsub(/\s+/, "") # remove all spaces
-#    if detectedHashFormat(entry.chomp) == 'pwdump'
-#      @file_types.push('pwdump') unless @file_types.include?('pwdump')
-#    elsif detectedHashFormat(entry.chomp) == 'shadow'
-#      @file_types.push('shadow') unless @file_types.include?('shadow')
-#    elsif detectedHashFormat(entry.chomp) == 'dsusers'
-#      @file_types.push('dsusers') unless @file_types.include?('dsusers')
-#    elsif detectedHashFormat(entry.chomp) == 'generic'
-#      @file_types.push('generic') unless @file_types.include?('generic')
-#    elsif detectedHashFormat(entry.chomp) == 'smart hashdump'
-#      @file_types.push('smart hashdump') unless @file_types.include?('smart hashdump')
-#    else
-#      @file_types.push('raw') unless @file_types.include?('raw')
-#    end
-#  end
-
-#  @file_types
-#end
 
 def detectHashType(hash_file, file_type)
   @hashtypes = []
