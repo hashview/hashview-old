@@ -175,19 +175,130 @@ get '/jobs/assign_tasks' do
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.all(job_id: params[:job_id])
   @tasks = Tasks.all
-  # we do this so we can embedded ruby into js easily
-  # js handles adding/selecting tasks associated with new job
-  taskhashforjs = {}
-  @tasks.each do |task|
-    taskhashforjs[task.id] = task.name
+
+  # Create jobtasks_task object
+  # not a fan of this approach, but not sure if there's a better way
+  @jobtasks_tasks = []
+  @jobtasks.each do |jobtask_entry|
+    element = {}
+    element['jobtask_id'] = jobtask_entry.id
+    element['task_id'] = jobtask_entry.task_id
+    task = Tasks.first(id: jobtask_entry.task_id)
+    element['task_name'] = task.name
+    element['task_type'] = task.hc_attackmode
+    @jobtasks_tasks.push(element)
   end
-  @taskhashforjs = taskhashforjs.to_json
 
   haml :assign_tasks
 end
 
-post '/jobs/assign_tasks' do
+get '/jobs/move_task' do
   varWash(params)
+
+  # We create an array of all related jobtasks, remove existing jobtasks, re-arrange, and create new jobtasks (this way we dont have to worry about non-contigous jobtasks ids)
+  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+
+  @temp_jobtasks = []
+  @new_jobtasks = []
+  @jobtasks.each do |entry|
+    @temp_jobtasks << entry.task_id
+  end
+
+  if params[:action] == 'UP'
+    if @temp_jobtasks[0] == params[:task_id].to_i
+      flash[:error] = 'Task is already at the top.'
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+
+    @temp_jobtasks.each_with_index do |task_id, index|
+      if @temp_jobtasks[index + 1] == params[:task_id].to_i
+        @new_jobtasks << params[:task_id].to_i
+        @new_jobtasks << @temp_jobtasks[index]
+        @temp_jobtasks.delete_at(index)
+      else
+        @new_jobtasks << @temp_jobtasks[index].to_i
+      end
+    end
+
+  elsif params[:action] == 'DOWN'
+    if @temp_jobtasks[-1] == params[:task_id].to_i
+      flash[:error] = 'Task is already at the bottom.'
+      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+
+    @temp_jobtasks.each_with_index do |task_id, index|
+      if @temp_jobtasks[index] == params[:task_id].to_i
+        @new_jobtasks << @temp_jobtasks[index+1]
+        @new_jobtasks << params[:task_id].to_i
+        @temp_jobtasks.delete_at(index+1)
+      else
+        @new_jobtasks << @temp_jobtasks[index].to_i
+      end
+    end
+  end
+
+  @jobtasks.destroy
+  @new_jobtasks.each do |task|
+    jobtask = Jobtasks.new
+    jobtask.job_id = params[:job_id]
+    jobtask.task_id = task.to_i
+    jobtask.save
+  end
+
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/remove_task' do
+  varWash(params)
+  jobtask = Jobtasks.first(id: params[:jobtask_id])
+  jobtask.destroy unless jobtask.nil?
+
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/assign_task' do
+  varWash(params)
+
+  # Check if task already exists
+  existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: params[:task_id])
+  unless existing_jobtask.nil?
+    flash[:error] = 'Task is already assigned to the job. You can not run the same task twice.'
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+  end
+
+  # Append task to job
+  jobtask = Jobtasks.new
+  jobtask.job_id = params[:job_id]
+  jobtask.task_id = params[:task_id]
+  jobtask.save
+
+  # return to assign_tasks
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/complete' do
+  varWash(params)
+
+  jobtasks = Jobtasks.all(job_id: params[:job_id])
+  jobtasks.each do |task|
+    task.status = 'Queued'
+    task.save
+  end
+
+  job = Jobs.first(id: params[:job_id])
+  job.status = 'Ready'
+  job.save
+
+  if params[:edit].to_s == '1'
+    flash[:success] = 'Job updated.'
+  else
+    flash[:success] = 'Job created.'
+  end
+  redirect to('/jobs/list')
+end
+
+post '/jobs/complete' do
+
 
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
@@ -247,6 +358,7 @@ post '/jobs/assign_tasks' do
 
   flash[:success] = 'Successfully created job.'
   redirect to('/jobs/list')
+
 end
 
 get '/jobs/start/:id' do
@@ -376,8 +488,10 @@ get '/jobs/local_check' do
   @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
 
   @url = '/jobs'
+
+  # Check to see if we're going to use the hub
   hub_settings = HubSettings.first
-  hub_settings.status == 'registered' ? @url = @url + '/hub_check' : @url = @url + '/assign_tasks'
+  hub_settings.status == 'registered' ? @url += '/hub_permission_check' : @url += '/assign_tasks'
 
   @url += "?job_id=#{params[:job_id]}"
   @url += '&edit=1' if params[:edit]
@@ -385,9 +499,33 @@ get '/jobs/local_check' do
   haml :job_local_check
 end
 
+get '/jobs/hub_permission_check' do
+  varWash(params)
+  @jobs = Jobs.first(id: params[:job_id])
+
+  haml :job_hub_permission_check
+end
+
 get '/jobs/hub_check' do
   varWash(params)
 
+  @jobs = Jobs.first(id: params[:job_id])
+  @hashfile_hashes = Hashfilehashes.first(hashfile_id: @jobs.hashfile_id)
+  @hashes = Hashes.first(id: @hashfile_hashes.hash_id)
+
+  # Check to see if the hash type is even supported
+  hub_response = Hub.getSupportedHashtypes
+  hub_response = JSON.parse(hub_response)
+  if hub_response['status'] == '200'
+    @hub_supported_hashtypes = hub_response['hashtypes']
+    unless @hub_supported_hashtypes.include? @hashes.hashtype.to_s
+      p 'UNSUPPORTED HASHTYPE: ' + @hub_supported_hashtypes.to_s + ' vs ' + @hashes.hashtype.to_s
+      flash[:error] = 'Sorry. The hub does not support that hashtype.'
+      redirect to("jobs/assign_tasks?job_id=#{params[:job_id]}")
+    end
+  end
+
+  # Looks like our hashes are supported by the hub
   @results = []
   results_entry = {
     username: '',
@@ -397,7 +535,6 @@ get '/jobs/hub_check' do
     show_results: '0'
   }
 
-  @jobs = Jobs.first(id: params[:job_id])
   @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
   # Each hashfile might have multiple duplicate hashes, we need a unique list
   @hash_array = []
@@ -430,6 +567,11 @@ get '/jobs/hub_check' do
         results_entry = {}
       end
     end
+  end
+
+  if @results.empty?
+    flash[:error] = 'No Hub results found.'
+    redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 
   p 'RESULTS: ' + @results.to_s
