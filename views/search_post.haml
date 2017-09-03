@@ -54,9 +54,6 @@
                           #{entry['plaintext']}
                           // LC && RU
                         - elsif entry['local_cracked'] == '1' and entry['hub_cracked'] == '0'
-                          - if entry['show_hub_results'] == '1'
-                            %a.btn.btn-success{:href => "/hub/hash/upload/hash/#{entry['id']}"}
-                              %i.glyphicon.glyphicon-cloud-upload{:title => 'upload'}
                           #{entry['plaintext']}
                           // LU && RC
                         - elsif entry['local_cracked'] == '0' and entry['hub_cracked'] == '1'
