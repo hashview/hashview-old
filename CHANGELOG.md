@@ -3,6 +3,21 @@ Notable changes will be documented here
 
 ## Current Release
 
+## [v0.7.1-beta] - 2017-9-4
+### Added
+ - Rake task to reset db (thanks: )
+ - New hub route/tab if registered
+ - Additional step in job creation (if hub enabled) asking permission to check for cracked hashes before continuing
+ - Added ability to reorder & delete tasks of a job mid creation and edit. 
+
+### Removed
+ - Hub check upon loading hashfiles list (no one was using it)
+ - Hub upload function upon searches, job creation (no one was using it)
+
+### Fixed
+ - Fixed issue where importing the same hash twice into the db where one had an incorrect hashtype resulted in a 500 error. Now the entry is updated with the new hashtype.
+ - Fixed timouts when searching large hash sets with Hashview Hub
+
 ## [v0.7.0-beta] - 2017-07-22
 ### Added
  - Support for distributed cracking through hashview-agents
