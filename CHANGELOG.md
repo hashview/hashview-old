@@ -5,7 +5,7 @@ Notable changes will be documented here
 
 ## [v0.7.1-beta] - 2017-9-4
 ### Added
- - Rake task to reset db (thanks: )
+ - Rake task to reset db (thanks: nicbrink)
  - New hub route/tab if registered
  - Additional step in job creation (if hub enabled) asking permission to check for cracked hashes before continuing
  - Added ability to reorder & delete tasks of a job mid creation and edit. 
