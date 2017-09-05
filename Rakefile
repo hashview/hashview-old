@@ -1,15 +1,17 @@
 require 'resque/tasks'
 require 'resque/scheduler/tasks'
 require 'rake/testtask'
-require 'data_mapper'
+require 'sequel'
 require 'mysql'
-require './models/master.rb'
+#require './models/master.rb'
 require './helpers/email.rb'
 require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
 
 require_relative 'jobs/init'
 #require_relative 'helpers/init'
+
+Sequel.extension :migration, :core_extensions
 
 Rake::TestTask.new do |t|
   t.pattern = 'tests/*_spec.rb'
@@ -84,30 +86,18 @@ namespace :db do
       raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
     end
 
-    # create database in mysql for datamapper
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "CREATE DATABASE #{database} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    # create database
+    Sequel.connect(config.merge('database' => 'mysql')) do |db|
+      #db.execute "DROP DATABASE IF EXISTS #{config['database']}"
+      db.execute "CREATE DATABASE #{config['database']} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}"
     end
 
-    # Creating hashes table
-    # Wish we could do this in datamapper, but currently unsupported
-    puts 'Creating Hashes Table'
-    query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", '-e CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256), unique index index_of_orignalhashes (originalhash), index index_of_hashtypes (hashtype)) ROW_FORMAT=DYNAMIC'.inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise "Something went wrong. double check your config/database.yml file and manually test access to mysql. \n Also verify that SELECT '@@global.innodb_large_prefix' and 'SELECT @@global.innodb_file_format' both equal 1"
-    end
-
-    puts '[*] Building the rest of the tables from datamapper'
-    DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+    #get reference to database
+    db = Sequel.mysql(config)    
+    
+    #pull in schemma
+    #https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
+    Sequel::Migrator.run(db, './config/db/')
   end
 
   task :destroy do
@@ -117,17 +107,10 @@ namespace :db do
     puts "destroying database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
-    database = config['database']
 
-    # destroy database in mysql for datamapper
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host} -e", "DROP DATABASE #{database}".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
+    # destroy database in mysql 
+    Sequel.connect(config.merge('database' => 'mysql')) do |db|
+      db.execute "DROP DATABASE IF EXISTS #{config['database']}"
     end
   end
 
@@ -393,13 +376,14 @@ namespace :db do
     end
 
     # Incase we missed anything
-    DataMapper.repository.auto_upgrade!
+    #DataMapper.repository.auto_upgrade!
     # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
     #puts 'db:auto:upgrade executed'
   end
 
   desc 'Migrate From old DB to new DB schema'
   task :migrate do
+    #should be replaced with https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
@@ -727,9 +711,12 @@ def upgrade_to_v070(user, password, host, database)
 end
 
 def upgrade_to_v071(user, password, host, database)
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
-
-  puts '[*] Upgrading from v0.7.0 to v0.7.1'
+  #DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  puts "Migrating to 071"
+  db = Sequel.mysql(database)
+  Sequel::Migrator.run(db, "db/migrations") 
+ 
+  #puts '[*] Upgrading from v0.7.0 to v0.7.1'
   conn = Mysql.new host, user, password, database
 
   # FINALIZE UPGRADE
