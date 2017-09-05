@@ -113,5 +113,5 @@ end
 def hubEnabled?
   # Returns true if hub is enabled, and status is registered
   hub_settings = HubSettings.first
-  hub_settings.status == 'registered' ? 1 : 0
+  hub_settings.status == 'registered' ? true : false
 end
