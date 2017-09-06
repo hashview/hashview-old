@@ -1,7 +1,7 @@
 # encoding: utf-8
 get '/hashfiles/list' do
   @hub_settings = HubSettings.first
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @hashfiles = Hashfiles.all
   @cracked_status = {}
   @local_cracked_cnt = {}

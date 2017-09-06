@@ -105,11 +105,8 @@ class Sessions < Sequel::Model(:sessions)
 end
 
 # Each Customer record will be stored here
-class Customers
-  include DataMapper::Resource
-  property :id, Serial
-  property :name, String, length: 40
-  property :description, String, length: 500
+class Customers < Sequel::Model(:customers)
+
 end
 
 class Agents

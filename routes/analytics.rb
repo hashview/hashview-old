@@ -7,7 +7,7 @@ get '/analytics' do
 
   @customer_id = params[:customer_id]
   @hashfile_id = params[:hashfile_id]
-  @button_select_customers = Customers.all(order: [:name.asc])
+  @button_select_customers = Customers.order(Sequel.asc(:name)).all
 
   if params[:customer_id] && !params[:customer_id].empty?
     @button_select_hashfiles = Hashfiles.all(customer_id: params[:customer_id])
@@ -16,7 +16,7 @@ get '/analytics' do
   if params[:customer_id] && !params[:customer_id].empty?
     @customers = Customers.first(id: params[:customer_id])
   else
-    @customers = Customers.all(order: [:name.asc])
+    @customers = Customers.order(Sequel.asc(:name)).all
   end
 
   if params[:customer_id] && !params[:customer_id].empty?

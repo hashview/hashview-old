@@ -1,6 +1,6 @@
 # encoding: utf-8
 get '/customers/list' do
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @total_jobs = []
   @total_hashfiles = []
 
@@ -24,7 +24,7 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
-  pre_existing_customer = Customers.all(name: params[:name])
+  pre_existing_customer = Customers.where(name: params[:name]).all
   if !pre_existing_customer.empty? || pre_existing_customer.nil?
     flash[:error] = 'Customer ' + params[:name] + ' already exists.'
     redirect to('/customers/create')
@@ -69,7 +69,7 @@ get '/customers/delete/:id' do
   @jobs = Jobs.all(customer_id: params[:id])
   unless @jobs.nil?
     @jobs.each do |job|
-      @jobtasks = Jobtasks.all(job_id: job.id)
+      @jobtasks = Jobtasks.where(job_id: job.id).all
       @jobtasks.destroy unless @jobtasks.nil?
     end
     @jobs.destroy unless @jobs.nil?
@@ -78,7 +78,7 @@ get '/customers/delete/:id' do
   # @hashfilehashes = Hashfilehashes.all(hashfile_id:
   # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
 
-  @hashfiles = Hashfiles.all(customer_id: params[:id])
+  @hashfiles = Hashfiles.where(customer_id: params[:id]).all
   @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')

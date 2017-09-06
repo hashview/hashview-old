@@ -46,7 +46,7 @@ end
 get '/jobs/create' do
   varWash(params)
 
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @job = Jobs.first(id: params[:job_id])
 
   if @job
@@ -95,7 +95,7 @@ post '/jobs/create' do
 
   # Create a new customer if selected
   if params[:customer] == 'add_new' || params[:customer].nil?
-    pre_existing_customer = Customers.all(name: params[:name])
+    pre_existing_customer = Customers.where(name: params[:name]).all
     if !pre_existing_customer.empty? || pre_existing_customer.nil?
       flash[:error] = 'Customer ' + params[:name] + ' already exists.'
       redirect to('/jobs/create')
