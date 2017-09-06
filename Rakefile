@@ -393,6 +393,10 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['hostname']
     database = config['database']
 
+    Sequel::Migrator.check_current(DB, '/path/to/migrations')
+    db = Sequel.mysql(database)
+    Sequel::Migrator.run(db, "db/migrations")
+
     begin
 
       new_hashes = Set.new

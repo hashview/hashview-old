@@ -1,5 +1,6 @@
 require 'rubygems'
 require 'data_mapper'
+require 'sequel'
 require 'bcrypt'
 
 # read config
@@ -9,28 +10,27 @@ options = YAML.load_file('config/database.yml')
 if ENV['RACK_ENV'] == 'test'
   DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['test'])
+  HVDB = Sequel.mysql(options['test'])
+  HVDB.loggers << Loggers.new(STDOUT)
+  HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == 'development'
   DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['development'])
+  HVDB = Sequel.mysql(options['development'])
+  HVDB.loggers << Logger.new(STDOUT)
+  HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   DataMapper.setup(:default, options['production'])
+  HVDB = Sequel.mysql(options['production'])
+  HVDB.loggers << Logger.new(STDOUT)
 else
   puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
   exit
 end
 
 # User class object to handle user account credentials
-class User
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :username, String, key: true, length: (3..40), required: true
-  property :hashed_password, String, length: 128
-  property :admin, Boolean
-  property :created_at, DateTime, default: DateTime.now
-  property :phone, String, required: false
-  property :email, String, required: false
-
+class User < Sequel::Model(:users)
+  plugin :validation_class_methods
   attr_accessor :password
   validates_presence_of :username
 
