@@ -78,7 +78,7 @@ get '/customers/delete/:id' do
   # @hashfilehashes = Hashfilehashes.all(hashfile_id:
   # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
 
-  @hashfiles = Hashfiles.where(customer_id: params[:id]).all
+  @hashfiles = Hashfiles.all(customer_id: params[:id])
   @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')
