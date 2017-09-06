@@ -77,12 +77,7 @@ class User < Sequel::Model(:users)
 end
 
 # Class to handle authenticated sessions
-class Sessions
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :session_key, String, length: 128
-  property :username, String, length: (3..40), required: true
+class Sessions < Sequel::Model(:sessions)
 
   def self.isValid?(session_key)
     sessions = Sessions.first(session_key: session_key)
