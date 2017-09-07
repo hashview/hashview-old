@@ -14,7 +14,8 @@ end
 get '/home' do
 
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
-  @jobs = Jobs.all(:order => [:queued_at.asc])
+  @jobs = Jobs.order(Sequel.asc(:queued_at)).all
+
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all
@@ -24,7 +25,7 @@ get '/home' do
   # @recentlycracked = repository(:default).adapter.select('SELECT CONCAT(timestampdiff(minute, h.lastupdated, NOW()) ) AS time_period, h.plaintext, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1) ORDER BY h.lastupdated DESC LIMIT 10')
 
   @customers = Customers.all
-  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running')
+  @active_jobs = Jobs.where(:status => 'Running').select(:id, :status)
 
   # nvidia works without sudo:
   @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`

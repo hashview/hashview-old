@@ -66,7 +66,7 @@ get '/customers/delete/:id' do
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
 
-  @jobs = Jobs.all(customer_id: params[:id])
+  @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
       @jobtasks = Jobtasks.where(job_id: job.id).all

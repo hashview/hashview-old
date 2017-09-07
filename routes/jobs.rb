@@ -4,7 +4,7 @@ get '/jobs/list' do
   @customer_names = {}
   @wordlist_id_to_name = {}
 
-  @jobs = Jobs.all(order: [:id.desc])
+  @jobs = Jobs.order(Sequel.desc(:id))
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
   @wordlists = Wordlists.all
