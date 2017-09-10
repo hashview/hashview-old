@@ -5,7 +5,7 @@ module WordlistChecksum
   def self.perform()
     puts '============== generating wordlist checksum ========================'
     # Identify all wordlists without checksums
-    @wordlist = Wordlists.all(checksum: nil)
+    @wordlist = Wordlists.where(checksum: nil).all
     @wordlist.each do |wl|
       # generate checksum
       puts 'generating checksum for: ' +  wl.path.to_s

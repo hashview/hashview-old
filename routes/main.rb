@@ -46,7 +46,7 @@ get '/home' do
       # gather info for statistics
 
       @hash_ids = Array.new
-      Hashfilehashes.all(fields: [:hash_id], hashfile_id: j.hashfile_id).each do |entry|
+      Hashfilehashes.where(hashfile_id: j.hashfile_id).select(:hash_id).each do |entry|
         @hash_ids.push(entry.hash_id)
       end
 

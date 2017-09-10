@@ -78,7 +78,7 @@ get '/customers/delete/:id' do
   # @hashfilehashes = Hashfilehashes.all(hashfile_id:
   # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
 
-  @hashfiles = Hashfiles.all(customer_id: params[:id])
+  @hashfiles = Hashfiles.where(customer_id: params[:id]).all
   @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')
@@ -235,7 +235,8 @@ post '/customers/upload/verify_hashtype' do
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+  total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
+  total_cnt =   total_cnt[:count]
 
   unless total_cnt.nil?
     flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'

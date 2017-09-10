@@ -636,7 +636,7 @@ def upgrade_to_v070(user, password, host, database)
   updateSmartWordlist
 
   # Identify all wordlists without checksums
-  @wordlist = Wordlists.all(checksum: nil)
+  @wordlist = Wordlists.where(checksum: nil).all
   @wordlist.each do |wl|
     # generate checksum
     puts 'generating checksum'

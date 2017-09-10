@@ -18,7 +18,7 @@ post '/search' do
   # We have duplication here that can be cleaned up
 
   if params[:search_type].to_s == 'password'
-    @local_results = repository(:default).adapter.select("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.plaintext like '%" + params[:value] + "%'")
+    @local_results = HVDB.fetch("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.plaintext like '%" + params[:value] + "%'")
 
     if @local_results.nil? || @local_results.empty?
       results_entry['local_cracked'] = '0'
@@ -70,7 +70,7 @@ post '/search' do
     p 'results:' + @results.to_s
 
   elsif params[:search_type].to_s == 'username'
-    @local_results = repository(:default).adapter.select("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE a.username like '%" + params[:value] + "%'")
+    @local_results = HVDB.fetch("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE a.username like '%" + params[:value] + "%'")
 
     if @local_results.nil? || @local_results.empty?
       results_entry['local_cracked'] = '0'
@@ -124,7 +124,7 @@ post '/search' do
 
   elsif params[:search_type] == 'hash'
 
-    @local_results = repository(:default).adapter.select("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.originalhash like '%" + params[:value] + "%'")
+    @local_results = HVDB.fetch("SELECT a.username, h.id, h.plaintext, h.cracked, h.originalhash, h.hashtype, c.name FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id LEFT JOIN customers c ON f.customer_id = c.id WHERE h.originalhash like '%" + params[:value] + "%'")
 
     if @local_results.nil? || @local_results.empty?
       results_entry['local_cracked'] = '0'

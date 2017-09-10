@@ -17,11 +17,8 @@ def isOldVersion?
   # Check for v0.5.1
   # Note this version does not have a versions column. Going forward we will check that value
   has_version_column = false
-  @tables = repository(:default).adapter.select('DESC settings')
-  @tables.each do |row|
-    if row.field == 'version'
-      has_version_column = true
-    end
+  if Settings.columns.include?(:version)
+    has_version_column = true
   end
 
   if has_version_column
@@ -49,7 +46,7 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
 
     # if we are setting a status to completed, check to see if this is the last task in queue. if so, set jobtask to completed
     if status == 'Completed'
-      remainingtasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued')
+      remainingtasks = Taskqueues.where(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued').all
       if remainingtasks.empty?
         updateJobTaskStatus(queue.jobtask_id, 'Completed')
       end
@@ -65,13 +62,13 @@ def updateJobTaskStatus(jobtask_id, status)
 
   # if this is the last task for this current job, then set the job to be completed
   # find the job of the jobtask id:
-  job = Jobs.first(id: jobtask.job_id)
+  job = Jobs.first(id: jobtask[:job_id])
   if job.status == 'Queued'
     job.status = 'Running'
     job.save
   end
   # find all tasks for current job:
-  jobtasks = Jobtasks.all(job_id: job.id)
+  jobtasks = Jobtasks.where(job_id: job[:id]).all
   # if no more job are set to queue, consider the job completed
   done = true
   jobtasks.each do |jt|
@@ -89,7 +86,7 @@ def updateJobTaskStatus(jobtask_id, status)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
     @hash_ids = Set.new
-    Hashfilehashes.all(hashfile_id: hashfile.id).each do |entry|
+    Hashfilehashes.where(hashfile_id: hashfile.id).each do |entry|
       @hash_ids.add(entry.hash_id)
     end
     total_cracked = Hashes.count(id: @hash_ids, cracked: 1)
@@ -105,7 +102,7 @@ def updateJobTaskStatus(jobtask_id, status)
     job.status = 'Completed'
     job.save
     # purge all queued tasks
-    taskqueues = Taskqueues.all(job_id: job.id)
+    taskqueues = Taskqueues.where(job_id: job.id).all
     taskqueues.destroy
   end
 end

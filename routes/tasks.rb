@@ -9,7 +9,7 @@ end
 get '/tasks/delete/:id' do
   varWash(params)
 
-  @job_tasks = Jobtasks.all(task_id: params[:id])
+  @job_tasks = Jobtasks.where(task_id: params[:id]).all
   unless @job_tasks.empty?
     flash[:error] = 'That task is currently used in a job.'
     redirect to('/tasks/list')
@@ -142,7 +142,7 @@ post '/tasks/create' do
     redirect to('/tasks/create')
   end
 
-  @tasks = Tasks.all(name: params[:name])
+  @tasks = Tasks.where(name: params[:name]).all
   unless @tasks.nil?
     @tasks.each do |task|
       if task.name == params[:name]

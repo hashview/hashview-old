@@ -33,7 +33,7 @@ get '/jobs/delete/:id' do
       flash[:error] = 'You need to stop the job before deleting it.'
       redirect to('/jobs/list')
     end
-    @jobtasks = Jobtasks.all(job_id: params[:id])
+    @jobtasks = Jobtasks.where(job_id: params[:id]).all
     @jobtasks.each do |jobtask|
       jobtask.destroy unless jobtask.nil?
     end
@@ -133,13 +133,15 @@ end
 get '/jobs/assign_hashfile' do
   varWash(params)
 
-  @hashfiles = Hashfiles.all(customer_id: params[:customer_id])
+  @hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all
   @customer = Customers.first(id: params[:customer_id])
 
   @cracked_status = Hash.new
   @hashfiles.each do |hashfile|
-    hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
-    hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+    hashfile_cracked_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[:count]
+    hashfile_cracked_count = hashfile_cracked_count[:count]
+    hashfile_total_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
+    hashfile_total_count = hashfile_total_count[:count]
     @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
   end
 
@@ -173,7 +175,7 @@ get '/jobs/assign_tasks' do
   varWash(params)
 
   @job = Jobs.first(id: params[:job_id])
-  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+  @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
   @tasks = Tasks.all
 
   # Create jobtasks_task object
@@ -196,7 +198,7 @@ get '/jobs/move_task' do
   varWash(params)
 
   # We create an array of all related jobtasks, remove existing jobtasks, re-arrange, and create new jobtasks (this way we dont have to worry about non-contigous jobtasks ids)
-  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+  @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
 
   @temp_jobtasks = []
   @new_jobtasks = []
@@ -279,7 +281,7 @@ end
 get '/jobs/complete' do
   varWash(params)
 
-  jobtasks = Jobtasks.all(job_id: params[:job_id])
+  jobtasks = Jobtasks.where(job_id: params[:job_id]).all
   jobtasks.each do |task|
     task.status = 'Queued'
     task.save
@@ -313,7 +315,7 @@ post '/jobs/complete' do
   job.save
 
   # grab existing jobtasks if there are any
-  @jobtasks = Jobtasks.all(job_id: params[:job_id])
+  @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
   @tasks = Tasks.all
 
   # prevent adding duplicate tasks to a job
@@ -349,7 +351,7 @@ post '/jobs/complete' do
 
   # Resets jobtasks tables
   if params[:edit] && !params[:edit].nil?
-    @jobtasks = Jobtasks.all(job_id: params[:job_id])
+    @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
     @jobtasks.each do |jobtask|
       jobtask.status = 'Queued'
       jobtask.save
@@ -370,7 +372,7 @@ get '/jobs/start/:id' do
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
   else
-    @jobtasks = Jobtasks.all(job_id: params[:id])
+    @jobtasks = Jobtasks.where(job_id: params[:id]).all
     unless @jobtasks
       flash[:error] = 'This job has no tasks to run.'
       return 'This job has no tasks to run.'
@@ -396,7 +398,7 @@ get '/jobs/start/:id' do
       @job.save
 
       cmds = buildCrackCmd(@job.id, task.id)
-      cmds.each do |cmd|
+      cmds. each do |cmd|
         cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
         # we are using a db queue instead for public api
         queue = Taskqueues.new
@@ -422,7 +424,7 @@ get '/jobs/stop/:id' do
   varWash(params)
 
   @job = Jobs.first(id: params[:id])
-  @jobtasks = Jobtasks.all(job_id: params[:id])
+  @jobtasks = Jobtasks.where(job_id: params[:id]).all
 
   @job.status = 'Canceled'
   @job.save
@@ -438,8 +440,10 @@ get '/jobs/stop/:id' do
 
   # we are using a db queue instead for public api
   # remove all items from queue
-  queue = Taskqueues.all(job_id: @job.id)
-  queue.destroy if queue
+  queue = Taskqueues.where(job_id: @job.id).all
+  queue.each do |q|
+      q.destroy unless q.nil?
+    end
 
   # TODO I see a problem with this once we have multiple agents. but for now, i'm too drunk to deal with it
   @jobtasks.each do |task|
@@ -464,7 +468,7 @@ get '/jobs/stop/:job_id/:task_id' do
   jt.status = 'Canceled'
   jt.save
 
-  taskqueue = Taskqueues.all(jobtask_id: jt.id)
+  taskqueue = Taskqueues.where(jobtask_id: jt.id).all
   taskqueue.each do |tq|
     tq.status = 'Canceled'
     tq.save
@@ -485,8 +489,7 @@ get '/jobs/local_check' do
   # TODO offer the ability to upload to hub
 
   @jobs = Jobs.first(id: params[:job_id])
-  @previously_cracked = repository(:default).adapter.select('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', @jobs.hashfile_id)
-
+  @previously_cracked = HVDB.fetch('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id =? AND h.cracked = 1)', @jobs.hashfile_id)
   @url = '/jobs'
 
   # Check to see if we're going to use the hub
@@ -535,7 +538,7 @@ get '/jobs/hub_check' do
     show_results: '0'
   }
 
-  @hashfile_hashes = Hashfilehashes.all(hashfile_id: @jobs.hashfile_id)
+  @hashfile_hashes = Hashfilehashes.where(hashfile_id: @jobs.hashfile_id).all
   # Each hashfile might have multiple duplicate hashes, we need a unique list
   @hash_array = []
   @hashfile_hashes.each do |entry|

@@ -78,7 +78,7 @@ get '/rules/delete/:id' do
   else
     # check if rule file is in use
     # TODO tasks should store rules by id not name
-    @task_list = Tasks.all(hc_rule: rules_file.name)
+    @task_list = Tasks.where(hc_rule: rules_file.name).all
     unless @task_list.empty?
       flash[:error] = 'This Rules file is associated with a task, it cannot be deleted.'
       redirect to('/rules/list')

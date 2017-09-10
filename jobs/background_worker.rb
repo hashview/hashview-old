@@ -116,12 +116,14 @@ class Api
   # job details
   def self.job(job_id)
     url = "https://#{@server}/v1/job/#{job_id}"
+    puts "DEBUG URL #{url}"
     return self.get(url)
   end
 
   # download hashfile
   def self.hashfile(jobtask_id, hashfile_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/hashfile/#{hashfile_id}"
+    puts "DEBUG HASH URL #{url}"
     return self.get(url)
   end
 
@@ -305,7 +307,7 @@ class LocalAgent
         heartbeat = Api.post_heartbeat(payload)
         puts '======================================'
         heartbeat = JSON.parse(heartbeat)
-        puts heartbeat
+        puts "DEBUG: HEARTBEAT #{heartbeat}"
 
         if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
 
@@ -331,13 +333,15 @@ class LocalAgent
             job = JSON.parse(job)
 
             # we need to get task_id which is stored in jobtasks
-            jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+            #jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+            jobtask = Api.jobtask(jdata['jobtask_id'])
+            jobtask = JSON.parse(jobtask)
 
             # We need to know if the wordlist we're working on is a smart wordlist
             # This is kinda dumb we should really be building the cmd on the agents size
             # Might be nice to pause the task instead of claim its running
             # what happens if the next chunk also uses this smart hashfile?
-            task = Api.task(jobtask.task_id)
+            task = Api.task(jobtask[:task_id])
             task = JSON.parse(task)
 
             wordlists = Api.wordlists
@@ -359,7 +363,7 @@ class LocalAgent
             # get our hashcat command and sub out the binary path
             cmd = jdata['command']
             cmd = replaceHashcatBinPath(cmd)
-            puts cmd
+            puts "DEBUG HASHCAT CMD #{cmd}"
 
             # this variable is used to determine if the job was canceled
             @canceled = false

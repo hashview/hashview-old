@@ -1,7 +1,7 @@
 def updateSmartWordlist
 
   # Set all jobqueue items that are 'queued' to 'paused'
-  taskqueues = Taskqueues.all(status: 'Queued')
+  taskqueues = Taskqueues.where(status: 'Queued').all
   taskqueues.each do |entry|
     entry.status = 'Paused'
     entry.save
@@ -22,7 +22,8 @@ def updateSmartWordlist
   end
 
   # Get list of all plaintext passwords and save it to a file
-  @plaintexts = Hashes.all(fields: [:plaintext], cracked: 1, unique: true, order: [:plaintext.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
+  @plaintexts = Hashes.where(cracked: 1, unique: true).order(Sequel.asc(:plaintext)).select(:plaintext).all
   file_name = 'control/tmp/plaintext.txt'
 
   File.open(file_name, 'w') do |f|
@@ -63,14 +64,14 @@ def updateSmartWordlist
   File.delete('control/tmp/plaintext.txt') if File.exist?('control/tmp/plaintext.txt')
 
   # Update keyspace per task ( really shouldbe done at runtime)
-  tasks = Tasks.all(wl_id: wordlist.id)
+  tasks = Tasks.where(wl_id: wordlist.id).all
   tasks.each do |task|
     task.keyspace = getKeyspace(task)
     task.save
   end
 
   # resume all jobqueue items that are 'paused' to 'queued'
-  taskqueues = Taskqueues.all(status: 'Paused')
+  taskqueues = Taskqueues.where(status: 'Paused').all
   taskqueues.each do |entry|
     entry.status = 'Queued'
     entry.save

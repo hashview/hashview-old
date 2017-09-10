@@ -7,46 +7,46 @@ get '/download' do
 
       # Until we can figure out JOIN statments, we're going to have to hack it
       @filecontents = Set.new
-      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hashfile_id]).each do |entry|
-        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
+      Hashfilehashes.where(hashfile_id: params[:hashfile_id]).select(:id).each do |entry|
+        if params[:type] == 'cracked' and Hashes.first(id: entry[:hash_id]).cracked
+          if entry[:username].nil? # no username
             line = ''
           else
-            line = entry.username + ':'
+            line = entry[:username] + ':'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+          line = line + Hashes.first(id: entry[:hash_id]).originalhash
+          line = line + ':' + Hashes.first(id: entry[:hash_id], cracked: 1).plaintext
           @filecontents.add(line)
-        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
+        elsif params[:type] == 'uncracked' and not Hashes.first(id: entry[:hash_id]).cracked
+          if entry[:username].nil? # no username
             line = ''
           else
-            line = entry.username + ':'
+            line = entry[:username] + ':'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          line = line + Hashes.first(id: entry[:hash_id]).originalhash
           @filecontents.add(line)
         end
       end
     else
       @filecontents = Set.new
-      @hashfiles_ids = Hashfiles.all(fields: [:id], customer_id: params[:customer_id]).each do |hashfile|
-        Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
-          if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-            if entry.username.nil? # no username
+      @hashfiles_ids = Hashfiles.where(customer_id: params[:customer_id]).select(:id).each do |hashfile|
+        Hashfilehashes.where(hashfile_id: hashfile.id).select(:id).each do |entry|
+          if params[:type] == 'cracked' and Hashes.first(id: entry[:hash_id]).cracked
+            if entry[:username].nil? # no username
               line = ''
             else
-              line = entry.username + ':'
+              line = entry[:username] + ':'
             end
-            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-            line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+            line = line + Hashes.first(id: entry[:hash_id]).originalhash
+            line = line + ':' + Hashes.first(id: entry[:hash_id], cracked: 1).plaintext
             @filecontents.add(line)
-          elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-            if entry.username.nil? # no username
+          elsif params[:type] == 'uncracked' and not Hashes.first(id: entry[:hash_id]).cracked
+            if entry[:username].nil? # no username
               line = ''
             else
-              line = entry.username + ':'
+              line = entry[:username] + ':'
             end
-            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+            line = line + Hashes.first(id: entry[:hash_id]).originalhash
             @filecontents.add(line)
           end
         end    
@@ -54,24 +54,26 @@ get '/download' do
     end
   else
     @filecontents = Set.new
-    @hashfiles_ids = Hashfiles.all(fields: [:id]).each do |hashfile|
-      Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
-        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
+    @hashfiles_ids = Hashfiles.select(:id).each do |hashfile|
+      hashfile = hashfile.values
+      Hashfilehashes.where(hashfile_id: hashfile[:id]).each do |entry|
+        entry = entry.values
+        if params[:type] == 'cracked' and Hashes.first(id: entry[:hash_id], cracked: 1)
+          if entry[:username].nil? # no username
             line = ''
           else
-            line = entry.username + ':'
+            line = entry[:username] + ':'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
+          line = line + Hashes.first(id: entry[:hash_id]).values[:originalhash]
+          line = line + ':' + Hashes.first(id: entry[:hash_id]).values[:plaintext]
           @filecontents.add(line)
-        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
+        elsif params[:type] == 'uncracked' and not Hashes.first(id: entry[:hash_id], cracked: 1)
+          if entry[:username].nil? # no username
             line = ''
           else
-            line = entry.username + ':'
+            line = entry[:username] + ':'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
+          line = line + Hashes.first(id: entry[:hash_id]).values[:originalhash]
           @filecontents.add(line)
         end
       end

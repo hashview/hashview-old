@@ -1,26 +1,22 @@
 require 'rubygems'
-require 'data_mapper'
 require 'sequel'
 require 'bcrypt'
+
+Sequel::Model.plugin :json_serializer
 
 # read config
 options = YAML.load_file('config/database.yml')
 
 # there has to be a better way to handle this shit
 if ENV['RACK_ENV'] == 'test'
-  DataMapper::Logger.new($stdout, :debug)
-  DataMapper.setup(:default, options['test'])
   HVDB = Sequel.mysql(options['test'])
   HVDB.loggers << Loggers.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == 'development'
-  DataMapper::Logger.new($stdout, :debug)
-  DataMapper.setup(:default, options['development'])
   HVDB = Sequel.mysql(options['development'])
   HVDB.loggers << Logger.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == ('production' || 'default')
-  DataMapper.setup(:default, options['production'])
   HVDB = Sequel.mysql(options['production'])
   HVDB.loggers << Logger.new(STDOUT)
 else
@@ -119,154 +115,58 @@ class Jobs < Sequel::Model(:jobs)
 end
 
 # Jobs will have multiple crack tasks
-class Jobtasks
-  include DataMapper::Resource
+class Jobtasks < Sequel::Model(:jobtasks)
 
-  property :id, Serial
-  property :job_id, Integer
-  property :task_id, Integer
-  property :build_cmd, String, length: 5000
-  # status options should be "Running", "Paused", "Not Started", "Completed", "Queued", "Failed", "Canceled", "Importing"
-  property :status, String
-  property :run_time, Integer
 end
 
 # Task definitions
-class Tasks
-  include DataMapper::Resource
+class Tasks < Sequel::Model(:tasks)
 
-  property :id, Serial
-  property :name, String
-  property :source, String
-  property :mask, String
-  property :command, String, length: 4000
-  property :wl_id, String, length: 256
-  property :hc_attackmode, String, length: 25
-  property :hc_rule, String
-  property :hc_mask, String
-  # support huge keyspaces
-  property :keyspace, Integer, max: 9999999999999999999
 end
 
 # Table for handling hashes cracked and uncracked
-class Hashes
-  include DataMapper::Resource
+class Hashes < Sequel::Model(:hashes)
 
-  property :id, Serial
-  property :lastupdated, DateTime
-  property :originalhash, String, length: 1024, :unique_index => true
-  property :hashtype, Integer, :index => true
-  property :cracked, Boolean
-  property :plaintext, String, length: 255
 end
 
 # Table for managing association between users and hashes
-class Hashfilehashes
-  include DataMapper::Resource
+class Hashfilehashes < Sequel::Model(:hashfilehashes)
 
-  property :id,	Serial
-  property :hash_id, Integer, :index => true
-  property :username, String, length: 256
-  property :hashfile_id, Integer, :index => true
 end
 
 # User Settings
-class Settings
-  include DataMapper::Resource
+class Settings < Sequel::Model(:settings)
 
-  property :id, Serial
-  property :smtp_server, String
-  property :smtp_sender, String, length: 50
-  property :smtp_user, String
-  property :smtp_pass, String
-  property :smtp_use_tls, Boolean
-  property :smtp_auth_type, String # Options are plain, login, cram_md5, none
-  property :clientmode, Boolean
-  property :ui_themes, String, default: 'Light', required: true
-  property :version, String, length: 5
-  property :chunk_size, Integer, max: 9999999999999999999, default: 500000
 end
 
 # HashCat settings
-class HashcatSettings
-  include DataMapper::Resource
+class HashcatSettings < Sequel::Model(:hashcat_settings)
 
-  property :id, Serial
-  property :hc_binpath, String, length: 2000
-  property :max_task_time, String, length: 2000
-  property :opencl_device_types, Integer, default: 0
-  property :workload_profile, Integer, default: 0
-  property :gpu_temp_disable, Boolean, default: 0
-  property :gpu_temp_abort, Integer, default: 0
-  property :gpu_temp_retain, Integer, default: 0
-  property :hc_force, Boolean, default: 0
 end
 
 # Hashview Hub Settings
-class HubSettings
-  include DataMapper::Resource
+class HubSettings < Sequel::Model(:hub_settings)
 
-  property :id, Serial
-  property :enabled, Boolean
-  property :status, String, default: 'unregistered', required: true # Options are registered, unregistered and pending
-  property :email, String
-  property :uuid, String
-  property :auth_key, String, length: 254
-  property :balance, Integer, default: 0
 end
 
 
 # Wordlist Class
-class Wordlists
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :lastupdated, DateTime
-  property :type, String, length: 25 # Options are Static or Dynamic
-  property :name, String, length: 256
-  property :path, String, length: 2000
-  property :size, String, length: 100
-  property :checksum, String, length: 64
+class Wordlists < Sequel::Model(:wordlists)
 
 end
 
 # Rules Class
-class Rules
-  include DataMapper::Resource
-
-  property :id, Serial
-  property :lastupdated, DateTime
-  property :name, String, length: 256
-  property :path, String, length: 2000
-  property :size, String, length: 100
-  property :checksum, String, length: 64
+class Rules < Sequel::Model(:rules)
 
 end
 
 # Hashfile Class
-class Hashfiles
-  include DataMapper::Resource
+class Hashfiles < Sequel::Model(:hashfiles)
 
-  property :id, Serial
-  property :customer_id, Integer
-  property :name, String, length: 256
-  property :hash_str, String, length: 256
-  property :total_run_time, Integer, default: 0
 end
 
 # task queue (we no logger use a resque worker)
-class Taskqueues
-  include DataMapper::Resource
+class Taskqueues < Sequel::Model(:taskqueues)
 
-  property :id, Serial
-  property :jobtask_id, Integer
-  property :job_id, Integer
-  property :updated_at, DateTime, default: DateTime.now
-  # status options should be "Running", "Completed", "Queued", "Canceled", "Paused"
-  property :queued_at, DateTime
-  property :status, String, length: 100
-  property :agent_id, String, length: 2000
-  property :command, String, length: 4000
 end
 
-DataMapper.finalize
