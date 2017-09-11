@@ -230,16 +230,19 @@ post '/customers/upload/verify_hashtype' do
   @job.hashfile_id = hashfile.id
   @job.save
 
+time = Benchmark.measure {
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
+}
 
   total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
   total_cnt =   total_cnt[:count]
 
   unless total_cnt.nil?
-    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+    #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes taking a total of ' + time.real.to_s + ' seconds.'
   end
 
   # Delete file, no longer needed
