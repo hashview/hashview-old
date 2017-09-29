@@ -20,9 +20,9 @@ control/wordlists/*
 !control/wordlists/password.gz
 control/tmp/*
 !control/tmp/.blank
-control/logs/*.log
+control/logs/*
 !control/logs/.blank
-control/logs/jobs/*.log
+control/logs/jobs/*
 !control/logs/jobs/.blank
 *.pot
 *.restore
