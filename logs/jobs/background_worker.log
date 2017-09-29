@@ -1,81 +1,64 @@
-# Logfile created on 2017-09-29 13:08:53 -0500 by logger.rb/47272
-D, [2017-09-29T13:08:53.719981 #8282] DEBUG -- : Background Worker Class() - has started
-I, [2017-09-29T13:08:59.945876 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:04.009896 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:08.073803 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:12.141896 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:16.205942 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:20.269934 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:24.329825 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:28.393932 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:32.453779 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:36.513897 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:40.577775 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:44.641814 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:48.713750 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:52.773769 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:09:56.845727 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:00.909768 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:04.973911 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:09.037774 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:13.109908 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:17.173751 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:21.241737 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:25.321806 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:29.385758 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:33.449993 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:37.513768 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:41.573760 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:45.637864 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:49.701874 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
-I, [2017-09-29T13:10:53.793868 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Authorized"}
-I, [2017-09-29T13:10:57.857825 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:01.921769 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:05.985782 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:10.053820 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:14.125819 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:18.189880 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:22.253723 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:26.321799 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:30.385721 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:34.450361 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:38.517816 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:42.585792 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:46.653878 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:50.732006 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:54.797856 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:11:58.861932 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-D, [2017-09-29T13:13:22.374847 #8908] DEBUG -- : Background Worker Class() - has started
-I, [2017-09-29T13:13:28.929876 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:33.005841 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:37.069772 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:41.133857 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:45.197758 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:49.261749 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:53.333823 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:13:57.399372 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:01.469869 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:05.533761 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:09.597747 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:13.665901 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:17.729781 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:21.793834 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:25.857760 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:29.925734 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:33.993918 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:38.057769 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:42.125875 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:46.194269 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:50.273916 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:54.341762 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:14:58.409781 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:02.473738 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:06.537763 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:10.609754 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:14.677857 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:18.749759 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:22.821938 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:26.889908 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:30.953852 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:35.017839 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
-I, [2017-09-29T13:15:39.081751 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+# Logfile created on 2017-09-29 14:13:30 -0500 by logger.rb/47272
+D, [2017-09-29T14:13:30.255080 #10058] DEBUG -- : Background Worker Class() - has started
+I, [2017-09-29T14:13:36.565792 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:13:40.629873 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:13:44.693798 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:13:48.757798 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:13:52.821775 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:13:56.889741 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:00.957776 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:05.021767 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:09.089824 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:13.158031 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:17.225717 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:21.297839 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:25.361745 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:29.425789 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:33.493780 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:37.561815 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:41.625829 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:45.697798 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:49.761846 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:53.833848 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:14:57.905842 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:01.973824 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:06.037801 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:10.105787 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:14.169835 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:18.233723 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:22.301778 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:26.369856 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:30.441884 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:34.510451 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:38.597791 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:42.661756 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:46.725846 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:50.793836 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:54.857770 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:15:58.929661 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T14:16:02.993923 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"1"}
+D, [2017-09-29T14:18:03.677882 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 0 -l 500000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:18:07.678701 #10058]  INFO -- : WORKING ON ID: 1
+I, [2017-09-29T14:18:07.788452 #10058]  INFO -- : No successful cracks for this task. Skipping upload.
+I, [2017-09-29T14:18:11.883163 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"2"}
+D, [2017-09-29T14:19:01.782275 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 500000 -l 1000000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:19:05.782514 #10058]  INFO -- : WORKING ON ID: 2
+I, [2017-09-29T14:19:05.844407 #10058]  INFO -- : No successful cracks for this task. Skipping upload.
+I, [2017-09-29T14:19:09.921785 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"3"}
+D, [2017-09-29T14:21:10.589906 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 1000000 -l 1500000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:21:14.590145 #10058]  INFO -- : WORKING ON ID: 3
+I, [2017-09-29T14:21:14.658441 #10058]  INFO -- : No successful cracks for this task. Skipping upload.
+I, [2017-09-29T14:21:18.753866 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"4"}
+D, [2017-09-29T14:22:11.622037 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 1500000 -l 2000000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:22:15.622283 #10058]  INFO -- : WORKING ON ID: 4
+I, [2017-09-29T14:22:15.689607 #10058]  INFO -- : No successful cracks for this task. Skipping upload.
+I, [2017-09-29T14:22:19.813932 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"5"}
+D, [2017-09-29T14:24:20.429909 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 2000000 -l 2500000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:24:24.430113 #10058]  INFO -- : WORKING ON ID: 5
+I, [2017-09-29T14:24:28.661817 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"6"}
+D, [2017-09-29T14:26:29.346543 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 2500000 -l 3000000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:26:33.347370 #10058]  INFO -- : WORKING ON ID: 6
+I, [2017-09-29T14:26:37.673747 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"7"}
+D, [2017-09-29T14:28:38.307028 #10058] DEBUG -- : /root/hashcat-3.00/hashcat64.bin -m 1000 --potfile-disable --status --status-timer=15 --outfile-format 5  --outfile control/outfiles/hc_cracked_56_5.txt control/hashes/hashfile_56_5.txt control/wordlists/SmartWordlist.txt --workload-profile 4 -s 3000000 -l 3500000 | tee -a control/outfiles/hcoutput_56.txt
+I, [2017-09-29T14:28:42.307325 #10058]  INFO -- : WORKING ON ID: 7
+I, [2017-09-29T14:28:46.610819 #10058]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"START", "task_id"=>"8"}

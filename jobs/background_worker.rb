@@ -53,14 +53,14 @@ class Api
   # get heartbeat when we are looking for work to do
   def self.heartbeat()
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
-    puts "HEARTBEETING"
+    # puts "HEARTBEETING"
     return self.get(url)
   end
 
   # post hearbeat is used when agent is working
   def self.post_heartbeat(payload)
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
-    puts "HEARTBEETING"
+    # puts "HEARTBEETING"
     return self.post(url, payload)
   end
 
@@ -150,7 +150,7 @@ class Api
   # upload crack file
   def self.upload_crackfile(jobtask_id, crack_file, run_time)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/crackfile/upload"
-    puts "attempting upload #{crack_file}"
+    # puts "attempting upload #{crack_file}"
     begin
       request = RestClient::Request.new(
         :method => :post,
