@@ -268,6 +268,16 @@ class LocalAgent
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
 
+    # Setup Logger
+    logger_background_worker = Logger.new('logs/jobs/background_worker.log', 'daily')
+    if ENV['RACK_ENV'] == 'development'
+      logger_background_worker.level = Logger::DEBUG
+    else
+      logger_background_worker.level = Logger::INFO
+    end
+
+    logger_background_worker.debug('Background Worker Class() - has started')
+
     hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
 
     # is hashcat working? if so, how fast are you? provide basic information to master server
@@ -292,7 +302,8 @@ class LocalAgent
 
       # ok either do nothing or start working
       if pid.nil?
-        puts "AGENT IS WORKING RIGHT NOW"
+        # Do we need to even log this?
+        logger_background_worker.debug('Agent is working right now')
       else
 
         # if we have taskqueue tmp file locally, delete it
@@ -303,9 +314,8 @@ class LocalAgent
         payload['agent_status'] = 'Idle'
         payload['hc_benchmark'] = 'example data'
         heartbeat = Api.post_heartbeat(payload)
-        puts '======================================'
         heartbeat = JSON.parse(heartbeat)
-        puts heartbeat
+        logger_background_worker.info(heartbeat)
 
         if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
 
@@ -359,7 +369,7 @@ class LocalAgent
             # get our hashcat command and sub out the binary path
             cmd = jdata['command']
             cmd = replaceHashcatBinPath(cmd)
-            puts cmd
+            logger_background_worker.debug(cmd)
 
             # this variable is used to determine if the job was canceled
             @canceled = false
@@ -377,8 +387,8 @@ class LocalAgent
             catch :mainloop do
               while thread1.status do
                 sleep 4
-                puts 'WORKING IN THREAD'
-                puts "WORKING ON ID: #{jdata['id']}"
+                #puts 'WORKING IN THREAD'
+                logger_background_worker.info("WORKING ON ID: #{jdata['id']}")
                 payload = {}
                 payload['agent_status'] = 'Working'
                 payload['agent_task'] = jdata['id']
@@ -410,7 +420,8 @@ class LocalAgent
             if File.exist?(crack_file) && ! File.zero?(crack_file)
               Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
-              puts "No successful cracks for this task. Skipping upload."
+              # Does this need to be logged?
+              logger_background_worker.info('No successful cracks for this task. Skipping upload.')
             end
 
             # remove task data tmp file
@@ -430,5 +441,6 @@ class LocalAgent
         end
       end
     end
+    logger_background_worker.debug('Background Worker Class() - has Completed')
   end
 end

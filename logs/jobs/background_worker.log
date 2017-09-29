@@ -1,0 +1,81 @@
+# Logfile created on 2017-09-29 13:08:53 -0500 by logger.rb/47272
+D, [2017-09-29T13:08:53.719981 #8282] DEBUG -- : Background Worker Class() - has started
+I, [2017-09-29T13:08:59.945876 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:04.009896 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:08.073803 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:12.141896 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:16.205942 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:20.269934 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:24.329825 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:28.393932 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:32.453779 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:36.513897 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:40.577775 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:44.641814 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:48.713750 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:52.773769 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:09:56.845727 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:00.909768 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:04.973911 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:09.037774 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:13.109908 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:17.173751 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:21.241737 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:25.321806 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:29.385758 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:33.449993 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:37.513768 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:41.573760 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:45.637864 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:49.701874 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Go Away"}
+I, [2017-09-29T13:10:53.793868 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"Authorized"}
+I, [2017-09-29T13:10:57.857825 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:01.921769 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:05.985782 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:10.053820 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:14.125819 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:18.189880 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:22.253723 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:26.321799 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:30.385721 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:34.450361 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:38.517816 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:42.585792 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:46.653878 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:50.732006 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:54.797856 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:11:58.861932 #8282]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+D, [2017-09-29T13:13:22.374847 #8908] DEBUG -- : Background Worker Class() - has started
+I, [2017-09-29T13:13:28.929876 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:33.005841 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:37.069772 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:41.133857 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:45.197758 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:49.261749 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:53.333823 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:13:57.399372 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:01.469869 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:05.533761 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:09.597747 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:13.665901 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:17.729781 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:21.793834 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:25.857760 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:29.925734 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:33.993918 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:38.057769 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:42.125875 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:46.194269 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:50.273916 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:54.341762 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:14:58.409781 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:02.473738 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:06.537763 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:10.609754 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:14.677857 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:18.749759 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:22.821938 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:26.889908 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:30.953852 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:35.017839 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}
+I, [2017-09-29T13:15:39.081751 #8908]  INFO -- : {"status"=>200, "type"=>"message", "msg"=>"OK"}

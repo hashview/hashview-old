@@ -1,12 +1,16 @@
-require_relative 'file_checksum'
 module RuleImporter
   @queue = :management
 
   def self.perform()
     sleep(rand(10))
+    logger_ruleimporter = Logger.new('logs/jobs/ruleImporter.log', 'daily')
     if ENV['RACK_ENV'] == 'development'
-      puts 'Rule fil Importer Class'
+      logger_ruleimporter.level = Logger::DEBUG
+    else
+      logger_ruleimporter.level = Logger::INFO
     end
+
+    logger_ruleimporter.debug('Rule Importer Class() - has started')
 
     # Identify all rules in directory
     @files = Dir.glob(File.join('control/rules/', '*.rule'))
@@ -15,12 +19,11 @@ module RuleImporter
       unless rule_entry
         # Get Name
         name = path_file.split('/')[-1]
-
-        puts 'Importing new Rule file "' + name + '" into HashView.'
+        logger_ruleimporter.info('Importing new Rule ""' + name + '"" into HashView.')
 
         # Adding to DB
         rule_file = Rules.new
-        rule_file.lastupdated = Time.now()
+        rule_file.lastupdated = Time.now
         rule_file.name = name
         rule_file.path = path_file
         rule_file.size = 0
@@ -33,7 +36,6 @@ module RuleImporter
     @files = Dir.glob(File.join('control/rules/', '*.rule'))
     @files.each do |path_file|
       rule_file = Rules.first(path: path_file)
-      id = rule_file.id
       if rule_file.size == '0'
         size = File.foreach(path_file).inject(0) { |c| c + 1}
         rule_file.size = size
@@ -41,8 +43,6 @@ module RuleImporter
       end
     end
 
-    if ENV['RACK_ENV'] == 'development'
-      puts 'Rule file Importer Class() - done'
-    end
+    logger_ruleimporter.debug('Rule Importer Class() - has completed')
   end
 end

@@ -3,12 +3,21 @@
 module WordlistChecksum
   @queue = :management
   def self.perform()
-    puts '============== generating wordlist checksum ========================'
+    # Setup Logger
+    logger_wordlistchecksum = Logger.new('logs/jobs/wordlistchecksum.log', 'daily')
+    if ENV['RACK_ENV'] == 'development'
+      logger_wordlistchecksum.level = Logger::DEBUG
+    else
+      logger_wordlistchecksum.level = Logger::INFO
+    end
+
+    logger_wordlistchecksum.debug('Wordlist Checksum Class() - has started')
+
     # Identify all wordlists without checksums
     @wordlist = Wordlists.all(checksum: nil)
     @wordlist.each do |wl|
       # generate checksum
-      puts 'generating checksum for: ' +  wl.path.to_s
+      logger_wordlistchecksum.info('generating checksum for: ' + wl.path.to_s)
       checksum = Digest::SHA2.hexdigest(File.read(wl.path))
 
       # save checksum to database
@@ -16,5 +25,6 @@ module WordlistChecksum
       wl.save
     end
 
+    logger_wordlistchecksum.debug('Wordlist Checksum Class() - has completed')
   end
 end
