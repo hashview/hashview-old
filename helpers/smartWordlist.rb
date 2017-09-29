@@ -39,7 +39,7 @@ def updateSmartWordlist
   shell_cmd = 'sort --parallel ' + cpu_count.to_s + ' -u control/tmp/plaintext.txt '
   @wordlists = Wordlists.all
   @wordlists.each do |entry|
-    shell_cmd = shell_cmd + entry.path.to_s + ' '
+    shell_cmd = shell_cmd + entry.path.to_s + ' ' if entry.type == 'static'
   end
   # We move to temp to prevent wordlist importer from accidentally loading the smart wordlist too early
   shell_cmd += '-o control/tmp/SmartWordlist.txt'
