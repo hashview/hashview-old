@@ -73,11 +73,7 @@ def importPwdump(hash, hashfile_id, type)
 end
 
 def machineAcct?(username)
-  if username =~ /\$/
-    return true
-  else
-    return false
-  end
+  username =~ /\$/ ? true : false
 end
 
 def importShadow(hash, hashfile_id, type)
@@ -384,73 +380,73 @@ end
 
 # Called by search
 def modeToFriendly(mode)
-  return 'MD5' if mode == '0'
-  return 'md5($pass.$salt)' if mode == '10'
-  return 'md5($salt.$pass)' if mode == '20'
-  return 'md5(unicode($pass).$salt)' if mode == '30'
-  return 'md5($salt.unicode($pass))' if mode == '40'
-  return 'HMAC-MD5 (key = $pass)' if mode == '50'
-  return 'HMAC-MD5 (key = $salt)' if mode == '60'
-  return 'SHA-1' if mode == '100'
-  return 'sha1($pass.$salt)' if mode == '110'
-  return 'sha1($salt.$pass)' if mode == '120'
-  return 'sha1(unicode($pass).$salt)' if mode == '130'
-  return 'sha1($salt.unicode($pass))' if mode == '140'
-  return 'HMAC-SHA1 (key = $pass)' if mode == '150'
-  return 'HMAC-SHA1 (key = $salt)' if mode == '160'
-  # return 'sha1(LinkedIn)' if mode == '190'
-  return 'MySQL323' if mode == '200'
-  return 'md5crypt' if mode == '500'
-  return 'MD4' if mode == '900'
-  return 'NTLM' if mode == '1000'
-  return 'descrypt' if mode == '1500'
-  return 'sha512crypt' if mode == '1800'
-  return 'Double MD5' if mode == '2600'
-  return 'LM' if mode == '3000'
-  return 'Oracle 7-10g, DES(Oracle)' if mode == '3100'
-  return 'bcrypt' if mode == '3200'
-  return 'md5(md5(md5($pass)))' if mode == '3500'
-  return 'md5(md5($salt).$pass)' if mode == '3610'
-  return 'md5($salt.md5($pass))' if mode == '3710'
-  return 'md5($pass.md5($salt))' if mode == '3720'
-  return 'md5(md5($pass).md5($salt))' if mode == '3910'
-  return 'md5($salt.md5($salt.$pass))' if mode == '4010'
-  return 'md5($salt.md5($pass.$salt))' if mode == '4110'
-  return 'md5(strtroupper(md5($pass)))' if mode == '4300'
-  return 'md5(sha1($pass))' if mode == '4400'
-  return 'sha1(sha1($pass))' if mode == '4500'
-  return 'sha1(sha1(sha1($pass)))' if mode == '4600'
-  return 'sha1(md5($pass))' if mode == '4700'
-  return 'Half MD5' if mode == '5100'
-  return 'NetNTLMv1' if mode == '5500'
-  return 'NetNTLMv2' if mode == '5600'
-  return 'RipeMD160' if mode == '6000'
-  return 'sha256crypt' if mode == '7400'
-  return 'Lotus Notes/Domino 5' if mode == '8600'
-  return 'PrestaShop' if mode == '11000'
-  return 'unknown' if mode == '99999'
-  return 'unknown'
+  'MD5' if mode == '0'
+  'md5($pass.$salt)' if mode == '10'
+  'md5($salt.$pass)' if mode == '20'
+  'md5(unicode($pass).$salt)' if mode == '30'
+  'md5($salt.unicode($pass))' if mode == '40'
+  'HMAC-MD5 (key = $pass)' if mode == '50'
+  'HMAC-MD5 (key = $salt)' if mode == '60'
+  'SHA-1' if mode == '100'
+  'sha1($pass.$salt)' if mode == '110'
+  'sha1($salt.$pass)' if mode == '120'
+  'sha1(unicode($pass).$salt)' if mode == '130'
+  'sha1($salt.unicode($pass))' if mode == '140'
+  'HMAC-SHA1 (key = $pass)' if mode == '150'
+  'HMAC-SHA1 (key = $salt)' if mode == '160'
+  # 'sha1(LinkedIn)' if mode == '190'
+  'MySQL323' if mode == '200'
+  'md5crypt' if mode == '500'
+  'MD4' if mode == '900'
+  'NTLM' if mode == '1000'
+  'descrypt' if mode == '1500'
+  'sha512crypt' if mode == '1800'
+  'Double MD5' if mode == '2600'
+  'LM' if mode == '3000'
+  'Oracle 7-10g, DES(Oracle)' if mode == '3100'
+  'bcrypt' if mode == '3200'
+  'md5(md5(md5($pass)))' if mode == '3500'
+  'md5(md5($salt).$pass)' if mode == '3610'
+  'md5($salt.md5($pass))' if mode == '3710'
+  'md5($pass.md5($salt))' if mode == '3720'
+  'md5(md5($pass).md5($salt))' if mode == '3910'
+  'md5($salt.md5($salt.$pass))' if mode == '4010'
+  'md5($salt.md5($pass.$salt))' if mode == '4110'
+  'md5(strtroupper(md5($pass)))' if mode == '4300'
+  'md5(sha1($pass))' if mode == '4400'
+  'sha1(sha1($pass))' if mode == '4500'
+  'sha1(sha1(sha1($pass)))' if mode == '4600'
+  'sha1(md5($pass))' if mode == '4700'
+  'Half MD5' if mode == '5100'
+  'NetNTLMv1' if mode == '5500'
+  'NetNTLMv2' if mode == '5600'
+  'RipeMD160' if mode == '6000'
+  'sha256crypt' if mode == '7400'
+  'Lotus Notes/Domino 5' if mode == '8600'
+  'PrestaShop' if mode == '11000'
+  'unknown' if mode == '99999'
+  'unknown'
 end
 
 def friendlyToMode(friendly)
-  return '0' if friendly == 'MD5'
-  return '1000' if friendly == 'NTLM'
-  return '3000' if friendly == 'LM'
-  return '100' if friendly == 'SHA-1'
-  return '500' if friendly == 'md5crypt'
-  return '3200' if friendly == 'bcrypt'
-  return '7400' if friendly == 'sha512crypt'
-  return '1800' if friendly == 'sha256crypt'
-  return '1500' if friendly == 'descrypt'
-  return '5500' if friendly == 'NetNTLMv1'
-  return '5600' if friendly == 'NetNTLMv2'
+  '0' if friendly == 'MD5'
+  '1000' if friendly == 'NTLM'
+  '3000' if friendly == 'LM'
+  '100' if friendly == 'SHA-1'
+  '500' if friendly == 'md5crypt'
+  '3200' if friendly == 'bcrypt'
+  '7400' if friendly == 'sha512crypt'
+  '1800' if friendly == 'sha256crypt'
+  '1500' if friendly == 'descrypt'
+  '5500' if friendly == 'NetNTLMv1'
+  '5600' if friendly == 'NetNTLMv2'
 end
 
 def importHash(hash_array, hashfile_id, file_type, hashtype)
   hash_array.each do |entry|
     entry = entry.gsub(/\s+/, '') # remove all spaces
-    if file_type == 'pwdump' or file_type == 'smart hashdump' 
-      importPwdump(entry.chomp, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
+    if file_type == 'pwdump' || file_type == 'smart hashdump'
+      importPwdump(entry.chomp, hashfile_id, hashtype) # because the format is the same aside from the trailing ::
     elsif file_type == 'shadow'
       importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'hash_only'
@@ -475,7 +471,7 @@ def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     entry = entry.gsub(/\s+/, "") # remove all spaces
-    if file_type == 'pwdump' or file_type == 'smart_hashdump'
+    if file_type == 'pwdump' || file_type == 'smart_hashdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
       @modes.each do |mode|

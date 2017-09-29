@@ -8,7 +8,7 @@ def updateSmartWordlist
   end
 
   wordlist = Wordlists.first(name: 'Smart Wordlist')
-  # Create Smart word list if one doesnt exists
+  # Create Smart word list if one doesn't exists
   if wordlist.nil?
     wordlist = Wordlists.new
     wordlist.lastupdated = Time.now
@@ -62,7 +62,7 @@ def updateSmartWordlist
   # Remove plaintext list
   File.delete('control/tmp/plaintext.txt') if File.exist?('control/tmp/plaintext.txt')
 
-  # Update keyspace per task ( really shouldbe done at runtime)
+  # Update keyspace per task ( really should be done at runtime)
   tasks = Tasks.all(wl_id: wordlist.id)
   tasks.each do |task|
     task.keyspace = getKeyspace(task)

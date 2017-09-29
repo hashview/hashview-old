@@ -12,10 +12,6 @@ helpers do
   def agentAuthorized(uuid)
     auth = Agents.first(:uuid => uuid, :status.not => 'Pending')
 
-    if auth
-      return true
-    else
-      return false
-    end
+    auth ? true : false
   end
 end
