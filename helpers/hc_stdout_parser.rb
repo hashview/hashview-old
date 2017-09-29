@@ -25,6 +25,6 @@ helpers do
     rescue SystemCallError => e
       puts e
     end
-    return status
+    status
   end
 end

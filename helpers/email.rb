@@ -31,7 +31,7 @@ def sendEmail(recipient, sub, msg)
     }
   end
 
-  if smtp_settings.smtp_sender.nil? or smtp_settings.smtp_sender.empty?
+  if smtp_settings.smtp_sender.nil? || smtp_settings.smtp_sender.empty?
     sender_addr = 'no-reply@hashview'
   else
     sender_addr = smtp_settings.smtp_sender.to_s

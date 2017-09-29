@@ -37,7 +37,7 @@ helpers do
 
         chunks[chunk_num] = [skip, limit]
 
-        chunk_num = chunk_num + 1
+        chunk_num += 1
         chunk_skip = limit
       end
     end
@@ -59,53 +59,56 @@ helpers do
     crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
     File.open(crack_file, 'w')
 
-    if attackmode == 'bruteforce'
+    case attackmode
+    when 'bruteforce'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --runtime=' + max_task_time + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
-    elsif attackmode == 'maskmode'
+    when 'maskmode'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
-    elsif attackmode == 'dictionary'
+    when 'dictionary'
       if @task.hc_rule.nil? || @task.hc_rule == 'none' 
         cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
       else
         cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
       end
-    elsif attackmode == 'combinator'
+    when 'combinator'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+    else
+      puts 'INVALUD ATTACK MODE: ' + attackmode.to_s
     end
 
     # Add global options
     # --opencl-device-types
     if hc_settings.opencl_device_types.to_s != '0'
-      cmd = cmd + ' --opencl-device-types ' + hc_settings.opencl_device_types.to_s
+      cmd += ' --opencl-device-types ' + hc_settings.opencl_device_types.to_s
     end
 
     # --workload-profile
     if hc_settings.workload_profile.to_s != '0'
-      cmd = cmd + ' --workload-profile ' + hc_settings.workload_profile.to_s
+      cmd += ' --workload-profile ' + hc_settings.workload_profile.to_s
     end
 
     # --gpu-temp-disable
     if hc_settings.gpu_temp_disable == true
-      cmd = cmd + ' --gpu-temp-disable'
+      cmd += ' --gpu-temp-disable'
     end
 
     # --gpu-temp-abort
     if hc_settings.gpu_temp_abort.to_s != '0'
-      cmd = cmd + ' --gpu-temp-abort=' + hc_settings.gpu_temp_abort.to_s
+      cmd += ' --gpu-temp-abort=' + hc_settings.gpu_temp_abort.to_s
     end
 
     # --gpu-temp-retain
     if hc_settings.gpu_temp_retain.to_s != '0'
-      cmd = cmd + ' --gpu-temp-retain=' + hc_settings.gpu_temp_retain.to_s
+      cmd += ' --gpu-temp-retain=' + hc_settings.gpu_temp_retain.to_s
     end
 
     # --force
     if hc_settings.hc_force == true
-      cmd = cmd + ' --force'
+      cmd += ' --force'
     end
 
     # add skip and limit if we are chunking this task
-    if chunking
+    if chunking == true
       chunks.each do |_unused, value|
         if attackmode == 'maskmode' || attackmode == 'dictionary'
           cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
@@ -116,6 +119,6 @@ helpers do
       cmds << cmd
     end
 
-    return cmds
+    cmds
   end
 end
