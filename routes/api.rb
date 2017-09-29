@@ -54,7 +54,7 @@ get '/v1/queue/:id' do
 
   # check to see if this agent is suppose to be working on something
   if @assigned_task
-    puts @assigned_task.to_json
+    # puts @assigned_task.to_json
     return @assigned_task.to_json
   end
 end
@@ -76,7 +76,7 @@ post '/v1/queue/:taskqueue_id/status' do
 
   jdata = JSON.parse(request.body.read)
   agent = Agents.first(uuid: jdata['agent_uuid'])
-  puts "[+] updating taskqueue id: #{params[:taskqueue_id]} to status: #{jdata['status']}"
+  # puts "[+] updating taskqueue id: #{params[:taskqueue_id]} to status: #{jdata['status']}"
   updateTaskqueueStatus(params[:taskqueue_id], jdata['status'], agent.id)
 end
 
@@ -86,9 +86,9 @@ post '/v1/jobtask/:jobtask_id/status' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   jdata = JSON.parse(request.body.read)
-  puts jdata
-  puts "======================================="
-  puts "[+] updating jobtask id: #{params['jobtask_id']} to status: #{jdata['status']}"
+  # puts jdata
+  # puts "======================================="
+  # puts "[+] updating jobtask id: #{params['jobtask_id']} to status: #{jdata['status']}"
   updateJobTaskStatus(jdata['jobtask_id'], jdata['status'])
 end
 
@@ -202,7 +202,7 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  puts '===== creating hash_file ======='
+  # puts '===== creating hash_file ======='
   jobtask_id = params[:jobtask_id]
   hashfile_id = params[:hashfile_id]
 
@@ -233,7 +233,7 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
     f.close
   end
 
-  puts '===== Hash_File Created ======'
+  # puts '===== Hash_File Created ======'
 
   send_file hash_file
 
@@ -245,7 +245,7 @@ post '/v1/jobtask/:jobtask_id/crackfile/upload' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   tmpfile = "control/tmp/#{rand.to_s[2..2048]}.txt"
-  puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
+  # puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
   File.open(tmpfile, 'wb') do |f|
     f.write(params[:file][:tempfile].read)
   end
@@ -259,7 +259,7 @@ post '/v1/hcoutput/status' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  puts 'parsing uploaded hcoutput hash'
+  # puts 'parsing uploaded hcoutput hash'
   return request.body.read
 end
 
@@ -314,7 +314,7 @@ post '/v1/agents/:uuid/heartbeat' do
 
           # update db with the agents hashcat status
           if payload['hc_status']
-            puts payload['hc_status']
+            #puts payload['hc_status']
             @agent.status = payload['agent_status']
             @agent.hc_status = payload['hc_status'].to_json
             @agent.save
@@ -380,7 +380,6 @@ post '/v1/agents/:uuid/heartbeat' do
             }.to_json
           else
             # update agent heartbeat but do nothing for now
-            p '########### I have nothing for you to do now ###########'
             @agent.heartbeat = Time.now
             @agent.status = payload['agent_status']
             @agent.hc_status = ''
@@ -457,7 +456,7 @@ post '/v1/agents/:uuid/stats' do
     redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
     payload = JSON.parse(request.body.read)
-    puts payload
+    #puts payload
 
     agent = Agents.first(:uuid => params[:uuid])
     agent.cpu_count = payload['cpu_count'].to_i

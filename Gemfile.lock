@@ -111,6 +111,7 @@ GEM
       less (~> 2.6.0)
       sprockets (> 2, < 4)
       tilt
+    logger (1.2.8)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.4)
@@ -238,6 +239,7 @@ DEPENDENCIES
   foreman
   haml
   json
+  logger
   mysql
   pony
   rake
@@ -254,4 +256,4 @@ RUBY VERSION
    ruby 2.2.2p95
 
 BUNDLED WITH
-   1.14.6
+   1.15.4
