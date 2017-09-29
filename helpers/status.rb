@@ -1,6 +1,6 @@
 def isBusy?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  return true if @results.length > 1
+  true if @results.length > 1
 end
 
 def isDevelopment?
@@ -19,9 +19,7 @@ def isOldVersion?
   has_version_column = false
   @tables = repository(:default).adapter.select('DESC settings')
   @tables.each do |row|
-    if row.field == 'version'
-      has_version_column = true
-    end
+    has_version_column = true if row.field == 'version'
   end
 
   if has_version_column
@@ -35,9 +33,8 @@ def isOldVersion?
     end
   else
     puts 'No version column found. Assuming Version 0.5.1'
-    return true
+    true
   end
-  return false
 end
 
 def updateTaskqueueStatus(taskqueue_id, status, agent_id)
@@ -101,7 +98,7 @@ def updateJobTaskStatus(jobtask_id, status)
   end
 
   # toggle job status
-  if done == true
+  if done
     job.status = 'Completed'
     job.save
     # purge all queued tasks

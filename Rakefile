@@ -242,7 +242,7 @@ namespace :db do
     rescue
       raise 'Error in creating default dictionary task + rule'
     end
-    
+
     # Create Default SmartWordlist Dictionary
     puts '[*] Setting up default smart wordlist task'
     query = [
@@ -253,7 +253,7 @@ namespace :db do
     rescue
       raise 'Error in creating default SmartWordlist task'
     end
-    
+
     # Create Default SmartWordlist Dictionary + Rule Task
     puts '[*] Setting up Smart Wordlist dictionary + rule task'
     query = [
@@ -264,8 +264,6 @@ namespace :db do
     rescue
       raise 'Error in creating Smart Wordlist dictionary task + rule'
     end
-    
-    
 
     # Create Default Mask task
     puts '[*] Setting up default mask task'
@@ -288,7 +286,7 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
-    
+
     # Create Default Hub Settings
     puts '[*] Setting up default hub settings'
     query = [
@@ -298,7 +296,7 @@ namespace :db do
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default hub settings'
-    end    
+    end
   end
 
   desc 'Setup local agent'
@@ -387,6 +385,10 @@ namespace :db do
       # Upgrade to v0.7.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.1')
         upgrade_to_v071(user, password, host, database)
+      end
+      # Upgrade to v0.7.2
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.2')
+        upgrade_to_v072(user, password, host, database)
       end
     else
       puts '[*] Your version is up to date!'
@@ -735,5 +737,16 @@ def upgrade_to_v071(user, password, host, database)
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.1'")
   puts '[+] Upgrade to v0.7.1 complete.'
+end
+
+def upgrade_to_v072(user, password, host, database)
+  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+
+  puts '[*] Upgrading from v0.7.1 to v0.7.2'
+  conn = Mysql.new host, user, password, database
+
+  # FINALIZE UPGRADE
+  conn.query("UPDATE settings SET version = '0.7.2'")
+  puts '[+] Upgrade to v0.7.2 complete.'
 end
 
