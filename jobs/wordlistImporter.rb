@@ -14,7 +14,7 @@ module WordlistImporter
     logger_wordlistimporter.debug('Wordlist Importer Class() - has started')
 
     # Identify all wordlists in directory
-    @files = Dir.glob(File.join('control/wordlists/', "*")) 
+    @files = Dir.glob(File.join('control/wordlists/', '*'))
     @files.each do |path_file|
       wordlist_entry = Wordlists.first(path: path_file)
       unless wordlist_entry
@@ -27,7 +27,7 @@ module WordlistImporter
 
           # Adding to DB
           wordlist = Wordlists.new
-          wordlist.lastupdated = Time.now()
+          wordlist.lastupdated = Time.now
           wordlist.type = 'static'
           wordlist.name = name
           wordlist.path = path_file
@@ -45,7 +45,9 @@ module WordlistImporter
       unless name.match(/\.tar|\.7z|\.gz|\.tgz|\.checksum/)
         wordlist = Wordlists.first(path: path_file)
         if wordlist.size == '0'
-          size = File.foreach(path_file).inject(0) { |c| c + 1 }
+          size = File.foreach(path_file).inject(0) do |c|
+            c + 1
+          end
           wordlist.size = size
           wordlist.save
         end

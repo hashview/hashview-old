@@ -15,7 +15,7 @@ def cleanDir(path)
 
   @files = Dir.glob(File.join(path))
   @files.each do |path_file|
-    if (Time.now - File.ctime(path_file))/(24*3600) > 30 # TODO Need to change to a user defined setting
+    if (Time.now - File.ctime(path_file)) / (24 * 3600) > 30 # TODO Need to change to a user defined setting
       logger_cleanup.info('File: ' + path_file.to_s + ' is greater than 30 days old. Deleting')
       File.delete(path_file)
     end

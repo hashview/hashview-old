@@ -37,7 +37,9 @@ module RuleImporter
     @files.each do |path_file|
       rule_file = Rules.first(path: path_file)
       if rule_file.size == '0'
-        size = File.foreach(path_file).inject(0) { |c| c + 1}
+        size = File.foreach(path_file).inject(0) do |c|
+          c + 1
+        end
         rule_file.size = size
         rule_file.save
       end

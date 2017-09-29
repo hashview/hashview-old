@@ -7,15 +7,15 @@ options = YAML.load_file('config/database.yml')
 
 # there has to be a better way to handle this shit
 if ENV['RACK_ENV'] == 'test'
-  DataMapper::Logger.new($stdout, :debug)
+  # DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['test'])
 elsif ENV['RACK_ENV'] == 'development'
-  DataMapper::Logger.new($stdout, :debug)
+  # DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['development'])
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   DataMapper.setup(:default, options['production'])
 else
-  puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
+  puts 'ERROR: You must define an environment. ex: RACK_ENV=production'
   exit
 end
 
@@ -69,7 +69,7 @@ class User
     user.destroy
   end
 
-  def self.delete_all_users()
+  def self.delete_all_users
     @users = User.all
     @users.destroy
   end
@@ -117,6 +117,7 @@ class Customers
   property :description, String, length: 500
 end
 
+# Agents table use to record status
 class Agents
   include DataMapper::Resource
   property :id, Serial
@@ -249,7 +250,6 @@ class HubSettings
   property :balance, Integer, default: 0
 end
 
-
 # Wordlist Class
 class Wordlists
   include DataMapper::Resource
@@ -261,7 +261,6 @@ class Wordlists
   property :path, String, length: 2000
   property :size, String, length: 100
   property :checksum, String, length: 64
-
 end
 
 # Rules Class
@@ -274,7 +273,6 @@ class Rules
   property :path, String, length: 2000
   property :size, String, length: 100
   property :checksum, String, length: 64
-
 end
 
 # Hashfile Class

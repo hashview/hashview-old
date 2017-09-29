@@ -288,14 +288,14 @@ class LocalAgent
     hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
     Api.stats(hc_devices, hc_perfstats)
 
-    while(1)
+    while(True)
       sleep(4)
 
       # find pid
       pid = getHashcatPid
 
       # wait a bit to avoid race condition
-      if !pid.nil? and File.exist?('control/tmp/agent_current_task.txt')
+      if !pid.nil? && File.exist?('control/tmp/agent_current_task.txt')
         sleep(10)
         pid = getHashcatPid
       end
@@ -317,7 +317,7 @@ class LocalAgent
         heartbeat = JSON.parse(heartbeat)
         logger_background_worker.info(heartbeat)
 
-        if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
+        if heartbeat['type'] == 'message' && heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
           jdata = JSON.parse(jdata)

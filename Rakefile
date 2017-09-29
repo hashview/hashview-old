@@ -363,9 +363,7 @@ namespace :db do
       end
     end
 
-    if has_version_column == false
-      db_version = Gem::Version.new('0.5.1')
-    end
+    db_version = Gem::Version.new('0.5.1') unless has_version_column
 
     # TODO turn into hash where version is key, and value is method/function name?
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
@@ -397,7 +395,7 @@ namespace :db do
     # Incase we missed anything
     DataMapper.repository.auto_upgrade!
     # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
-    #puts 'db:auto:upgrade executed'
+    # puts 'db:auto:upgrade executed'
   end
 
   desc 'Migrate From old DB to new DB schema'
@@ -455,13 +453,11 @@ namespace :db do
 
       puts '[*] Inserting new data into table... standby..'
       hashes = conn.query("SELECT id,originalhash FROM hashes")
-      hashes.each_hash do | entry |
+      hashes.each_hash do |entry|
         olddata = conn.query("SELECT username,hashfile_id FROM targets WHERE originalhash='" + entry['originalhash'] + "'")
         hash_id = entry['id']
-        olddata.each_hash do | row |
-          if row['username'].nil?
-            row['username'] = 'none'
-          end
+        olddata.each_hash do |row|
+          row['username'] = 'none' if row['username'].nil?
           row['username'] = row['username'].gsub("'", "\\\\'")
           conn.query("INSERT INTO hashfilehashes(hash_id,username,hashfile_id) VALUES ('#{hash_id}','#{row['username']}','#{row['hashfile_id']}')")
         end
@@ -469,17 +465,15 @@ namespace :db do
 
       # Remove old tables
       puts '[*] Removing old tables'
-      conn.query("DROP TABLE targets")
-
+      conn.query('DROP TABLE targets')
 
     rescue Mysql::Error => e
       puts e.errno
       puts e.error
 
     ensure
-      conn.close if conn 
+      conn.close if conn
     end
-
   end
 end
 
@@ -596,12 +590,12 @@ def upgrade_to_v060(user, password, host, database)
   conn.query("UPDATE settings SET version = '0.6.0'")
   puts '[*] Upgrade to v0.6.0 complete.'
 
-  return '0.6.0'
+  '0.6.0'
 end
 
 def upgrade_to_v061(user, password, host, database)
   #DataMapper.repository.auto_upgrade!
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
   conn = Mysql.new host, user, password, database
@@ -610,12 +604,12 @@ def upgrade_to_v061(user, password, host, database)
   conn.query("UPDATE settings SET version = '0.6.1'")
   puts '[*] Upgrade to v0.6.1 complete.'
 
-  return '0.6.1'
+  '0.6.1'
 end
 
 def upgrade_to_v070(user, password, host, database)
   DataMapper.repository.auto_upgrade!
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
   conn = Mysql.new host, user, password, database
@@ -676,7 +670,7 @@ def upgrade_to_v070(user, password, host, database)
 
       # Adding to DB
       rule_file = Rules.new
-      rule_file.lastupdated = Time.now()
+      rule_file.lastupdated = Time.now
       rule_file.name = name
       rule_file.path = path_file
       rule_file.size = 0
@@ -729,7 +723,7 @@ def upgrade_to_v070(user, password, host, database)
 end
 
 def upgrade_to_v071(user, password, host, database)
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
   conn = Mysql.new host, user, password, database
@@ -740,7 +734,7 @@ def upgrade_to_v071(user, password, host, database)
 end
 
 def upgrade_to_v072(user, password, host, database)
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.1 to v0.7.2'
   conn = Mysql.new host, user, password, database
@@ -749,4 +743,3 @@ def upgrade_to_v072(user, password, host, database)
   conn.query("UPDATE settings SET version = '0.7.2'")
   puts '[+] Upgrade to v0.7.2 complete.'
 end
-
