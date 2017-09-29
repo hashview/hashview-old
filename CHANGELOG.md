@@ -12,7 +12,7 @@ Notable changes will be documented here
  - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
 
 
-## [v0.7.1-beta] - 2017-9-4
+## [v0.7.1-beta] - 2017-09-04
 ### Added
  - Rake task to reset db (thanks: nicbrink)
  - New hub route/tab if registered
