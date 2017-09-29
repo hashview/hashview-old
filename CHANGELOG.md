@@ -2,6 +2,15 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.2-beta] - 2017-xx-xx
+### Added
+ - Added Logging Facility, logs should now be under logs/*.log and logs/jobs/*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
+ 
+### Removed
+
+### Fixed
+ - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
+
 
 ## [v0.7.1-beta] - 2017-9-4
 ### Added
