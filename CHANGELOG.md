@@ -5,6 +5,8 @@ Notable changes will be documented here
 ## [v0.7.2-beta] - 2017-xx-xx
 ### Added
  - Added Logging Facility, logs should now be under logs/*.log and logs/jobs/*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
+ - Added Collapsing window in analytics in Weak Account Password
+ - Added ability to download useraccounts/passwords for accounts that are found to be weak in csv format
  
 ### Removed
 
