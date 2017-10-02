@@ -224,22 +224,22 @@
                       %b Download
                     %td
                       - if @customer_id.nil?
-                        %a.btn.btn-success.pull-left{:href => '/download?type=cracked'}
+                        %a.btn.btn-success.pull-left{:href => '/download?graph=3&type=cracked'}
                           Cracked
                         &nbsp; 
-                        %a.btn.btn-danger.pull-center{:href => '/download?type=uncracked'}
+                        %a.btn.btn-danger.pull-center{:href => '/download?graph=3&type=uncracked'}
                           Uncracked 
                       - elsif @customer_id && @hashfile_id.nil?
-                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&customer_id=#{@customer_id}"}
+                        %a.btn.btn-success.pull-left{:href => "/download?graph=3&type=cracked&customer_id=#{@customer_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&customer_id=#{@customer_id}"}
+                        %a.btn.btn-danger.pull-center{:href => "/download?graph=3&type=uncracked&customer_id=#{@customer_id}"}
                           Uncracked 
                       - elsif @customer_id && @hashfile_id
-                        %a.btn.btn-success.pull-left{:href => "/download?type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                        %a.btn.btn-success.pull-left{:href => "/download?graph=3&type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                        %a.btn.btn-danger.pull-center{:href => "/download?graph=3&type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Uncracked 
           .col-md-6
             .panel.panel-default
@@ -459,27 +459,42 @@
           .col-md-12
             .panel.panel-default
               .panel-heading
-                %b Accounts with weak passwords
+                %b Accounts With Weak Passwords
+                .span.badge.pull-right
+                  %a.pull-right{:href => "/download?graph=6&type=csv&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                    csv
               .panel-body
-                %table{:class => 'table'}
-                  %td
-                    %b Username
-                  %td
-                    %b Password
-                  %tr
-                  - @fails_complexity.each do |key, value|
-                    %td #{key}
-                    %td #{value}
-                    %tr
+                - if @fails_complexity
+                  - if @fails_complexity.empty?
+                    No Weak Passwords!
+                  - else
+                    #accordion.panel-group
+                      .panel.panel-default
+                        .panel-heading
+                          %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collaps-weak-accounts" }
+                            Expand
+                          .span.badge.pull-right #{@fails_complexity.size}
+                        %div{:id => "collaps-weak-accounts", :class => "panel-collapse collapse"}
+                          .panel-body
+                            %table{:class => 'table'}
+                              %td
+                                %b Username
+                              %td
+                                %b Password
+                              %tr
+                              - @fails_complexity.each do |key, value|
+                                %td #{key}
+                                %td #{value}
+                                %tr
           - if @customer_id && @hashfile_id
             .col-md-12
               .panel.panel-default
                 .panel-heading
-                  %b Top 20 Passwords/hashes shared by Users
+                  %b Top 20 Passwords/Hashes Shared by Users
                 .panel-body
                   - if @password_users
                     - if @password_users.empty?
-                      No passwords are shared by users
+                      No passwords are shared by users!
                     - else
                       #accordion.panel-group
                         .panel.panel-default
