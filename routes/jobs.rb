@@ -100,7 +100,7 @@ post '/jobs/create' do
       flash[:error] = 'Customer ' + params[:name] + ' already exists.'
       redirect to('/jobs/create')
     end
- 
+
     customer = Customers.new
     customer.name = params[:cust_name]
     customer.description = params[:cust_desc]
@@ -289,11 +289,7 @@ get '/jobs/complete' do
   job.status = 'Ready'
   job.save
 
-  if params[:edit].to_s == '1'
-    flash[:success] = 'Job updated.'
-  else
-    flash[:success] = 'Job created.'
-  end
+  params[:edit].to_s == '1' ? flash[:success] = 'Job updated.' : flash[:success] = 'Job created.'
   redirect to('/jobs/list')
 end
 

@@ -229,7 +229,7 @@ get '/analytics' do
     # Used for Total Unique Users and originalhashes Tables: Total
     @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes')[0].to_s
     @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(originalhash)) FROM hashes')[0].to_s
-  
+
     # Used for Total Run Time:
     @total_run_time = Hashfiles.sum(:total_run_time)
 
