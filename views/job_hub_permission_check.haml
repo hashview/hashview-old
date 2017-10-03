@@ -17,7 +17,7 @@
         .container
           .row
             .col-md-12.pull-right
-              %a.btn.btn-success{:href => "/jobs/hub_check?job_id=#{@jobs.id}"}
+              %a.btn.btn-success{href: "/jobs/hub_check?job_id=#{@jobs.id}"}
                 Check
-              %a.btn.btn-primary{:href => "/jobs/assign_tasks?job_id=#{@jobs.id}"}
+              %a.btn.btn-primary{href: "/jobs/assign_tasks?job_id=#{@jobs.id}"}
                 Skip

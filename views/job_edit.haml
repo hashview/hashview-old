@@ -31,64 +31,64 @@
       .container
         .row
           .col-md-12
-            %form{:name => "jobs_form", :id => "jobs_form", :class => "form-horizontal", :action => "/jobs/create", :method => "post"}
+            %form{name: 'jobs_form', id: 'jobs_form', class: 'form-horizontal', action: '/jobs/create', method: 'post'}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Job Name
+                %label.control-label.col-xs-2{for: ''} Job Name
                 .col-xs-6
                   - if params[:edit] == '1'
-                    %input{:type => "textbox", :class => "form-control", :name => 'job_name', :id => 'name', :value => "#{@job.name.to_s}"}
+                    %input{type: 'textbox', class: 'form-control', name: 'job_name', id: 'name', value: "#{@job.name.to_s}"}
                   - else
-                    %input{:type => "textbox", :class => "form-control", :name => "job_name", :id => "name"}
+                    %input{type: 'textbox', class: 'form-control', name: 'job_name', id: 'name'}
               - if !@customers.empty?
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Customer
+                  %label.control-label.col-xs-2{for: ''} Customer
                   .col-xs-6
-                    %select.form-control{:id => "customer", :name => "customer", :onchange => "showDiv()"}
+                    %select.form-control{id: 'customer', name: 'customer', :onchange => 'showDiv()'}
                       - @customers.each do |customer|
                         - if params[:edit] == '1'
                           - if customer.id == @job.customer_id
-                            %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button", selected: 'selected'} #{customer.name}
+                            %option{value: "#{customer.id}", name: 'customer_id', type: 'button', selected: 'selected'} #{customer.name}
                           - else
-                            %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button"} #{customer.name}
+                            %option{value: "#{customer.id}", name: 'customer_id', type: 'button'} #{customer.name}
                         - else
-                          %option{:value => "#{customer.id}", :name => 'customer_id', :type => "button"} #{customer.name}
-                      %option{:value => "add_new", :name => 'customer_id', :type => "button"} New Customer
+                          %option{value: "#{customer.id}", name: 'customer_id', type: 'button'} #{customer.name}
+                      %option{value: 'add_new', name: 'customer_id', type: 'button'} New Customer
                 .section
-                  %div{:class => "label_leftalign field"}
-                    #new_customer_div{:style => "display:none"}
+                  %div{class: "label_leftalign field"}
+                    #new_customer_div{:style => 'display:none'}
                       .form-group
-                        %label.control-label.col-xs-2{:for => ""} Customer Name
+                        %label.control-label.col-xs-2{for: ''} Customer Name
                         .col-xs-6
-                          %input{:type => "textbox", :class => "form-control", :name => "cust_name", :id => "name"}
+                          %input{type: 'textbox', class: 'form-control', name: 'cust_name', id: 'name'}
                       .form-group
-                        %label.control-label.col-xs-2{:for => ""} Customer Description
+                        %label.control-label.col-xs-2{for: ''} Customer Description
                         .col-xs-6
-                          %input{:type => "textbox", :class => "form-control", :name => "cust_desc", :id => "desc"}
+                          %input{type: 'textbox', class: 'form-control', name: 'cust_desc', id: 'desc'}
               - else
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Customer Name
+                  %label.control-label.col-xs-2{for: ''} Customer Name
                   .col-xs-6
-                    %input{:type => "textbox", :class => "form-control", :name => "cust_name", :id => "name"}
+                    %input{type: 'textbox', class: 'form-control', name: 'cust_name', id: 'name'}
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Customer Description
+                  %label.control-label.col-xs-2{for: ''} Customer Description
                   .col-xs-10
-                    %input{:type => "textbox", :class => "form-control", :name => "cust_desc", :id => "desc"}
+                    %input{type: 'textbox', class: 'form-control', name: 'cust_desc', id: 'desc'}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Notify When Completed
+                %label.control-label.col-xs-2{for: ''} Notify When Completed
                 .col-xs-1.pull-left
                   - if params[:edit] == '1'
                     - if @job.notify_completed == true
-                      %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify', :checked => 'checked'}
+                      %input.checkbox.pull-left{type: 'checkbox', name: 'notify', id: 'notify', checked: 'checked'}
                     - else
-                      %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify'}
+                      %input.checkbox.pull-left{type: 'checkbox', name: 'notify', id: 'notify'}
                   - else
-                    %input.checkbox.pull-left{:type => 'checkbox', :name => 'notify', :id => 'notify'}
+                    %input.checkbox.pull-left{type: 'checkbox', name: 'notify', id: 'notify'}
               .form-group
                 .col-xs-offset-2.col-xs-10
                   - if params[:edit]
-                    %input{:type => 'hidden', :name => 'edit', :value => "#{params[:edit]}"}
-                    %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id]}"}
-                    %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id]}"}
-                    %button.btn.btn-primary{:type => "submit"} Update
+                    %input{type: 'hidden', name: 'edit', value: "#{params[:edit]}"}
+                    %input{type: 'hidden', name: 'job_id', value: "#{params[:job_id]}"}
+                    %input{type: 'hidden', name: 'customer_id', value: "#{params[:customer_id]}"}
+                    %button.btn.btn-primary{type: 'submit'} Update
                   -else
-                    %button.btn.btn-primary{:type => "submit"} Create
+                    %button.btn.btn-primary{type: 'submit'} Create

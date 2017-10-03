@@ -1,23 +1,23 @@
 .container
   .row
     .col-md-offset-2.col-md-8
-      %form{:action => "/login", :method => "post"}
+      %form{action: '/login', method: 'post'}
         %legend
           %h1 Login
         %p
         .form-group
           .row
             .col-xs-2
-              %label.control-label.col-xs-2{:for => ""} Username
+              %label.control-label.col-xs-2{for: ''} Username
             .col-xs-6
-              %input.control-label{:type => "textbox", :class => "form-control", :name => "username", :id => "username"}
+              %input.control-label{type: 'textbox', class: 'form-control', name: 'username', id: 'username'}
           %p
           .row
             .col-xs-2
-              %label.control-label.col-xs-2{:for => ""} Password
+              %label.control-label.col-xs-2{for: ''} Password
             .col-xs-6
-              %input.control-label{:type => "password", :class => "form-control", :name => "password", :id => "password"}
+              %input.control-label{type: 'password', class: 'form-control', name: 'password', id: 'password'}
           %p
           .row
             .col-xs-offset-2.col-xs-8
-              %button.btn.btn-primary{:type => "submit"} Login
+              %button.btn.btn-primary{type: 'submit'} Login
