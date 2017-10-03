@@ -13,6 +13,7 @@ Notable changes will be documented here
 ### Fixed
  - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
  - Fixed (hopefully) bug where hashview prematurely 'completes' a job (and subsequently kills a running task). This only happens in rare cases where multiple agents are involved. 
+ - Fixed (hopefully) issue where threads not exiting when they're told to. This resulted in issues related to: https://github.com/hashview/hashview/issues/264
 
 ## [v0.7.1-beta] - 2017-09-04
 ### Added
