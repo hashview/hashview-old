@@ -6,13 +6,13 @@ Notable changes will be documented here
 ### Added
  - Added Logging Facility, logs should now be under logs/*.log and logs/jobs/*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
  - Added Collapsing window in analytics in Weak Account Password
- - Added ability to download useraccounts/passwords for accounts that are found to be weak in csv format
+ - Added ability to download user accounts/passwords for accounts that are found to be weak in csv format
  
 ### Removed
 
 ### Fixed
  - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
-
+ - Fixed (hopefully) bug where hashview prematurely 'completes' a job (and subsequently kills a running task). This only happens in rare cases where multiple agents are involved. 
 
 ## [v0.7.1-beta] - 2017-09-04
 ### Added
@@ -27,7 +27,7 @@ Notable changes will be documented here
 
 ### Fixed
  - Fixed issue where importing the same hash twice into the db where one had an incorrect hashtype resulted in a 500 error. Now the entry is updated with the new hashtype.
- - Fixed timouts when searching large hash sets with Hashview Hub
+ - Fixed timeouts when searching large hash sets with Hashview Hub
 
 ## [v0.7.0-beta] - 2017-07-22
 ### Added

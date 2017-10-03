@@ -288,7 +288,7 @@ class LocalAgent
     hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
     Api.stats(hc_devices, hc_perfstats)
 
-    while(True)
+    while(true)
       sleep(4)
 
       # find pid

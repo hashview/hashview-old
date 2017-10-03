@@ -145,10 +145,9 @@ class Jobs
   # status options should be "Running", "Paused", "Completed", "Queued", "Canceled", "Ready"
   property :status, String, length: 100
   property :queued_at, DateTime
-  property :targettype, String, length: 2000
+  property :started_at, DateTime
+  property :ended_at, DateTime
   property :hashfile_id, Integer
-  property :policy_min_pass_length, Integer
-  property :policy_complexity_default, Boolean
   property :customer_id, Integer
   property :notify_completed, Boolean
 end
