@@ -739,6 +739,11 @@ def upgrade_to_v072(user, password, host, database)
   puts '[*] Upgrading from v0.7.1 to v0.7.2'
   conn = Mysql.new host, user, password, database
 
+  # Remove unused columns
+  conn.query("ALTER TABLE jobs DROP COLUMN policy_min_pass_length")
+  conn.query("ALTER TABLE jobs DROP COLUMN policy_complexity_default")
+  conn.query("ALTER TABLE jobs DROP COLUMN targettype")
+
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.2'")
   puts '[+] Upgrade to v0.7.2 complete.'

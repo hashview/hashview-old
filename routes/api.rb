@@ -337,25 +337,6 @@ post '/v1/agents/:uuid/heartbeat' do
             }.to_json
           end
 
-          # # are agent and server in sync
-          # if agenttask.to_i == taskqueue.id
-          #   # update heartbeat and save hc_output for ui
-          #   @agent.heartbeat = Time.now
-          #   @agent.save
-          #   {
-          #     status: 200,
-          #     type: 'message',
-          #     msg: 'OK'
-          #   }.to_json
-          # else
-          #   # server and agent are out of sync, tell agent to stop working
-          #   {
-          #     status: 200,
-          #     type: 'message',
-          #     msg: 'Canceled'
-          #   }.to_json
-          # end
-
         elsif payload['agent_status'] == 'Idle'
           # assign work to agent
 

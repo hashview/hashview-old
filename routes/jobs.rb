@@ -421,6 +421,7 @@ get '/jobs/stop/:id' do
   @jobtasks = Jobtasks.all(job_id: params[:id])
 
   @job.status = 'Canceled'
+  @job.ended_at = Time.now
   @job.save
 
   @jobtasks.each do |task|

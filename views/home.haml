@@ -38,13 +38,62 @@
                             %h3 Job Status
                             .table
                               %table{:class => 'table'}
-                                - if @hashcat_status
-                                  - @hashcat_status.each do |k,v|
-                                    %tr
-                                      %td.col-md-4
-                                        #{k}
-                                      %td
-                                        #{v}
+                                %tr
+                                  %td.col-md-4
+                                    Started At:
+                                  %td
+                                    #{job.started_at}
+                                %tr
+                                  %td.col-md-4
+                                    Running Time:
+                                  %td
+                                    - if @time_now.to_time - job.started_at.to_time > 86400
+                                      #{((@time_now.to_time - job.started_at.to_time).to_f/86400).round(2)} Days
+                                    - elsif @time_now.to_time - job.started_at.to_time > 3600
+                                      #{((@time_now.to_time - job.started_at.to_time).to_f/3600).round(2)} Hours
+                                    - elsif @time_now.to_time - job.started_at.to_time > 60
+                                      #{((@time_now.to_time - job.started_at.to_time).to_f/60).round(2)} Minutes
+                                    - elsif @time_now.to_time - job.started_at.to_time >= 0
+                                      #{((@time_now.to_time - job.started_at.to_time).to_f).round(2)} Seconds
+                                    - else
+                                      Im ready coach, just send me in.
+                                %tr
+                                  %td.col-md-4
+                                    Cracking Speed
+                                  %td
+                                    - total_speed = 0
+                                    - @agents.each do |agent|
+                                      - if agent.status == 'Online' || agent.status == 'Working' || agent.status == 'Idle'
+                                        - if agent.benchmark
+                                          - if agent.benchmark.include? 'kH/s'
+                                            - speed = agent.benchmark.split()[0].to_f
+                                            - speed = speed * 1000
+                                            - total_speed += speed
+                                          - if agent.benchmark.include? 'MH/s'
+                                            - speed = agent.benchmark.split()[0].to_f
+                                            - speed = speed * 1000000
+                                            - total_speed += speed
+                                          - if agent.benchmark.include? 'GH/s'
+                                            - speed = agent.benchmark.split()[0].to_f
+                                            - speed = speed * 1000000000
+                                            - total_speed += speed
+                                          - if agent.benchmark.include? 'TH/s'
+                                            - speed = agent.benchmark.split()[0].to_f
+                                            - speed = speed * 1000000000000
+                                            - total_speed += speed
+                                    - speed_count = total_speed.to_i.to_s.size
+                                    - if speed_count > 12
+                                      - total_speed = total_speed / 1000000000000
+                                      #{total_speed.round} TH/s
+                                    - elsif speed_count > 9
+                                      - total_speed = total_speed / 1000000000
+                                      #{total_speed.round} GH/s
+                                    - elsif speed_count > 6
+                                      - total_speed = total_speed / 1000000
+                                      #{total_speed.round} MH/s
+                                    - elsif speed_count > 3
+                                      - total_speed = total_speed / 1000000
+                                      #{total_speed.round} kH/s
             - else
               .jumbotron
                 %center
@@ -113,6 +162,8 @@
                                                         %b Command
                                                       - else
                                                         %b Agent
+                                                    %td
+                                                    %td
                                                   %tbody
                                                     %td
                                                       #{tq.id}
@@ -122,7 +173,7 @@
                                                       - else
                                                         - @agents.each do |agent|
                                                           - if agent.id.to_i == tq.agent_id.to_i
-                                                            #{agent.name} 
+                                                            #{agent.name}
                                                     %td
                                                       - if tq.status == 'Running'
                                                         %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
@@ -131,6 +182,21 @@
                                                         %span.label.label-default.labelfixedwidth.pull-right Queued
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
+                                                  - if tq.status == 'Running'
+                                                    %tr
+                                                    %td{:colspan => 6}
+                                                      %table{:class => 'table'}
+                                                        - @agents.each do |agent|
+                                                          - if agent.id.to_i == tq.agent_id.to_i
+                                                            - JSON.parse(agent.hc_status).each do |k,v|
+                                                              %tr
+                                                                %td.col-md-4
+                                                                  #{k}
+                                                                %td
+                                                                  #{v}
+
+
+
                                   - else
                                     %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
                                       .panel-body
