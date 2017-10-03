@@ -64,11 +64,14 @@
                                           - @wordlists.each do |wl|
                                             - if wl.id.to_i == task.wl_id.to_i
                                               #{wl.name}
-                                    .row
-                                      .form-group
-                                        %label.control-label.col-xs-2{for: ''} Dictionary Rules
-                                        .col-xs-4
-                                          #{task.hc_rule}
+                                    -if task.hc_rule != 'none'
+                                      .row
+                                        .form-group
+                                          %label.control-label.col-xs-2{for: ''} Dictionary Rule
+                                          .col-xs-4
+                                            - @rules.each do |rule|
+                                              - if rule.id.to_i == task.hc_rule.to_i
+                                                #{rule.name} (cnt: #{rule.size})
                                   .row
                                     .form-group
                                       %label.control-label.col-xs-2{for: ''} Keyspace
