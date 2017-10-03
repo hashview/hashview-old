@@ -23,7 +23,7 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table'}
+              %table{class: 'table table'}
                 %thead
                   %tr
                     %th
@@ -41,28 +41,28 @@
                         %td
                           #{jobtask['task_type']}
                         %td
-                          %a.btn.btn-success{:href => "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=UP"}
-                            %i.glyphicon.glyphicon-chevron-up{:title => 'Move Up'}
-                          %a.btn.btn-success{:href => "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=DOWN"}
-                            %i.glyphicon.glyphicon-chevron-down{:title => 'Move Down'}
-                          %a.btn.btn-danger{:href => "/jobs/remove_task?job_id=#{@job.id}&jobtask_id=#{jobtask['jobtask_id']}"}
-                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                          %a.btn.btn-success{href: "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=UP"}
+                            %i.glyphicon.glyphicon-chevron-up{title: 'Move Up'}
+                          %a.btn.btn-success{href: "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=DOWN"}
+                            %i.glyphicon.glyphicon-chevron-down{title: 'Move Down'}
+                          %a.btn.btn-danger{href: "/jobs/remove_task?job_id=#{@job.id}&jobtask_id=#{jobtask['jobtask_id']}"}
+                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
                         %tr
                   %tr
                     %td
-                      %label.control-label{:for => ""}
+                      %label.control-label{for: ''}
                       .btn-group
-                        .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
+                        .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
                           Add Task
                           %span.caret
                         %ul.dropdown-menu.dropdown-menu-left
                           - @tasks.each do |task|
                             %li
-                              %a{:href => "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task.id}"} #{task.name}
+                              %a{href: "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task.id}"} #{task.name}
                     %td
                     %td
       .container
         .row
           .col-md-12
-            %a.btn.btn-primary{:href => "/jobs/complete?job_id=#{@job.id}"}
+            %a.btn.btn-primary{href: "/jobs/complete?job_id=#{@job.id}"}
               Done

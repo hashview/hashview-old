@@ -27,7 +27,7 @@
                           .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
                         %p
                         .progress
-                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", :role => 'progressbar', :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", role: 'progressbar', style: "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
                     .row
                       .col-md-12
                         - @jobs.each do |job|
@@ -37,7 +37,7 @@
                           - elsif job.status == 'Running'
                             %h3 Job Status
                             .table
-                              %table{:class => 'table'}
+                              %table{class: 'table'}
                                 %tr
                                   %td.col-md-4
                                     Started At:
@@ -122,7 +122,7 @@
                                 - if task.id == jt.task_id
                                   - link = rand(36**8).to_s(36)
                                   .panel-heading
-                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', :href => "#collapse-#{link}" }
+                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', href: "#collapse-#{link}" }
                                       %td
                                         #{task.name}
                                     - if jt.status == 'Queued'
@@ -136,7 +136,7 @@
                                     - elsif jt.status == 'Canceled'
                                       %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
-                                    %div{:id => "collapse-#{link}", :class => 'panel-collapse collapse in'}
+                                    %div{id: "collapse-#{link}", class: 'panel-collapse collapse in'}
                                       .panel-body
                                         Remaining chunks:
                                         - remaining_chunks = 0
@@ -147,7 +147,7 @@
                                                 - remaining_chunks += 1
                                         #{remaining_chunks}
                                         %p
-                                        %ul{:class =>'list-group borderless row'}
+                                        %ul{class: 'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
                                               - next if tq.status == 'Completed'
@@ -176,7 +176,7 @@
                                                             #{agent.name}
                                                     %td
                                                       - if tq.status == 'Running'
-                                                        %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                                        %a.label.label-danger.labelfixedwidth.pull-right{href: "/jobs/stop/#{job.id}/#{task.id}"}
                                                           %b Cancel
                                                       - elsif tq.status == 'Queued' || tq.status == 'Paused'
                                                         %span.label.label-default.labelfixedwidth.pull-right Queued
@@ -198,13 +198,13 @@
 
 
                                   - else
-                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                                    %div{id: "collapse-#{link}", class: "panel-collapse collapse"}
                                       .panel-body
-                                        %ul{:class =>'list-group borderless row'}
+                                        %ul{class: 'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
-                                              %li{:class => 'list-group-item borderless'}
-                                                %table{:class => 'table'}
+                                              %li{class: 'list-group-item borderless'}
+                                                %table{class: 'table'}
                                                   %thead
                                                     %td
                                                       %b Chunk

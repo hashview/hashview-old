@@ -12,14 +12,14 @@
               .col-md-10.pull-left
                 Wordlists are used in dictionary attacks. Hashview comes preloaded with one wordlist, but you can upload more by clicking the 'Upload Wordlist' button to the left or by dropping the files to /[install path]/control/wordlists/.
               .col-md-2.pull-right
-                %a.btn.btn-primary.pull-right{:href => "/wordlists/add"}
+                %a.btn.btn-primary.pull-right{href: '/wordlists/add'}
                   Upload Wordlist
       %br
       .container
         .row
           .col-md-12
             .table
-              %table{:class => 'table table-striped'}
+              %table{class: 'table table-striped'}
                 %thead
                   %tr
                     %th
@@ -36,5 +36,5 @@
                         %td #{wordlist.size}
                         %td
                           - unless wordlist.name == 'Smart Wordlist'
-                            %a.btn.btn-danger{:href => "/wordlists/delete/#{wordlist.id}"}
-                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                            %a.btn.btn-danger{href: "/wordlists/delete/#{wordlist.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}

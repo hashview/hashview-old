@@ -7,16 +7,16 @@
         %br
         .row
           .col-md-10
-            %form{:class => "form-horizontal", :action => "/wordlists/upload/", :method => "post", :enctype=>"multipart/form-data"}
+            %form{class: 'form-horizontal', action: '/wordlists/upload/', method: 'post', enctype: 'multipart/form-data'}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Name:
+                %label.control-label.col-xs-2{for: ''} Name:
                 .col-xs-10
-                  %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name"}
+                  %input{type: 'textbox', class: 'form-control', name: 'name', id: 'name'}
               .form-group
                 %label.control-label.col-xs-2 Upload File:
                 .col-xs-10
-                  %input{:type => 'file', :name => 'file', :class => "inputFiles_cust"}
+                  %input{type: 'file', name: 'file', class: 'inputFiles_cust'}
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %br
-                  %button.btn.btn-primary{:type => "submit"} Upload
+                  %button.btn.btn-primary{type: 'submit'} Upload

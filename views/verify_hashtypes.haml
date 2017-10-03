@@ -30,31 +30,31 @@
       .container
         .col-md-12
           .row
-            %form{:name => "hashTypeForm", :id => "hashTypeForm", :class => "form-horizontal", :action => "/customers/upload/verify_hashtype", :method => "post"}
+            %form{name: 'hashTypeForm', id: 'hashTypeForm', class: 'form-horizontal', action: '/customers/upload/verify_hashtype', method: 'post'}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Detected Hash(s):
+                %label.control-label.col-xs-2{for: ''} Detected Hash(s):
                 .col-xs-3
-                  %select.form-control{:id => "hashtype", :name => "hashtype", :onchange => "showDiv()"}
+                  %select.form-control{id: 'hashtype', name: 'hashtype', onchange: 'showDiv()'}
                     - @hashtypes.each do |type|
-                      %option{:value => "#{type}", :name => "hashtype", :type => "button"} #{modeToFriendly(type)}
-                    %option{:value => "99999", :name => "hashtype", :type => "button"} Other
-                  %input{:type => 'hidden', :name => 'hashid', :value => "#{params[:hashid].to_s}"}
-                  %input{:type => 'hidden', :name => 'filetype', :value => "#{params[:filetype].to_s}"}
-                  %input{:type => 'hidden', :name => 'job_id', :value => "#{params[:job_id].to_s}"}
-                  %input{:type => 'hidden', :name => 'customer_id', :value => "#{params[:customer_id].to_s}"}
+                      %option{value: "#{type}", name: 'hashtype', type: 'button'} #{modeToFriendly(type)}
+                    %option{value: '99999', name: 'hashtype', type: 'button'} Other
+                  %input{type: 'hidden', name: 'hashid', value: "#{params[:hashid].to_s}"}
+                  %input{type: 'hidden', name: 'filetype', value: "#{params[:filetype].to_s}"}
+                  %input{type: 'hidden', name: 'job_id', value: "#{params[:job_id].to_s}"}
+                  %input{type: 'hidden', name: 'customer_id', value: "#{params[:customer_id].to_s}"}
 
                 .section
-                  %div{:class => "label_leftalign field"}
+                  %div{class: "label_leftalign field"}
                     - if @hashtypes.size == 0
-                      #manual_div{:style => "display:inline"}
-                        %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                      #manual_div{style: 'display:inline'}
+                        %label.control-label.col-xs-2{for: ''} Enter Manual Type:
                         .col-xs-4
                           <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
                     - else
-                      #manual_div{:style => "display:none"}
-                        %label.control-label.col-xs-2{:for => ""} Enter Manual Type:
+                      #manual_div{style: 'display:none'}
+                        %label.control-label.col-xs-2{for: ''} Enter Manual Type:
                         .col-xs-4
                           <input class='form-control' id='manualHash' name='manualHash' type='textbox' placeholder='Hashcat mode (1-99999)'>
               .form-group
                 .col-xs-offset-2.col-xs-10
-                  %button.btn.btn-primary{:type => "submit"} Confirm
+                  %button.btn.btn-primary{type: 'submit'} Confirm

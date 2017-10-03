@@ -17,7 +17,7 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table'}
+              %table{class: 'table table'}
                 %thead
                   %tr
                     %th
@@ -35,13 +35,13 @@
                         %td
                           #{value}
                         %td
-                          %a.btn.btn-success{:href => "#modal#{hashtype}", 'data-toggle' => 'modal'}
-                            %i.glyphicon.glyphicon-cloud-download{:title => 'Unlock from Hashview Hub'}
-                          .modal.fade.modal{:id => "modal#{hashtype}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                          %a.btn.btn-success{href: "#modal#{hashtype}", 'data-toggle' => 'modal'}
+                            %i.glyphicon.glyphicon-cloud-download{title: 'Unlock from Hashview Hub'}
+                          .modal.fade.modal{id: "modal#{hashtype}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
                             .modal-dialog.modal-lg
                               .modal-content
                                 .modal-header
-                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => "modal", :type => "button"}
+                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
                                     %span{'aria-hidden' => 'true'} &times;
                                   %h4.modal-title Check Hashview Hub for #{modeToFriendly(hashtype)} hashes?
                                 .modal-body
@@ -50,11 +50,11 @@
                                     Note, this might take some time.
                                   %br
                                   .table
-                                    %table{:class => 'table'}
+                                    %table{class: 'table'}
                                       %tr
                                         %td Total number of locally uncracked hashes: #{value}
                                       %tr
                                         %td
                                 .modal-footer
-                                  %button.btn.btn-default{'data-dismiss' => 'modal', :type => 'button'} Close
-                                  %a.btn.btn-success{:type => 'button', :href => "/hub/hash/reveal/hashtype/#{hashtype}"} Confirm
+                                  %button.btn.btn-default{'data-dismiss' => 'modal', type: 'button'} Close
+                                  %a.btn.btn-success{type: 'button', href: "/hub/hash/reveal/hashtype/#{hashtype}"} Confirm

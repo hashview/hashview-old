@@ -12,33 +12,33 @@
               .col-md-10.pull-left
                 Rules are a set of instructions to be combined with Wordlists. Hashview comes preloaded with common rules, but you can upload more by clicking the 'Upload Rules' button to the left or by dropping the files to /[install path]/control/rules/.
               .col-md-2.pull-right
-                %a.btn.btn-primary.pull-right{:href => '#modal_new', 'data-toggle' => 'modal'}
+                %a.btn.btn-primary.pull-right{href: '#modal_new', 'data-toggle' => 'modal'}
                   New Rule File
-                .modal.fade.modal{:id => "modal_new", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                .modal.fade.modal{id: 'modal_new', role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
                   .modal-dialog.modal-lg
                     .modal-content
                       .modal-header
-                        %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', :type => 'button'}
+                        %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
                           %span{"aria-hidden" => 'true'} &times;
                         %h4.modal-title New Rules file
                       .modal-body
-                        %form{:name => 'new_rules_form', :id => 'new_rules_form', :class => 'form-horizontal', :action => '/rules/new', :method => 'post'}
+                        %form{name: 'new_rules_form', id: 'new_rules_form', class: 'form-horizontal', action: '/rules/new', method: 'post'}
                           .form-group
-                            %label.control-label.col-xs-1{:for => ''} Name
+                            %label.control-label.col-xs-1{for: ''} Name
                             .col-xs-11
-                              %input{:type => 'textbox', :name => 'rules_file_name',  :class => 'form-control'}
+                              %input{type: 'textbox', name: 'rules_file_name',  class: 'form-control'}
                           .form-group
                             .col-xs-12
-                              %textarea{:name => 'new_rules', :rows => '10', :cols => '12', :form => 'new_rules_form', :class => "form-control"}
+                              %textarea{name: 'new_rules', rows: '10', cols: '12', form: 'new_rules_form', class: 'form-control'}
                           .form-group
                             .col-xs-12
-                              %button.btn.btn-primary.pull-right{:type => 'submit'} Submit
+                              %button.btn.btn-primary.pull-right{type: 'submit'} Submit
       %br
       .container
         .row
           .col-md-12
             .table
-              %table{:class => 'table table-striped'}
+              %table{class: 'table table-striped'}
                 %thead
                   %tr
                     %th
@@ -54,28 +54,28 @@
                         %td #{rule_file['name']}
                         %td #{rule_file['size']}
                         %td
-                          %a.btn.btn-warning{:href => "#modal#{rule_file['id']}", "data-toggle" => 'modal'}
-                            %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                          .modal.fade.modal{:id => "modal#{rule_file['id']}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                          %a.btn.btn-warning{href: "#modal#{rule_file['id']}", "data-toggle" => 'modal'}
+                            %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                          .modal.fade.modal{id: "modal#{rule_file['id']}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
                             .modal-dialog.modal-lg
                               .modal-content
                                 .modal-header
-                                  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+                                  %button.close{"aria-label" => 'Close', "data-dismiss" => 'modal', type: 'button'}
                                     %span{"aria-hidden" => 'true'} &times;
                                   %h4.modal-title Rules for: #{rule_file['name']}
                                 .modal-body
-                                  %form{:name => 'edit_rules_form', :id => 'edit_rules_form', :class => 'form-horizontal', :action => "/rules/save/#{rule_file['id']}", :method => 'post'}
+                                  %form{name: 'edit_rules_form', id: 'edit_rules_form', class: 'form-horizontal', action: "/rules/save/#{rule_file['id']}", method: 'post'}
                                     .form-group
                                       .col-xs-12
-                                        %textarea{:name => 'edit_rules', :rows => '10', :cols => '12', :class => "form-control"}
+                                        %textarea{name: 'edit_rules', rows: '10', cols: '12', class: 'form-control'}
                                           - if rule_file['content']
                                             - rule_file['content'].each do |line|
                                               #{line}&#10;
                                     .form-group
                                       .col-xs-offset-2.col-xs-10
-                                        %input{:type => 'hidden', :name => 'id', :value => "#{rule_file['id']}"}
+                                        %input{type: 'hidden', name: 'id', value: "#{rule_file['id']}"}
                                     .form-group
                                       .col-xs-12
-                                        %button.btn.btn-primary.pull-right{:type => 'submit'} Save
-                          %a.btn.btn-danger{:href => "/rules/delete/#{rule_file['id']}"}
-                            %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                                        %button.btn.btn-primary.pull-right{type: 'submit'} Save
+                          %a.btn.btn-danger{href: "/rules/delete/#{rule_file['id']}"}
+                            %i.glyphicon.glyphicon-trash{title: 'Delete'}

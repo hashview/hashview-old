@@ -6,9 +6,9 @@
         .container
           .col-md-12
             .form-group.text-right
-              %label.control-label{:for => ""} Customer:
+              %label.control-label{for: ''} Customer:
               .btn-group
-                .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
+                .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
                   - if @customer_id.nil?
                     All Time
                   - else
@@ -16,15 +16,15 @@
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics"} All
-                  %li.divider{:role => "separator"}
+                    %a{href: '/analytics'} All
+                  %li.divider{role: 'separator'}
                   - @button_select_customers.each do |customer|
                     %li
-                      %a{:href => "/analytics?customer_id=#{customer.id}"} #{customer.name}
+                      %a{href: "/analytics?customer_id=#{customer.id}"} #{customer.name}
               - if @customer_id
                 &nbsp
-                %label.control-label.text-right{:for => ""} Hash File:
-                .btn.btn-default.dropdown-toggle{"data-toggle" => "dropdown"}
+                %label.control-label.text-right{for: ''} Hash File:
+                .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
                   - if !params[:hashfile_id]
                     All Hashes
                   - else
@@ -32,11 +32,11 @@
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
-                    %a{:href => "/analytics?customer_id=#{@customer_id}"} All Hashes
-                  %li.divider{:role => "separator"}
+                    %a{href: "/analytics?customer_id=#{@customer_id}"} All Hashes
+                  %li.divider{role: 'separator'}
                   - @button_select_hashfiles.each do |hashfile|
                     %li
-                      %a{:href => "/analytics?customer_id=#{@customer_id}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
+                      %a{href: "/analytics?customer_id=#{@customer_id}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
                 &nbsp
           .col-md-12
             .page-header
@@ -58,7 +58,7 @@
                   %b Total Hashes Cracked
                 .panel-body
                   %br
-                  %div{:id =>"chart1", :style => 'text-align:center'}
+                  %div{id: 'chart1', style: 'text-align:center'}
                   //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
                   :plain
                     <script src= '/js/d3.min.js'></script>
@@ -126,7 +126,7 @@
                   %b Composition Breakdown
                 .panel-body
                   %br
-                  %div{:id =>"chart2", :style => 'text-align:center'}
+                  %div{id:  "chart2", :style => 'text-align:center'}
                   //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
                   :plain
                     <script src= '/js/d3.min.js'></script>
@@ -190,7 +190,7 @@
               .panel-heading
                 %b Analysis Details
               .panel-body
-                %table{:class => 'table'}
+                %table{class: 'table'}
                   - if params[:hashfile_id].nil?
                     %td
                       %b All Hashfiles
@@ -224,29 +224,29 @@
                       %b Download
                     %td
                       - if @customer_id.nil?
-                        %a.btn.btn-success.pull-left{:href => '/download?graph=3&type=cracked'}
+                        %a.btn.btn-success.pull-left{href: '/download?graph=3&type=cracked'}
                           Cracked
                         &nbsp; 
-                        %a.btn.btn-danger.pull-center{:href => '/download?graph=3&type=uncracked'}
+                        %a.btn.btn-danger.pull-center{href: '/download?graph=3&type=uncracked'}
                           Uncracked 
                       - elsif @customer_id && @hashfile_id.nil?
-                        %a.btn.btn-success.pull-left{:href => "/download?graph=3&type=cracked&customer_id=#{@customer_id}"}
+                        %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?graph=3&type=uncracked&customer_id=#{@customer_id}"}
+                        %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}"}
                           Uncracked 
                       - elsif @customer_id && @hashfile_id
-                        %a.btn.btn-success.pull-left{:href => "/download?graph=3&type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                        %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
-                        %a.btn.btn-danger.pull-center{:href => "/download?graph=3&type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                        %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Uncracked 
           .col-md-6
             .panel.panel-default
               .panel-heading
                 %b Composition Details
               .panel-body
-                %table{:class => 'table'}
+                %table{class: 'table'}
                   %td
                     %b Mask
                   %td
@@ -260,7 +260,7 @@
               .panel-heading
                 %b Password Count by Length
               .panel-body
-                %div{:id =>"chart3"}
+                %div{id: 'chart3'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
@@ -327,7 +327,7 @@
               .panel-heading
                 %b Top 10 Passwords
               .panel-body
-                %div{:id =>"chart4"}
+                %div{id: 'chart4'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
@@ -394,7 +394,7 @@
               .panel-heading
                 %b Top 10 Base Words
               .panel-body
-                %div{:id =>"chart5"}
+                %div{id: 'chart5'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
@@ -461,7 +461,7 @@
               .panel-heading
                 %b Accounts With Weak Passwords
                 .span.badge.pull-right
-                  %a.pull-right{:href => "/download?graph=6&type=csv&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
+                  %a.pull-right{href: "/download?graph=6&type=csv&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                     csv
               .panel-body
                 - if @fails_complexity
@@ -471,12 +471,12 @@
                     #accordion.panel-group
                       .panel.panel-default
                         .panel-heading
-                          %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collaps-weak-accounts" }
+                          %a{"data-parent" => "#accordion", "data-toggle" => 'collapse', href: "#collaps-weak-accounts" }
                             Expand
                           .span.badge.pull-right #{@fails_complexity.size}
-                        %div{:id => "collaps-weak-accounts", :class => "panel-collapse collapse"}
+                        %div{id: "collaps-weak-accounts", class: "panel-collapse collapse"}
                           .panel-body
-                            %table{:class => 'table'}
+                            %table{class: 'table'}
                               %td
                                 %b Username
                               %td
@@ -501,12 +501,12 @@
                           - @password_users.each do |pass, users|
                             - link = rand(36**8).to_s(36)
                             .panel-heading
-                              %a{"data-parent" => "#accordion", "data-toggle" => "collapse", :href => "#collapse-#{link}" }
+                              %a{"data-parent" => "#accordion", "data-toggle" => "collapse", href: "#collapse-#{link}" }
                                 #{pass}
                               .span.badge.pull-right #{@password_users[pass].length}
-                            %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                            %div{id: "collapse-#{link}", class: "panel-collapse collapse"}
                               .panel-body
                                 %ul{:class =>"list-group borderless row"}
                                   - users.each do |user|
-                                    %li{:class => "list-group-item borderless col-xs-4"}
+                                    %li{class: "list-group-item borderless col-xs-4"}
                                       #{user}
