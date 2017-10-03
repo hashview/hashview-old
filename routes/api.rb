@@ -317,6 +317,11 @@ post '/v1/agents/:uuid/heartbeat' do
             #puts payload['hc_status']
             @agent.status = payload['agent_status']
             @agent.hc_status = payload['hc_status'].to_json
+            payload['hc_status'].each do |item|
+              if item.to_s =~ /Speed Dev #/
+                @agent.benchmark = item[1].split(' ')[0].to_s + ' ' + item[1].split(' ')[1].to_s
+              end
+            end
             @agent.save
           end
 
