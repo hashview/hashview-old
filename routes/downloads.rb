@@ -18,7 +18,7 @@ get '/download' do
             @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id],params[:hashfile_id])
             file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           elsif params[:type] == 'uncracked'
-            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
+            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
             file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           else
             # Do Something
