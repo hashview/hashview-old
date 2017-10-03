@@ -16,6 +16,31 @@ Rake::TestTask.new do |t|
   t.verbose
 end
 
+# Catching Sigterm
+def shut_down
+  puts 'Attempting to shutdown gracefully...'
+  # Technique based off of https://bugs.ruby-lang.org/issue/7917
+  # and
+  # https://stackoverflow.com/questions/7416318/how-do-i-clear-stuck-stale-resque-workers
+  t = Thread.new do
+    Resque.workers.each {| w | w.unregister_worker}
+  end
+  t.join
+  sleep(5)
+end
+
+# Trap ^C
+Signal.trap('INT') {
+  shut_down
+  exit
+}
+
+# Trap `kill `
+Signal.trap('TERM') {
+  shut_down
+  exit
+}
+
 # resque-scheduler needs to know basics from resque::setup
 desc 'Resque scheduler setup'
 namespace :resque do
@@ -43,14 +68,6 @@ namespace :db do
   task :upgrade
   desc 'Drop from all tables except users and task'
   task :reset
-
-  # Are the below ever needed beyond our testing?
-  #desc 'create and setup schema'
-  #task :clean => [:create] # Should really be made to a series of DELETE FROM
-  #desc 'destroy db, create db, setup schema, load defaults'
-  #task :reset => [:destroy, :create, :provision_agent, :provision_defaults]
-  #desc 'destroy db, create db, setup schema'
-  #task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
 
   task :create do
     if ENV['RACK_ENV'].nil?
@@ -151,7 +168,7 @@ namespace :db do
       rescue
         raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
       end
-    end  
+    end
   end
 
   task :provision_defaults do
@@ -740,11 +757,11 @@ def upgrade_to_v072(user, password, host, database)
   conn = Mysql.new host, user, password, database
 
   # Remove unused columns
-  conn.query("ALTER TABLE jobs DROP COLUMN policy_min_pass_length")
-  conn.query("ALTER TABLE jobs DROP COLUMN policy_complexity_default")
-  conn.query("ALTER TABLE jobs DROP COLUMN targettype")
+  conn.query('ALTER TABLE jobs DROP COLUMN policy_min_pass_length')
+  conn.query('ALTER TABLE jobs DROP COLUMN policy_complexity_default')
+  conn.query('ALTER TABLE jobs DROP COLUMN targettype')
 
   # FINALIZE UPGRADE
-  conn.query("UPDATE settings SET version = '0.7.2'")
+  conn.query('UPDATE settings SET version = \'0.7.2\'')
   puts '[+] Upgrade to v0.7.2 complete.'
 end
