@@ -84,19 +84,16 @@
                                             - speed = agent.benchmark.split()[0].to_f
                                             - speed = speed * 1000000000000
                                             - total_speed += speed
-                                    - speed_count = total_speed.to_i.to_s.size
-                                    - if speed_count > 12
-                                      - total_speed = total_speed / 1000000000000
-                                      #{total_speed.round} TH/s
-                                    - elsif speed_count > 9
-                                      - total_speed = total_speed / 1000000000
-                                      #{total_speed.round} GH/s
-                                    - elsif speed_count > 6
-                                      - total_speed = total_speed / 1000000
-                                      #{total_speed.round} MH/s
-                                    - elsif speed_count > 3
-                                      - total_speed = total_speed / 1000000
-                                      #{total_speed.round} kH/s
+                                    - if total_speed > 1000000000000
+                                      #{(total_speed.to_f/1000000000000).round(2)} TH/s
+                                    - elsif total_speed > 1000000000
+                                      #{(total_speed.to_f/1000000000).round(2)} GH/s
+                                    - elsif total_speed > 1000000
+                                      #{(total_speed.to_f/1000000).round(2)} MH/s
+                                    - elsif total_speed > 1000
+                                      #{(total_speed.to_f/1000).round(2)} kH/s
+                                    - elsif total_speed >= 0
+                                      #{(total_speed.to_f).round(2)} H/s
             - else
               .jumbotron
                 %center
