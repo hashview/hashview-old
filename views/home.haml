@@ -65,6 +65,9 @@
                                     - @agents.each do |agent|
                                       - if agent.status == 'Working'
                                         - if agent.benchmark
+                                          - if agent.benchmark.include? ' H/s'
+                                            - speed = agent.benchmark.split()[0].to_f
+                                            - total_speed += speed
                                           - if agent.benchmark.include? 'kH/s'
                                             - speed = agent.benchmark.split()[0].to_f
                                             - speed = speed * 1000
