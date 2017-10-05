@@ -200,7 +200,7 @@ end
 get '/test/email' do
 
   account = User.first(username: getUsername)
-  if account.email.nil? or account.email.empty?
+  if account.email.nil? || account.email.empty?
     flash[:error] = 'Current logged on user has no email address associated.'
     redirect to('/settings')
   end
@@ -213,6 +213,3 @@ get '/test/email' do
 
   redirect to('/settings')
 end
-
-
-
