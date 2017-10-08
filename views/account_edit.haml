@@ -34,6 +34,13 @@
                   %label.control-label.col-xs-2{:for => ""} MFA (Google Authenticator)
                   .col-md-6
                     %input{:type => 'checkbox', :class => 'form-control', :name => 'mfa', :id => 'mfa', :checked => @user.mfa}
+                - if @user.mfa
+                  .form-group
+                    %label.control-label.col-xs-2{:for => ""} QR Code
+                    .col-md-6
+                      %img{:src => @otp, :alt => "Google Authenticator QR Code" }
+                      %link{:href => "#{@otp}", :rel => "stylesheet"}
+
                 .form-group
                   .col-xs-offset-2.col-xs-10
                     %input{:type => 'hidden', :name => 'account_id', :value => "#{params[:account_id].to_s}"}
