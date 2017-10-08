@@ -60,8 +60,6 @@ get '/accounts/edit/:account_id' do
   @user = User.first(id: params[:account_id])
   data = Rack::Utils.escape(ROTP::TOTP.new(@user.auth_secret).provisioning_uri(@user.username))
   @otp = "https://chart.googleapis.​com/chart?chs=200x200&chld=M|0&cht=qr&chl=#{data}"
-  puts "DEBUG: opt #{@otp}"
-
   haml :account_edit
 end
 

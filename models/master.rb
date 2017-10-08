@@ -48,7 +48,6 @@ class User
 
   def self.authenticate(username, pass)
     user = User.first(username: username)
-  #puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
     if user.mfa
       return user.username if pass == ROTP::TOTP.new(user.auth_secret).now.to_s
     elsif user
