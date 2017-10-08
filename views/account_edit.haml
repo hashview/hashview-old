@@ -31,6 +31,10 @@
                   .col-md-6
                     %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email', :value => @user.email}
                 .form-group
+                  %label.control-label.col-xs-2{:for => ""} MFA (Google Authenticator)
+                  .col-md-6
+                    %input{:type => 'checkbox', :class => 'form-control', :name => 'mfa', :id => 'mfa', :checked => @user.mfa}
+                .form-group
                   .col-xs-offset-2.col-xs-10
                     %input{:type => 'hidden', :name => 'account_id', :value => "#{params[:account_id].to_s}"}
                     %button.btn.btn-primary{:type => "submit"} Save
@@ -52,6 +56,10 @@
                   %label.control-label.col-xs-2{:for => ""} Email Address (optional)
                   .col-md-6
                     %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
+                .form-group
+                  %label.control-label.col-xs-2{:for => ""} MFA (Google Authenticator)
+                  .col-md-6
+                    %input{:type => 'checkbox', :class => 'form-control', :name => 'mfa', :id => 'mfa'}
                 .form-group
                   .col-xs-offset-2.col-xs-10
                     %button.btn.btn-primary{:type => "submit"} Create
