@@ -7,93 +7,93 @@
         .row
           .col-md-12
             - if !@active_jobs.empty?
-              .table
-                .panel.panel-primary
-                  .panel-heading
-                    %h3.panel-title
-                      - if @active_jobs
-                        - @customers.each do |customer|
-                          - @active_jobs.each do |active_job|
-                            - if active_job.customer_id == customer.id
+              - if @active_jobs
+                - @customers.each do |customer|
+                  - @active_jobs.each do |active_job|
+                    - if active_job.customer_id == customer.id
+                      .table
+                        .panel.panel-primary
+                          .panel-heading
+                            %h3.panel-title
                               %b Customer:
                               #{customer.name}
                               %b Job:
                               #{active_job.name}
-                  .panel-body
-                    - @jobs.each do |job|
-                      - if job.status == 'Running'
-                        %h3
-                          Hashes Cracked
-                          .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
-                        %p
-                        .progress
-                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", role: 'progressbar', style: "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
-                    .row
-                      .col-md-12
-                        - @jobs.each do |job|
-                          - if job.status == 'Importing'
-                            %center
-                              %h3 Importing. Please wait...
-                          - elsif job.status == 'Running'
-                            %h3 Job Status
-                            .table
-                              %table{class: 'table'}
-                                %tr
-                                  %td.col-md-4
-                                    Started At:
-                                  %td
-                                    #{job.started_at}
-                                %tr
-                                  %td.col-md-4
-                                    Running Time:
-                                  %td
-                                    - if @time_now.to_time - job.started_at.to_time > 86400
-                                      #{((@time_now.to_time - job.started_at.to_time).to_f/86400).round(2)} Days
-                                    - elsif @time_now.to_time - job.started_at.to_time > 3600
-                                      #{((@time_now.to_time - job.started_at.to_time).to_f/3600).round(2)} Hours
-                                    - elsif @time_now.to_time - job.started_at.to_time > 60
-                                      #{((@time_now.to_time - job.started_at.to_time).to_f/60).round(2)} Minutes
-                                    - elsif @time_now.to_time - job.started_at.to_time >= 0
-                                      #{((@time_now.to_time - job.started_at.to_time).to_f).round(2)} Seconds
-                                    - else
-                                      Im ready coach, just send me in.
-                                %tr
-                                  %td.col-md-4
-                                    Cracking Speed
-                                  %td
-                                    - total_speed = 0
-                                    - @agents.each do |agent|
-                                      - if agent.status == 'Working'
-                                        - if agent.benchmark
-                                          - if agent.benchmark.include? ' H/s'
-                                            - speed = agent.benchmark.split()[0].to_f
-                                            - total_speed += speed
-                                          - if agent.benchmark.include? 'kH/s'
-                                            - speed = agent.benchmark.split()[0].to_f
-                                            - speed = speed * 1000
-                                            - total_speed += speed
-                                          - if agent.benchmark.include? 'MH/s'
-                                            - speed = agent.benchmark.split()[0].to_f
-                                            - speed = speed * 1000000
-                                            - total_speed += speed
-                                          - if agent.benchmark.include? 'GH/s'
-                                            - speed = agent.benchmark.split()[0].to_f
-                                            - speed = speed * 1000000000
-                                            - total_speed += speed
-                                          - if agent.benchmark.include? 'TH/s'
-                                            - speed = agent.benchmark.split()[0].to_f
-                                            - speed = speed * 1000000000000
-                                            - total_speed += speed
-                                    - if total_speed > 1000000000000
-                                      #{(total_speed.to_f/1000000000000).round(2)} TH/s
-                                    - elsif total_speed > 1000000000
-                                      #{(total_speed.to_f/1000000000).round(2)} GH/s
-                                    - elsif total_speed > 1000000
-                                      #{(total_speed.to_f/1000000).round(2)} MH/s
-                                    - elsif total_speed > 1000
-                                      #{(total_speed.to_f/1000).round(2)} kH/s
-                                    - elsif total_speed >= 0
-                                      #{(total_speed.to_f).round(2)} H/s
+                          .panel-body
+                            - @jobs.each do |job|
+                              - if job.status == 'Running'
+                                %h3
+                                  Hashes Cracked
+                                  .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
+                                %p
+                                .progress
+                                  .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", role: 'progressbar', style: "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
+                            .row
+                              .col-md-12
+                                - @jobs.each do |job|
+                                  - if job.status == 'Importing'
+                                    %center
+                                      %h3 Importing. Please wait...
+                                  - elsif job.status == 'Running'
+                                    %h3 Job Status
+                                    .table
+                                      %table{class: 'table'}
+                                        %tr
+                                          %td.col-md-4
+                                            Started At:
+                                          %td
+                                            #{job.started_at}
+                                        %tr
+                                          %td.col-md-4
+                                            Running Time:
+                                          %td
+                                            - if @time_now.to_time - job.started_at.to_time > 86400
+                                              #{((@time_now.to_time - job.started_at.to_time).to_f/86400).round(2)} Days
+                                            - elsif @time_now.to_time - job.started_at.to_time > 3600
+                                              #{((@time_now.to_time - job.started_at.to_time).to_f/3600).round(2)} Hours
+                                            - elsif @time_now.to_time - job.started_at.to_time > 60
+                                              #{((@time_now.to_time - job.started_at.to_time).to_f/60).round(2)} Minutes
+                                            - elsif @time_now.to_time - job.started_at.to_time >= 0
+                                              #{((@time_now.to_time - job.started_at.to_time).to_f).round(2)} Seconds
+                                            - else
+                                              Im ready coach, just send me in.
+                                        %tr
+                                          %td.col-md-4
+                                            Cracking Speed
+                                          %td
+                                            - total_speed = 0
+                                            - @agents.each do |agent|
+                                              - if agent.status == 'Working'
+                                                - if agent.benchmark
+                                                  - if agent.benchmark.include? ' H/s'
+                                                    - speed = agent.benchmark.split()[0].to_f
+                                                    - total_speed += speed
+                                                  - if agent.benchmark.include? 'kH/s'
+                                                    - speed = agent.benchmark.split()[0].to_f
+                                                    - speed = speed * 1000
+                                                    - total_speed += speed
+                                                  - if agent.benchmark.include? 'MH/s'
+                                                    - speed = agent.benchmark.split()[0].to_f
+                                                    - speed = speed * 1000000
+                                                    - total_speed += speed
+                                                  - if agent.benchmark.include? 'GH/s'
+                                                    - speed = agent.benchmark.split()[0].to_f
+                                                    - speed = speed * 1000000000
+                                                    - total_speed += speed
+                                                  - if agent.benchmark.include? 'TH/s'
+                                                    - speed = agent.benchmark.split()[0].to_f
+                                                    - speed = speed * 1000000000000
+                                                    - total_speed += speed
+                                            - if total_speed > 1000000000000
+                                              #{(total_speed.to_f/1000000000000).round(2)} TH/s
+                                            - elsif total_speed > 1000000000
+                                              #{(total_speed.to_f/1000000000).round(2)} GH/s
+                                            - elsif total_speed > 1000000
+                                              #{(total_speed.to_f/1000000).round(2)} MH/s
+                                            - elsif total_speed > 1000
+                                              #{(total_speed.to_f/1000).round(2)} kH/s
+                                            - elsif total_speed >= 0
+                                              #{(total_speed.to_f).round(2)} H/s
             - else
               .jumbotron
                 %center
