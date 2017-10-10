@@ -296,7 +296,7 @@ class Taskqueues
   # status options should be "Running", "Completed", "Queued", "Canceled", "Paused"
   property :queued_at, DateTime
   property :status, String, length: 100
-  property :agent_id, String, length: 2000
+  property :agent_id, Integer
   property :command, String, length: 4000
 end
 
