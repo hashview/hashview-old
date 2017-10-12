@@ -228,9 +228,9 @@ get '/jobs/move_task' do
 
     @temp_jobtasks.each_with_index do |task_id, index|
       if @temp_jobtasks[index] == params[:task_id].to_i
-        @new_jobtasks << @temp_jobtasks[index+1]
+        @new_jobtasks << @temp_jobtasks[index + 1]
         @new_jobtasks << params[:task_id].to_i
-        @temp_jobtasks.delete_at(index+1)
+        @temp_jobtasks.delete_at(index + 1)
       else
         @new_jobtasks << @temp_jobtasks[index].to_i
       end
@@ -295,7 +295,6 @@ end
 
 post '/jobs/complete' do
 
-
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
       flash[:error] = 'You must assign at least one task'
@@ -313,8 +312,7 @@ post '/jobs/complete' do
   @tasks = Tasks.all
 
   # prevent adding duplicate tasks to a job
-  #count = Hash.new 0
-  #params[:tasks] = params[:task].uniq
+
   puts params
   if params[:tasks]
     # make sure the task that the user is adding is not already assigned to the job
@@ -555,7 +553,6 @@ get '/jobs/hub_check' do
         results_entry['id'] = hash.id
         # TODO
         # Adding usernames to this result would be great
-        #results_entry['username'] = entry.username      
         results_entry['ciphertext'] = element['ciphertext']
         results_entry['hub_hash_id'] = element['hash_id']
         results_entry['hashtype'] = element['hashtype']

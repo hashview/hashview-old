@@ -50,10 +50,10 @@ get '/settings' do
 
   # get hcbinpath (stored in config file vs db)
   @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
- 
+
   haml :global_settings
 end
-  
+
 post '/settings' do
   if params[:form_id] == '1' # Hashcat Settings
 
@@ -210,6 +210,5 @@ get '/test/email' do
   end
 
   flash[:success] = 'Email sent.'
-
   redirect to('/settings')
 end

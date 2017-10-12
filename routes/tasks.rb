@@ -66,9 +66,9 @@ post '/tasks/edit/:id' do
           if wordlist_list == ''
             wordlist_list = wordlist_check.id.to_s + ','
           else
-            wordlist_list = wordlist_list + wordlist_check.id.to_s
+            wordlist_list += wordlist_check.id.to_s
           end
-          wordlist_count = wordlist_count + 1
+          wordlist_count += 1
         end
       end
     end
@@ -103,7 +103,7 @@ post '/tasks/edit/:id' do
     task.hc_rule = 'NULL'
     task.hc_mask = params[:mask]
   elsif params[:attackmode] == 'combinator'
-    task.wl_id = wordlist_list 
+    task.wl_id = wordlist_list
     task.hc_rule = rule_list
     task.hc_mask = 'NULL'
   end
@@ -162,9 +162,9 @@ post '/tasks/create' do
           if wordlist_list == ''
             wordlist_list = wordlist_check.id.to_s + ','
           else
-            wordlist_list = wordlist_list + wordlist_check.id.to_s
+            wordlist_list += wordlist_check.id.to_s
           end
-          wordlist_count = wordlist_count + 1
+          wordlist_count += 1
         end
       end
     end
@@ -202,10 +202,8 @@ post '/tasks/create' do
 
   # generate keyspace of new task and save to db
   task.keyspace = getKeyspace(task)
-
   task.save
 
   flash[:success] = "Task #{task.name} successfully created."
-
   redirect to('/tasks/list')
 end
