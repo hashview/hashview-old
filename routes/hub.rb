@@ -10,8 +10,8 @@ class Hub
     # Provision new config if none exists.
     unless File.exist?('config/hub_config.json')
       hub_config = {
-          :host => 'hub.hashview.io',
-          :port => '443',
+        host: 'hub.hashview.io',
+        port: '443'
       }
       File.open('config/hub_config.json', 'w') do |f|
         f.write(JSON.pretty_generate(hub_config))
@@ -45,13 +45,12 @@ class Hub
 
       hub_settings = HubSettings.first
       response = RestClient::Request.execute(
-        :method => :get,
-        :url => url,
-        :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :timeout => nil,
-        :open_timeout => nil,
-        #:verify_ssl => false
-        :verify_ssl => true
+        method: :get,
+        url: url,
+        cookies: {uuid: hub_settings.uuid, auth_key: hub_settings.auth_key},
+        timeout: nil,
+        open_timeout: nil,
+        verify_ssl: true
       )
       p 'response: ' + response.body.to_s
       return response.body
@@ -68,15 +67,14 @@ class Hub
       hub_settings = HubSettings.first
       p 'cookie: ' + hub_settings.uuid.to_s + ' ' + hub_settings.auth_key.to_s
       response = RestClient::Request.execute(
-        :method => :post,
-        :url => url,
-        :payload => payload.to_json,
-        :headers => {:accept => :json},
-        :cookies => {:uuid => hub_settings.uuid, :auth_key => hub_settings.auth_key},
-        :timeout => nil,
-        :open_timeout => nil,
-        #:verify_ssl => false #TODO VALIDATE
-        :verify_ssl => true
+        method: :post,
+        url: url,
+        payload: payload.to_json,
+        headers: {accept: :json},
+        cookies: {uuid: hub_settings.uuid, auth_key: hub_settings.auth_key},
+        timeout: nil,
+        open_timeout: nil,
+        verify_ssl: true
       )
       p 'response: ' + response.body.to_s
       return response.body
@@ -258,7 +256,7 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
       entry.plaintext = element['plaintext']
       entry.cracked = '1'
       entry.save
-      hub_count = hub_count + 1
+      hub_count += 1
     end
   end
 
@@ -337,7 +335,7 @@ get '/hub/hash/reveal/hashtype/:hashtype' do
   if hub_response['status'] == '200'
     @hashes = hub_response['hashes']
     @hashes.each do |element|
-      cnt = cnt + 1
+      cnt += 1
       # Add to local db
       entry = Hashes.first(hashtype: element['hashtype'], originalhash: element['ciphertext'])
       entry.lastupdated = Time.now

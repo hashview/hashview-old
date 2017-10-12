@@ -136,7 +136,7 @@ get '/jobs/assign_hashfile' do
   @hashfiles = Hashfiles.all(customer_id: params[:customer_id])
   @customer = Customers.first(id: params[:customer_id])
 
-  @cracked_status = Hash.new
+  @cracked_status = {}
   @hashfiles.each do |hashfile|
     hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
     hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
@@ -165,7 +165,7 @@ post '/jobs/assign_hashfile' do
   end
 
   url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-  url = url + '&edit=1' if params[:edit]
+  url += '&edit=1' if params[:edit]
   redirect to(url)
 end
 
