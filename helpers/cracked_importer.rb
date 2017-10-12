@@ -12,7 +12,6 @@ end
 # imports the uploaded crackfile
 def importCracked(id, crack_file, run_time)
   # this assumes a job completed successfully. we need to add check for failures or killed processes
-  # puts '==== Importing cracked hashes ====='
 
   jobtasks = Jobtasks.first(id: id)
   job = Jobs.first(id: jobtasks.job_id)
@@ -76,8 +75,6 @@ def importCracked(id, crack_file, run_time)
   rescue SystemCallError
     p 'ERROR: ' + $!.to_s
   end
-
-  #puts '==== Crack File Deleted ===='
 
   # TODO this might be broken now that we are chunking
   updateDbRunTime(id, job.hashfile_id, run_time)

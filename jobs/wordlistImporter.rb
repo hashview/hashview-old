@@ -38,7 +38,7 @@ module WordlistImporter
       end
     end
 
-    @files = Dir.glob(File.join('control/wordlists/', "*"))
+    @files = Dir.glob(File.join('control/wordlists/', '*'))
     @files.each do |path_file|
       # Get Name
       name = path_file.split('/')[-1]

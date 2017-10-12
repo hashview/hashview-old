@@ -79,7 +79,7 @@ post '/accounts/save' do
   user.email = params[:email] unless params[:email].nil? || params[:email].empty?
   user.save
 
-  flash[:success] = 'Account successfuly updated.'
+  flash[:success] = 'Account successfully updated.'
 
   redirect to('/accounts/list')
 end
