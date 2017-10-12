@@ -13,8 +13,8 @@ end
 
 get '/home' do
 
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|screen|SCREEN|resque|^$)"`
-  @jobs = Jobs.all(:order => [:queued_at.asc])
+
+  @jobs = Jobs.all(order: [:queued_at.asc])
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all
@@ -23,39 +23,6 @@ get '/home' do
 
   @customers = Customers.all
   @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running')
-
-  # TODO check to see if this is even used anymore
-  # nvidia works without sudo:
-  @gpustatus = `nvidia-settings -q \"GPUCoreTemp\" | grep Attribute | grep -v gpu | awk '{print $3,$4}'`
-  if @gpustatus.empty?
-    @gpustatus = `lspci | grep "VGA compatible controller" | cut -d: -f3 | sed 's/\(rev a1\)//g'`
-  end
-  @gpustatus = @gpustatus.split("\n")
-  @gpustat = []
-  @gpustatus.each do |line|
-    unless line.chomp.empty?
-      line = line.delete('.')
-      @gpustat << line
-    end
-  end
-
-  @jobs.each do |j|
-    if j.status == 'Running'
-      # gather info for statistics
-
-      @hash_ids = Array.new
-      Hashfilehashes.all(fields: [:hash_id], hashfile_id: j.hashfile_id).each do |entry|
-        @hash_ids.push(entry.hash_id)
-      end
-
-      @alltargets = Hashes.count(id: @hash_ids)
-      @crackedtargets = Hashes.count(id: @hash_ids, cracked: 1)
-
-      @progress = (@crackedtargets.to_f / @alltargets.to_f) * 100
-      # parse a hashcat status file
-      @hashcat_status = hashcatParser('control/outfiles/hcoutput_' + j.id.to_s + '.txt')
-    end
-  end
 
   # JumboTron Display
   # Building out an array of hashes for the jumbotron display
@@ -90,17 +57,14 @@ get '/home' do
         element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 86400).round(2).to_s + ' Days'
       elsif time_now.to_time - job.started_at.to_time > 3600
         element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 3600).round(2).to_s + ' Hours'
-        #element['job_runtime'] = 'ERROR seconds'
       elsif time_now.to_time - job.started_at.to_time > 60
         element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 60).round(2).to_s + ' Minutes'
-        #element['job_runtime'] = 'ERROR seconds'
       elsif time_now.to_time - job.started_at.to_time >= 0
-        element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f).round(2).to_s + ' Seconds'
-        #element['job_runtime'] = 'ERROR seconds'
+        element['job_runtime'] = (time_now.to_time - job.started_at.to_time).to_f.round(2).to_s + ' Seconds'
       else
         element['job_runtime'] = 'Im ready coach, just send me in.'
       end
-      
+
       Taskqueues.all(job_id: job.id, status: 'Running').each do |queued_task|
         agent = Agents.first(id: queued_task.agent_id)
 
@@ -133,15 +97,15 @@ get '/home' do
 
           # Convert to Human Readable Format
           if total_speed > 1000000000000
-            element['job_crackrate'] = (total_speed.to_f/1000000000000).round(2).to_s + ' TH/s'
+            element['job_crackrate'] = (total_speed.to_f / 1000000000000).round(2).to_s + ' TH/s'
           elsif total_speed > 1000000000
-            element['job_crackrate'] = (total_speed.to_f/1000000000).round(2).to_s + ' GH/s'
+            element['job_crackrate'] = (total_speed.to_f / 1000000000).round(2).to_s + ' GH/s'
           elsif total_speed > 1000000
-            element['job_crackrate'] = (total_speed.to_f/1000000).round(2).to_s + ' MH/s'
+            element['job_crackrate'] = (total_speed.to_f / 1000000).round(2).to_s + ' MH/s'
           elsif total_speed > 1000
-            element['job_crackrate'] = (total_speed.to_f/1000).round(2).to_s + ' kH/s'
+            element['job_crackrate'] = (total_speed.to_f / 1000).round(2).to_s + ' kH/s'
           elsif total_speed >= 0
-            element['job_crackrate'] = (total_speed.to_f).round(2).to_s + ' H/s'
+            element['job_crackrate'] = total_speed.to_f.round(2).to_s + ' H/s'
           else
             element['job_crackrate'] = '0 H/s'
           end
@@ -156,4 +120,3 @@ get '/home' do
 
   haml :home
 end
-
