@@ -1,6 +1,5 @@
 # this helper generates the keyspace of a given task. Helpful when chunking the task for multiple agents.
 def getKeyspace(task)
-  # p '=============== generateing keyspace for task ====================='
 
   # get hashcat binarypath from config
   hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
@@ -39,7 +38,6 @@ def getKeyspace(task)
     cmd = hashcatbinpath + ' ' + wordlist1_path + ' --keyspace'
     keyspace2 = `#{cmd}`
     cmd = hashcatbinpath + ' ' + wordlist2_path + ' --keyspace'
-
   end
 
   # run hashcat keyspace command

@@ -136,7 +136,7 @@ get '/jobs/assign_hashfile' do
   @hashfiles = Hashfiles.all(customer_id: params[:customer_id])
   @customer = Customers.first(id: params[:customer_id])
 
-  @cracked_status = Hash.new
+  @cracked_status = {}
   @hashfiles.each do |hashfile|
     hashfile_cracked_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[0].to_s 
     hashfile_total_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
@@ -165,7 +165,7 @@ post '/jobs/assign_hashfile' do
   end
 
   url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-  url = url + '&edit=1' if params[:edit]
+  url += '&edit=1' if params[:edit]
   redirect to(url)
 end
 
@@ -228,9 +228,9 @@ get '/jobs/move_task' do
 
     @temp_jobtasks.each_with_index do |task_id, index|
       if @temp_jobtasks[index] == params[:task_id].to_i
-        @new_jobtasks << @temp_jobtasks[index+1]
+        @new_jobtasks << @temp_jobtasks[index + 1]
         @new_jobtasks << params[:task_id].to_i
-        @temp_jobtasks.delete_at(index+1)
+        @temp_jobtasks.delete_at(index + 1)
       else
         @new_jobtasks << @temp_jobtasks[index].to_i
       end
@@ -295,7 +295,6 @@ end
 
 post '/jobs/complete' do
 
-
   if !params[:tasks] || params[:tasks].nil?
     if !params[:edit] || params[:edit].nil?
       flash[:error] = 'You must assign at least one task'
@@ -313,8 +312,7 @@ post '/jobs/complete' do
   @tasks = Tasks.all
 
   # prevent adding duplicate tasks to a job
-  #count = Hash.new 0
-  #params[:tasks] = params[:task].uniq
+
   puts params
   if params[:tasks]
     # make sure the task that the user is adding is not already assigned to the job
@@ -555,7 +553,6 @@ get '/jobs/hub_check' do
         results_entry['id'] = hash.id
         # TODO
         # Adding usernames to this result would be great
-        #results_entry['username'] = entry.username      
         results_entry['ciphertext'] = element['ciphertext']
         results_entry['hub_hash_id'] = element['hash_id']
         results_entry['hashtype'] = element['hashtype']

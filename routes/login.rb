@@ -8,7 +8,7 @@ get '/login' do
     haml :login
   end
 end
-  
+
 get '/logout' do
   varWash(params)
   if session[:session_id]
@@ -17,24 +17,24 @@ get '/logout' do
   end
   redirect to('/')
 end
-  
+
 post '/login' do
   varWash(params)
   if !params[:username] || params[:username].nil?
     flash[:error] = 'You must supply a username.'
     redirect to('/login')
   end
- 
+
   if !params[:password] || params[:password].nil?
     flash[:error] = 'You must supply a password.'
     redirect to('/login')
   end
-  
+
   @user = User.first(username: params[:username])
 
   if @user
     usern = User.authenticate(params['username'], params['password'])
- 
+
     # if usern and session[:session_id]
     unless usern.nil?
       # only delete session if one exists
@@ -57,11 +57,11 @@ post '/login' do
     redirect to('/login')
   end
 end
-  
+
 get '/protected' do
   return 'This is a protected page, you must be logged in.'
 end
-  
+
 get '/not_authorized' do
   return 'You are not authorized.'
 end

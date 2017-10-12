@@ -289,11 +289,7 @@ get '/analytics/graph1' do
     unless crack.nil?
       unless crack.length == 0
         len = crack.length
-        if @passwords[len].nil?
-          @passwords[len] = 1
-        else
-          @passwords[len] = @passwords[len].to_i + 1
-        end
+        @passwords[len].nil? ? @passwords[len] = 1 : @passwords[len] = @passwords[len].to_i + 1
       end
     end
   end
@@ -308,13 +304,13 @@ get '/analytics/graph1' do
 
   return @counts.to_json
 end
-  
+
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/graph2' do
   varWash(params)
-  
+
   # This could probably be replaced with: SELECT COUNT(a.hash_id) AS frq, h.plaintext FROM hashfilehashes a LEFT JOIN hashes h ON h.id =  a.hash_id WHERE h.cracked = '1' GROUP BY a.hash_id ORDER BY frq DESC LIMIT 10;
-  
+
   plaintext = []
   if params[:customer_id] && !params[:customer_id].empty?
     if params[:hashfile_id] && !params[:hashfile_id].empty?
@@ -325,13 +321,13 @@ get '/analytics/graph2' do
   else
     @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
-  
+
   @cracked_results.each do |crack|
     unless crack.nil?
       plaintext << crack unless crack.empty?
     end
   end
-  
+
   @toppasswords = []
   @top10passwords = {}
   # get top 10 passwords
@@ -342,7 +338,7 @@ get '/analytics/graph2' do
       @top10passwords[pass] += 1
     end
   end
-  
+
   # sort and convert to array of json objects for d3
   @top10passwords = @top10passwords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
@@ -351,10 +347,10 @@ get '/analytics/graph2' do
   @top10passwords.each do |key, value|
     @toppasswords << { password: key, count: value }
   end
-  
+
   return @toppasswords.to_json
 end
-  
+
 # callback for d3 graph displaying top 10 base words
 get '/analytics/graph3' do
   varWash(params)
@@ -374,13 +370,13 @@ get '/analytics/graph3' do
       plaintext << crack unless crack.empty?
     end
   end
-  
+
   @topbasewords = []
   @top10basewords = {}
   # get top 10 basewords
   plaintext.each do |pass|
     word_just_alpha = pass.gsub(/^[^a-z]*/i, '').gsub(/[^a-z]*$/i, '')
-    unless word_just_alpha.nil? or word_just_alpha.empty?
+    unless word_just_alpha.nil? || word_just_alpha.empty?
       if @top10basewords[word_just_alpha].nil?
         @top10basewords[word_just_alpha] = 1
       else
@@ -388,7 +384,7 @@ get '/analytics/graph3' do
       end
     end
   end
-  
+
   # sort and convert to array of json objects for d3
   @top10basewords = @top10basewords.sort_by { |_key, value| value }.reverse.to_h
   # we only need top 10
@@ -397,6 +393,6 @@ get '/analytics/graph3' do
   @top10basewords.each do |key, value|
     @topbasewords << { password: key, count: value }
   end
-  
+
   return @topbasewords.to_json
 end

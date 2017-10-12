@@ -249,5 +249,4 @@ post '/customers/upload/verify_hashtype' do
   url += "?job_id=#{params[:job_id]}"
   url += '&edit=1' if params[:edit]
   redirect to(url)
-
 end

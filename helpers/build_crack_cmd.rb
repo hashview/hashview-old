@@ -55,7 +55,7 @@ helpers do
 
     # we assign and write output file before hashcat.
     # if hashcat creates its own output it does so with
-    # elvated permissions and we wont be able to read it
+    # elevated permissions and we wont be able to read it
     crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
     File.open(crack_file, 'w')
 
@@ -73,7 +73,7 @@ helpers do
     when 'combinator'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
     else
-      puts 'INVALUD ATTACK MODE: ' + attackmode.to_s
+      puts 'INVALID ATTACK MODE: ' + attackmode.to_s
     end
 
     # Add global options

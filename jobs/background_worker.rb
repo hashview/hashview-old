@@ -9,21 +9,21 @@ class Api
   # obtain remote ip and port from local config
   begin
     options = JSON.parse(File.read('config/agent_config.json'))
-    @server = options['ip'] + ":" + options['port']
+    @server = options['ip'] + ':' + options['port']
     @uuid = options['uuid']
     @hashcatbinpath = options['hc_binary_path'].to_s
   rescue
-    "Error reading config/agent_config.json. Did you run rake db:provision_agent ???"
+    'Error reading config/agent_config.json. Did you run rake db:provision_agent ???'
   end
 
   ######### generic api handling of GET and POST request ###########
   def self.get(url)
     begin
       response = RestClient::Request.execute(
-        :method => :get,
-        :url => url,
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        method: :get,
+        url: url,
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -34,12 +34,12 @@ class Api
   def self.post(url, payload)
     begin
       response = RestClient::Request.execute(
-        :method => :post,
-        :url => url,
-        :payload => payload.to_json,
-        :headers => {:accept => :json},
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        method: :post,
+        url: url,
+        payload: payload.to_json,
+        headers: {accept: :json},
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -136,32 +136,21 @@ class Api
     return self.get(url)
   end
 
-  # download a wordlist
-  #def self.wordlist()
-  #  url = "https://#{@server}/v1/wordlist/:id"
-  #  return self.get(url)
-  #end
-
-  # save wordlist to disk
-  #def self.save_wordlist(localpath='control/wordlists/thisisjustatest.txt')
-  #  File.write(localpath)
-  #end
-
   # upload crack file
   def self.upload_crackfile(jobtask_id, crack_file, run_time)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/crackfile/upload"
     # puts "attempting upload #{crack_file}"
     begin
       request = RestClient::Request.new(
-        :method => :post,
-        :url => url,
-        :payload => {
-          :multipart => true,
-          :file => File.new(crack_file, 'rb'),
-          :runtime => run_time
+        method: :post,
+        url: url,
+        payload: {
+          multipart: true,
+          file: File.new(crack_file, 'rb'),
+          runtime: run_time
         },
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       response = request.execute
     rescue RestClient::Exception => e
@@ -426,14 +415,6 @@ class LocalAgent
 
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
-
-            # change status to completed for jobtask
-            # commenting out now that we are chunking
-            # if @canceled
-            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
-            # else
-            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-            # end
 
             # set taskqueue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')
