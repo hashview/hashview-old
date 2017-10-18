@@ -14,8 +14,10 @@ Notable changes will be documented here
  - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
  - Fixed (hopefully) bug where hashview prematurely 'completes' a job (and subsequently kills a running task). This only happens in rare cases where multiple agents are involved. 
  - Fixed (hopefully) issue where threads not exiting when they're told to. This resulted in issues related to: https://github.com/hashview/hashview/issues/264
- - Fixed issue where rules listed under task details was displaying rule.id, and not the rule.name
+ - Fixed issue where rules listed under task details was displaying rule.id, and not the rule.name: https://github.com/hashview/hashview/issues/342
  - Fixed SMTP sender error experienced when user sends test message
+ https://github.com/hashview/hashview/issues/341
+ - Fixed issue where foreign DB's listed in config were not being connected too: https://github.com/hashview/hashview/issues/351
 
 ## [v0.7.1-beta] - 2017-09-04
 ### Added
