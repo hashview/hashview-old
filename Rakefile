@@ -76,7 +76,7 @@ namespace :db do
     puts "setting up database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
@@ -134,7 +134,7 @@ namespace :db do
     puts "destroying database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     # destroy database in mysql for datamapper
@@ -155,7 +155,7 @@ namespace :db do
     puts "removing all data in the database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     tables = [ 'customers','hashes','hashfilehashes','hashfiles','jobs','jobtasks','rules','sessions','taskqueues','wordlists' ]
@@ -174,7 +174,7 @@ namespace :db do
   task :provision_defaults do
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     puts '[*] Setting up default settings ...'
@@ -325,7 +325,7 @@ namespace :db do
     puts "setting up local agent for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     agent_config = {}
@@ -363,7 +363,7 @@ namespace :db do
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     puts '[*] Connecting to DB'
@@ -423,7 +423,7 @@ namespace :db do
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     begin
