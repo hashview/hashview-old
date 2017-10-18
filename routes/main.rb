@@ -65,12 +65,11 @@ get '/home' do
         element['job_runtime'] = 'Im ready coach, just send me in.'
       end
 
+      total_speed = 0
       Taskqueues.all(job_id: job.id, status: 'Running').each do |queued_task|
         agent = Agents.first(id: queued_task.agent_id)
 
-        total_speed = 0
         if agent.benchmark
-
           # Normalizing Benchmark Speeds
           if agent.benchmark.include? ' H/s'
             speed = agent.benchmark.split[0].to_f
@@ -92,26 +91,24 @@ get '/home' do
             speed *= 1000000000000
             total_speed += speed
           else
-            total_speed = 0
+            total_speed += 0
           end
-
-          # Convert to Human Readable Format
-          if total_speed > 1000000000000
-            element['job_crackrate'] = (total_speed.to_f / 1000000000000).round(2).to_s + ' TH/s'
-          elsif total_speed > 1000000000
-            element['job_crackrate'] = (total_speed.to_f / 1000000000).round(2).to_s + ' GH/s'
-          elsif total_speed > 1000000
-            element['job_crackrate'] = (total_speed.to_f / 1000000).round(2).to_s + ' MH/s'
-          elsif total_speed > 1000
-            element['job_crackrate'] = (total_speed.to_f / 1000).round(2).to_s + ' kH/s'
-          elsif total_speed >= 0
-            element['job_crackrate'] = total_speed.to_f.round(2).to_s + ' H/s'
-          else
-            element['job_crackrate'] = '0 H/s'
-          end
-        else
-          element['job_crackrate'] = '0 H/s'
         end
+      end
+
+      # Convert to Human Readable Format
+      if total_speed > 1000000000000
+        element['job_crackrate'] = (total_speed.to_f / 1000000000000).round(2).to_s + ' TH/s'
+      elsif total_speed > 1000000000
+        element['job_crackrate'] = (total_speed.to_f / 1000000000).round(2).to_s + ' GH/s'
+      elsif total_speed > 1000000
+        element['job_crackrate'] = (total_speed.to_f / 1000000).round(2).to_s + ' MH/s'
+      elsif total_speed > 1000
+        element['job_crackrate'] = (total_speed.to_f / 1000).round(2).to_s + ' kH/s'
+      elsif total_speed >= 0
+        element['job_crackrate'] = total_speed.to_f.round(2).to_s + ' H/s'
+      else
+        element['job_crackrate'] = '0 H/s'
       end
 
       @jumbotron.push(element)
