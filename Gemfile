@@ -4,6 +4,7 @@ ruby '2.2.2'
 group :development do
   gem 'rubocop'
   gem 'factory_girl'
+  gem 'rotp'
 end
 
 group :test do

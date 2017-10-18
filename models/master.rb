@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'data_mapper'
 require 'bcrypt'
+require 'rotp'
 
 # read config
 options = YAML.load_file('config/database.yml')
@@ -30,6 +31,8 @@ class User
   property :created_at, DateTime, default: DateTime.now
   property :phone, String, required: false
   property :email, String, required: false
+  property :mfa, Boolean
+  property :auth_secret, String
 
   attr_accessor :password
   validates_presence_of :username
@@ -45,7 +48,9 @@ class User
 
   def self.authenticate(username, pass)
     user = User.first(username: username)
-    if user
+    if user.mfa
+      return user.username if pass == ROTP::TOTP.new(user.auth_secret).now.to_s
+    elsif user
       return user.username if BCrypt::Password.new(user.hashed_password) == pass
     end
   end
