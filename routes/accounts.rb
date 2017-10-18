@@ -85,7 +85,7 @@ post '/accounts/save' do
   user.username = params[:username]
   user.password = params[:password] unless params[:password].nil? || params[:password].empty?
   user.email = params[:email] unless params[:email].nil? || params[:email].empty?
-  if params[:mfa] && user.auth_secret = ''
+  if params[:mfa] && user.auth_secret == ''
     user.mfa = 't'
     user.auth_secret = ROTP::Base32.random_base32
   elsif params[:mfa]
