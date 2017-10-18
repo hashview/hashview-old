@@ -1,6 +1,6 @@
 production:
   adapter: mysql
-  hostname: "localhost"
+  host: "localhost"
   port: 3306
   user: "root"
   password: "CHANGEME"
@@ -8,7 +8,7 @@ production:
 
 development:
   adapter: mysql
-  hostname: "localhost"
+  host: "localhost"
   port: 3306
   user: "root"
   password: "CHANGEME"
@@ -16,7 +16,7 @@ development:
 
 test:
   adapter: mysql
-  hostname: "localhost"
+  host: "localhost"
   port: 3306
   user: "root"
   password: "CHANGEME"
