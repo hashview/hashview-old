@@ -2,7 +2,7 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.7.2-beta] - 2017-xx-xx
+## [v0.7.2-beta] - 2017-10-19
 ### Added
  - Added Logging Facility, logs should now be under logs/*.log and logs/jobs/*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
  - Added Collapsing window in analytics in Weak Account Password
@@ -10,6 +10,7 @@ Notable changes will be documented here
  - Added ability to set OTP passwords for users using google authenticate (thanks: https://github.com/nicbrink)
  
 ### Removed
+ - Wordlist Checksums is no longer a background task that fires every 5 seconds. Instead its queued up by wordlist importer.
 
 ### Fixed
  - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
