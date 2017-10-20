@@ -1,105 +1,111 @@
 # encoding: utf-8
 get '/download' do
   varWash(params)
- 
-  if params[:customer_id] && !params[:customer_id].empty?
-    if params[:hashfile_id] && !params[:hashfile_id].nil?
 
-      # Until we can figure out JOIN statments, we're going to have to hack it
+  if params[:graph] && !params[:graph].empty?
+    # What kind of graph data are we dealing with here
+    if params[:graph] == '1'    # Total Hashes Cracked
+      # Do Something
+    elsif params[:graph] == '2' # Composition Breakdown
+      # Do Something
+    elsif params[:graph] == '3' # Analysis Detail
       @filecontents = Set.new
-      Hashfilehashes.all(fields: [:id], hashfile_id: params[:hashfile_id]).each do |entry|
-        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
-            line = ''
+      file_name = 'error.txt'
+      if params[:customer_id] && !params[:customer_id].empty?
+        if params[:hashfile_id] && !params[:hashfile_id].nil?
+          # Customer and Hashfile
+          if params[:type] == 'cracked'
+            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id],params[:hashfile_id])
+            file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
+          elsif params[:type] == 'uncracked'
+            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
+            file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           else
-            line = entry.username + ':'
+            # Do Something
+            file_name = 'error.txt'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
-          @filecontents.add(line)
-        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
-            line = ''
+        else
+          # Just Customer
+          if params[:type] == 'cracked'
+            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 1)', params[:customer_id])
+            file_name = "found_#{params[:customer_id]}.txt"
+          elsif params[:type] == 'uncracked'
+            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 0)', params[:customer_id])
+            file_name = "left_#{params[:customer_id]}.txt"
           else
-            line = entry.username + ':'
+            # Do Something
+            file_name = 'error.txt'
           end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          @filecontents.add(line)
+        end
+      else
+        # All
+        if params[:type] == 'cracked'
+          @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+          file_name = 'found_all.txt'
+        elsif params[:type] == 'uncracked'
+          @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 0)')
+          file_name = 'left_all.txt'
+        else
+          # Do Something
+          file_name = 'error.txt'
         end
       end
-    else
-      @filecontents = Set.new
-      @hashfiles_ids = Hashfiles.all(fields: [:id], customer_id: params[:customer_id]).each do |hashfile|
-        Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
-          if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-            if entry.username.nil? # no username
-              line = ''
-            else
-              line = entry.username + ':'
-            end
-            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-            line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
-            @filecontents.add(line)
-          elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-            if entry.username.nil? # no username
-              line = ''
-            else
-              line = entry.username + ':'
-            end
-            line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-            @filecontents.add(line)
-          end
-        end    
+
+      @results.each do |entry|
+        entry.username.nil? ? line = '' : line = entry.username.to_s + ':'
+        line += entry.originalhash.to_s
+        line += ':' + entry.plaintext.to_s if params[:type] == 'cracked'
+        @filecontents.add(line)
       end
-    end
-  else
-    @filecontents = Set.new
-    @hashfiles_ids = Hashfiles.all(fields: [:id]).each do |hashfile|
-      Hashfilehashes.all(fields: [:id], hashfile_id: hashfile.id).each do |entry|
-        if params[:type] == 'cracked' and Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
-            line = ''
-          else
-            line = entry.username + ':'
-          end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          line = line + ':' + Hashes.first(fields: [:plaintext], id: entry.hash_id, cracked: 1).plaintext
-          @filecontents.add(line)
-        elsif params[:type] == 'uncracked' and not Hashes.first(fields: [:cracked], id: entry.hash_id).cracked
-          if entry.username.nil? # no username
-            line = ''
-          else
-            line = entry.username + ':'
-          end
-          line = line + Hashes.first(fields: [:originalhash], id: entry.hash_id).originalhash
-          @filecontents.add(line)
+
+      file_name = 'control/tmp/' + file_name
+
+      File.open(file_name, 'w') do |f|
+        @filecontents.each do |entry|
+          f.puts entry
         end
       end
-    end
-  end
 
-  # Write temp output file
-  if params[:customer_id] && !params[:customer_id].empty?
-    if params[:hashfile_id] && !params[:hashfile_id].nil?
-      file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt" if params[:type] == 'cracked'
-      file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt" if params[:type] == 'uncracked'
+      send_file file_name, filename: file_name, type: 'Application/octet-stream'
+    elsif params[:graph] == '4' # Password Count by Length
+      # Do Something
+    elsif params[:graph] == '5' # Top 10 Passwords
+      # Do Something
+    elsif params[:graph] == '6' # Accounts With Weak Passwords
+      file_name = 'error.txt'
+      if params[:customer_id] && !params[:customer_id].empty?
+        if params[:hashfile_id] && !params[:hashfile_id].nil?
+          @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
+          file_name = "Weak_Accounts_#{params[:customer_id]}_#{params[:hashfile_id]}.csv"
+        else
+          @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
+          file_name = "Weak_Accounts_#{params[:customer_id]}.csv"
+        end
+      else
+        @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+        file_name = "Weak_Accounts_all.csv"
+      end
+
+      file_name = 'control/tmp/' + file_name
+
+      File.open(file_name, 'w') do |f|
+        line = 'username,password'
+        f.puts line
+        @complexity_hashes.each do |entry|
+          unless entry.plaintext.to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
+            line = entry.username.to_s + ',' + entry.plaintext.to_s
+            f.puts line
+          end
+        end
+      end
+
+      send_file file_name, filename: file_name, type: 'Application/octet-stream'
+
+    elsif params[:graph] == '7' # Top 20 Password/Hashes Shared by Users
+      # Do something
     else
-      file_name = "found_#{params[:customer_id]}.txt" if params[:type] == 'cracked'
-      file_name = "left_#{params[:customer_id]}.txt" if params[:type] == 'uncracked'
-    end
-  else
-    file_name = 'found_all.txt' if params[:type] == 'cracked'
-    file_name = 'left_all.txt' if params[:type] == 'uncracked'
-  end
- 
-  file_name = 'control/outfiles/' + file_name
-
-  File.open(file_name, 'w') do |f|
-    @filecontents.each do |entry|
-      f.puts entry
+      # DO Something
     end
   end
-
-  send_file file_name, filename: file_name, type: 'Application/octet-stream'
 end
 

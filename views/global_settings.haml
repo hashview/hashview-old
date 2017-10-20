@@ -25,253 +25,249 @@
 #exTab2.container
   %ul.nav.nav-tabs
     %li.active
-      %a{'data-toggle' => 'tab', :href => '#1'} Hashcat
+      %a{'data-toggle' => 'tab', href: '#1'} Hashcat
     %li
-      %a{'data-toggle' => 'tab', :href => '#2'} Email
+      %a{'data-toggle' => 'tab', href: '#2'} Email
     %li
-      %a{"data-toggle" => "tab", :href => "#3"} UI
+      %a{'data-toggle' => 'tab', href: '#3'} UI
     %li
-      %a{"data-toggle" => "tab", :href => "#4"} Distributed
+      %a{'data-toggle' => 'tab', href: '#4'} Distributed
     %li
-      %a{'data-toggle' => 'tab', :href => '#5'} Hashview Hub
+      %a{'data-toggle' => 'tab', href: '#5'} Hashview Hub
 
   .tab-content
     #1.tab-pane.active
       %br
       .col-md-10
-        %form{:name => 'hashcat_settings_form', :id => 'hashcat_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+        %form{name: 'hashcat_settings_form', id: 'hashcat_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-2{:for => ''} Hashcat Binary Path
+            %label.control-label.col-xs-2{for: ''} Hashcat Binary Path
             .col-xs-10
               - if @hc_binpath
-                %input{:type => 'textbox', :class => 'form-control', :disabled => 'disabled', :value => @hc_binpath}
+                %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_binpath}
               Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it. Make sure the user running hashview has the ability to read the hashcat root folder
           .form-group
-            %label.control-label.col-xs-2{:for => ''} Max Task Runtime
+            %label.control-label.col-xs-2{for: ''} Max Task Runtime
             .col-xs-3
               - if @hc_settings and ! @hc_settings.max_task_time.nil? and ! @hc_settings.max_task_time.empty?
-                %input{:type => 'textbox', :class => 'form-control', :name => 'max_task_time', :id => 'max_task_time', :value => @hc_settings.max_task_time}
+                %input{type: 'textbox', class: 'form-control', name: 'max_task_time', id: 'max_task_time', value: @hc_settings.max_task_time}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'max_task_time', :id => 'max_task_time', :value => '86400'}
+                %input{type: 'textbox', class: 'form-control', name: 'max_task_time', id: 'max_task_time', value: '86400'}
             Seconds
           .form-group
-            %label.control-label.col-xs-2{:for => ''}
+            %label.control-label.col-xs-2{for: ''}
             .col-xs-7
               %h3 The following Hashcat settings are optional
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --opencl-device-types (-D)
+            %label.control-label.col-xs-2{for: ''} --opencl-device-types (-D)
             .col-xs-6
-              %select.form-control{:name => 'opencl_device_types'}
+              %select.form-control{name: 'opencl_device_types'}
                 - if @hc_settings.opencl_device_types.to_s == '1'
-                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
-                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 1 - CPU
-                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
-                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+                  %option{value: '0', name: 'opencl_device_types', type: 'button'} unset
+                  %option{value: '1', name: 'opencl_device_types', type: 'button', selected: 'selected'} 1 - CPU
+                  %option{value: '2', name: 'opencl_device_types', type: 'button'} 2 - GPU
+                  %option{value: '3', name: 'opencl_device_types', type: 'button'} 3 - FPGA, DSP, Co-Processor
                 - elsif @hc_settings.opencl_device_types.to_s == '2'
-                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
-                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
-                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 2 - GPU
-                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+                  %option{value: '0', name: 'opencl_device_types', type: 'button'} unset
+                  %option{value: '1', name: 'opencl_device_types', type: 'button'} 1 - CPU
+                  %option{value: '2', name: 'opencl_device_types', type: 'button', selected: 'selected'} 2 - GPU
+                  %option{value: '3', name: 'opencl_device_types', type: 'button'} 3 - FPGA, DSP, Co-Processor
                 - elsif @hc_settings.opencl_device_types.to_s == '3'
-                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button'} unset
-                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
-                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
-                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} 3 - FPGA, DSP, Co-Processor
+                  %option{value: '0', name: 'opencl_device_types', type: 'button'} unset
+                  %option{value: '1', name: 'opencl_device_types', type: 'button'} 1 - CPU
+                  %option{value: '2', name: 'opencl_device_types', type: 'button'} 2 - GPU
+                  %option{value: '3', name: 'opencl_device_types', type: 'button', selected: 'selected'} 3 - FPGA, DSP, Co-Processor
                 - else
-                  %option{:value => '0', :name => 'opencl_device_types', :type => 'button', selected: 'selected'} unset
-                  %option{:value => '1', :name => 'opencl_device_types', :type => 'button'} 1 - CPU
-                  %option{:value => '2', :name => 'opencl_device_types', :type => 'button'} 2 - GPU
-                  %option{:value => '3', :name => 'opencl_device_types', :type => 'button'} 3 - FPGA, DSP, Co-Processor
+                  %option{value: '0', name: 'opencl_device_types', type: 'button', selected: 'selected'} unset
+                  %option{value: '1', name: 'opencl_device_types', type: 'button'} 1 - CPU
+                  %option{value: '2', name: 'opencl_device_types', type: 'button'} 2 - GPU
+                  %option{value: '3', name: 'opencl_device_types', type: 'button'} 3 - FPGA, DSP, Co-Processor
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --workload-profile (-w)
+            %label.control-label.col-xs-2{for: ''} --workload-profile (-w)
             .col-xs-3
-              %select.form-control{:name => 'workload_profile'}
+              %select.form-control{name: 'workload_profile'}
                 - if @hc_settings.workload_profile.to_s == '1'
-                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
-                  %option{:value => '1', :name => 'workload_profile', :type => 'button', selected: 'selected'} 1 - Low
-                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
-                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
-                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                  %option{value: '0', name: 'workload_profile', type: 'button'} unset
+                  %option{value: '1', name: 'workload_profile', type: 'button', selected: 'selected'} 1 - Low
+                  %option{value: '2', name: 'workload_profile', type: 'button'} 2 - Medium
+                  %option{value: '3', name: 'workload_profile', type: 'button'} 3 - High
+                  %option{value: '4', name: 'workload_profile', type: 'button'} 4 - Nightmare
                 - elsif @hc_settings.workload_profile.to_s == '2'
-                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
-                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
-                  %option{:value => '2', :name => 'workload_profile', :type => 'button', selected: 'selected'} 2 - Medium
-                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
-                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                  %option{value: '0', name: 'workload_profile', type: 'button'} unset
+                  %option{value: '1', name: 'workload_profile', type: 'button'} 1 - Low
+                  %option{value: '2', name: 'workload_profile', type: 'button', selected: 'selected'} 2 - Medium
+                  %option{value: '3', name: 'workload_profile', type: 'button'} 3 - High
+                  %option{value: '4', name: 'workload_profile', type: 'button'} 4 - Nightmare
                 - elsif @hc_settings.workload_profile.to_s == '3'
-                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
-                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
-                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
-                  %option{:value => '3', :name => 'workload_profile', :type => 'button', selected: 'selected'} 3 - High
-                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                  %option{value: '0', name: 'workload_profile', type: 'button'} unset
+                  %option{value: '1', name: 'workload_profile', type: 'button'} 1 - Low
+                  %option{value: '2', name: 'workload_profile', type: 'button'} 2 - Medium
+                  %option{value: '3', name: 'workload_profile', type: 'button', selected: 'selected'} 3 - High
+                  %option{value: '4', name: 'workload_profile', type: 'button'} 4 - Nightmare
                 - elsif @hc_settings.workload_profile.to_s == '4'
-                  %option{:value => '0', :name => 'workload_profile', :type => 'button'} unset
-                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
-                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
-                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
-                  %option{:value => '4', :name => 'workload_profile', :type => 'button', selected: 'selected'} 4 - Nightmare
+                  %option{value: '0', name: 'workload_profile', type: 'button'} unset
+                  %option{value: '1', name: 'workload_profile', type: 'button'} 1 - Low
+                  %option{value: '2', name: 'workload_profile', type: 'button'} 2 - Medium
+                  %option{value: '3', name: 'workload_profile', type: 'button'} 3 - High
+                  %option{value: '4', name: 'workload_profile', type: 'button', selected: 'selected'} 4 - Nightmare
                 - else
-                  %option{:value => '0', :name => 'workload_profile', :type => 'button', selected: 'selected'} unset
-                  %option{:value => '1', :name => 'workload_profile', :type => 'button'} 1 - Low
-                  %option{:value => '2', :name => 'workload_profile', :type => 'button'} 2 - Medium
-                  %option{:value => '3', :name => 'workload_profile', :type => 'button'} 3 - High
-                  %option{:value => '4', :name => 'workload_profile', :type => 'button'} 4 - Nightmare
+                  %option{value: '0', name: 'workload_profile', type: 'button', selected: 'selected'} unset
+                  %option{value: '1', name: 'workload_profile', type: 'button'} 1 - Low
+                  %option{value: '2', name: 'workload_profile', type: 'button'} 2 - Medium
+                  %option{value: '3', name: 'workload_profile', type: 'button'} 3 - High
+                  %option{value: '4', name: 'workload_profile', type: 'button'} 4 - Nightmare
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --gpu-temp-disable
+            %label.control-label.col-xs-2{for: ''} --gpu-temp-disable
             .col-xs-1
               - if @hc_settings.gpu_temp_disable == false
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'gpu_temp_disable'}
+                %input.checkbox.pull-left{type: 'checkbox', name: 'gpu_temp_disable'}
               -else
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'gpu_temp_disable', :checked => 'checked'}
+                %input.checkbox.pull-left{type: 'checkbox', name: 'gpu_temp_disable', checked: 'checked'}
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --gpu-temp-abort
+            %label.control-label.col-xs-2{for: ''} --gpu-temp-abort
             .col-xs-1
               - if @hc_settings.gpu_temp_abort.to_s == '0'
-                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_abort'}
+                %input{type: 'textbox', class: 'form-control', name: 'gpu_temp_abort'}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_abort', :value => @hc_settings.gpu_temp_abort}
+                %input{type: 'textbox', class: 'form-control', name: 'gpu_temp_abort', value: @hc_settings.gpu_temp_abort}
             Degrees celsius (blank if unused)
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --gpu-temp-retain
+            %label.control-label.col-xs-2{for: ''} --gpu-temp-retain
             .col-xs-1
               - if @hc_settings.gpu_temp_retain.to_s == '0'
-                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_retain'}
+                %input{type: 'textbox', class: 'form-control', name: 'gpu_temp_retain'}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'gpu_temp_retain', :value => @hc_settings.gpu_temp_retain}
+                %input{type: 'textbox', class: 'form-control', name: 'gpu_temp_retain', value: @hc_settings.gpu_temp_retain}
             Degrees celsius (blank if unused)
           .form-group
-            %label.control-label.col-xs-2{:for => ''} --force
+            %label.control-label.col-xs-2{for: ''} --force
             .col-xs-1
               - if @hc_settings.hc_force == false
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'hc_force', :id => 'hc_force'}
+                %input.checkbox.pull-left{type: 'checkbox', name: 'hc_force', id: 'hc_force'}
               -else
-                %input.checkbox.pull-left{:type => 'checkbox', :name => 'hc_force', :id => 'hc_force', :checked => 'checked'}
+                %input.checkbox.pull-left{type: 'checkbox', name: 'hc_force', id: 'hc_force', checked: 'checked'}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '1'}
+              %input{type: 'hidden', name: 'form_id', value: '1'}
           .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => 'submit'} Save
+              %button.btn.btn-primary{type: 'submit'} Save
     #2.tab-pane
       %br
       .col-md-10
-        %form{:name => 'settings_form', :id => 'settings_form', :class => "form-horizontal", :action => "/settings", :method => "post"}
+        %form{name: 'settings_form', id: 'settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} SMTP Server
+            %label.control-label.col-xs-2{for: ''} SMTP Server
             .col-xs-10
               - if @settings and ! @settings.smtp_server.nil? and ! @settings.smtp_server.empty?
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :value => @settings.smtp_server}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_server', id: 'smtp_server', value: @settings.smtp_server}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_server', :id => 'smtp_server', :placeholder => 'smtp.server.com:25'}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_server', id: 'smtp_server', placeholder: 'smtp.server.com:25'}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} Sender Address
+            %label.control-label.col-xs-2{for: ''} Sender Address
             .col-xs-10
               - if @settings and ! @settings.smtp_sender.nil? and ! @settings.smtp_sender.empty?
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :value => @settings.smtp_sender}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_sender', id: 'smtp_sender', value: @settings.smtp_sender}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_sender', :id => 'smtp_sender', :placeholder => 'no-reply@hashview.local'}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_sender', id: 'smtp_sender', placeholder: 'no-reply@hashview.local'}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} Use TLS
+            %label.control-label.col-xs-2{for: ''} Use TLS
             .col-xs-1.pull-left
               - if @settings and @settings.smtp_use_tls == true
-                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls', :checked => 'checked'}
+                %input.checkbox.pull-left{type: 'checkbox', class: 'form-control', name: 'smtp_use_tls', id: 'smtp_use_tls', checked: 'checked'}
               - else
-                %input.checkbox.pull-left{:type => 'checkbox', :class => 'form-control', :name => 'smtp_use_tls', :id => 'smtp_use_tls'}
+                %input.checkbox.pull-left{type: 'checkbox', class: 'form-control', name: 'smtp_use_tls', id: 'smtp_use_tls'}
 
           .form-group
-            %label.control-label.col-xs-2{:for => ""} SMTP Auth type
+            %label.control-label.col-xs-2{for: ''} SMTP Auth type
             .col-xs-10
-              %select.form-control{:id => 'smtp_auth_type', :name => 'smtp_auth_type', :onchange => "showDiv()"}
+              %select.form-control{id: 'smtp_auth_type', name: 'smtp_auth_type', onchange: 'showDiv()'}
                 - @auth_types.each do |auth_type|
                   - if @settings and (@settings.smtp_auth_type == auth_type)
-                    %option{:value => "#{auth_type}", :type => 'button', selected: 'selected'} #{auth_type}
+                    %option{value: "#{auth_type}", type: 'button', selected: 'selected'} #{auth_type}
                   - else
-                    %option{:value => "#{auth_type}", :type => 'button'} #{auth_type}
+                    %option{value: "#{auth_type}", type: 'button'} #{auth_type}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} SMTP Username
+            %label.control-label.col-xs-2{for: ''} SMTP Username
             .col-xs-10
               - if @settings and ! @settings.smtp_user.nil? and ! @settings.smtp_user.empty?
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user', :value => @settings.smtp_user}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_user', id: 'smtp_user', value: @settings.smtp_user}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'smtp_user', :id => 'smtp_user'}
+                %input{type: 'textbox', class: 'form-control', name: 'smtp_user', id: 'smtp_user'}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} SMTP Password
+            %label.control-label.col-xs-2{for: ''} SMTP Password
             .col-xs-10
               - if @settings and ! @settings.smtp_pass.nil? and ! @settings.smtp_pass.empty?
-                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass', :placeholder => '- password set -'}
+                %input{type: 'password', class: 'form-control', name: 'smtp_pass', id: 'smtp_pass', placeholder: '- password set -'}
               - else
-                %input{:type => 'password', :class => 'form-control', :name => 'smtp_pass', :id => 'smtp_pass'}
+                %input{type: 'password', class: 'form-control', name: 'smtp_pass', id: 'smtp_pass'}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '2'}
+              %input{type: 'hidden', name: 'form_id', value: '2'}
           .form-group
             .col-xs-offset-2.col-xs-10
-              %a.btn.btn-warning{:href => "/test/email"}
+              %a.btn.btn-warning{href: '/test/email'}
                 Send Test Email
           .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => "submit"} Save
+              %button.btn.btn-primary{type: 'submit'} Save
     #3.tab-pane
       %br
       .col-md-10
-        %form{:name => 'ui_settings_form', :id => 'ui_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+        %form{name: 'ui_settings_form', id: 'ui_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-2{:for => ""} Themes
+            %label.control-label.col-xs-2{for: ''} Themes
             .col-xs-10
-              %select.form-control{:id => 'ui_themes', :name => 'ui_themes'}
+              %select.form-control{id: 'ui_themes', name: 'ui_themes'}
                 - @themes.each do |ui_type|
                   - if @settings and (@settings.ui_themes == ui_type)
-                    %option{:value => "#{ui_type}", :type => 'button', selected: 'selected'} #{ui_type}
+                    %option{value: "#{ui_type}", type: 'button', selected: 'selected'} #{ui_type}
                   - else
-                    %option{:value => "#{ui_type}", :type => 'button'} #{ui_type}
+                    %option{value: "#{ui_type}", type: 'button'} #{ui_type}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '3'}
+              %input{type: 'hidden', name: 'form_id', value: '3'}
           .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => 'submit'} Save
+              %button.btn.btn-primary{type: 'submit'} Save
     #4.tab-pane
       %br
       .col-md-10
-        %form{:name => 'distributed_settings_form', :id => 'distributed_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+        %form{name: 'distributed_settings_form', id: 'distributed_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-3{:for => ''} Chunk Size (in keyspace)
+            %label.control-label.col-xs-3{for: ''} Chunk Size (in keyspace)
             .col-xs-2
-              %input{:type => 'textbox', :class => 'form-control', :name => 'chunk_size', :id => 'chunk_size', :value => @settings.chunk_size}
+              %input{type: 'textbox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '4'}
+              %input{type: 'hidden', name: 'form_id', value: '4'}
           .form-group
             .col-md-1.pull-right
-              %button.btn.btn-primary{:type => 'submit'} Save
+              %button.btn.btn-primary{type: 'submit'} Save
     #5.tab-pane
       %br
       .col-md-10
-        %form{:name => 'hub_settings_form', :id => 'hub_settings_form', :class => 'form-horizontal', :action => '/settings', :method => 'post'}
+        %form{name: 'hub_settings_form', id: 'hub_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-2{:for => ''} Email Address
+            %label.control-label.col-xs-2{for: ''} Email Address
             .col-xs-10
               - if @hub_settings.email
-                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email', :value => @hub_settings.email}
+                %input{type: 'textbox', class: 'form-control', name: 'email', id: 'email', value: @hub_settings.email}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'email', :id => 'email'}
-          //.form-group
-          //  %label.control-label.col-xs-2{:for => ''} Tokens
-          //  .col-xs-10
-          //    #{@hub_settings.balance}
+                %input{type: 'textbox', class: 'form-control', name: 'email', id: 'email'}
           .form-group
-            %label.control-label.col-xs-2{:for => ''} UUID
+            %label.control-label.col-xs-2{for: ''} UUID
             .col-xs-10
               - if @hub_settings.uuid
-                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid', :value => @hub_settings.uuid}
+                %input{type: 'textbox', class: 'form-control', name: 'uuid', id: 'uuid', value: @hub_settings.uuid}
               - else
-                %input{:type => 'textbox', :class => 'form-control', :name => 'uuid', :id => 'uuid'}
+                %input{type: 'textbox', class: 'form-control', name: 'uuid', id: 'uuid'}
           .form-group
             .col-xs-10
-              %input{:type => 'hidden', :name => 'form_id', :value => '5'}
+              %input{type: 'hidden', name: 'form_id', value: '5'}
           .form-group
             .col-md-1.pull-right
               - if @hub_settings.status != 'registered'
-                %button.btn.btn-warning{:type => 'submit'} Register
+                %button.btn.btn-warning{type: 'submit'} Register
               - else
-                %button.btn.btn-danger{:href => 'submit'} Unregister
+                %button.btn.btn-danger{href: 'submit'} Unregister

@@ -12,7 +12,7 @@
               .col-md-10
                 Jobs contain a series of tasks (hashcat commands). Jobs also have an associated list of hashes to crack.
               .col-md-2.pull-right
-                %a.btn.btn-primary.pull-right{:href => "/jobs/create"}
+                %a.btn.btn-primary.pull-right{href: '/jobs/create'}
                   Create a New Job
       %br
       %br
@@ -20,7 +20,7 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table-striped'}
+              %table{class: 'table table-striped'}
                 %thead
                   %tr
                     %th
@@ -52,35 +52,35 @@
                         %td #{job.last_updated_by}
                         %td
                           - if job.status == 'Running'
-                            %a.btn.btn-danger{:href => "/jobs/stop/#{job.id}"}
-                              %i.glyphicon.glyphicon-stop{:title => 'Running'}
+                            %a.btn.btn-danger{href: "/jobs/stop/#{job.id}"}
+                              %i.glyphicon.glyphicon-stop{title: 'Running'}
                           - elsif job.status == 'Queued'
-                            %a.btn.btn-default{:href => "/jobs/stop/#{job.id}"}
-                              %i.glyphicon.glyphicon-hourglass{:title => 'Queued'}
+                            %a.btn.btn-default{href: "/jobs/stop/#{job.id}"}
+                              %i.glyphicon.glyphicon-hourglass{title: 'Queued'}
                           - elsif job.status == 'Completed'
-                            %a.btn.btn-success{:href => ""}
-                              %i.glyphicon.glyphicon-ok{:title => 'Completed'}
+                            %a.btn.btn-success{href: ''}
+                              %i.glyphicon.glyphicon-ok{title: 'Completed'}
                           - elsif job.status == 'Importing'
-                            %a.btn.btn-default{:href => '/home'}
-                              %i.glyphicon.glyphicon-hourglass{:title => 'Wait'}
+                            %a.btn.btn-default{href: '/home'}
+                              %i.glyphicon.glyphicon-hourglass{title: 'Wait'}
                           - else
-                            %a.btn.btn-success{:href => "/jobs/start/#{job.id}"}
-                              %i.glyphicon.glyphicon-play{:title => 'stopped'}
-                          %a.btn.btn-primary{:href => "/analytics?customer_id=#{job.customer_id}&hashfile_id=#{job.hashfile_id}"}
-                            %i.glyphicon.glyphicon-stats{:title => 'Display crack stats'}
-                          %a.btn.btn-info{:href => "#modal#{job.id}", "data-toggle" => 'modal'}
-                            %i.glyphicon.glyphicon-info-sign{:title => 'Info'}
-                          .modal.fade.modal{:id => "modal#{job.id}", :role => "dialog", :tabindex => "-1", "aria-hidden"=>'true'}
+                            %a.btn.btn-success{href: "/jobs/start/#{job.id}"}
+                              %i.glyphicon.glyphicon-play{title: 'stopped'}
+                          %a.btn.btn-primary{href: "/analytics?customer_id=#{job.customer_id}&hashfile_id=#{job.hashfile_id}"}
+                            %i.glyphicon.glyphicon-stats{title: 'Display crack stats'}
+                          %a.btn.btn-info{href: "#modal#{job.id}", "data-toggle" => 'modal'}
+                            %i.glyphicon.glyphicon-info-sign{title: 'Info'}
+                          .modal.fade.modal{id: "modal#{job.id}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
                             .modal-dialog.modal-lg
                               .modal-content
                                 .modal-header
-                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => "modal", :type => "button"}
+                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
                                     %span{'aria-hidden' => 'true'} &times;
                                   %h4.modal-title Job Tasks for: #{job.name} (id:#{job.id})
                                 .modal-body
                                   %p
                                   .table
-                                    %table{:class => 'table table-striped'}
+                                    %table{class: 'table table-striped'}
                                       - if @jobtasks
                                         - @jobtasks.each do |jt|
                                           - if jt.job_id == job.id
@@ -90,37 +90,37 @@
                                                   %td
                                                     .row
                                                       .form-group
-                                                        %label.control-label.col-xs-2{:for => ""} Task Name
+                                                        %label.control-label.col-xs-2{for: ''} Task Name
                                                         .col-xs-10
                                                           #{task.name}
                                                     .row
                                                       .form-group
-                                                        %label.control-label.col-xs-2{:for => ""} Attack Mode
+                                                        %label.control-label.col-xs-2{for: ''} Attack Mode
                                                         .col-xs-4
                                                           #{task.hc_attackmode}
                                                     - if task.hc_attackmode == 'dictionary'
                                                       .row
                                                         .form-group
-                                                          %label.control-label.col-xs-2{:for => ""} Wordlist
+                                                          %label.control-label.col-xs-2{for: ''} Wordlist
                                                           .col-xs-4
                                                             #{@wordlist_id_to_name[task.wl_id]}
                                                       .row
                                                         .form-group
-                                                          %label.control-label.col-xs-2{:for => ""} Dictionary Rules
+                                                          %label.control-label.col-xs-2{for: ''} Dictionary Rules
                                                           .col-xs-4
                                                             #{task.hc_rule}
                                       - else
                                         No tasks are assigned to this job
                                   %p
                                 .modal-footer
-                                  %button.btn.btn-default{"data-dismiss" => "modal", :type => "button"} Close
+                                  %button.btn.btn-default{"data-dismiss" => "modal", type: 'button'} Close
                           - if job.status == 'Running' || job.status == 'Queued'
-                            %a.btn.btn-warning.disabled{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
-                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                            %a.btn.btn-danger.disabled{:href => "/jobs/delete/#{job.id}"}
-                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                            %a.btn.btn-warning.disabled{href: "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
+                              %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                            %a.btn.btn-danger.disabled{href: "/jobs/delete/#{job.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}
                           - else
-                            %a.btn.btn-warning{:href => "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
-                              %i.glyphicon.glyphicon-cog{:title => 'Edit'}
-                            %a.btn.btn-danger{:href => "/jobs/delete/#{job.id}"}
-                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                            %a.btn.btn-warning{href: "/jobs/create?customer_id=#{job.customer_id}&job_id=#{job.id}&edit=1"}
+                              %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                            %a.btn.btn-danger{href: "/jobs/delete/#{job.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}

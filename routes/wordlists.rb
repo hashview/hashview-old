@@ -1,5 +1,5 @@
 # encoding: utf-8
-# require_relative '../jobs/init' # this shouldn't be needed?
+
 get '/wordlists/list' do
   @wordlists = Wordlists.all
 
@@ -20,7 +20,7 @@ get '/wordlists/delete/:id' do
   else
     # check if wordlist is in use
     @task_list = Tasks.all(wl_id: @wordlist.id)
-    if !@task_list.empty?
+    unless @task_list.empty?
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
       redirect to('/wordlists/list')
     end
@@ -31,8 +31,6 @@ get '/wordlists/delete/:id' do
     # delete from db
     @wordlist.destroy
 
-    # Update our magic wordlist
-    # Resque.enqueue(MagicWordlist)
   end
   redirect to('/wordlists/list')
 end
@@ -68,8 +66,8 @@ post '/wordlists/upload/' do
   wordlist.save
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
+  Resque.enqueue(WordlistImporter)
   Resque.enqueue(WordlistChecksum)
-  # Update our magic wordlist
-  # Resque.enqueue(MagicWordlist)
+
   redirect to('/wordlists/list')
 end

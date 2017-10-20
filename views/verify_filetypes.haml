@@ -16,17 +16,17 @@
       .container
         .col-md-12
           .row
-            %form{:class => "form-horizontal", :action => "/customers/upload/verify_filetype", :method => "post"}
+            %form{class: 'form-horizontal', action: '/customers/upload/verify_filetype', method: 'post'}
               .form-group
-                %label.control-label.col-xs-2{:for => ""} Select Hash File Type:
+                %label.control-label.col-xs-2{for: ''} Select Hash File Type:
                 .col-xs-4
-                  %select.form-control{:name => 'filetype'}
-                    %option{:value => 'none', :name => 'filetype', :type => 'button'} - SELECT -
+                  %select.form-control{name: 'filetype'}
+                    %option{value: 'none', name: 'filetype', type: 'button'} - SELECT -
                     - @filetypes.each do |type|
-                      %option{:value => "#{type}", :name => 'filetype', :type => "button"} #{type}
-                  %input{:type => 'hidden', :name => 'hashid', :value=>"#{params[:hashid].to_s}"}
+                      %option{value: "#{type}", name: 'filetype', type: 'button'} #{type}
+                  %input{type: 'hidden', name: 'hashid', value: "#{params[:hashid].to_s}"}
               .form-group
                 .col-xs-offset-2.col-xs-10
-                  %input{:type => 'hidden', :name => 'job_id', :value=>"#{params[:job_id].to_s}"}
-                  %input{:type => 'hidden', :name => 'customer_id', :value=>"#{params[:customer_id].to_s}"}
-                  %button.btn.btn-primary{:type => "submit"} Confirm
+                  %input{type: 'hidden', name: 'job_id', value: "#{params[:job_id].to_s}"}
+                  %input{type: 'hidden', name: 'customer_id', value: "#{params[:customer_id].to_s}"}
+                  %button.btn.btn-primary{type: 'submit'} Confirm

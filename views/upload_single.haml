@@ -4,13 +4,13 @@
   .row
     .col-md-10
       %br
-      %form{:method => 'post', :action => "/job/#{@job.id}/upload/singlehash"}
+      %form{method: 'post', action: "/job/#{@job.id}/upload/singlehash"}
         .form-group
           %label.control-label.col-xs-2 Hash
           .col-xs-10
-            %input{:type => "textbox", :class => "form-control", :name => 'hash' }
+            %input{type: 'textbox', class: 'form-control', name: 'hash' }
         .form-group
           .col-xs-offset-2.col-xs-10
             %br
-            %input{:type => 'submit', :value => 'Submit' }
+            %input{type: 'submit', value: 'Submit' }
   	

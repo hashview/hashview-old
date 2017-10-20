@@ -1,6 +1,6 @@
 def isBusy?
   @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  return true if @results.length > 1
+  true if @results.length > 1
 end
 
 def isDevelopment?
@@ -19,9 +19,7 @@ def isOldVersion?
   has_version_column = false
   @tables = repository(:default).adapter.select('DESC settings')
   @tables.each do |row|
-    if row.field == 'version'
-      has_version_column = true
-    end
+    has_version_column = true if row.field == 'version'
   end
 
   if has_version_column
@@ -35,9 +33,8 @@ def isOldVersion?
     end
   else
     puts 'No version column found. Assuming Version 0.5.1'
-    return true
+    true
   end
-  return false
 end
 
 def updateTaskqueueStatus(taskqueue_id, status, agent_id)
@@ -49,8 +46,10 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
 
     # if we are setting a status to completed, check to see if this is the last task in queue. if so, set jobtask to completed
     if status == 'Completed'
-      remainingtasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued')
-      if remainingtasks.empty?
+      remaining_queued_tasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued')
+      remaining_running_tasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Running')
+      remaining_importing_tasks = Taskqueues.all(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Importing')
+      if remaining_queued_tasks.empty? && remaining_running_tasks.empty? && remaining_importing_tasks.empty?
         updateJobTaskStatus(queue.jobtask_id, 'Completed')
       end
     end
@@ -68,6 +67,7 @@ def updateJobTaskStatus(jobtask_id, status)
   job = Jobs.first(id: jobtask.job_id)
   if job.status == 'Queued'
     job.status = 'Running'
+    job.started_at = Time.now
     job.save
   end
   # find all tasks for current job:
@@ -101,8 +101,9 @@ def updateJobTaskStatus(jobtask_id, status)
   end
 
   # toggle job status
-  if done == true
+  if done
     job.status = 'Completed'
+    job.ended_at = Time.now
     job.save
     # purge all queued tasks
     taskqueues = Taskqueues.all(job_id: job.id)

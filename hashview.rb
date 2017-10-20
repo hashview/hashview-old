@@ -4,6 +4,7 @@ require 'sinatra/flash'
 require 'haml'
 require 'resque'
 require 'resque/server'
+require 'logger'
 
 require_relative 'models/master'
 require_relative 'helpers/init'

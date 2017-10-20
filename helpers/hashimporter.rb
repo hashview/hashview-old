@@ -73,11 +73,7 @@ def importPwdump(hash, hashfile_id, type)
 end
 
 def machineAcct?(username)
-  if username =~ /\$/
-    return true
-  else
-    return false
-  end
+  username =~ /\$/ ? true : false
 end
 
 def importShadow(hash, hashfile_id, type)
@@ -398,12 +394,14 @@ def modeToFriendly(mode)
   return 'sha1($salt.unicode($pass))' if mode == '140'
   return 'HMAC-SHA1 (key = $pass)' if mode == '150'
   return 'HMAC-SHA1 (key = $salt)' if mode == '160'
-  # return 'sha1(LinkedIn)' if mode == '190'
+  # 'sha1(LinkedIn)' if mode == '190'
   return 'MySQL323' if mode == '200'
   return 'md5crypt' if mode == '500'
   return 'MD4' if mode == '900'
   return 'NTLM' if mode == '1000'
+  return 'SHA-256' if mode == '1400'
   return 'descrypt' if mode == '1500'
+  return 'SHA-512' if mode == '1700'
   return 'sha512crypt' if mode == '1800'
   return 'Double MD5' if mode == '2600'
   return 'LM' if mode == '3000'
@@ -429,28 +427,44 @@ def modeToFriendly(mode)
   return 'Lotus Notes/Domino 5' if mode == '8600'
   return 'PrestaShop' if mode == '11000'
   return 'unknown' if mode == '99999'
-  return 'unknown'
+  'unknown'
 end
 
 def friendlyToMode(friendly)
   return '0' if friendly == 'MD5'
-  return '1000' if friendly == 'NTLM'
-  return '3000' if friendly == 'LM'
+  return '10' if friendly == 'md5($pass.$salt)'
+  return '20' if friendly == 'md5($salt.$pass)'
+  return '30' if friendly == 'md5(unicode($pass).$salt)'
+  return '40' if friendly == 'md5($salt.unicode($pass))'
   return '100' if friendly == 'SHA-1'
+  return '200' if friendly == 'MySQL323'
   return '500' if friendly == 'md5crypt'
+  return '900' if friendly == 'MD4'
+  return '1000' if friendly == 'NTLM'
+  return '1400' if friendly == 'SHA-256'
+  return '1700' if friendly == 'SHA-512'
+  return '2600' if friendly == 'Double MD5'
+  return '3000' if friendly == 'LM'
+  return '3500' if friendly == 'md5(md5(md5($pass)))'
+  return '4400' if friendly == 'md5(sha1($pass))'
+  return '4500' if friendly == 'sha1(sha1($pass))'
+  return '4600' if friendly == 'sha1(sha1(sha1($pass)))'
+  return '4700' if friendly == 'sha1(md5($pass))'
   return '3200' if friendly == 'bcrypt'
   return '7400' if friendly == 'sha512crypt'
   return '1800' if friendly == 'sha256crypt'
   return '1500' if friendly == 'descrypt'
   return '5500' if friendly == 'NetNTLMv1'
   return '5600' if friendly == 'NetNTLMv2'
+  return '6000' if friendly == 'RipeMD160'
+  '99999'
 end
 
 def importHash(hash_array, hashfile_id, file_type, hashtype)
   hash_array.each do |entry|
     entry = entry.gsub(/\s+/, '') # remove all spaces
-    if file_type == 'pwdump' or file_type == 'smart hashdump' 
-      importPwdump(entry.chomp, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
+    if file_type == 'pwdump' || file_type == 'smart hashdump'
+      importPwdump(entry.chomp, hashfile_id, hashtype) # because the format is the same aside from the trailing ::
     elsif file_type == 'shadow'
       importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'hash_only'
@@ -475,7 +489,7 @@ def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     entry = entry.gsub(/\s+/, "") # remove all spaces
-    if file_type == 'pwdump' or file_type == 'smart_hashdump'
+    if file_type == 'pwdump' || file_type == 'smart_hashdump'
       elements = entry.split(':')
       @modes = getMode(elements[2])
       @modes.each do |mode|

@@ -10,11 +10,11 @@
           %br
           .row
             .col-md-10
-              %form{:class => "form-horizontal", :action => "/agents/#{@agent.id}/edit", :method => "post"}
+              %form{class: 'form-horizontal', action: "/agents/#{@agent.id}/edit", method: 'post'}
                 .form-group
-                  %label.control-label.col-xs-2{:for => ""} Agent Name
+                  %label.control-label.col-xs-2{for: ''} Agent Name
                   .col-xs-10
-                    %input{:type => "textbox", :class => "form-control", :name => "name", :id => "name", :value => "#{@agent.name}"}
+                    %input{type: 'textbox', class: 'form-control', name: 'name', id: 'name', value: "#{@agent.name}"}
                 .form-group
                   .col-xs-offset-2.col-xs-10
-                    %button.btn.btn-primary{:type => "submit"} Update
+                    %button.btn.btn-primary{type: 'submit'} Update

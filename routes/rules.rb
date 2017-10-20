@@ -46,10 +46,10 @@ post '/rules/new' do
     redirect to('/rules/list')
   end
 
-  # Create DB entry first so that our background job doesnt accidentally pull it in.
+  # Create DB entry first so that our background job doesn't accidentally pull it in.
   rules_file = Rules.new
   rules_file.name = name
-  rules_file.lastupdated = Time.now()
+  rules_file.lastupdated = Time.now
 
   # temporarily save file for testing
   rules_file_path_name = "control/rules/#{name}.rule"
@@ -59,7 +59,9 @@ post '/rules/new' do
 
   # Parse uploaded file into an array
   rules_array = params[:new_rules].to_s.gsub(/\x0d\x0a/, "\x0a") # in theory we shouldnt run into any false positives?
-  File.open(rules_file_path_name, 'w') { |f| f.puts(rules_array) }
+  File.open(rules_file_path_name, 'w') do |f|
+    f.puts(rules_array)
+  end
 
   results = Rules.first(name: name)
   Resque.enqueue(FileChecksum('rules', results.id))
@@ -121,7 +123,9 @@ post '/rules/save/:id' do
   File.open(rules_file.path, 'w') { |f| f.puts(@rules) }
 
   # update file size
-  size = File.foreach(rules_file.path).inject(0) { |c| c + 1}
+  size = File.foreach(rules_file.path).inject(0) do |c|
+    c + 1
+  end
   rules_file.size = size
   rules_file.checksum = Digest::SHA2.hexdigest(File.read(rules_file.path))
   rules_file.save

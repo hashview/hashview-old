@@ -9,21 +9,21 @@ class Api
   # obtain remote ip and port from local config
   begin
     options = JSON.parse(File.read('config/agent_config.json'))
-    @server = options['ip'] + ":" + options['port']
+    @server = options['ip'] + ':' + options['port']
     @uuid = options['uuid']
     @hashcatbinpath = options['hc_binary_path'].to_s
   rescue
-    "Error reading config/agent_config.json. Did you run rake db:provision_agent ???"
+    'Error reading config/agent_config.json. Did you run rake db:provision_agent ???'
   end
 
   ######### generic api handling of GET and POST request ###########
   def self.get(url)
     begin
       response = RestClient::Request.execute(
-        :method => :get,
-        :url => url,
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        method: :get,
+        url: url,
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -34,12 +34,12 @@ class Api
   def self.post(url, payload)
     begin
       response = RestClient::Request.execute(
-        :method => :post,
-        :url => url,
-        :payload => payload.to_json,
-        :headers => {:accept => :json},
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        method: :post,
+        url: url,
+        payload: payload.to_json,
+        headers: {accept: :json},
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       return response.body
     rescue RestClient::Exception => e
@@ -53,14 +53,14 @@ class Api
   # get heartbeat when we are looking for work to do
   def self.heartbeat()
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
-    puts "HEARTBEETING"
+    # puts "HEARTBEETING"
     return self.get(url)
   end
 
   # post hearbeat is used when agent is working
   def self.post_heartbeat(payload)
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
-    puts "HEARTBEETING"
+    # puts "HEARTBEETING"
     return self.post(url, payload)
   end
 
@@ -136,32 +136,21 @@ class Api
     return self.get(url)
   end
 
-  # download a wordlist
-  #def self.wordlist()
-  #  url = "https://#{@server}/v1/wordlist/:id"
-  #  return self.get(url)
-  #end
-
-  # save wordlist to disk
-  #def self.save_wordlist(localpath='control/wordlists/thisisjustatest.txt')
-  #  File.write(localpath)
-  #end
-
   # upload crack file
   def self.upload_crackfile(jobtask_id, crack_file, run_time)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/crackfile/upload"
-    puts "attempting upload #{crack_file}"
+    # puts "attempting upload #{crack_file}"
     begin
       request = RestClient::Request.new(
-        :method => :post,
-        :url => url,
-        :payload => {
-          :multipart => true,
-          :file => File.new(crack_file, 'rb'),
-          :runtime => run_time
+        method: :post,
+        url: url,
+        payload: {
+          multipart: true,
+          file: File.new(crack_file, 'rb'),
+          runtime: run_time
         },
-        :cookies => {:agent_uuid => @uuid},
-        :verify_ssl => false
+        cookies: {agent_uuid: @uuid},
+        verify_ssl: false
       )
       response = request.execute
     rescue RestClient::Exception => e
@@ -268,6 +257,16 @@ class LocalAgent
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
 
+    # Setup Logger
+    logger_background_worker = Logger.new('logs/jobs/background_worker.log', 'daily')
+    if ENV['RACK_ENV'] == 'development'
+      logger_background_worker.level = Logger::DEBUG
+    else
+      logger_background_worker.level = Logger::INFO
+    end
+
+    logger_background_worker.debug('Background Worker Class() - has started')
+
     hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
 
     # is hashcat working? if so, how fast are you? provide basic information to master server
@@ -278,21 +277,22 @@ class LocalAgent
     hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
     Api.stats(hc_devices, hc_perfstats)
 
-    while(1)
+    while(true)
       sleep(4)
 
       # find pid
       pid = getHashcatPid
 
       # wait a bit to avoid race condition
-      if !pid.nil? and File.exist?('control/tmp/agent_current_task.txt')
+      if !pid.nil? && File.exist?('control/tmp/agent_current_task.txt')
         sleep(10)
         pid = getHashcatPid
       end
 
       # ok either do nothing or start working
       if pid.nil?
-        puts "AGENT IS WORKING RIGHT NOW"
+        # Do we need to even log this?
+        logger_background_worker.debug('Agent is working right now')
       else
 
         # if we have taskqueue tmp file locally, delete it
@@ -303,11 +303,10 @@ class LocalAgent
         payload['agent_status'] = 'Idle'
         payload['hc_benchmark'] = 'example data'
         heartbeat = Api.post_heartbeat(payload)
-        puts '======================================'
         heartbeat = JSON.parse(heartbeat)
-        puts heartbeat
+        logger_background_worker.info(heartbeat)
 
-        if heartbeat['type'] == 'message' and heartbeat['msg'] == 'START'
+        if heartbeat['type'] == 'message' && heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
           jdata = JSON.parse(jdata)
@@ -359,7 +358,7 @@ class LocalAgent
             # get our hashcat command and sub out the binary path
             cmd = jdata['command']
             cmd = replaceHashcatBinPath(cmd)
-            puts cmd
+            logger_background_worker.debug(cmd)
 
             # this variable is used to determine if the job was canceled
             @canceled = false
@@ -377,8 +376,8 @@ class LocalAgent
             catch :mainloop do
               while thread1.status do
                 sleep 4
-                puts 'WORKING IN THREAD'
-                puts "WORKING ON ID: #{jdata['id']}"
+                #puts 'WORKING IN THREAD'
+                logger_background_worker.info("WORKING ON ID: #{jdata['id']}")
                 payload = {}
                 payload['agent_status'] = 'Working'
                 payload['agent_task'] = jdata['id']
@@ -410,19 +409,12 @@ class LocalAgent
             if File.exist?(crack_file) && ! File.zero?(crack_file)
               Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
-              puts "No successful cracks for this task. Skipping upload."
+              # Does this need to be logged?
+              logger_background_worker.info('No successful cracks for this task. Skipping upload.')
             end
 
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
-
-            # change status to completed for jobtask
-            # commenting out now that we are chunking
-            # if @canceled
-            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Canceled')
-            # else
-            #   Api.post_jobtask_status(jdata['jobtask_id'], 'Completed')
-            # end
 
             # set taskqueue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')
@@ -430,5 +422,6 @@ class LocalAgent
         end
       end
     end
+    logger_background_worker.debug('Background Worker Class() - has Completed')
   end
 end

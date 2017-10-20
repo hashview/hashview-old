@@ -17,11 +17,9 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table-striped'}
+              %table{class: 'table table-striped'}
                 %thead
                   %tr
-                    %th
-                      %b Hub
                     %th
                       %b Type
                     %th
@@ -30,20 +28,16 @@
                   - @results.each do |entry|
                     -if entry['show_results'] == '1'
                       %tr
-                        %td
-                          %a.btn.btn-success{:href => "/hub/hash/reveal/hash/#{entry['id'].to_s}"}
-                            reveal
                         %td #{modeToFriendly(entry['hashtype'].to_s)}
                         %td #{entry['ciphertext']}
                   %tr
-                    %td
-                      %a.btn.btn-success{:href => "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}?job_id=#{@jobs.id}"}
-                        Reveal All
                     %td
                     %td
                     %td
         .container
           .row
             .col-md-12
-              %a.btn.btn-primary{:href => "/jobs/assign_tasks?job_id=#{@jobs.id}"}
+              %a.btn.btn-success{href: "/hub/hash/reveal/hashfile/#{@jobs.hashfile_id}?job_id=#{@jobs.id}"}
+                Reveal All
+              %a.btn.btn-primary{href: "/jobs/assign_tasks?job_id=#{@jobs.id}"}
                 Continue

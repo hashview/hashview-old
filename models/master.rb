@@ -1,21 +1,22 @@
 require 'rubygems'
 require 'data_mapper'
 require 'bcrypt'
+require 'rotp'
 
 # read config
 options = YAML.load_file('config/database.yml')
 
 # there has to be a better way to handle this shit
 if ENV['RACK_ENV'] == 'test'
-  DataMapper::Logger.new($stdout, :debug)
+  # DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['test'])
 elsif ENV['RACK_ENV'] == 'development'
-  DataMapper::Logger.new($stdout, :debug)
+  # DataMapper::Logger.new($stdout, :debug)
   DataMapper.setup(:default, options['development'])
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   DataMapper.setup(:default, options['production'])
 else
-  puts 'ERROR: You must define an evironment. ex: RACK_ENV=production'
+  puts 'ERROR: You must define an environment. ex: RACK_ENV=production'
   exit
 end
 
@@ -30,6 +31,8 @@ class User
   property :created_at, DateTime, default: DateTime.now
   property :phone, String, required: false
   property :email, String, required: false
+  property :mfa, Boolean
+  property :auth_secret, String
 
   attr_accessor :password
   validates_presence_of :username
@@ -45,7 +48,9 @@ class User
 
   def self.authenticate(username, pass)
     user = User.first(username: username)
-    if user
+    if user.mfa
+      return user.username if pass == ROTP::TOTP.new(user.auth_secret).now.to_s
+    elsif user
       return user.username if BCrypt::Password.new(user.hashed_password) == pass
     end
   end
@@ -69,7 +74,7 @@ class User
     user.destroy
   end
 
-  def self.delete_all_users()
+  def self.delete_all_users
     @users = User.all
     @users.destroy
   end
@@ -117,6 +122,7 @@ class Customers
   property :description, String, length: 500
 end
 
+# Agents table use to record status
 class Agents
   include DataMapper::Resource
   property :id, Serial
@@ -144,10 +150,9 @@ class Jobs
   # status options should be "Running", "Paused", "Completed", "Queued", "Canceled", "Ready"
   property :status, String, length: 100
   property :queued_at, DateTime
-  property :targettype, String, length: 2000
+  property :started_at, DateTime
+  property :ended_at, DateTime
   property :hashfile_id, Integer
-  property :policy_min_pass_length, Integer
-  property :policy_complexity_default, Boolean
   property :customer_id, Integer
   property :notify_completed, Boolean
 end
@@ -215,7 +220,6 @@ class Settings
   property :smtp_pass, String
   property :smtp_use_tls, Boolean
   property :smtp_auth_type, String # Options are plain, login, cram_md5, none
-  property :clientmode, Boolean
   property :ui_themes, String, default: 'Light', required: true
   property :version, String, length: 5
   property :chunk_size, Integer, max: 9999999999999999999, default: 500000
@@ -249,7 +253,6 @@ class HubSettings
   property :balance, Integer, default: 0
 end
 
-
 # Wordlist Class
 class Wordlists
   include DataMapper::Resource
@@ -261,7 +264,6 @@ class Wordlists
   property :path, String, length: 2000
   property :size, String, length: 100
   property :checksum, String, length: 64
-
 end
 
 # Rules Class
@@ -274,7 +276,6 @@ class Rules
   property :path, String, length: 2000
   property :size, String, length: 100
   property :checksum, String, length: 64
-
 end
 
 # Hashfile Class
@@ -299,7 +300,7 @@ class Taskqueues
   # status options should be "Running", "Completed", "Queued", "Canceled", "Paused"
   property :queued_at, DateTime
   property :status, String, length: 100
-  property :agent_id, String, length: 2000
+  property :agent_id, Integer
   property :command, String, length: 4000
 end
 

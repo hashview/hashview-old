@@ -2,8 +2,26 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.2-beta] - 2017-10-19
+### Added
+ - Added Logging Facility, logs should now be under logs/*.log and logs/jobs/*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
+ - Added Collapsing window in analytics in Weak Account Password
+ - Added ability to download user accounts/passwords for accounts that are found to be weak in csv format
+ - Added ability to set OTP passwords for users using google authenticate (thanks: https://github.com/nicbrink)
+ 
+### Removed
+ - Wordlist Checksums is no longer a background task that fires every 5 seconds. Instead its queued up by wordlist importer.
 
-## [v0.7.1-beta] - 2017-9-4
+### Fixed
+ - Fixed calculation bug where SmartWordlist was being refactored into new SmartWordlist. Now calculations are quicker
+ - Fixed (hopefully) bug where hashview prematurely 'completes' a job (and subsequently kills a running task). This only happens in rare cases where multiple agents are involved. 
+ - Fixed (hopefully) issue where threads not exiting when they're told to. This resulted in issues related to: https://github.com/hashview/hashview/issues/264
+ - Fixed issue where rules listed under task details was displaying rule.id, and not the rule.name: https://github.com/hashview/hashview/issues/342
+ - Fixed SMTP sender error experienced when user sends test message
+ https://github.com/hashview/hashview/issues/341
+ - Fixed issue where foreign DB's listed in config were not being connected too: https://github.com/hashview/hashview/issues/351
+
+## [v0.7.1-beta] - 2017-09-04
 ### Added
  - Rake task to reset db (thanks: nicbrink)
  - New hub route/tab if registered
@@ -16,7 +34,7 @@ Notable changes will be documented here
 
 ### Fixed
  - Fixed issue where importing the same hash twice into the db where one had an incorrect hashtype resulted in a 500 error. Now the entry is updated with the new hashtype.
- - Fixed timouts when searching large hash sets with Hashview Hub
+ - Fixed timeouts when searching large hash sets with Hashview Hub
 
 ## [v0.7.0-beta] - 2017-07-22
 ### Added

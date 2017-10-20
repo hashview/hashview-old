@@ -1,4 +1,4 @@
-!!! 5
+!!!
 %html
   %body
     %p
@@ -6,52 +6,48 @@
       .container
         .row
           .col-md-12
-            - if !@active_jobs.empty?
-              .table
-                .panel.panel-primary
-                  .panel-heading
-                    %h3.panel-title
-                      - if @active_jobs
-                        - @customers.each do |customer|
-                          - @active_jobs.each do |active_job|
-                            - if active_job.customer_id == customer.id
-                              %b Customer:
-                              #{customer.name}
-                              %b Job:
-                              #{active_job.name}
-                  .panel-body
-                    - @jobs.each do |job|
-                      - if job.status == 'Running'
-                        %h3
-                          Hashes Cracked
-                          .badge #{@crackedtargets.to_i} / #{@alltargets.to_i}
-                        %p
-                        .progress
-                          .progress-bar{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{@crackedtargets}", :role => 'progressbar', :style => "width: #{@progress.round()}%;min-width: 4em;"} #{@progress.round(1)}%
-                    .row
-                      .col-md-12
-                        - @jobs.each do |job|
-                          - if job.status == 'Importing'
-                            %center
-                              %h3 Importing. Please wait...
-                          - elsif job.status == 'Running'
-                            %h3 Job Status
-                            .table
-                              %table{:class => 'table'}
-                                - if @hashcat_status
-                                  - @hashcat_status.each do |k,v|
-                                    %tr
-                                      %td.col-md-4
-                                        #{k}
-                                      %td
-                                        #{v}
-            - else
+            - if @jumbotron.empty?
               .jumbotron
                 %center
                   %h4 Feed me hashes!
                   %br
-                  %a.btn.btn-primary{:href => '/jobs/create'}
+                  %a.btn.btn-primary{href: '/jobs/create'}
                     Create a New Job
+            - else
+              - @jumbotron.each do |entry|
+                .table
+                  .panel.panel-primary
+                    .panel-heading
+                      %h3.panel-title
+                        %b Customer: #{entry['customer_name']}
+                        %b Job: #{entry['job_name']}
+                    .panel-body
+                      %h3
+                        Hashes Cracked
+                        .badge #{entry['hashfile_cracked']} / #{entry['hashfile_total']}
+                        %p
+                          .progress
+                            .progress-bar.progress-bar-striped.active{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{entry['hashfile_total']}", role: 'progressbar', style: "width: #{entry['hashfile_progress'].to_i.round()}%;min-width: 4em;"} #{entry['hashfile_progress'].to_i.round(1)}%
+                      .row
+                        .col-md-12
+                          %h3 Job Status
+                          .table
+                            %table{class: 'table'}
+                              %tr
+                                %td.col-md-4
+                                  Started At:
+                                %td
+                                  #{entry['job_starttime']}
+                              %tr
+                                %td.col-md-4
+                                  Running Time:
+                                %td
+                                  #{entry['job_runtime']}
+                              %tr
+                                %td.col-md-4
+                                  Cracking Speed
+                                %td
+                                  #{entry['job_crackrate']}
             /%br
             - if @active_jobs.empty?
               .page-header
@@ -73,7 +69,7 @@
                                 - if task.id == jt.task_id
                                   - link = rand(36**8).to_s(36)
                                   .panel-heading
-                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', :href => "#collapse-#{link}" }
+                                    %a{'data-parent' => '#accordion', 'data-toggle' => 'collapse', href: "#collapse-#{link}" }
                                       %td
                                         #{task.name}
                                     - if jt.status == 'Queued'
@@ -87,7 +83,7 @@
                                     - elsif jt.status == 'Canceled'
                                       %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
-                                    %div{:id => "collapse-#{link}", :class => 'panel-collapse collapse in'}
+                                    %div{id: "collapse-#{link}", class: 'panel-collapse collapse in'}
                                       .panel-body
                                         Remaining chunks:
                                         - remaining_chunks = 0
@@ -98,7 +94,7 @@
                                                 - remaining_chunks += 1
                                         #{remaining_chunks}
                                         %p
-                                        %ul{:class =>'list-group borderless row'}
+                                        %ul{class: 'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
                                               - next if tq.status == 'Completed'
@@ -113,6 +109,8 @@
                                                         %b Command
                                                       - else
                                                         %b Agent
+                                                    %td
+                                                    %td
                                                   %tbody
                                                     %td
                                                       #{tq.id}
@@ -122,23 +120,38 @@
                                                       - else
                                                         - @agents.each do |agent|
                                                           - if agent.id.to_i == tq.agent_id.to_i
-                                                            #{agent.name} 
+                                                            #{agent.name}
                                                     %td
                                                       - if tq.status == 'Running'
-                                                        %a.label.label-danger.labelfixedwidth.pull-right{:href => "/jobs/stop/#{job.id}/#{task.id}"}
+                                                        %a.label.label-danger.labelfixedwidth.pull-right{href: "/jobs/stop/#{job.id}/#{task.id}"}
                                                           %b Cancel
                                                       - elsif tq.status == 'Queued' || tq.status == 'Paused'
                                                         %span.label.label-default.labelfixedwidth.pull-right Queued
                                                       - elsif tq.status == 'Importing'
                                                         %span.label.label-warning.labelfixedwidth.pull-right #{tq.status}
+                                                  - if tq.status == 'Running'
+                                                    %tr
+                                                    %td{:colspan => 6}
+                                                      %table{:class => 'table'}
+                                                        - @agents.each do |agent|
+                                                          - if agent.id.to_i == tq.agent_id.to_i
+                                                            - JSON.parse(agent.hc_status).each do |k,v|
+                                                              %tr
+                                                                %td.col-md-4
+                                                                  #{k}
+                                                                %td
+                                                                  #{v}
+
+
+
                                   - else
-                                    %div{:id => "collapse-#{link}", :class => "panel-collapse collapse"}
+                                    %div{id: "collapse-#{link}", class: "panel-collapse collapse"}
                                       .panel-body
-                                        %ul{:class =>'list-group borderless row'}
+                                        %ul{class: 'list-group borderless row'}
                                           - @taskqueues.each do |tq|
                                             - if jt.id == tq.jobtask_id
-                                              %li{:class => 'list-group-item borderless'}
-                                                %table{:class => 'table'}
+                                              %li{class: 'list-group-item borderless'}
+                                                %table{class: 'table'}
                                                   %thead
                                                     %td
                                                       %b Chunk

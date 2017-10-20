@@ -10,7 +10,7 @@ def sendEmail(recipient, sub, msg)
     Pony.options = {
       :via => :smtp,
       :via_options => {
-        :from                 => smtp_sender.to_s,
+        :from                 => smtp_settings.smtp_sender.to_s,
         :address              => smtp_server.to_s,
         :port                 => smtp_port.to_s,
         :enable_starttls_auto => use_tls.to_s,
@@ -31,7 +31,7 @@ def sendEmail(recipient, sub, msg)
     }
   end
 
-  if smtp_settings.smtp_sender.nil? or smtp_settings.smtp_sender.empty?
+  if smtp_settings.smtp_sender.nil? || smtp_settings.smtp_sender.empty?
     sender_addr = 'no-reply@hashview'
   else
     sender_addr = smtp_settings.smtp_sender.to_s

@@ -16,6 +16,31 @@ Rake::TestTask.new do |t|
   t.verbose
 end
 
+# Catching Sigterm
+def shut_down
+  puts 'Attempting to shutdown gracefully...'
+  # Technique based off of https://bugs.ruby-lang.org/issue/7917
+  # and
+  # https://stackoverflow.com/questions/7416318/how-do-i-clear-stuck-stale-resque-workers
+  t = Thread.new do
+    Resque.workers.each {| w | w.unregister_worker}
+  end
+  t.join
+  sleep(5)
+end
+
+# Trap ^C
+Signal.trap('INT') {
+  shut_down
+  exit
+}
+
+# Trap `kill `
+Signal.trap('TERM') {
+  shut_down
+  exit
+}
+
 # resque-scheduler needs to know basics from resque::setup
 desc 'Resque scheduler setup'
 namespace :resque do
@@ -44,14 +69,6 @@ namespace :db do
   desc 'Drop from all tables except users and task'
   task :reset
 
-  # Are the below ever needed beyond our testing?
-  #desc 'create and setup schema'
-  #task :clean => [:create] # Should really be made to a series of DELETE FROM
-  #desc 'destroy db, create db, setup schema, load defaults'
-  #task :reset => [:destroy, :create, :provision_agent, :provision_defaults]
-  #desc 'destroy db, create db, setup schema'
-  #task :reset_clean => [:destroy, :create, :upgrade, :provision_agent]
-
   task :create do
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
@@ -59,7 +76,7 @@ namespace :db do
     puts "setting up database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
     charset = config['charset'] || ENV['CHARSET'] || 'utf8'
     collation = config['collation'] || ENV['COLLATION'] || 'utf8_unicode_ci'
@@ -117,7 +134,7 @@ namespace :db do
     puts "destroying database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     # destroy database in mysql for datamapper
@@ -138,7 +155,7 @@ namespace :db do
     puts "removing all data in the database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     tables = [ 'customers','hashes','hashfilehashes','hashfiles','jobs','jobtasks','rules','sessions','taskqueues','wordlists' ]
@@ -151,13 +168,13 @@ namespace :db do
       rescue
         raise 'Something went wrong. double check your config/database.yml file and manually test access to mysql.'
       end
-    end  
+    end
   end
 
   task :provision_defaults do
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     puts '[*] Setting up default settings ...'
@@ -242,7 +259,7 @@ namespace :db do
     rescue
       raise 'Error in creating default dictionary task + rule'
     end
-    
+
     # Create Default SmartWordlist Dictionary
     puts '[*] Setting up default smart wordlist task'
     query = [
@@ -253,7 +270,7 @@ namespace :db do
     rescue
       raise 'Error in creating default SmartWordlist task'
     end
-    
+
     # Create Default SmartWordlist Dictionary + Rule Task
     puts '[*] Setting up Smart Wordlist dictionary + rule task'
     query = [
@@ -264,8 +281,6 @@ namespace :db do
     rescue
       raise 'Error in creating Smart Wordlist dictionary task + rule'
     end
-    
-    
 
     # Create Default Mask task
     puts '[*] Setting up default mask task'
@@ -288,7 +303,7 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
-    
+
     # Create Default Hub Settings
     puts '[*] Setting up default hub settings'
     query = [
@@ -298,7 +313,7 @@ namespace :db do
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default hub settings'
-    end    
+    end
   end
 
   desc 'Setup local agent'
@@ -310,7 +325,7 @@ namespace :db do
     puts "setting up local agent for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     agent_config = {}
@@ -348,7 +363,7 @@ namespace :db do
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     puts '[*] Connecting to DB'
@@ -365,9 +380,7 @@ namespace :db do
       end
     end
 
-    if has_version_column == false
-      db_version = Gem::Version.new('0.5.1')
-    end
+    db_version = Gem::Version.new('0.5.1') unless has_version_column
 
     # TODO turn into hash where version is key, and value is method/function name?
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
@@ -388,6 +401,10 @@ namespace :db do
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.1')
         upgrade_to_v071(user, password, host, database)
       end
+      # Upgrade to v0.7.2
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.2')
+        upgrade_to_v072(user, password, host, database)
+      end
     else
       puts '[*] Your version is up to date!'
     end
@@ -395,7 +412,7 @@ namespace :db do
     # Incase we missed anything
     DataMapper.repository.auto_upgrade!
     # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
-    #puts 'db:auto:upgrade executed'
+    # puts 'db:auto:upgrade executed'
   end
 
   desc 'Migrate From old DB to new DB schema'
@@ -406,7 +423,7 @@ namespace :db do
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['hostname']
+    user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
     begin
@@ -453,13 +470,11 @@ namespace :db do
 
       puts '[*] Inserting new data into table... standby..'
       hashes = conn.query("SELECT id,originalhash FROM hashes")
-      hashes.each_hash do | entry |
+      hashes.each_hash do |entry|
         olddata = conn.query("SELECT username,hashfile_id FROM targets WHERE originalhash='" + entry['originalhash'] + "'")
         hash_id = entry['id']
-        olddata.each_hash do | row |
-          if row['username'].nil?
-            row['username'] = 'none'
-          end
+        olddata.each_hash do |row|
+          row['username'] = 'none' if row['username'].nil?
           row['username'] = row['username'].gsub("'", "\\\\'")
           conn.query("INSERT INTO hashfilehashes(hash_id,username,hashfile_id) VALUES ('#{hash_id}','#{row['username']}','#{row['hashfile_id']}')")
         end
@@ -467,17 +482,15 @@ namespace :db do
 
       # Remove old tables
       puts '[*] Removing old tables'
-      conn.query("DROP TABLE targets")
-
+      conn.query('DROP TABLE targets')
 
     rescue Mysql::Error => e
       puts e.errno
       puts e.error
 
     ensure
-      conn.close if conn 
+      conn.close if conn
     end
-
   end
 end
 
@@ -594,12 +607,12 @@ def upgrade_to_v060(user, password, host, database)
   conn.query("UPDATE settings SET version = '0.6.0'")
   puts '[*] Upgrade to v0.6.0 complete.'
 
-  return '0.6.0'
+  '0.6.0'
 end
 
 def upgrade_to_v061(user, password, host, database)
   #DataMapper.repository.auto_upgrade!
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
   conn = Mysql.new host, user, password, database
@@ -608,12 +621,12 @@ def upgrade_to_v061(user, password, host, database)
   conn.query("UPDATE settings SET version = '0.6.1'")
   puts '[*] Upgrade to v0.6.1 complete.'
 
-  return '0.6.1'
+  '0.6.1'
 end
 
 def upgrade_to_v070(user, password, host, database)
   DataMapper.repository.auto_upgrade!
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
   conn = Mysql.new host, user, password, database
@@ -674,7 +687,7 @@ def upgrade_to_v070(user, password, host, database)
 
       # Adding to DB
       rule_file = Rules.new
-      rule_file.lastupdated = Time.now()
+      rule_file.lastupdated = Time.now
       rule_file.name = name
       rule_file.path = path_file
       rule_file.size = 0
@@ -727,7 +740,7 @@ def upgrade_to_v070(user, password, host, database)
 end
 
 def upgrade_to_v071(user, password, host, database)
-  DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
   conn = Mysql.new host, user, password, database
@@ -737,3 +750,29 @@ def upgrade_to_v071(user, password, host, database)
   puts '[+] Upgrade to v0.7.1 complete.'
 end
 
+def upgrade_to_v072(user, password, host, database)
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
+
+  puts '[*] Upgrading from v0.7.1 to v0.7.2'
+  conn = Mysql.new host, user, password, database
+
+  # Remove unused columns
+  puts '[*] Removing unused database structures.'
+  conn.query('ALTER TABLE jobs DROP COLUMN policy_min_pass_length')
+  conn.query('ALTER TABLE jobs DROP COLUMN policy_complexity_default')
+  conn.query('ALTER TABLE jobs DROP COLUMN targettype')
+  conn.query('ALTER TABLE settings DROP COLUMN clientmode')
+
+  # Updating database config file
+  puts '[*] Fixing db config entries.'
+  File.rename('config/database.yml', 'config/database.yml.old')
+  config_content = File.read('config/database.yml.old').gsub(/hostname:/, 'host:')
+  File.open('config/database.yml', 'w') do |out|
+    out << config_content
+  end
+  File.delete('config/database.yml.old')
+
+  # FINALIZE UPGRADE
+  conn.query('UPDATE settings SET version = \'0.7.2\'')
+  puts '[+] Upgrade to v0.7.2 complete.'
+end

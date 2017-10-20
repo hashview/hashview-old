@@ -2,9 +2,9 @@
 
 get '/v1/notauthorized' do
   {
-      status: 200,
-      type: 'Error',
-      msg: 'Your agent is not authorized to work with this cluster.'
+    status: 200,
+    type: 'Error',
+    msg: 'Your agent is not authorized to work with this cluster.'
   }.to_json
 end
 
@@ -20,9 +20,9 @@ get '/v1/queue' do
   else
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'There are no items on the queue to process'
+      status: 200,
+      type: 'Error',
+      msg: 'There are no items on the queue to process'
     }.to_json
   end
 end
@@ -46,17 +46,14 @@ get '/v1/queue/:id' do
   else
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'Missing UUID'
+      status: 200,
+      type: 'Error',
+      msg: 'Missing UUID'
     }.to_json
   end
 
   # check to see if this agent is suppose to be working on something
-  if @assigned_task
-    puts @assigned_task.to_json
-    return @assigned_task.to_json
-  end
+  return @assigned_task.to_json if @assigned_task
 end
 
 # remove item from queue
@@ -76,7 +73,7 @@ post '/v1/queue/:taskqueue_id/status' do
 
   jdata = JSON.parse(request.body.read)
   agent = Agents.first(uuid: jdata['agent_uuid'])
-  puts "[+] updating taskqueue id: #{params[:taskqueue_id]} to status: #{jdata['status']}"
+
   updateTaskqueueStatus(params[:taskqueue_id], jdata['status'], agent.id)
 end
 
@@ -86,9 +83,7 @@ post '/v1/jobtask/:jobtask_id/status' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   jdata = JSON.parse(request.body.read)
-  puts jdata
-  puts "======================================="
-  puts "[+] updating jobtask id: #{params['jobtask_id']} to status: #{jdata['status']}"
+
   updateJobTaskStatus(jdata['jobtask_id'], jdata['status'])
 end
 
@@ -142,8 +137,6 @@ get '/v1/wordlist/:id' do
   # Execute our compression
   `#{cmd}`
   # Serve File
-  #send_file wordlist.path, :type => 'application/octet-stream', :filename => "#{wordlist.path.split('/')[-1]}.gz"
-  #send_file wordlist.path, :type => 'application/octet-stream', :filename => "control/tmp/#{wordlist_orig}.gz"
   send_file "control/tmp/#{wordlist_orig}.gz", :type => 'application/octet-stream', :filename => "#{wordlist_orig}.gz"
 end
 
@@ -169,9 +162,9 @@ get '/v1/updateSmartWordlist' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
   updateSmartWordlist
   data = {
-      status: 200,
-      type: 'message',
-      msg: 'OK'
+    status: 200,
+    type: 'message',
+    msg: 'OK'
   }
   return data.to_json
 end
@@ -202,7 +195,6 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  puts '===== creating hash_file ======='
   jobtask_id = params[:jobtask_id]
   hashfile_id = params[:hashfile_id]
 
@@ -233,8 +225,6 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
     f.close
   end
 
-  puts '===== Hash_File Created ======'
-
   send_file hash_file
 
 end
@@ -245,7 +235,7 @@ post '/v1/jobtask/:jobtask_id/crackfile/upload' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   tmpfile = "control/tmp/#{rand.to_s[2..2048]}.txt"
-  puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
+  # puts "[+] Agent uploaded crack file. Saving to: #{tmpfile}"
   File.open(tmpfile, 'wb') do |f|
     f.write(params[:file][:tempfile].read)
   end
@@ -259,7 +249,6 @@ post '/v1/hcoutput/status' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
-  puts 'parsing uploaded hcoutput hash'
   return request.body.read
 end
 
@@ -279,7 +268,7 @@ post '/v1/agents/:uuid/heartbeat' do
     payload = JSON.parse(request.body.read)
 
     # get agent data from db if available
-    @agent = Agents.first(:uuid => params[:uuid])
+    @agent = Agents.first(uuid: params[:uuid])
     if !@agent.nil?
       if @agent.status == 'Authorized'
         # if agent is set to authorized, continue to authorization process
@@ -314,9 +303,14 @@ post '/v1/agents/:uuid/heartbeat' do
 
           # update db with the agents hashcat status
           if payload['hc_status']
-            puts payload['hc_status']
+            #puts payload['hc_status']
             @agent.status = payload['agent_status']
             @agent.hc_status = payload['hc_status'].to_json
+            payload['hc_status'].each do |item|
+              if item.to_s =~ /Speed Dev #/
+                @agent.benchmark = item[1].split(' ')[0].to_s + ' ' + item[1].split(' ')[1].to_s
+              end
+            end
             @agent.save
           end
 
@@ -331,30 +325,11 @@ post '/v1/agents/:uuid/heartbeat' do
             @agent.status = payload['agent_status']
             @agent.save
             {
-                status: 200,
-                type: 'message',
-                msg: 'OK'
+              status: 200,
+              type: 'message',
+              msg: 'OK'
             }.to_json
           end
-
-          # # are agent and server in sync
-          # if agenttask.to_i == taskqueue.id
-          #   # update heartbeat and save hc_output for ui
-          #   @agent.heartbeat = Time.now
-          #   @agent.save
-          #   {
-          #     status: 200,
-          #     type: 'message',
-          #     msg: 'OK'
-          #   }.to_json
-          # else
-          #   # server and agent are out of sync, tell agent to stop working
-          #   {
-          #     status: 200,
-          #     type: 'message',
-          #     msg: 'Canceled'
-          #   }.to_json
-          # end
 
         elsif payload['agent_status'] == 'Idle'
           # assign work to agent
@@ -380,7 +355,6 @@ post '/v1/agents/:uuid/heartbeat' do
             }.to_json
           else
             # update agent heartbeat but do nothing for now
-            p '########### I have nothing for you to do now ###########'
             @agent.heartbeat = Time.now
             @agent.status = payload['agent_status']
             @agent.hc_status = ''
@@ -413,13 +387,13 @@ get '/v1/agents/:uuid/authorize' do
   if params[:uuid].nil?
     status 200
     {
-        status: 200,
-        type: 'Error',
-        msg: 'Missing UUID'
+      status: 200,
+      type: 'Error',
+      msg: 'Missing UUID'
     }.to_json
   else
     #TODO SECURITY - make sure this param is a formated as a valid uuid
-    agent = Agents.first(:uuid => params[:uuid])
+    agent = Agents.first(uuid: params[:uuid])
   end
 
   if !agent.nil?
@@ -457,9 +431,9 @@ post '/v1/agents/:uuid/stats' do
     redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
     payload = JSON.parse(request.body.read)
-    puts payload
+    #puts payload
 
-    agent = Agents.first(:uuid => params[:uuid])
+    agent = Agents.first(uuid: params[:uuid])
     agent.cpu_count = payload['cpu_count'].to_i
     agent.gpu_count = payload['gpu_count'].to_i
     agent.benchmark = payload['benchmark'].to_s

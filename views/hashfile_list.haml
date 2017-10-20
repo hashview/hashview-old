@@ -17,7 +17,7 @@
         .row
           .col-md-12
             .table
-              %table{:class => 'table table'}
+              %table{class: 'table table'}
                 %thead
                   %tr
                     %th
@@ -42,9 +42,9 @@
                           %td 
                             #{@cracked_status[hashfile.id]}
                           %td
-                            %a.btn.btn-primary{:href => "/analytics?customer_id=#{customer.id}&hashfile_id=#{hashfile.id}"}
-                              %i.glyphicon.glyphicon-stats{:title => 'Display crack stats'}
-                            %a.btn.btn-danger{:href => "/hashfiles/delete?hashfile_id=#{hashfile.id}"}
-                              %i.glyphicon.glyphicon-trash{:title => 'Delete'}
+                            %a.btn.btn-primary{href: "/analytics?customer_id=#{customer.id}&hashfile_id=#{hashfile.id}"}
+                              %i.glyphicon.glyphicon-stats{title: 'Display crack stats'}
+                            %a.btn.btn-danger{href: "/hashfiles/delete?hashfile_id=#{hashfile.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}
                           %tr
                         %tr
