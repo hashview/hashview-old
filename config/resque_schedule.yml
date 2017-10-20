@@ -14,22 +14,16 @@
 
 # schedule for wordlist importer
 do_wordlist_importer:
-  every: 5s
+  every: 60s
   class: "WordlistImporter"
   queue: management
   description: "This job automatically imports wordlists if placed in controls/wordlists dir"
 
 do_rulelist_importer:
-  every: 5s
+  every: 10s
   class: "RuleImporter"
   queue: management
   description: "This job automatically imports rule files if placed in controls/rules dir"
-
-do_wordlist_checksum:
-  every: 20s
-  class: "WordlistChecksum"
-  queue: management
-  description: "This job creates a sha256 checksum for all wordlists. This keeps wordlists in sync for multiple agents"
 
 # schedule for cleanup task
 do_cleanUp:
