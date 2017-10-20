@@ -757,9 +757,20 @@ def upgrade_to_v072(user, password, host, database)
   conn = Mysql.new host, user, password, database
 
   # Remove unused columns
+  puts '[*] Removing unused database structures.'
   conn.query('ALTER TABLE jobs DROP COLUMN policy_min_pass_length')
   conn.query('ALTER TABLE jobs DROP COLUMN policy_complexity_default')
   conn.query('ALTER TABLE jobs DROP COLUMN targettype')
+  conn.query('ALTER TABLE settings DROP COLUMN clientmode')
+
+  # Updating database config file
+  puts '[*] Fixing db config entries.'
+  File.rename('config/database.yml', 'config/database.yml.old')
+  config_content = File.read('config/database.yml.old').gsub(/hostname:/, 'host:')
+  File.open('config/database.yml', 'w') do |out|
+    out << config_content
+  end
+  File.delete('config/database.yml.old')
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.2\'')
