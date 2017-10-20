@@ -66,6 +66,7 @@ post '/wordlists/upload/' do
   wordlist.save
 
   File.open(file_name, 'wb') { |f| f.write(params[:file][:tempfile].read) }
+  Resque.enqueue(WordlistImporter)
   Resque.enqueue(WordlistChecksum)
 
   redirect to('/wordlists/list')
