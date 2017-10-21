@@ -405,6 +405,10 @@ namespace :db do
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.2')
         upgrade_to_v072(user, password, host, database)
       end
+      # Upgrade to v0.7.3
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.3')
+        upgrade_to_v073(user, password, host, database)
+      end
     else
       puts '[*] Your version is up to date!'
     end
@@ -775,4 +779,15 @@ def upgrade_to_v072(user, password, host, database)
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.2\'')
   puts '[+] Upgrade to v0.7.2 complete.'
+end
+
+def upgrade_to_v073(user, password, host, database)
+  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
+
+  puts '[*] Upgrading from v0.7.2 to v0.7.3'
+  conn = Mysql.new host, user, password, database
+
+  # FINALIZE UPGRADE
+  conn.query('UPDATE settings SET version = \'0.7.3\'')
+  puts '[+] Upgrade to v0.7.3 complete.'
 end

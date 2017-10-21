@@ -2,6 +2,13 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.3-beta] - 2017-xx-xx
+### Added
+
+### Removed
+
+### Fixed
+
 ## [v0.7.2-beta] - 2017-10-19
 ### Added
  - Added Logging Facility, logs should now be under /hashview/logs/\*.log and /hashview/logs/jobs/\*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
