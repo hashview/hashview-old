@@ -33,12 +33,11 @@ helpers do
       chunk_num = 0
       while chunk_skip < @task.keyspace.to_i
         skip = chunk_skip
-        limit = skip + chunk_size
 
-        chunks[chunk_num] = [skip, limit]
+        chunks[chunk_num] = [skip, chunk_size]
 
         chunk_num += 1
-        chunk_skip = limit
+        chunk_skip = skip + chunk_size
       end
     end
 
