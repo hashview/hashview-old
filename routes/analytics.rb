@@ -44,12 +44,18 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry.plaintext.to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
-          @meets_complexity_count += 1
-        else
-          @fails_complexity_count += 1
+        if entry.plaintext.to_s.length < 8
           @fails_complexity[entry.username] = entry.plaintext
+        else
+          flags = 0
+          flags += 1 if entry.plaintext.to_s =~ /[a-z]/
+          flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
+          flags += 1 if entry.plaintext.to_s =~ /\d/
+          flags += 1 if entry.plaintext.to_s =~ /\p{S}/
+          @fails_complexity[entry.username] = entry.plaintext if flags < 3
         end
+        @fails_complexity_count = @fails_complexity.length
+        @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
       end
 
       # Used for Total Accounts table: Customer: Hashfile
@@ -155,12 +161,18 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry.plaintext.to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
-          @meets_complexity_count += 1
-        else
-          @fails_complexity_count += 1
+        if entry.plaintext.to_s.length < 8
           @fails_complexity[entry.username] = entry.plaintext
+        else
+          flags = 0
+          flags += 1 if entry.plaintext.to_s =~ /[a-z]/
+          flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
+          flags += 1 if entry.plaintext.to_s =~ /\d/
+          flags += 1 if entry.plaintext.to_s =~ /\p{S}/
+          @fails_complexity[entry.username] = entry.plaintext if flags < 3
         end
+        @fails_complexity_count = @fails_complexity.length
+        @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
       end
 
       # Used for Total Accounts Table: Customer
@@ -215,12 +227,18 @@ get '/analytics' do
     @fails_complexity_count = 0
     @fails_complexity = {}
     @complexity_hashes.each do |entry|
-      if entry.plaintext.to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
-        @meets_complexity_count += 1
-      else
-        @fails_complexity_count += 1
+      if entry.plaintext.to_s.length < 8
         @fails_complexity[entry.username] = entry.plaintext
+      else
+        flags = 0
+        flags += 1 if entry.plaintext.to_s =~ /[a-z]/
+        flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
+        flags += 1 if entry.plaintext.to_s =~ /\d/
+        flags += 1 if entry.plaintext.to_s =~ /\p{S}/
+        @fails_complexity[entry.username] = entry.plaintext if flags < 3
       end
+      @fails_complexity_count = @fails_complexity.length
+      @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
     end
 
     # Used for Total Accounts Table: Total
