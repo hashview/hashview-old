@@ -11,6 +11,7 @@ Notable changes will be documented here
 - Fixed issue with chunking calculations: https://github.com/hashview/hashview/issues/358
 - Fixed calculation of password complexity in analytics page: https://github.com/hashview/hashview/issues/360 
 - Fixed hard crash error when attempting to delete non-existant file: https://github.com/hashview/hashview/issues/365
+- Updated Gemlock to require rubocop 0.49.0 due to security vulns.
 
 ## [v0.7.2-beta] - 2017-10-19
 ### Added
