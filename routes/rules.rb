@@ -9,8 +9,12 @@ get '/rules/list' do
     element['id'] = rule_file.id
     element['name'] = rule_file.name
     element['size'] = rule_file.size
-    text = File.open(rule_file.path).read
-    text.gsub!(/\r\n?/, "\n")
+    begin
+      text = File.open(rule_file.path).read
+      text.gsub!(/\r\n?/, "\n")
+    rescue
+      text = ''
+    end
     @content = []
     text.each_line do |line|
       line = line.gsub(/\s+/, '')
@@ -55,7 +59,6 @@ post '/rules/new' do
   rules_file_path_name = "control/rules/#{name}.rule"
   rules_file.path = rules_file_path_name
   rules_file.size = 0 # note this will get updated by background task
-  rules_file.save
 
   # Parse uploaded file into an array
   rules_array = params[:new_rules].to_s.gsub(/\x0d\x0a/, "\x0a") # in theory we shouldnt run into any false positives?
@@ -63,8 +66,8 @@ post '/rules/new' do
     f.puts(rules_array)
   end
 
-  results = Rules.first(name: name)
-  Resque.enqueue(FileChecksum('rules', results.id))
+  rules_file.checksum = Digest::SHA2.hexdigest(File.read(rules_file_path_name))
+  rules_file.save
 
   flash[:success] = 'Successfully created new rule.'
   redirect to('/rules/list')
@@ -75,7 +78,7 @@ get '/rules/delete/:id' do
 
   rules_file = Rules.first(id: params[:id])
   if !rules_file
-    flash[:error] = 'no such rules file exists.'
+    flash[:error] = 'No such rules file exists.'
     redirect to('/rules/list')
   else
     # check if rule file is in use
@@ -89,6 +92,8 @@ get '/rules/delete/:id' do
     # remove from filesystem
     begin
       File.delete(rules_file.path)
+    rescue
+      flash[:warning] = 'No file found on disk'
     end
 
     # delete from db

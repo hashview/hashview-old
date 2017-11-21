@@ -28,6 +28,8 @@ get '/wordlists/delete/:id' do
     # Remove from filesystem
     begin
       File.delete(@wordlist.path)
+    rescue
+      flash[:warning] = 'No file found on disk.'
     end
 
     # delete from db
