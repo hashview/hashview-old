@@ -87,7 +87,9 @@ get '/rules/delete/:id' do
     end
 
     # remove from filesystem
-    File.delete(rules_file.path)
+    begin
+      File.delete(rules_file.path)
+    end
 
     # delete from db
     rules_file.destroy

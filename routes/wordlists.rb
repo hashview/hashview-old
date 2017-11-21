@@ -25,8 +25,10 @@ get '/wordlists/delete/:id' do
       redirect to('/wordlists/list')
     end
 
-    # remove from filesystem
-    File.delete(@wordlist.path)
+    # Remove from filesystem
+    begin
+      File.delete(@wordlist.path)
+    end
 
     # delete from db
     @wordlist.destroy
