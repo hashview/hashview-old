@@ -8,11 +8,15 @@ Notable changes will be documented here
 ### Removed
 
 ### Fixed
+- Fixed issue with chunking calculations: https://github.com/hashview/hashview/issues/358
+- Fixed calculation of password complexity in analytics page: https://github.com/hashview/hashview/issues/360 
+- Fixed hard crash error when attempting to delete non-existant file: https://github.com/hashview/hashview/issues/365
+- Updated Gemlock to require rubocop 0.51.0 due to security vulns.
 
 ## [v0.7.2-beta] - 2017-10-19
 ### Added
  - Added Logging Facility, logs should now be under /hashview/logs/\*.log and /hashview/logs/jobs/\*.log (Logs will rotate daily. Logs greater than 30 days will be automatically deleted
- - Added Collapsing window in analytics in Weak Account Password
+ - Added collapsing window in analytics in Weak Account Password
  - Added ability to download user accounts/passwords for accounts that are found to be weak in csv format
  - Added ability to set OTP passwords for users using google authenticate (thanks: https://github.com/nicbrink)
  
