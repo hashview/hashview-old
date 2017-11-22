@@ -249,6 +249,7 @@ def getMode(hash)
     @modes.push('40')   # md5($salt.unicode($pass))
     @modes.push('50')   # HMAC-MD5 (key = $pass)
     @modes.push('60')   # HMAC-MD5 (key = $salt)
+    @modes.push('2811') # IPB2
     @modes.push('3610') # md5(md5($salt).$pass)
     @modes.push('3710') # md5($salt.md5($pass))
     @modes.push('3720') # md5($pass.md5($salt))
@@ -404,6 +405,7 @@ def modeToFriendly(mode)
   return 'SHA-512' if mode == '1700'
   return 'sha512crypt' if mode == '1800'
   return 'Double MD5' if mode == '2600'
+  return 'IPB2+, MyBB 1.2+' if mode == '2811'
   return 'LM' if mode == '3000'
   return 'Oracle 7-10g, DES(Oracle)' if mode == '3100'
   return 'bcrypt' if mode == '3200'
@@ -444,6 +446,7 @@ def friendlyToMode(friendly)
   return '1400' if friendly == 'SHA-256'
   return '1700' if friendly == 'SHA-512'
   return '2600' if friendly == 'Double MD5'
+  return '2811' if friendly == 'IPB2+, MyBB 1.2+'
   return '3000' if friendly == 'LM'
   return '3500' if friendly == 'md5(md5(md5($pass)))'
   return '4400' if friendly == 'md5(sha1($pass))'
