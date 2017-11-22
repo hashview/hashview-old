@@ -163,7 +163,7 @@ end
 get '/customers/upload/verify_filetype' do
   varWash(params)
 
-  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
+  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user:$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
   @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
@@ -186,6 +186,10 @@ post '/customers/upload/verify_filetype' do
 
   if params[:filetype] == '$hash:$salt'
     params[:filetype] = 'hash_salt'
+  end
+  
+  if params[:filetype] == '$user:$hash:$salt'
+    params[:filetype] = 'user_hash_salt'
   end
 
   if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
