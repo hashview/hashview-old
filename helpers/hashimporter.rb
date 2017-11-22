@@ -194,6 +194,23 @@ def importHashSalt(hash, hashfile_id, type)
   updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
 end
 
+def importUserHashSalt(hash, hashfile_id, type)
+  data = hash.split(':')
+  hashSalt = data[1] + ':' + data[2]
+  @hash_id = Hashes.first(fields: [:id], originalhash: hashSalt, hashtype: type)
+  if @hash_id.nil?
+    addHash(hashSalt, type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: hashSalt, hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+end
+
 def importNetNTLMv1(hash, hashfile_id, type)
   data = hash.split(':')
   originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
@@ -475,6 +492,8 @@ def importHash(hash_array, hashfile_id, file_type, hashtype)
       importUserHash(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'hash_salt'
       importHashSalt(entry.chomp, hashfile_id, hashtype)
+    elsif file_type == 'user_hash_salt'
+      importUserHashSalt(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'NetNTLMv1'
       importNetNTLMv1(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'NetNTLMv2'
