@@ -195,12 +195,11 @@ def importHashSalt(hash, hashfile_id, type)
 end
 
 def importUserHashSalt(hash, hashfile_id, type)
-  data = hash.split(':')
-  hashSalt = data[1] + ':' + data[2]
-  @hash_id = Hashes.first(fields: [:id], originalhash: hashSalt, hashtype: type)
+  data = hash.split(':', 2)
+  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   if @hash_id.nil?
-    addHash(hashSalt, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hashSalt, hashtype: type)
+    addHash(data[1], type)
+    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
   elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
     unless @hash_id.cracked
       @hash_id.hashtype = type.to_i
