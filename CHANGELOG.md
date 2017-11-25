@@ -4,6 +4,8 @@ Notable changes will be documented here
 ## Current Release
 ## [v0.7.3-beta] - 2017-xx-xx
 ### Added
+- Addes support for $user:$hash:$salt hashtypes (thanks https://github.com/nicbrink): https://github.com/hashview/hashview/issues/373
+- Added support for hashtype 2811 (IPB 2+)
 
 ### Removed
 
