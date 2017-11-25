@@ -177,11 +177,15 @@ def hashcatParser(filepath)
     if line.start_with?('Time.Started.')
       status['Time_Started'] = line.split(': ')[-1].strip
     elsif line.start_with?('Time.Estimated.')
-      status['Time_Estimated'] = line.split(': ')[-1].strip
+      status['Time_Estimated'] = line.split('.: ')[-1].strip
+    elsif line.start_with?('Hash.Type.')
+      status['Hash_Type'] = line.split(': ')[-1].strip
     elsif line.start_with?('Recovered.')
       status['Recovered'] = line.split(': ')[-1].strip
     elsif line.start_with?('Input.Mode.')
       status['Input_Mode'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Guess.Mask.')
+      status['Guess_Mask'] = line.split(': ')[-1].strip
     elsif line.start_with?('Speed.Dev.')
       item = line.split(': ')
       gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')
