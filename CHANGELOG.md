@@ -14,6 +14,7 @@ Notable changes will be documented here
 - Fixed calculation of password complexity in analytics page: https://github.com/hashview/hashview/issues/360 
 - Fixed hard crash error when attempting to delete non-existant file: https://github.com/hashview/hashview/issues/365
 - Updated Gemlock to require rubocop 0.51.0 due to security vulns.
+- Fixed issue where Time Remaining listed in the jumbo tron was not properly populating (note requires agent update): https://github.com/hashview/hashview/issues/371
 
 ## [v0.7.2-beta] - 2017-10-19
 ### Added
