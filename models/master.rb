@@ -65,7 +65,7 @@ class User < Sequel::Model(:users)
 
   def self.delete_test_user(id)
     user = User.first(id: id)
-    user.delete(user)
+    user.delete
   end
 
   def self.delete_all_users
