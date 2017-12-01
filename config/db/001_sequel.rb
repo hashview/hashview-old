@@ -154,7 +154,7 @@ Sequel.migration do
       
       index [:name, :hc_mask], :name=>:ix_uq, :unique=>true
     end
-    
+
     create_table(:users) do
       Bignum :id, :null=>false, :auto_increment=>true
       String :username, :size=>40, :null=>false
@@ -163,11 +163,11 @@ Sequel.migration do
       DateTime :created_at, :default=>DateTime.parse("2017-08-03T16:06:21.000000000+0000")
       String :phone, :size=>50
       String :email, :size=>50
-      
+
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:id), 0)
       primary_key [:id, :username]
     end
-    
+
     create_table(:wordlists) do
       primary_key :id, :type=>:Bignum
       DateTime :lastupdated
