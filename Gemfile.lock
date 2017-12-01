@@ -185,12 +185,8 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.2)
-<<<<<<< HEAD
     unicode-display_width (1.3.0)
     uuidtools (2.1.5)
-=======
-    unicode-display_width (1.1.1)
->>>>>>> d0cbe387bb9ec4028bb940322dde1d68aeea7a1b
     vegas (0.1.11)
       rack (>= 1.0.0)
 
