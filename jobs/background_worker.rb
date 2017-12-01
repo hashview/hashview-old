@@ -310,11 +310,7 @@ class LocalAgent
         payload['hc_benchmark'] = 'example data'
         heartbeat = Api.post_heartbeat(payload)
         heartbeat = JSON.parse(heartbeat)
-<<<<<<< HEAD
         logger_background_worker.info(heartbeat)
-=======
-        puts "DEBUG: HEARTBEAT #{heartbeat}"
->>>>>>> d0cbe387bb9ec4028bb940322dde1d68aeea7a1b
 
         if heartbeat['type'] == 'message' && heartbeat['msg'] == 'START'
 
@@ -370,11 +366,7 @@ class LocalAgent
             # get our hashcat command and sub out the binary path
             cmd = jdata['command']
             cmd = replaceHashcatBinPath(cmd)
-<<<<<<< HEAD
             logger_background_worker.debug(cmd)
-=======
-            puts "DEBUG HASHCAT CMD #{cmd}"
->>>>>>> d0cbe387bb9ec4028bb940322dde1d68aeea7a1b
 
             # this variable is used to determine if the job was canceled
             @canceled = false
