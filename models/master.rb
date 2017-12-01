@@ -2,7 +2,6 @@ require 'rubygems'
 require 'sequel'
 require 'bcrypt'
 require 'rotp'
-require 'logger'
 
 Sequel::Model.plugin :json_serializer
 
@@ -12,7 +11,7 @@ options = YAML.load_file('config/database.yml')
 # there has to be a better way to handle this shit
 if ENV['RACK_ENV'] == 'test'
   HVDB = Sequel.mysql(options['test'])
-  HVDB.loggers << Loggers.new(STDOUT)
+  HVDB.loggers << Logger.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == 'development'
   HVDB = Sequel.mysql(options['development'])
