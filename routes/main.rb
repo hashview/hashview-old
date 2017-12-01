@@ -13,8 +13,7 @@ end
 
 get '/home' do
 
-
-  @jobs = Jobs.all(order: [:queued_at.asc])
+  @jobs = Jobs.order(Sequel.asc(:queued_at)).all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all
@@ -22,7 +21,7 @@ get '/home' do
   @time_now = Time.now
 
   @customers = Customers.all
-  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running')
+  @active_jobs = Jobs.where(:status => 'Running').select(:id, :status)
 
   # JumboTron Display
   # Building out an array of hashes for the jumbotron display
@@ -40,7 +39,8 @@ get '/home' do
       element['job_name'] = job.name
 
       @hash_ids = Array.new
-      Hashfilehashes.all(fields: [:hash_id], hashfile_id: job.hashfile_id).each do |entry|
+
+      Hashfilehashes.where(hashfile_id: j.hashfile_id).select(:hash_id).each do |entry|
         @hash_ids.push(entry.hash_id)
       end
 

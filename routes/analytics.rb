@@ -7,16 +7,16 @@ get '/analytics' do
 
   @customer_id = params[:customer_id]
   @hashfile_id = params[:hashfile_id]
-  @button_select_customers = Customers.all(order: [:name.asc])
+  @button_select_customers = Customers.order(Sequel.asc(:name)).all
 
   if params[:customer_id] && !params[:customer_id].empty?
-    @button_select_hashfiles = Hashfiles.all(customer_id: params[:customer_id])
+    @button_select_hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all
   end
 
   if params[:customer_id] && !params[:customer_id].empty?
     @customers = Customers.first(id: params[:customer_id])
   else
-    @customers = Customers.all(order: [:name.asc])
+    @customers = Customers.order(Sequel.asc(:name)).all
   end
 
   if params[:customer_id] && !params[:customer_id].empty?
@@ -33,13 +33,15 @@ get '/analytics' do
     # if we have a hashfile
     if params[:hashfile_id] && !params[:hashfile_id].empty?
       # Used for Total Hashes Cracked doughnut: Customer: Hashfile
-      @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hashfile_id])[0].to_s
+      @cracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])[:count]
+      @cracked_pw_count = @cracked_pw_count[:count]
+      @uncracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 0)', params[:hashfile_id])[:count]
+      @uncracked_pw_count = @uncracked_pw_count[:count]
 
       # Used for Complexity Doughnut & Complexity List: Customer: Hashfile
       # We have to manually scroll through the results because of limitations of regex in MySQL
       # If you know a workaround i'd love to hear/see it
-      @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
+      @complexity_hashes = HVDB.fetch('SELECT a.username as username, h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
       @meets_complexity_count = 0
       @fails_complexity_count = 0
       @fails_complexity = {}
@@ -62,16 +64,19 @@ get '/analytics' do
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
-      @total_users_originalhash = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:customer_id],params[:hashfile_id])
+      @total_users_originalhash = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:customer_id],params[:hashfile_id])
 
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])[0].to_s
+      @total_unique_users_count = HVDB.fetch('SELECT COUNT(DISTINCT(username)) as count FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[:count]
+      @total_unique_users_count = @total_unique_users_count[:count]
+      @total_unique_originalhash_count = HVDB.fetch('SELECT COUNT(DISTINCT(h.originalhash)) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])
+      @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
 
       # Used for Total Run Time: Customer: Hashfile
-      @total_run_time = Hashfiles.first(fields: [:total_run_time], id: params[:hashfile_id]).total_run_time
+      #@total_run_time = Hashfiles.first(id: params[:hashfile_id]).select(:total_run_time).values[:total_run_time]
+      @total_run_time = Hashfiles.first(id: params[:hashfile_id])[:total_run_time]
 
       # Used for Mask Generator: Customer: Hashfile
-      @hashes = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
+      @hashes = HVDB.fetch('SELECT h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
       @mask_list = {}
       @hashes.each do |entry|
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
@@ -102,14 +107,14 @@ get '/analytics' do
       # make list of unique hashes
       unique_hashes = Set.new
       @total_users_originalhash.each do |entry|
-        unique_hashes.add(entry.originalhash)
+        unique_hashes.add(entry[:originalhash])
       end
 
       hashes = []
       # create array of all hashes to count dups
       @total_users_originalhash.each do |uh|
-        unless uh.originalhash.nil?
-          hashes << uh.originalhash unless uh.originalhash.empty?
+        unless uh[:originalhash].nil?
+          hashes << uh[:originalhash] unless uh[:originalhash].empty?
         end
       end
 
@@ -129,16 +134,16 @@ get '/analytics' do
       @password_users = {}
       # for each unique password hash find the users and their plaintext
       @duphashes.each do |hash|
-        dups = repository(:default).adapter.select('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ? AND h.originalhash = ?)', params[:customer_id], params[:hashfile_id], hash[0] )
+        dups = HVDB.fetch('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id =? AND f.id = ? AND h.originalhash = ?)', params[:customer_id], params[:hashfile_id], hash[0] )
         # for each user with the same password hash add user to array
         dups.each do |d|
-          if !d.username.nil?
-            users_same_password << d.username
+          if !d[:username].nil?
+            users_same_password << d[:username]
           else
             users_same_password << 'NULL'
           end
-          if d.cracked
-            hash[0] = d.plaintext
+          if d[:cracked]
+            hash[0] = d[:plaintext]
           end
         end
         # assign array of users to hash of similar password hashes
@@ -150,13 +155,15 @@ get '/analytics' do
 
     else
       # Used for Total Hashes Cracked doughnut: Customer
-      @cracked_pw_count = repository(:default).adapter.select('SELECT count(h.plaintext) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[0].to_s
-      @uncracked_pw_count = repository(:default).adapter.select('SELECT count(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:customer_id])[0].to_s
+      @cracked_pw_count = HVDB.fetch('SELECT count(h.plaintext) as count FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[:count]
+      @cracked_pw_count = @cracked_pw_count[:count]
+      @uncracked_pw_count = HVDB.fetch('SELECT count(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 0)', params[:customer_id])[:count]
+      @uncracked_pw_count = @uncracked_pw_count[:count]
 
       # Used for Complexity Doughnut: Customer: Customer
       # We have to manually scroll through the results because of limitations of regex in MySQL
       # If you know a workaround i'd love to hear/see it
-      @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
+      @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
       @meets_complexity_count = 0
       @fails_complexity_count = 0
       @fails_complexity = {}
@@ -179,14 +186,17 @@ get '/analytics' do
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and original hashes Table: Customer
-      @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[0].to_s
-      @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(h.originalhash)) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[0].to_s
+      @total_unique_users_count = HVDB.fetch('SELECT COUNT(DISTINCT(username)) as count FROM hashfilehashes a LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[:count]
+      @total_unique_users_count = @total_unique_users_count[:count]
+      @total_unique_originalhash_count = HVDB.fetch('SELECT COUNT(DISTINCT(h.originalhash)) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f ON a.hashfile_id = f.id WHERE f.customer_id = ?', params[:customer_id])[:count]
+      @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
 
       # Used for Total Run Time: Customer:
-      @total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:customer_id] })
+      #@total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:customer_id] })
+      @total_run_time = Hashfiles.where(:customer_id => params[:customer_id]).sum(:total_run_time)
 
       # Used for Mask Generator: Customer: Hashfile
-      @hashes = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
+      @hashes = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
       @mask_list = {}
       @hashes.each do |entry|
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
@@ -216,13 +226,15 @@ get '/analytics' do
     end
   else
     # Used for Total Hash Cracked Doughnut: Total
-    @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[0].to_s
-    @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 0)')[0].to_s
+    @cracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[:count]
+    @cracked_pw_count = @cracked_pw_count[:count]
+    @uncracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 0)')[:count]
+    @uncracked_pw_count = @uncracked_pw_count[:count]
 
     # Used for Complexity Doughnut & Complexity List: Customer: Customer
     # We have to manually scroll through the results because of limitations of regex in MySQL
     # If you know a workaround i'd love to hear/see it
-    @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+    @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
     @meets_complexity_count = 0
     @fails_complexity_count = 0
     @fails_complexity = {}
@@ -245,14 +257,16 @@ get '/analytics' do
     @total_accounts = Hashfilehashes.count
 
     # Used for Total Unique Users and originalhashes Tables: Total
-    @total_unique_users_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(username)) FROM hashfilehashes')[0].to_s
-    @total_unique_originalhash_count = repository(:default).adapter.select('SELECT COUNT(DISTINCT(originalhash)) FROM hashes')[0].to_s
 
+    @total_unique_users_count = HVDB.fetch('SELECT COUNT(DISTINCT(username)) as count FROM hashfilehashes')[:count]
+    @total_unique_users_count = @total_unique_users_count[:count]
+    @total_unique_originalhash_count = HVDB.fetch('SELECT COUNT(DISTINCT(originalhash)) as count FROM hashes')[:count]
+    @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
     # Used for Total Run Time:
     @total_run_time = Hashfiles.sum(:total_run_time)
 
     # Used for Mask Generator: Customer: Hashfile
-    @hashes = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+    @hashes = HVDB.fetch('SELECT h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
     @mask_list = {}
     @hashes.each do |entry|
       entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
@@ -295,12 +309,12 @@ get '/analytics/graph1' do
 
   if params[:customer_id] && !params[:customer_id].empty?
     if params[:hashfile_id] && !params[:hashfile_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
-    @cracked_results = repository(:default).adapter.select('SELECT plaintext FROM hashes WHERE cracked = 1')
+    @cracked_results = HVDB.fetch('SELECT plaintext FROM hashes WHERE cracked = 1')
   end
 
   @cracked_results.each do |crack|
@@ -332,12 +346,12 @@ get '/analytics/graph2' do
   plaintext = []
   if params[:customer_id] && !params[:customer_id].empty?
     if params[:hashfile_id] && !params[:hashfile_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
-    @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
+    @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
 
   @cracked_results.each do |crack|
@@ -376,12 +390,12 @@ get '/analytics/graph3' do
   plaintext = []
   if params[:customer_id] && !params[:customer_id].empty?
     if params[:hashfile_id] && !params[:hashfile_id].empty?
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1 AND a.hashfile_id = ?', params[:hashfile_id])
     else
-      @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
+      @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE h.cracked = 1 AND f.customer_id = ?', params[:customer_id])
     end
   else
-    @cracked_results = repository(:default).adapter.select('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
+    @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
   @cracked_results.each do |crack|
     unless crack.nil?

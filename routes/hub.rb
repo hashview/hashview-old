@@ -136,7 +136,7 @@ end
 get '/hub' do
   varWash(params)
   @hub_settings = HubSettings.first
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @hashfiles = Hashfiles.all
 
   @cracked_by_hashtype_count = {}
@@ -145,8 +145,8 @@ get '/hub' do
   if hub_response['status'] == '200'
     @hub_supported_hashtypes = hub_response['hashtypes']
     @hub_supported_hashtypes.each do |hashtype|
-      hashtype_cracked_count = repository(:default).adapter.select('SELECT COUNT(originalhash) FROM hashes WHERE (hashtype = ? AND cracked = 1)', hashtype)[0].to_s
-      hashtype_total_count = repository(:default).adapter.select('SELECT COUNT(originalhash) FROM hashes WHERE hashtype = ?', hashtype)[0].to_s
+      hashtype_cracked_count = HVDB.fetch('SELECT COUNT(originalhash) FROM hashes WHERE (hashtype = ? AND cracked = 1)', hashtype)[0].to_s
+      hashtype_total_count = HVDB.fetch('SELECT COUNT(originalhash) FROM hashes WHERE hashtype = ?', hashtype)[0].to_s
       @cracked_by_hashtype_count[hashtype] = hashtype_cracked_count.to_s + '/' + hashtype_total_count.to_s unless hashtype_total_count.to_s == '0'
     end
   end
@@ -233,7 +233,7 @@ get '/hub/hash/reveal/hashfile/:hashfile_id' do
 
   @hash_array = []
 
-  @hashfile_hashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
+  @hashfile_hashes = Hashfilehashes.where(hashfile_id: params[:hashfile_id]).all
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
     unless hash.nil?
@@ -293,7 +293,7 @@ get '/hub/hash/upload/hashfile/:hashfile_id' do
   varWash(params)
   @hash_array = []
 
-  @hashfile_hashes = Hashfilehashes.all(hashfile_id: params[:hashfile_id])
+  @hashfile_hashes = Hashfilehashes.where(hashfile_id: params[:hashfile_id]).all
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '1')
     unless hash.nil?
@@ -318,7 +318,7 @@ get '/hub/hash/reveal/hashtype/:hashtype' do
   varWash(params)
 
   @hash_array = []
-  @hashes = Hashes.all(hashtype: params[:hashtype], cracked: '0')
+  @hashes = Hashes.where(hashtype: params[:hashtype], cracked: '0').all
   unless @hashes.nil?
     @hashes.each do |entry|
       element = {}
