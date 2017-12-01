@@ -186,7 +186,6 @@ GEM
       unf_ext
     unf_ext (0.0.7.2)
     unicode-display_width (1.3.0)
-    uuidtools (2.1.5)
     vegas (0.1.11)
       rack (>= 1.0.0)
 
@@ -218,7 +217,7 @@ DEPENDENCIES
   sinatra-flash
 
 RUBY VERSION
-   ruby 2.3.1p112
+   ruby 2.2.2p95
 
 BUNDLED WITH
-   1.15.4
+   1.16.0
