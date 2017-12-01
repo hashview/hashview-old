@@ -151,12 +151,12 @@ Sequel.migration do
       Bignum :keyspace
       
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:keyspace), 0)
-      
+
       index [:name, :hc_mask], :name=>:ix_uq, :unique=>true
     end
 
     create_table(:users) do
-      Bignum :id, :null=>false, :auto_increment=>true
+      primary_key :id, :null=>false, :auto_increment=>true
       String :username, :size=>40, :null=>false
       String :hashed_password, :size=>128
       TrueClass :admin
@@ -165,7 +165,6 @@ Sequel.migration do
       String :email, :size=>50
 
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:id), 0)
-      primary_key [:id, :username]
     end
 
     create_table(:wordlists) do
