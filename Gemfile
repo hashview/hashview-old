@@ -15,7 +15,7 @@ end
 gem 'sinatra', '~> 1.4.7'
 gem 'sinatra-flash'
 gem 'haml'
-#gem 'data_mapper'
+gem 'data_mapper'
 gem 'sequel'
 #gem 'dm-mysql-adapter'
 gem 'data_objects'
