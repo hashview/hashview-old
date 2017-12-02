@@ -1,197 +1,186 @@
 # encoding: utf-8
-def addHash(hash, hashtype)
-  entry = Hashes.new
-  entry.originalhash = hash
-  entry.hashtype = hashtype
-  entry.cracked = false
-  entry.save
+#require './model/master'
+#def detectedHashFormat(hash)
+#  # Detect if pwdump file format
+#  if hash =~ /^[^:]+:\d+:.*:.*:.*:.*:$/
+#    return 'pwdump'
+#  # Detect if shadow
+#  elsif hash =~ /^.*:.*:\d*:\d*:\d*:\d*:\d*:\d*:$/
+#    return 'shadow'
+#  elsif hash =~ /^.*:(\$NT\$)?\w{32}:.*:.*:/ # old version of dsusers
+#    return 'dsusers'
+#  elsif hash =~ /^.*:\w{32}$/
+#    return 'dsusers'
+#  elsif hash =~ /^.*:\w.*/
+#    return 'generic'
+#  elsif hash =~ /^\w{32}$/
+#    return 'ntlm_only'
+#  elsif hash =~ /.*:\d*:\w{32}:\w{32}$/
+#    return 'smart hashdump'
+#  else
+#    return 'File Format or Hash not supported'
+#  end
+#end
+def addHash(hasharray)
+  myreturnid = @hashes.insert_ignore.multi_insert(hasharray, :return=>:id)
 end
 
-def updateHashfileHashes(hash_id, username, hashfile_id)
-  entry = Hashfilehashes.new
-  entry.hash_id = hash_id
-  entry.username = username
-  entry.hashfile_id = hashfile_id
-  entry.save
+def updateHashfileHashes(hashfilehasharray)
+  myreturnid = @hashfilehashes.insert_ignore.multi_insert(hashfilehasharray, :return=>:id)
 end
 
-def importPwdump(hash, hashfile_id, type)
-  data = hash.split(':')
-  return if machineAcct?(data[0])
-  return if data[2].nil?
-  return if data[3].nil?
+def importPwdump(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray = [] #Holds an array of records to insert into the DB
+  idarray = [] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-  # if hashtype is lm
-  if type == '3000'
-    # import LM
-    lm_hashes = data[2].scan(/.{16}/)
-    lm_hash_0 = lm_hashes[0].downcase
-    lm_hash_1 = lm_hashes[1].downcase
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':')
+    next if machineAcct?(data[0])
+    next if data[2].nil?
+    next if data[3].nil?
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
-    if @hash_id.nil?
-      addHash(lm_hash_0, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
-
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
-    if @hash_id.nil?
-      addHash(lm_hash_1, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+    if type == '3000'
+      #Import LM
+      lm_hashes = data[2].scan(/.{16}/)
+      lm_hash_0 = lm_hashes[0].downcase
+      lm_hash_1 = lm_hashes[1].downcase
+      array.push(lm_hash_0)
+      array.push(lm_hash_1)
+      hasharray.push( { :originalhash => lm_hash_0, :hashtype => type, :cracked => false })
+      hasharray.push( { :originalhash => lm_hash_1, :hashtype => type, :cracked => false })
+      #because we have usernames, have to create a hash/username array to look up names later
+      userarray.push([lm_hash_0,data[0]])
+      userarray.push([lm_hash_1,data[0]])
+    elsif type == '1000'
+      #Import NTLM  
+      array.push(data[3])
+      hasharray.push( { :originalhash => data[3], :hashtype => type, :cracked => false })
+      userarray.push([data[3],data[0]])
+    end  
   end
 
-  # if hashtype is ntlm
-  if type == '1000'
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
-    if @hash_id.nil?
-      addHash(data[3], type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+      idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
   end
+  updateHashfileHashes(idarray)
 end
 
 def machineAcct?(username)
   username =~ /\$/ ? true : false
 end
 
-def importShadow(hash, hashfile_id, type)
+def importShadow(hash_file, hashfile_id, type)
   # This parser needs some work
-  data = hash.split(':')
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
-  end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  #seems to be identicat to ImportUserHash, forwarding traffic to it
+  importUserHash(hash_file,hashfile_id,type)
 end
 
-def importHashOnly(hash, hashfile_id, type)
-  if type == '3000'
-    # import LM
-    lm_hashes = hash.scan(/.{16}/)
-    lm_hash_0 = lm_hashes[0].downcase
-    lm_hash_1 = lm_hashes[1].downcase
+def importDsusers(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
-    if @hash_id.nil?
-      addHash(lm_hash_0, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':') 
+    if data[1] =~ /NT/
+      data[1] = data[1].to_s.split('$')[2]
+      type = '3000'
     end
-
-    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
-
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
-    if @hash_id.nil?
-      addHash(lm_hash_1, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
-  else
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash)
-    if @hash_id.nil?
-      addHash(hash, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-    elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-      unless @hash_id.cracked
-        @hash_id.hashtype = type.to_i
-        @hash_id.save
-      end
-    end
-
-    updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
-
+    array.push(data[1])
+    hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
+    userarray.push([data[1],data[0]])
   end
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+      idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
+  end
+  updateHashfileHashes(idarray)
 end
 
-def importDsusers(hash, hashfile_id, type)
-  data = hash.split(':')
-  if data[1] =~ /NT/
-    data[1] = data[1].to_s.split('$')[2]
-    type = '3000'
-  end
+def importUserHash(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':') 
+    array.push(data[1])
+    hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
+    userarray.push([data[1],data[0]])
   end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+    idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
+  end 
+  updateHashfileHashes(idarray)
 end
 
-def importUserHash(hash, hashfile_id, type)
-  data = hash.split(':')
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
+def importHashSalt(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    array.push(entry)
+    hasharray.push( { :originalhash => entry, :hashtype => type, :cracked => false })
   end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    idarray.push({:hash_id=>mymatch[:id].to_i,:username=>'NULL',:hashfile_id=>hashfile_id})
+  end
+  updateHashfileHashes(idarray)
 end
 
-def importHashSalt(hash, hashfile_id, type)
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  if @hash_id.nil?
-    addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
-  end
+def importNetNTLMv1(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-  updateHashfileHashes(@hash_id.id.to_i, 'null', hashfile_id)
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':') 
+    originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
+    array.push(iriginalhash)
+    hasharray.push( { :originalhash => originalhash, :hashtype => type, :cracked => false })
+    userarray.push([originalhash,data[0]])
+  end
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+      idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
+  end
+  updateHashfileHashes(idarray)
 end
 
 def importUserHashSalt(hash, hashfile_id, type)
@@ -210,39 +199,84 @@ def importUserHashSalt(hash, hashfile_id, type)
   updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
-def importNetNTLMv1(hash, hashfile_id, type)
-  data = hash.split(':')
-  originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
+def importNetNTLM(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-  @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-  if @hash_id.nil?
-    addHash(originalhash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
+
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':') 
+    array.push(entry)
+    hasharray.push( { :originalhash => entry, :hashtype => type, :cracked => false })
+    userarray.push([entry,data[0]])
   end
-
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+      idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
+  end
+  updateHashfileHashes(idarray)
 end
 
-def importNetNTLMv2(hash, hashfile_id, type)
-  data = hash.split(':')
+def importHashOnly(hash_file, hashfile_id, type)
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup 
 
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  if @hash_id.nil?
-    addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    if type == '3000'
+      #Import LM
+      lm_hashes = entry.scan(/.{16}/)
+      lm_hash_0 = lm_hashes[0].downcase
+      lm_hash_1 = lm_hashes[1].downcase
+      array.push(lm_hash_0)
+      array.push(lm_hash_1)
+      hasharray.push( { :originalhash => lm_hash_0, :hashtype => type, :cracked => false })
+      hasharray.push( { :originalhash => lm_hash_1, :hashtype => type, :cracked => false })
+    elsif type == '5500'
+      #Import NTLMv1
+      fields = entry.split(':')
+      originalhash = fields[3].to_s.downcase + ':' + fields[4].to_s.downcase + ':' + fields[5].to_s.downcase
+      array.push(originalhash)
+      hasharray.push( { :originalhash => originalhash, :hashtype => type, :cracked => false })
+      userarray.push([originalhash,fields[0]])
+    elsif type == '5600'
+      #Import NTLMv2
+      fields = entry.split(':')  
+      array.push(entry)
+      hasharray.push( { :originalhash => entry, :hashtype => type, :cracked => false })
+      userarray.push([entry,fields[0]])
+    else
+      array.push(entry)
+      hasharray.push( { :originalhash => entry, :hashtype => type, :cracked => false })
+    end  
   end
 
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+    if type == '5500' or type == '5600'
+      mymatches.each do |mymatch|
+        userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
+          idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+        }
+      end
+    else
+  mymatches.each do |mymatch|
+    idarray.push({:hash_id=>mymatch[:id].to_i,:username=>'NULL',:hashfile_id=>hashfile_id})
+  end
+    end  
+  updateHashfileHashes(idarray)
 end
 
 def getMode(hash)
@@ -479,15 +513,15 @@ def friendlyToMode(friendly)
   '99999'
 end
 
-def importHash(hash_array, hashfile_id, file_type, hashtype)
-  hash_array.each do |entry|
-    entry = entry.gsub(/\s+/, '') # remove all spaces
-    if file_type == 'pwdump' || file_type == 'smart hashdump'
-      importPwdump(entry.chomp, hashfile_id, hashtype) # because the format is the same aside from the trailing ::
+def importHash(hash_file, hashfile_id, file_type, hashtype)
+    @hashes = HVDB[:hashes]
+    @hashfilehashes = HVDB[:hashfilehashes]
+    if file_type == 'pwdump' or file_type == 'smart hashdump'
+      importPwdump(hash_file, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
     elsif file_type == 'shadow'
       importShadow(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'hash_only'
-      importHashOnly(entry.chomp, hashfile_id, hashtype)
+      importHashOnly(hash_file, hashfile_id, hashtype)
     elsif file_type == 'dsusers'
       importDsusers(entry.chomp, hashfile_id, hashtype)
     elsif file_type == 'user_hash'
@@ -503,8 +537,8 @@ def importHash(hash_array, hashfile_id, file_type, hashtype)
     else
       return 'Unsupported hash format detected'
     end
-  end
 end
+
 
 def detectHashType(hash_file, file_type)
   @hashtypes = []
@@ -535,3 +569,5 @@ def detectHashType(hash_file, file_type)
   end
   @hashtypes
 end
+
+

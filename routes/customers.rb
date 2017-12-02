@@ -1,6 +1,6 @@
 # encoding: utf-8
 get '/customers/list' do
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @total_jobs = []
   @total_hashfiles = []
 
@@ -24,7 +24,7 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
-  pre_existing_customer = Customers.all(name: params[:name])
+  pre_existing_customer = Customers.where(name: params[:name]).all
   if !pre_existing_customer.empty? || pre_existing_customer.nil?
     flash[:error] = 'Customer ' + params[:name] + ' already exists.'
     redirect to('/customers/create')
@@ -66,10 +66,10 @@ get '/customers/delete/:id' do
   @customer = Customers.first(id: params[:id])
   @customer.destroy unless @customer.nil?
 
-  @jobs = Jobs.all(customer_id: params[:id])
+  @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
-      @jobtasks = Jobtasks.all(job_id: job.id)
+      @jobtasks = Jobtasks.where(job_id: job.id).all
       @jobtasks.destroy unless @jobtasks.nil?
     end
     @jobs.destroy unless @jobs.nil?
@@ -78,7 +78,7 @@ get '/customers/delete/:id' do
   # @hashfilehashes = Hashfilehashes.all(hashfile_id:
   # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
 
-  @hashfiles = Hashfiles.all(customer_id: params[:id])
+  @hashfiles = Hashfiles.where(customer_id: params[:id]).all
   @hashfiles.destroy unless @hashfiles.nil?
 
   redirect to('/customers/list')
@@ -234,15 +234,19 @@ post '/customers/upload/verify_hashtype' do
   @job.hashfile_id = hashfile.id
   @job.save
 
+time = Benchmark.measure {
   unless importHash(hash_array, hashfile.id, filetype, hashtype)
     flash[:error] = 'Error importing hashes'
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
+}
 
-  total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+  total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
+  total_cnt =   total_cnt[:count]
 
   unless total_cnt.nil?
-    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+    #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes taking a total of ' + time.real.to_s + ' seconds.'
   end
 
   # Delete file, no longer needed

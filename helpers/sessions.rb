@@ -10,7 +10,7 @@ helpers do
   end
 
   def agentAuthorized(uuid)
-    auth = Agents.first(:uuid => uuid, :status.not => 'Pending')
+    auth = Agents.exclude(Sequel.like(:status, 'Pending')).where(:uuid => uuid).first
 
     auth ? true : false
   end

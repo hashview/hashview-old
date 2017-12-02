@@ -14,7 +14,7 @@ module WordlistChecksum
     logger_wordlistchecksum.debug('Wordlist Checksum Class() - has started')
 
     # Identify all wordlists without checksums
-    @wordlist = Wordlists.all(checksum: nil)
+    @wordlist = Wordlists.where(checksum: nil).all
     @wordlist.each do |wl|
       # generate checksum
       logger_wordlistchecksum.info('generating checksum for: ' + wl.path.to_s)

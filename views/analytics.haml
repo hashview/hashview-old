@@ -28,7 +28,7 @@
                   - if !params[:hashfile_id]
                     All Hashes
                   - else
-                    #{@hashfiles.name}
+                    #{@hashfiles[:name]}
                   %span.caret
                 %ul.dropdown-menu.dropdown-menu-right
                   %li
@@ -197,7 +197,7 @@
                     %td
                   -else
                     %td
-                      %b #{@hashfiles.name}
+                      %b #{@hashfiles[:name]}
                   %tr
                     %td Total Hashes:
                     %td #{@total_accounts}
