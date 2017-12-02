@@ -70,7 +70,7 @@ class User < Sequel::Model(:users)
 
   def self.delete_all_users
     users = User.all
-    users.delete(users)
+    users.delete
   end
 
 end

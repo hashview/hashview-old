@@ -96,7 +96,7 @@ class MyTest < MiniTest::Test
     delete_all_users
     get '/login'
     # if no users exist in db this will redirect
-    p last_response.to_s
+    p 'last response: ' + last_response.to_s
     assert last_response.redirection?
     assert_equal "http://example.org/register", last_response.location
     follow_redirect!
