@@ -7,6 +7,7 @@ require 'mysql'
 require './helpers/email.rb'
 require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
+require 'data_master'
 
 require_relative 'jobs/init'
 #require_relative 'helpers/init'
@@ -774,8 +775,8 @@ def upgrade_to_v073(user, password, host, database)
 
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
   conn = Mysql.new host, user, password, database
-  db = Sequel.mysql(database)
-  Sequel::Migrator.run(db, "db/migrations")
+  #db = Sequel.mysql(database)
+  #Sequel::Migrator.run(db, "db/migrations")
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
