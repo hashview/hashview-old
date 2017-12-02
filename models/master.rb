@@ -19,7 +19,7 @@ elsif ENV['RACK_ENV'] == 'development'
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == ('production' || 'default')
   HVDB = Sequel.mysql(options['production'])
-  HVDB.loggers << Logger.new(STDOUT)
+  # HVDB.loggers << Logger.new(STDOUT)
 else
   puts 'ERROR: You must define an environment. ex: RACK_ENV=production'
   exit
