@@ -23,7 +23,7 @@ get '/analytics' do
     if params[:hashfile_id] && !params[:hashfile_id].empty?
       @hashfiles = Hashfiles.first(id: params[:hashfile_id])
     else
-      @hashfiles = Hashfiles.all
+      @hashfiles = Hashfiles.order(Sequel.asc(:id)).all
     end
   end
 
@@ -46,15 +46,15 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry.plaintext.to_s.length < 8
-          @fails_complexity[entry.username] = entry.plaintext
+        if entry[:plaintext].to_s.length < 8
+          @fails_complexity[entry[:username]] = entry[:plaintext]
         else
           flags = 0
-          flags += 1 if entry.plaintext.to_s =~ /[a-z]/
-          flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
-          flags += 1 if entry.plaintext.to_s =~ /\d/
-          flags += 1 if entry.plaintext.to_s =~ /\p{S}/
-          @fails_complexity[entry.username] = entry.plaintext if flags < 3
+          flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
+          flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
+          flags += 1 if entry[:plaintext].to_s =~ /\d/
+          flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+          @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
         end
         @fails_complexity_count = @fails_complexity.length
         @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
@@ -68,7 +68,7 @@ get '/analytics' do
 
       @total_unique_users_count = HVDB.fetch('SELECT COUNT(DISTINCT(username)) as count FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[:count]
       @total_unique_users_count = @total_unique_users_count[:count]
-      @total_unique_originalhash_count = HVDB.fetch('SELECT COUNT(DISTINCT(h.originalhash)) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])
+      @total_unique_originalhash_count = HVDB.fetch('SELECT COUNT(DISTINCT(h.originalhash)) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])[:count]
       @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
 
       # Used for Total Run Time: Customer: Hashfile
@@ -79,6 +79,7 @@ get '/analytics' do
       @hashes = HVDB.fetch('SELECT h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
       @mask_list = {}
       @hashes.each do |entry|
+        entry = entry[:plaintext]
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
@@ -168,15 +169,15 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry.plaintext.to_s.length < 8
-          @fails_complexity[entry.username] = entry.plaintext
+        if entry[:plaintext].to_s.length < 8
+          @fails_complexity[entry[:username]] = entry[:plaintext]
         else
           flags = 0
-          flags += 1 if entry.plaintext.to_s =~ /[a-z]/
-          flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
-          flags += 1 if entry.plaintext.to_s =~ /\d/
-          flags += 1 if entry.plaintext.to_s =~ /\p{S}/
-          @fails_complexity[entry.username] = entry.plaintext if flags < 3
+          flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
+          flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
+          flags += 1 if entry[:plaintext].to_s =~ /\d/
+          flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+          @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
         end
         @fails_complexity_count = @fails_complexity.length
         @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
@@ -199,6 +200,7 @@ get '/analytics' do
       @hashes = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
       @mask_list = {}
       @hashes.each do |entry|
+        entry = entry[:plaintext].to_s
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
@@ -239,15 +241,15 @@ get '/analytics' do
     @fails_complexity_count = 0
     @fails_complexity = {}
     @complexity_hashes.each do |entry|
-      if entry.plaintext.to_s.length < 8
-        @fails_complexity[entry.username] = entry.plaintext
+      if entry[:plaintext].to_s.length < 8
+        @fails_complexity[entry[:username]] = entry[:plaintext]
       else
         flags = 0
-        flags += 1 if entry.plaintext.to_s =~ /[a-z]/
-        flags += 1 if entry.plaintext.to_s =~ /[A-Z]/
-        flags += 1 if entry.plaintext.to_s =~ /\d/
-        flags += 1 if entry.plaintext.to_s =~ /\p{S}/
-        @fails_complexity[entry.username] = entry.plaintext if flags < 3
+        flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
+        flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
+        flags += 1 if entry[:plaintext].to_s =~ /\d/
+        flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+        @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
       end
       @fails_complexity_count = @fails_complexity.length
       @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
@@ -269,6 +271,7 @@ get '/analytics' do
     @hashes = HVDB.fetch('SELECT h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
     @mask_list = {}
     @hashes.each do |entry|
+      entry = entry[:plaintext].to_s
       entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
       entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
       entry = entry.gsub(/[0-9]/, 'D') # Find all digits
@@ -318,9 +321,9 @@ get '/analytics/graph1' do
   end
 
   @cracked_results.each do |crack|
-    unless crack.nil?
-      unless crack.length == 0
-        len = crack.length
+    unless crack[:plaintext].nil?
+      unless crack[:plaintext].length == 0
+        len = crack[:plaintext].length
         @passwords[len].nil? ? @passwords[len] = 1 : @passwords[len] = @passwords[len].to_i + 1
       end
     end
@@ -355,8 +358,8 @@ get '/analytics/graph2' do
   end
 
   @cracked_results.each do |crack|
-    unless crack.nil?
-      plaintext << crack unless crack.empty?
+    unless crack[:plaintext].nil?
+      plaintext << crack[:plaintext] unless crack[:plaintext].empty?
     end
   end
 
@@ -398,8 +401,8 @@ get '/analytics/graph3' do
     @cracked_results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE h.cracked = 1')
   end
   @cracked_results.each do |crack|
-    unless crack.nil?
-      plaintext << crack unless crack.empty?
+    unless crack[:plaintext].nil?
+      plaintext << crack[:plaintext] unless crack[:plaintext].empty?
     end
   end
 
