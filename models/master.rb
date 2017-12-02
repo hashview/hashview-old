@@ -69,8 +69,10 @@ class User < Sequel::Model(:users)
   end
 
   def self.delete_all_users
-    users = User.all
-    users.delete_from_sql
+    @users = User.all
+    @users.each do | user |
+      user.delete
+    end
   end
 
 end
