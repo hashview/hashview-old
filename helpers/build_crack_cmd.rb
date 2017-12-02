@@ -24,14 +24,14 @@ helpers do
     mask = @task.hc_mask
 
     # if task contains a keyspace that is gt 0 perform chunking
-    if @task.keyspace.nil?
+    if @task[:keyspace].nil?
       chunking = false
-    elsif @task.keyspace > 0 && @task.keyspace > chunk_size
+    elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
       chunking = true
 
       # build a hash containing our skip and limit values
       chunk_num = 0
-      while chunk_skip < @task.keyspace.to_i
+      while chunk_skip < @task[:keyspace].to_i
         skip = chunk_skip
 
         chunks[chunk_num] = [skip, chunk_size]
