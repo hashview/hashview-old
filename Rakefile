@@ -7,7 +7,7 @@ require 'mysql'
 require './helpers/email.rb'
 require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
-require 'data_master'
+require 'data_mapper'
 
 require_relative 'jobs/init'
 #require_relative 'helpers/init'
