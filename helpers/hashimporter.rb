@@ -134,7 +134,7 @@ def importUserHash(hash_file, hashfile_id, type)
     userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
     idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
     }
-  end 
+  end
   updateHashfileHashes(idarray)
 end
 
@@ -184,19 +184,28 @@ def importNetNTLMv1(hash_file, hashfile_id, type)
 end
 
 def importUserHashSalt(hash, hashfile_id, type)
-  data = hash.split(':', 2)
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  if @hash_id.nil?
-    addHash(data[1], type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
-  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
-    unless @hash_id.cracked
-      @hash_id.hashtype = type.to_i
-      @hash_id.save
-    end
-  end
+  array = []  #Holds just the hashes, so we can find their ID's later
+  hasharray=[] #Holds an array of records to insert into the DB
+  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  userarray = []  #hold hash to username lookup
 
-  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
+  hash_file.each do |entry|
+    entry = entry.gsub(/\s+/, '') # remove all spaces
+    data = entry.split(':', [2])
+    array.push(data[1])
+    hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
+    userarray.push([data[1],data[0]])
+  end
+  puts "Attempt to do a big insert"
+  addHash(hasharray)
+  mymatches = @hashes.where(:originalhash=>array)
+  puts "I found #{mymatches.count} that match"
+  mymatches.each do |mymatch|
+    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username|
+      idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+    }
+  end
+  updateHashfileHashes(idarray)
 end
 
 def importNetNTLM(hash_file, hashfile_id, type)
@@ -519,21 +528,21 @@ def importHash(hash_file, hashfile_id, file_type, hashtype)
     if file_type == 'pwdump' or file_type == 'smart hashdump'
       importPwdump(hash_file, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
     elsif file_type == 'shadow'
-      importShadow(entry.chomp, hashfile_id, hashtype)
+      importShadow(hash_file, hashfile_id, hashtype)
     elsif file_type == 'hash_only'
       importHashOnly(hash_file, hashfile_id, hashtype)
     elsif file_type == 'dsusers'
-      importDsusers(entry.chomp, hashfile_id, hashtype)
+      importDsusers(hash_file, hashfile_id, hashtype)
     elsif file_type == 'user_hash'
-      importUserHash(entry.chomp, hashfile_id, hashtype)
+      importUserHash(hash_file, hashfile_id, hashtype)
     elsif file_type == 'hash_salt'
-      importHashSalt(entry.chomp, hashfile_id, hashtype)
+      importHashSalt(hash_file, hashfile_id, hashtype)
     elsif file_type == 'user_hash_salt'
-      importUserHashSalt(entry.chomp, hashfile_id, hashtype)
+      importUserHashSalt(hash_file, hashfile_id, hashtype)
     elsif file_type == 'NetNTLMv1'
-      importNetNTLMv1(entry.chomp, hashfile_id, hashtype)
+      importNetNTLMv1(hash_file, hashfile_id, hashtype)
     elsif file_type == 'NetNTLMv2'
-      importNetNTLMv2(entry.chomp, hashfile_id, hashtype)
+      importNetNTLMv2(hash_file, hashfile_id, hashtype)
     else
       return 'Unsupported hash format detected'
     end
