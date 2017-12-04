@@ -27,20 +27,20 @@ post '/search' do
       p 'LOCAL RESULTS: ' + @local_results.to_s
       @local_results.each do |local_entry|
         p 'Local Entry: ' + local_entry.to_s
-        results_entry['id'] = local_entry.id
-        results_entry['username'] = local_entry.username
-        results_entry['plaintext'] = local_entry.plaintext
-        results_entry['hashtype'] = local_entry.hashtype
-        results_entry['originalhash'] = local_entry.originalhash
-        results_entry['name'] = local_entry.name
-        results_entry['local_cracked'] = '1' if local_entry.cracked
-        results_entry['local_cracked'] = '0' unless local_entry.cracked
+        results_entry['id'] = local_entry[:id]
+        results_entry['username'] = local_entry[:username]
+        results_entry['plaintext'] = local_entry[:plaintext]
+        results_entry['hashtype'] = local_entry[:hashtype]
+        results_entry['originalhash'] = local_entry[:originalhash]
+        results_entry['name'] = local_entry[:name]
+        results_entry['local_cracked'] = '1' if local_entry[:cracked]
+        results_entry['local_cracked'] = '0' unless local_entry[:cracked]
 
-        if hub_settings.status == 'registered' && local_entry.originalhash
+        if hub_settings.status == 'registered' && local_entry[:originalhash]
           @hash_array = []
           element = {}
-          element['ciphertext'] = local_entry.originalhash
-          element['hashtype'] = local_entry.hashtype.to_s
+          element['ciphertext'] = local_entry[:originalhash]
+          element['hashtype'] = local_entry[:hashtype].to_s
           @hash_array.push(element)
           hub_response = Hub.hashSearch(@hash_array)
           hub_response = JSON.parse(hub_response)
@@ -79,20 +79,20 @@ post '/search' do
       p 'LOCAL RESULTS: ' + @local_results.to_s
       @local_results.each do |local_entry|
         p 'Local Entry: ' + local_entry.to_s
-        results_entry['id'] = local_entry.id
-        results_entry['username'] = local_entry.username
-        results_entry['plaintext'] = local_entry.plaintext
-        results_entry['hashtype'] = local_entry.hashtype
-        results_entry['originalhash'] = local_entry.originalhash
-        results_entry['name'] = local_entry.name
-        results_entry['local_cracked'] = '1' if local_entry.cracked
-        results_entry['local_cracked'] = '0' unless local_entry.cracked
+        results_entry['id'] = local_entry[:id]
+        results_entry['username'] = local_entry[:username]
+        results_entry['plaintext'] = local_entry[:plaintext]
+        results_entry['hashtype'] = local_entry[:hashtype]
+        results_entry['originalhash'] = local_entry[:originalhash]
+        results_entry['name'] = local_entry[:name]
+        results_entry['local_cracked'] = '1' if local_entry[:cracked]
+        results_entry['local_cracked'] = '0' unless local_entry[:cracked]
 
-        if hub_settings.status == 'registered' && local_entry.originalhash
+        if hub_settings.status == 'registered' && local_entry[:originalhash]
           @hash_array = []
           element = {}
-          element['ciphertext'] = local_entry.originalhash
-          element['hashtype'] = local_entry.hashtype.to_s
+          element['ciphertext'] = local_entry[:originalhash]
+          element['hashtype'] = local_entry[:hashtype].to_s
           @hash_array.push(element)
           hub_response = Hub.hashSearch(@hash_array)
           hub_response = JSON.parse(hub_response)
@@ -133,14 +133,14 @@ post '/search' do
       p 'LOCAL RESULTS: ' + @local_results.to_s
       @local_results.each do |local_entry|
         p 'Local Entry: ' + local_entry.to_s
-        results_entry['id'] = local_entry.id
-        results_entry['username'] = local_entry.username
-        results_entry['plaintext'] = local_entry.plaintext
-        results_entry['hashtype'] = local_entry.hashtype
-        results_entry['originalhash'] = local_entry.originalhash
-        results_entry['name'] = local_entry.name
-        results_entry['local_cracked'] = '1' if local_entry.cracked
-        results_entry['local_cracked'] = '0' unless local_entry.cracked
+        results_entry['id'] = local_entry[:id]
+        results_entry['username'] = local_entry[:username]
+        results_entry['plaintext'] = local_entry[:plaintext]
+        results_entry['hashtype'] = local_entry[:hashtype]
+        results_entry['originalhash'] = local_entry[:originalhash]
+        results_entry['name'] = local_entry[:name]
+        results_entry['local_cracked'] = '1' if local_entry[:cracked]
+        results_entry['local_cracked'] = '0' unless local_entry[:cracked]
       end
     end
 
