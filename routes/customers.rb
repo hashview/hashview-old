@@ -176,31 +176,12 @@ post '/customers/upload/verify_filetype' do
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  if params[:filetype] == '$hash'
-    params[:filetype] = 'hash_only'
-  end
-
-  if params[:filetype] == '$user:$hash'
-    params[:filetype] = 'user_hash'
-  end
-
-  if params[:filetype] == '$hash:$salt'
-    params[:filetype] = 'hash_salt'
-  end
-  
-  if params[:filetype] == '$user:$hash:$salt'
-    params[:filetype] = 'user_hash_salt'
-  end
-
-  if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
-    params[:filetype] = 'NetNTLMv1'
-  end
-
-  if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
-    params[:filetype] = 'NetNTLMv2'
-  end
-
-  p 'PARAMS: ' + params[:filetype].to_s
+  params[:filetype] = 'hash_only' if params[:filetype] == '$hash'
+  params[:filetype] = 'user_hash' if params[:filetype] == '$user:$hash'
+  params[:filetype] = 'hash_salt' if params[:filetype] == '$hash:$salt'
+  params[:filetype] = 'user_hash_salt' if params[:filetype] == '$user:$hash:$salt'
+  params[:filetype] = 'NetNTLMv1' if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
+  params[:filetype] = 'NetNTLMv2' if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
 
   redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
@@ -226,20 +207,47 @@ post '/customers/upload/verify_hashtype' do
   hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
   hash_array = []
+  chunk_max = 1000000 # 1M
+  chunk_cnt = 0
+  time = 0
   File.open(hash_file, 'r').each do |line|
-    hash_array << line
+    if chunk_cnt < chunk_max
+      hash_array << line
+      chunk_cnt += 1
+      # p 'CHUNK_CNT: ' + chunk_cnt.to_s
+    else
+      # p 'HASH_ARRAY' + hash_array.to_s
+      hash_array << line # I think this is needed for off by one imports
+      #time += Benchmark.measure {
+      unless importHash(hash_array, hashfile.id, filetype, hashtype)
+        flash[:error] = 'Error importing hashes'
+        redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+      end
+      #}
+      hash_array = []
+      chunk_cnt = 0
+    end
   end
+  # Sloppy code to put this twice
+  # time += Benchmark.measure {
+  if hash_array.size > 0
+    unless importHash(hash_array, hashfile.id, filetype, hashtype)
+      flash[:error] = 'Error importing hashes'
+      redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    end
+  end
+  # }
 
   @job = Jobs.first(id: params[:job_id])
   @job.hashfile_id = hashfile.id
   @job.save
 
-time = Benchmark.measure {
-  unless importHash(hash_array, hashfile.id, filetype, hashtype)
-    flash[:error] = 'Error importing hashes'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  end
-}
+  #time += Benchmark.measure {
+  #  unless importHash(hash_array, hashfile.id, filetype, hashtype)
+  #    flash[:error] = 'Error importing hashes'
+  #    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+  #  end
+  #}
 
   total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
   total_cnt =   total_cnt[:count]
