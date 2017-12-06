@@ -113,29 +113,58 @@ def importDsusers(hash_file, hashfile_id, type)
   updateHashfileHashes(idarray)
 end
 
-def importUserHash(hash_file, hashfile_id, type)
-  array = []  #Holds just the hashes, so we can find their ID's later
-  hasharray=[] #Holds an array of records to insert into the DB
-  idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
-  userarray = []  #hold hash to username lookup 
+def tempaddHash(hash, hashtype)
+  entry = Hashes.new
+  entry[:originalhash] = hash
+  entry[:hashtype] = hashtype
+  entry[:cracked] = false
+  entry.save
+end
 
-  hash_file.each do |entry|
-    entry = entry.gsub(/\s+/, '') # remove all spaces
-    data = entry.split(':') 
-    array.push(data[1])
-    hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
-    userarray.push([data[1],data[0]])
+def tempupdateHashfileHashes(hash_id, username, hashfile_id)
+  entry = Hashfilehashes.new
+  entry[:hash_id] = hash_id
+  entry[:username] = username
+  entry[:hashfile_id] = hashfile_id
+  entry.save
+end
+
+def importUserHash(hash_file, hashfile_id, type)
+  data = hash_file.split(':')
+  @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    tempaddHash(data[1], type)
+    @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
+  elsif @hash_id && @hash_id[:hashtype].to_s != type.to_s
+    unless @hash_id[:cracked]
+      @hash_id[:hashtype] = type.to_i
+      @hash_id.save
+    end
   end
-  puts "Attempt to do a big insert"
-  addHash(hasharray)
-  mymatches = @hashes.where(:originalhash=>array)
-  puts "I found #{mymatches.count} that match"
-  mymatches.each do |mymatch|
-    userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username| 
-    idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
-    }
-  end
-  updateHashfileHashes(idarray)
+
+  tempupdateHashfileHashes(@hash_id[:id].to_i, data[0], hashfile_id)
+  #array = []  #Holds just the hashes, so we can find their ID's later
+  #hasharray=[] #Holds an array of records to insert into the DB
+  #idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
+  #userarray = []  #hold hash to username lookup
+
+  #hash_file.each do |entry|
+  #  entry = entry.gsub(/\s+/, '') # remove all spaces
+  #  data = entry.split(':')
+  #  array.push(data[1])
+  #  hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
+  #  userarray.push([data[1],data[0]])
+  #end
+  #puts "Attempt to do a big insert"
+  #addHash(hasharray)
+  #mymatches = @hashes.where(:originalhash=>array)
+  #puts "I found #{mymatches.count} that match"
+  #mymatches.each do |mymatch|
+  #  userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username|
+  #  idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
+  #  }
+  #end
+  #updateHashfileHashes(idarray)
 end
 
 def importHashSalt(hash_file, hashfile_id, type)

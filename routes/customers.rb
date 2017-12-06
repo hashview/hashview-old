@@ -209,34 +209,40 @@ post '/customers/upload/verify_hashtype' do
   hash_array = []
   chunk_max = 10000 # 1M
   chunk_cnt = 0
-  time = 0
-  File.open(hash_file, 'r').each do |line|
-    if chunk_cnt < chunk_max
-      hash_array << line
-      chunk_cnt += 1
-      p 'CHUNK_CNT: ' + chunk_cnt.to_s
-    else
-      # p 'HASH_ARRAY' + hash_array.to_s
-      p 'Chunk Size: ' + hash_array.size.to_s
-      #time += Benchmark.measure {
-      unless importHash(hash_array, hashfile.id, filetype, hashtype)
+  time = Benchmark.measure {
+    File.open(hash_file, 'r').each do |line|
+      unless importHash(line, hashfile.id, filetype, hashtype)
         flash[:error] = 'Error importing hashes'
         redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
       end
-      #}
-      hash_array = []
-      chunk_cnt = 0
+      #if chunk_cnt < chunk_max
+      #  hash_array << line
+      #  chunk_cnt += 1
+      #  p 'CHUNK_CNT: ' + chunk_cnt.to_s
+      #else
+      #  # p 'HASH_ARRAY' + hash_array.to_s
+      #  p 'Chunk Size: ' + hash_array.size.to_s
+      #  #time += Benchmark.measure {
+      #  unless importHash(hash_array, hashfile.id, filetype, hashtype)
+      #    flash[:error] = 'Error importing hashes'
+      #    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+      #  end
+      #  #}
+      #  hash_array = []
+      #  chunk_cnt = 0
+      #end
+    #end
+    # Sloppy code to put this twice
+    # time += Benchmark.measure {
+    #if hash_array.size > 0
+    #  unless importHash(hash_array, hashfile.id, filetype, hashtype)
+    #    flash[:error] = 'Error importing hashes'
+    #    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    #  end
     end
-  end
-  # Sloppy code to put this twice
-  # time += Benchmark.measure {
-  if hash_array.size > 0
-    unless importHash(hash_array, hashfile.id, filetype, hashtype)
-      flash[:error] = 'Error importing hashes'
-      redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-    end
-  end
-  # }
+  }
+
+  p "TIME: " + time.to_s
 
   @job = Jobs.first(id: params[:job_id])
   @job.hashfile_id = hashfile.id
@@ -250,7 +256,7 @@ post '/customers/upload/verify_hashtype' do
   #}
 
   total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
-  total_cnt =   total_cnt[:count]
+  total_cnt = total_cnt[:count]
 
   unless total_cnt.nil?
     #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
