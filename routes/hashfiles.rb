@@ -23,11 +23,11 @@ end
 get '/hashfiles/delete' do
   varWash(params)
 
-  @hashfilehashes = Hashfilehashes.where(hashfile_id: params[:hashfile_id]).all
-  @hashfilehashes.destroy unless @hashfilehashes.empty?
+  hashfilehashes = HVDB[:hashfilehashes]
+  hashfilehashes.filter(hashfile_id: params[:hashfile_id]).delete
 
-  @hashfile = Hashfiles.first(id: params[:hashfile_id])
-  @hashfile.destroy unless @hashfile.nil?
+  hashfile = HVDB[:hashfiles]
+  hashfile.filter(id: params[:hashfile_id]).delete
 
   flash[:success] = 'Successfully removed hashfile.'
 

@@ -15,6 +15,8 @@ if ENV['RACK_ENV'] == 'test'
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == 'development'
   HVDB = Sequel.mysql(options['development'])
+  #HVDB.max_connections = '10'
+  #HVDB.pool_timeout = '600'
   HVDB.loggers << Logger.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == ('production' || 'default')

@@ -207,17 +207,17 @@ post '/customers/upload/verify_hashtype' do
   hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
   hash_array = []
-  chunk_max = 1000000 # 1M
+  chunk_max = 10000 # 1M
   chunk_cnt = 0
   time = 0
   File.open(hash_file, 'r').each do |line|
     if chunk_cnt < chunk_max
       hash_array << line
       chunk_cnt += 1
-      # p 'CHUNK_CNT: ' + chunk_cnt.to_s
+      p 'CHUNK_CNT: ' + chunk_cnt.to_s
     else
       # p 'HASH_ARRAY' + hash_array.to_s
-      hash_array << line # I think this is needed for off by one imports
+      p 'Chunk Size: ' + hash_array.size.to_s
       #time += Benchmark.measure {
       unless importHash(hash_array, hashfile.id, filetype, hashtype)
         flash[:error] = 'Error importing hashes'
