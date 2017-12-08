@@ -23,6 +23,4 @@ If you have any problems, please consult [Issues](https://github.com/hashview/ha
 
 Contact us on Twitter  
 @caseycammilleri  
-@jarsnah12  
-
-Checkout www.shellntel.com
+@jarsnah12
