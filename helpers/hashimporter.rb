@@ -21,12 +21,28 @@
 #    return 'File Format or Hash not supported'
 #  end
 #end
-def addHash(hasharray)
-  myreturnid = @hashes.insert_ignore.multi_insert(hasharray, :return=>:id)
+#def addHash(hasharray)
+#  myreturnid = @hashes.insert_ignore.multi_insert(hasharray, :return=>:id)
+#end
+
+#def updateHashfileHashes(hashfilehasharray)
+#  myreturnid = @hashfilehashes.insert_ignore.multi_insert(hashfilehasharray, :return=>:id)
+#end
+
+def addHash(hash, hashtype)
+  entry = Hashes.new
+  entry[:originalhash] = hash
+  entry[:hashtype] = hashtype
+  entry[:cracked] = false
+  entry.save
 end
 
-def updateHashfileHashes(hashfilehasharray)
-  myreturnid = @hashfilehashes.insert_ignore.multi_insert(hashfilehasharray, :return=>:id)
+def updateHashfileHashes(hash_id, username, hashfile_id)
+  entry = Hashfilehashes.new
+  entry[:hash_id] = hash_id
+  entry[:username] = username
+  entry[:hashfile_id] = hashfile_id
+  entry.save
 end
 
 def importPwdump(hash_file, hashfile_id, type)
@@ -113,27 +129,11 @@ def importDsusers(hash_file, hashfile_id, type)
   updateHashfileHashes(idarray)
 end
 
-def tempaddHash(hash, hashtype)
-  entry = Hashes.new
-  entry[:originalhash] = hash
-  entry[:hashtype] = hashtype
-  entry[:cracked] = false
-  entry.save
-end
-
-def tempupdateHashfileHashes(hash_id, username, hashfile_id)
-  entry = Hashfilehashes.new
-  entry[:hash_id] = hash_id
-  entry[:username] = username
-  entry[:hashfile_id] = hashfile_id
-  entry.save
-end
-
 def importUserHash(hash_file, hashfile_id, type)
   data = hash_file.split(':')
   @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
   if @hash_id.nil?
-    tempaddHash(data[1], type)
+    addHash(data[1], type)
     @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
   elsif @hash_id && @hash_id[:hashtype].to_s != type.to_s
     unless @hash_id[:cracked]
@@ -142,19 +142,27 @@ def importUserHash(hash_file, hashfile_id, type)
     end
   end
 
-  tempupdateHashfileHashes(@hash_id[:id].to_i, data[0], hashfile_id)
+  updateHashfileHashes(@hash_id[:id].to_i, data[0], hashfile_id)
   #array = []  #Holds just the hashes, so we can find their ID's later
   #hasharray=[] #Holds an array of records to insert into the DB
   #idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
   #userarray = []  #hold hash to username lookup
 
-  #hash_file.each do |entry|
-  #  entry = entry.gsub(/\s+/, '') # remove all spaces
-  #  data = entry.split(':')
-  #  array.push(data[1])
-  #  hasharray.push( { :originalhash => data[1], :hashtype => type, :cracked => false })
-  #  userarray.push([data[1],data[0]])
-  #end
+  #time = Benchmark.measure {
+
+  #  hash_file.each do |entry|
+  #    entry = entry.gsub(/\s+/, '') # remove all spaces
+  #    data = entry.split(':')
+  #    array.push(data[1])
+  #    hasharray.push({ :originalhash => data[1], :hashtype => type, :cracked => false })
+  #    userarray.push([data[1], data[0]])
+  #  end
+  #}
+  # Step one Update any existing hash that matches but has the wrong hashtype
+  #conflicting_hashes = @hashes.where(originalhash: array, cracked: false, hashtype: !~ type)
+
+  #p 'Array Buildouts: ' + time.to_s
+
   #puts "Attempt to do a big insert"
   #addHash(hasharray)
   #mymatches = @hashes.where(:originalhash=>array)
