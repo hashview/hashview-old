@@ -536,19 +536,25 @@ def detectHashType(hash_file, file_type)
     entry = entry.gsub(/\s+/, "") # remove all spaces
     if file_type == 'pwdump' || file_type == 'smart_hashdump'
       elements = entry.split(':')
-      @modes = getMode(elements[2])
-      @modes.each do |mode|
-        @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
+      unless elements[2].nil?
+        @modes = getMode(elements[2])
+        @modes.each do |mode|
+          @hashtypes.push(mode) unless @hashtypes.include?(mode) # LM
+        end
       end
-      @modes = getMode(elements[3])
-      @modes.each do |mode|
-        @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
+      unless elements[3].nil?
+        @modes = getMode(elements[3])
+        @modes.each do |mode|
+          @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
+        end
       end
     elsif file_type == 'shadow' || file_type == 'dsusers' || file_type == 'user_hash'
       elements = entry.split(':')
-      @modes = getMode(elements[1].downcase)
-      @modes.each do |mode|
-        @hashtypes.push(mode) unless @hashtypes.include?(mode)
+      unless elements[1].nil?
+        @modes = getMode(elements[1].downcase)
+        @modes.each do |mode|
+          @hashtypes.push(mode) unless @hashtypes.include?(mode)
+        end
       end
     else
       @modes = getMode(entry)
