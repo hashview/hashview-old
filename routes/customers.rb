@@ -41,7 +41,7 @@ end
 get '/customers/edit/:id' do
   varWash(params)
   @customer = Customers.first(id: params[:id])
-  
+
   haml :customer_edit
 end
 
@@ -63,23 +63,21 @@ end
 get '/customers/delete/:id' do
   varWash(params)
 
-  @customer = Customers.first(id: params[:id])
-  @customer.destroy unless @customer.nil?
+  customer = HVDB[:customers]
+  customer.filter(id: params[:id]).delete
 
   @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
-      @jobtasks = Jobtasks.where(job_id: job.id).all
-      @jobtasks.destroy unless @jobtasks.nil?
+      jobtasks = HVDB[:jobtasks]
+      jobtasks.filter(job_id: job.id).delete
     end
-    @jobs.destroy unless @jobs.nil?
+    @jobs = HVDB[:jobs]
+    @jobs.filter(customer_id: params[:id]).delete
   end
 
-  # @hashfilehashes = Hashfilehashes.all(hashfile_id:
-  # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
-
-  @hashfiles = Hashfiles.where(customer_id: params[:id]).all
-  @hashfiles.destroy unless @hashfiles.nil?
+  @hashfiles = HVDB[:hashfiles]
+  @hashfiles.filter(customer_id: params[:id]).delete
 
   redirect to('/customers/list')
 end
