@@ -177,6 +177,17 @@ get '/jobs/assign_tasks' do
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
   @tasks = Tasks.all
+  @available_tasks = []
+  # Im sure there's a better way to do this
+  @tasks.each do |task|
+    element = {}
+    inuse = Jobtasks.where(job_id: params[:job_id], task_id: task.id).first
+    if inuse.nil?
+      element['id'] = task.id
+      element['name'] = task.name
+      @available_tasks.push(element)
+    end
+  end
 
   # Create jobtasks_task object
   # not a fan of this approach, but not sure if there's a better way
