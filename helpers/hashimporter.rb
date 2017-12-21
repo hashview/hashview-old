@@ -42,10 +42,10 @@ def importPwdump(hash, hashfile_id, type)
     lm_hash_0 = lm_hashes[0].downcase
     lm_hash_1 = lm_hashes[1].downcase
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    @hash_id = Hashes.first(originalhash: lm_hash_0, hashtype: type)
     if @hash_id.nil?
       addHash(lm_hash_0, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+      @hash_id = Hashes.first(originalhash: lm_hash_0, hashtype: type)
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -55,10 +55,10 @@ def importPwdump(hash, hashfile_id, type)
 
     updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    @hash_id = Hashes.first(originalhash: lm_hash_1, hashtype: type)
     if @hash_id.nil?
       addHash(lm_hash_1, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+      @hash_id = Hashes.first(originalhash: lm_hash_1, hashtype: type)
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -71,10 +71,10 @@ def importPwdump(hash, hashfile_id, type)
 
   # if hashtype is ntlm
   if type == '1000'
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
+    @hash_id = Hashes.first(originalhash: data[3], hashtype: type)
     if @hash_id.nil?
       addHash(data[3], type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: data[3], hashtype: type)
+      @hash_id = Hashes.first(originalhash: data[3], hashtype: type)
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -92,8 +92,23 @@ def importShadow(hash, hashfile_id, type)
 end
 
 def importDsusers(hash, hashfile_id, type)
-  # seems to be identical to ImportUserHash, forwarding traffic to it
-  importUserHash(hash, hashfile_id, type)
+  data = hash.split(':')
+  if data[1] =~ /NT/
+    data[1] = data[1].to_s.split('$')[2]
+    type = '3000'
+  end
+
+  @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
+  if @hash_id.nil?
+    addHash(data[1], type)
+    @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
+  elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
+    unless @hash_id.cracked
+      @hash_id.hashtype = type.to_i
+      @hash_id.save
+    end
+  end
+  updateHashfileHashes(@hash_id.id.to_i, data[0], hashfile_id)
 end
 
 def importUserHash(user_hash, hashfile_id, type)
@@ -143,10 +158,10 @@ def importUserHash(user_hash, hashfile_id, type)
 end
 
 def importHashSalt(hash, hashfile_id, type)
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  @hash_id = Hashes.first(originalhash: hash, hashtype: type)
   if @hash_id.nil?
     addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    @hash_id = Hashes.first(originalhash: hash, hashtype: type)
   elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
     unless @hash_id.cracked
       @hash_id.hashtype = type.to_i
@@ -158,11 +173,11 @@ def importHashSalt(hash, hashfile_id, type)
 end
 
 def importUserHashSalt(hash, hashfile_id, type)
-  data = hash.split(':',2)
-  @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+  data = hash.split(':', 2)
+  @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
   if @hash_id.nil?
     addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: data[1], hashtype: type)
+    @hash_id = Hashes.first(originalhash: data[1], hashtype: type)
   elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
     unless @hash_id.cracked
       @hash_id.hashtype = type.to_i
@@ -177,10 +192,10 @@ def importNetNTLMv1(hash, hashfile_id, type)
   data = hash.split(':')
   originalhash = data[3].to_s.downcase + ':' + data[4].to_s.downcase + ':' + data[5].to_s.downcase
 
-  @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+  @hash_id = Hashes.first(originalhash: originalhash, hashtype: type)
   if @hash_id.nil?
     addHash(originalhash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: originalhash, hashtype: type)
+    @hash_id = Hashes.first(originalhash: originalhash, hashtype: type)
   elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
     unless @hash_id.cracked
       @hash_id.hashtype = type.to_i
@@ -194,10 +209,10 @@ end
 def importNetNTLMv2(hash, hashfile_id, type)
   data = hash.split(':')
 
-  @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+  @hash_id = Hashes.first(originalhash: hash, hashtype: type)
   if @hash_id.nil?
     addHash(hash, type)
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+    @hash_id = Hashes.first(originalhash: hash, hashtype: type)
   elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
     unless @hash_id.cracked
       @hash_id.hashtype = type.to_i
@@ -215,10 +230,10 @@ def importHashOnly(hash, hashfile_id, type)
     lm_hash_0 = lm_hashes[0].downcase
     lm_hash_1 = lm_hashes[1].downcase
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+    @hash_id = Hashes.first(originalhash: lm_hash_0, hashtype: type)
     if @hash_id.nil?
       addHash(lm_hash_0, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_0, hashtype: type)
+      @hash_id = Hashes.first(originalhash: lm_hash_0, hashtype: type)
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -228,10 +243,10 @@ def importHashOnly(hash, hashfile_id, type)
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
 
-    @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: type)
+    @hash_id = Hashes.first(originalhash: lm_hash_1, hashtype: type)
     if @hash_id.nil?
       addHash(lm_hash_1, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: lm_hash_1, hashtype: '3000')
+      @hash_id = Hashes.first(originalhash: lm_hash_1, hashtype: '3000')
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -241,10 +256,10 @@ def importHashOnly(hash, hashfile_id, type)
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
   else
-    @hash_id = Hashes.first(fields: [:id], originalhash: hash)
+    @hash_id = Hashes.first(originalhash: hash)
     if @hash_id.nil?
       addHash(hash, type)
-      @hash_id = Hashes.first(fields: [:id], originalhash: hash, hashtype: type)
+      @hash_id = Hashes.first(originalhash: hash, hashtype: type)
     elsif @hash_id && @hash_id.hashtype.to_s != type.to_s
       unless @hash_id.cracked
         @hash_id.hashtype = type.to_i
@@ -253,7 +268,6 @@ def importHashOnly(hash, hashfile_id, type)
     end
 
     updateHashfileHashes(@hash_id.id.to_i, 'NULL', hashfile_id)
-
   end
 end
 
@@ -532,7 +546,7 @@ def detectHashType(hash_file, file_type)
       end
     elsif file_type == 'shadow' || file_type == 'dsusers' || file_type == 'user_hash'
       elements = entry.split(':')
-      @modes = getMode(elements[1])
+      @modes = getMode(elements[1].downcase)
       @modes.each do |mode|
         @hashtypes.push(mode) unless @hashtypes.include?(mode)
       end
