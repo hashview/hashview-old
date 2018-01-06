@@ -76,7 +76,7 @@ namespace :db do
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
-    puts "setting up database for environment: #{ENV['RACK_ENV']}"
+    puts "[*] Setting up database for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['host']
@@ -306,7 +306,7 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
 
-    puts "setting up local agent for environment: #{ENV['RACK_ENV']}"
+    puts "[*] Setting up local agent for environment: #{ENV['RACK_ENV']}"
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
     user, password, host = config['user'], config['password'], config['host']
@@ -331,7 +331,7 @@ namespace :db do
     rescue
       raise 'Error in provisioning agent'
     end
-    puts 'provision_agent executed'
+    puts '[*] provision_agent executed'
   end
 
   desc 'Perform non destructive auto migration'
