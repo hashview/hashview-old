@@ -115,7 +115,7 @@ namespace :db do
     
     #pull in schemma
     #https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
-    Sequel::Migrator.run(db, './config/db/')
+    Sequel::Migrator.run(db, 'db/migrations')
   end
 
   task :destroy do
@@ -403,7 +403,7 @@ namespace :db do
     # puts 'db:auto:upgrade executed'
   end
 
-  desc 'Migrate From old DB to new DB schema'
+  desc 'Perform a sequel db migration'
   task :migrate do
     #should be replaced with https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
     if ENV['RACK_ENV'].nil?
@@ -415,75 +415,9 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
-    Sequel::Migrator.check_current(DB, '/path/to/migrations')
-    db = Sequel.mysql(database)
+    db = Sequel.mysql(config)
     Sequel::Migrator.run(db, "db/migrations")
 
-    begin
-
-      new_hashes = Set.new
-
-      puts '[*] Connecting to DB'
-      conn = Mysql.new host, user, password, database 
-
-      puts '[*] Collecting Table Information...Targets'
-      targets_hashfile_id = conn.query('SELECT distinct(hashfile_id) FROM targets')
-
-      targets_hashfile_id.each_hash do |hashfile|
-        puts '[*] Collecting info for hashfile_id ' + hashfile['hashfile_id']
-        hashfileHashes = conn.query("SELECT username,originalhash,hashtype,cracked,plaintext FROM targets where hashfile_id = '" + hashfile['hashfile_id'] + "'")
-        hashfileHashes.each_hash do |row|
-          originalhash_and_hashtype = row['originalhash'].to_str.downcase + ':' + row['hashtype'].to_str
-          new_hashes.add(originalhash_and_hashtype)
-        end
-      end
-
-      #  Create Table
-      puts '[*] Creating new Table: Hashes'
-      conn.query('CREATE TABLE IF NOT EXISTS hashes(id INT PRIMARY KEY AUTO_INCREMENT, lastupdated datetime, originalhash VARCHAR(1024), hashtype INT(11), cracked TINYINT(1), plaintext VARCHAR(256), unique index index_of_orignalhashes (originalhash), index index_of_hashtypes (hashtype)) ROW_FORMAT=DYNAMIC')
-
-      puts '[*] Inserting unique hash data into new table... Please wait, this can take some time....'
-      new_hashes.each do | entry |
-        originalhash, hashtype = entry.split(':')
-        remaining_data = conn.query("SELECT cracked,plaintext FROM targets WHERE originalhash='" + originalhash + "' AND hashtype='" + hashtype + "' LIMIT 1")
-        remaining_data.each_hash do | row |
-          if row['cracked'] == '1' 
-            row['plaintext'] = row['plaintext'].gsub("\\", "\\\\\\") 
-            row['plaintext'] = row['plaintext'].gsub("'", "\\\\'")
-            conn.query("INSERT INTO hashes(originalhash,hashtype,cracked,plaintext) VALUES ('#{originalhash}','#{hashtype}','#{row['cracked']}','#{row['plaintext']}')")
-          else
-            conn.query("INSERT INTO hashes(originalhash,hashtype,cracked) VALUES ('#{originalhash}','#{hashtype}','#{row['cracked']}')")
-          end
-        end
-      end
-
-      # Create Table
-      puts '[*] Creating new Table: HashfileHashes'
-      conn.query("CREATE TABLE IF NOT EXISTS hashfilehashes(id INT PRIMARY KEY AUTO_INCREMENT, hash_id INT(11), username VARCHAR(2000), hashfile_id INT(11))")
-
-      puts '[*] Inserting new data into table... standby..'
-      hashes = conn.query("SELECT id,originalhash FROM hashes")
-      hashes.each_hash do |entry|
-        olddata = conn.query("SELECT username,hashfile_id FROM targets WHERE originalhash='" + entry['originalhash'] + "'")
-        hash_id = entry['id']
-        olddata.each_hash do |row|
-          row['username'] = 'none' if row['username'].nil?
-          row['username'] = row['username'].gsub("'", "\\\\'")
-          conn.query("INSERT INTO hashfilehashes(hash_id,username,hashfile_id) VALUES ('#{hash_id}','#{row['username']}','#{row['hashfile_id']}')")
-        end
-      end
-
-      # Remove old tables
-      puts '[*] Removing old tables'
-      conn.query('DROP TABLE targets')
-
-    rescue Mysql::Error => e
-      puts e.errno
-      puts e.error
-
-    ensure
-      conn.close if conn
-    end
   end
 end
 
@@ -771,12 +705,15 @@ def upgrade_to_v072(user, password, host, database)
 end
 
 def upgrade_to_v073(user, password, host, database)
-  DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
   conn = Mysql.new host, user, password, database
-  #db = Sequel.mysql(database)
-  #Sequel::Migrator.run(db, "db/migrations")
+  config = YAML.load_file('config/database.yml')
+  config = config[ENV['RACK_ENV']]
+
+  # do database migrations
+  db = Sequel.mysql(config)
+  Sequel::Migrator.run(db, "db/migrations")
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
