@@ -50,9 +50,8 @@ get '/download' do
           file_name = 'error.txt'
         end
       end
-      p 'results: ' + @results.to_s
+
       @results.each do |entry|
-        p 'ENTRY: ' + entry.to_s
         entry[:username].nil? ? line = '' : line = entry[:username].to_s + ':'
         line += entry[:originalhash].to_s
         line += ':' + entry[:plaintext].to_s if params[:type] == 'cracked'
