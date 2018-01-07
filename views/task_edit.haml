@@ -100,10 +100,10 @@
                           .col-xs-4
                             %select.form-control{name: 'wordlist'}
                               - @wordlists.each do |wordlist|
-                                - if @task.wl_id == wordlist.id
-                                  %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist.name} (#{wordlist.size} words)
+                                - if @task.wl_id.to_i == wordlist[:id].to_i
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist[:name]} (#{wordlist[:size]} words)
                                 - else
-                                  %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button'} #{wordlist[:name]} (#{wordlist[:size]} words)
                         %p
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Dictionary Rules
@@ -111,7 +111,7 @@
                             %select.form-control{name: 'rule'}
                               %option{value: 'none', name: 'rule', type: 'button', selected: 'selected'} None
                               - @rules.each do |rule|
-                                - if @task.hc_rule == rule
+                                - if @task.hc_rule.to_i == rule.id.to_i
                                   %option{value: "#{rule.id}", name: 'rule', type: 'button', selected: 'selected'} #{rule.name}
                                 - else
                                   %option{value: "#{rule.id}", name: 'rule', type: 'button'} #{rule.name}

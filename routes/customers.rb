@@ -5,8 +5,11 @@ get '/customers/list' do
   @total_hashfiles = []
 
   @customers.each do |customer|
-    @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
+
+    total = HVDB.fetch('SELECT COUNT(*) as count FROM jobs WHERE customer_id = ?', customer.id)[:count]
+    @total_jobs[customer.id] = total[:count]
+    total = HVDB.fetch('SELECT COUNT(*) as count FROM hashfiles WHERE customer_id = ?', customer.id)[:count]
+    @total_hashfiles[customer.id] = total[:count]
   end
 
   haml :customer_list
