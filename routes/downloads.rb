@@ -15,10 +15,10 @@ get '/download' do
         if params[:hashfile_id] && !params[:hashfile_id].nil?
           # Customer and Hashfile
           if params[:type] == 'cracked'
-            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id],params[:hashfile_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id],params[:hashfile_id])
             file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           elsif params[:type] == 'uncracked'
-            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
             file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           else
             # Do Something
@@ -27,10 +27,10 @@ get '/download' do
         else
           # Just Customer
           if params[:type] == 'cracked'
-            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 1)', params[:customer_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 1)', params[:customer_id])
             file_name = "found_#{params[:customer_id]}.txt"
           elsif params[:type] == 'uncracked'
-            @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 0)', params[:customer_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? and h.cracked = 0)', params[:customer_id])
             file_name = "left_#{params[:customer_id]}.txt"
           else
             # Do Something
@@ -40,21 +40,22 @@ get '/download' do
       else
         # All
         if params[:type] == 'cracked'
-          @results = repository(:default).adapter.select('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+          @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
           file_name = 'found_all.txt'
         elsif params[:type] == 'uncracked'
-          @results = repository(:default).adapter.select('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 0)')
+          @results = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 0)')
           file_name = 'left_all.txt'
         else
           # Do Something
           file_name = 'error.txt'
         end
       end
-
+      p 'results: ' + @results.to_s
       @results.each do |entry|
-        entry.username.nil? ? line = '' : line = entry.username.to_s + ':'
-        line += entry.originalhash.to_s
-        line += ':' + entry.plaintext.to_s if params[:type] == 'cracked'
+        p 'ENTRY: ' + entry.to_s
+        entry[:username].nil? ? line = '' : line = entry[:username].to_s + ':'
+        line += entry[:originalhash].to_s
+        line += ':' + entry[:plaintext].to_s if params[:type] == 'cracked'
         @filecontents.add(line)
       end
 
@@ -75,14 +76,14 @@ get '/download' do
       file_name = 'error.txt'
       if params[:customer_id] && !params[:customer_id].empty?
         if params[:hashfile_id] && !params[:hashfile_id].nil?
-          @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
+          @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
           file_name = "Weak_Accounts_#{params[:customer_id]}_#{params[:hashfile_id]}.csv"
         else
-          @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
+          @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
           file_name = "Weak_Accounts_#{params[:customer_id]}.csv"
         end
       else
-        @complexity_hashes = repository(:default).adapter.select('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
+        @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
         file_name = "Weak_Accounts_all.csv"
       end
 
