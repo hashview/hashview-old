@@ -105,8 +105,9 @@ def updateJobTaskStatus(jobtask_id, status)
     job.ended_at = Time.now
     job.save
     # purge all queued tasks
-    taskqueues = Taskqueues.where(job_id: job.id).all
-    taskqueues.destroy
+    @taskqueues = HVDB[:taskqueues]
+    @taskqueues.filter(job_id: job.id).delete
+
   end
 end
 
