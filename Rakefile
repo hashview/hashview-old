@@ -705,7 +705,6 @@ def upgrade_to_v072(user, password, host, database)
 end
 
 def upgrade_to_v073(user, password, host, database)
-
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
   conn = Mysql.new host, user, password, database
   config = YAML.load_file('config/database.yml')

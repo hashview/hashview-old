@@ -106,6 +106,10 @@ helpers do
       cmd += ' --force'
     end
 
+    if hc_settings.optimized_drivers == true
+      cmd += ' -O'
+    end
+
     # add skip and limit if we are chunking this task
     if chunking == true
       chunks.each do |_unused, value|
