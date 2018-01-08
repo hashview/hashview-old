@@ -116,14 +116,12 @@ class Api
   # job details
   def self.job(job_id)
     url = "https://#{@server}/v1/job/#{job_id}"
-    puts "DEBUG URL #{url}"
     return self.get(url)
   end
 
   # download hashfile
   def self.hashfile(jobtask_id, hashfile_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/hashfile/#{hashfile_id}"
-    puts "DEBUG HASH URL #{url}"
     return self.get(url)
   end
 
