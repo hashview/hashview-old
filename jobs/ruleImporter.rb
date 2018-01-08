@@ -1,3 +1,4 @@
+require_relative '../models/master'
 module RuleImporter
   @queue = :management
 
