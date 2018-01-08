@@ -141,9 +141,10 @@
                                                                   #{k}
                                                                 %td
                                                                   #{v}
-
-
-
+                                              .panel-body
+                                                %b Command:
+                                                %p
+                                                #{tq.command}
                                   - else
                                     %div{id: "collapse-#{link}", class: "panel-collapse collapse"}
                                       .panel-body
