@@ -712,8 +712,9 @@ def upgrade_to_v073(user, password, host, database)
   config = config[ENV['RACK_ENV']]
 
   # do database migrations
-  db = Sequel.mysql(config)
-  Sequel::Migrator.run(db, "db/migrations")
+  # we normally do this but since this is our first migration to sequel and we have not db changes. We comment it out.
+  #db = Sequel.mysql(config)
+  #Sequel::Migrator.run(db, "db/migrations")
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
