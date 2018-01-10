@@ -712,6 +712,7 @@ def upgrade_to_v073(user, password, host, database)
 
   puts '[*] Adding new column for hashcat settings.'
   conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
+  conn.query('UPDATE hashcat_settings set optimized_drivers = "0" where optimized_drivers = "NULL")
   # do database migrations
   # we normally do this but since this is our first migration to sequel and we have not db changes. We comment it out.
   #db = Sequel.mysql(config)
