@@ -707,9 +707,11 @@ end
 def upgrade_to_v073(user, password, host, database)
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
   conn = Mysql.new host, user, password, database
-  config = YAML.load_file('config/database.yml')
-  config = config[ENV['RACK_ENV']]
+  #config = YAML.load_file('config/database.yml')
+  #config = config[ENV['RACK_ENV']]
 
+  puts '[*] Adding new column for hashcat settings.'
+  conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
   # do database migrations
   # we normally do this but since this is our first migration to sequel and we have not db changes. We comment it out.
   #db = Sequel.mysql(config)

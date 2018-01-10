@@ -3,6 +3,7 @@ module WordlistImporter
 
   def self.perform()
     sleep(rand(10))
+    require_relative '../models/master'
     # Setup Logger
     logger_wordlistimporter = Logger.new('logs/jobs/wordlistImporter.log', 'daily')
     if ENV['RACK_ENV'] == 'development'

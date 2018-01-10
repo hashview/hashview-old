@@ -3,6 +3,7 @@
 module WordlistChecksum
   @queue = :management
   def self.perform()
+    require_relative '../models/master'
     # Setup Logger
     logger_wordlistchecksum = Logger.new('logs/jobs/wordlistchecksum.log', 'daily')
     if ENV['RACK_ENV'] == 'development'
