@@ -30,6 +30,7 @@ Sequel.migration do
       Integer :gpu_temp_abort, default: 0
       Integer :gpu_temp_retain, default: 0
       TrueClass :hc_force, default: false
+      TrueClass :optimized_drivers, default: false
     end
 
     create_table(:hashes, ignore_index_errors: true) do
