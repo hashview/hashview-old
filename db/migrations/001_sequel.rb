@@ -79,6 +79,8 @@ Sequel.migration do
       DateTime :updated_at, :default=>DateTime.parse("2017-08-03T16:06:21.000000000+0000")
       String :status, :size=>100
       DateTime :queued_at
+      DateTime :started_at
+      DateTime :started_at
       String :targettype, :size=>2000
       Integer :hashfile_id
       Integer :policy_min_pass_length
