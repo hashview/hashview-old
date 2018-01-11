@@ -412,6 +412,8 @@ namespace :db do
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
+    user, password, host = config['user'], config['password'], config['host']
+    database = config['database']
 
     db = Sequel.mysql(config)
     Sequel::Migrator.run(db, 'db/migrations')

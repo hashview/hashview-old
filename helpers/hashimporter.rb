@@ -4,14 +4,13 @@ def machineAcct?(username)
   username =~ /\$/ ? true : false
 end
 
-#end
-#def addHash(hasharray)
-#  myreturnid = @hashes.insert_ignore.multi_insert(hasharray, :return=>:id)
-#end
+# def addHash(hasharray)
+#   myreturnid = @hashes.insert_ignore.multi_insert(hasharray, :return=>:id)
+# end
 
-#def updateHashfileHashes(hashfilehasharray)
-#  myreturnid = @hashfilehashes.insert_ignore.multi_insert(hashfilehasharray, :return=>:id)
-#end
+# def updateHashfileHashes(hashfilehasharray)
+#   myreturnid = @hashfilehashes.insert_ignore.multi_insert(hashfilehasharray, :return=>:id)
+# end
 
 def addHash(hash, hashtype)
   entry = Hashes.new
@@ -125,36 +124,6 @@ def importUserHash(user_hash, hashfile_id, type)
   end
 
   updateHashfileHashes(@hash_id[:id].to_i, data[0], hashfile_id)
-  #array = []  #Holds just the hashes, so we can find their ID's later
-  #hasharray=[] #Holds an array of records to insert into the DB
-  #idarray=[] #Holds the ID's we wil insert into the hashfilehashes table
-  #userarray = []  #hold hash to username lookup
-
-  #time = Benchmark.measure {
-
-  #  hash_file.each do |entry|
-  #    entry = entry.gsub(/\s+/, '') # remove all spaces
-  #    data = entry.split(':')
-  #    array.push(data[1])
-  #    hasharray.push({ :originalhash => data[1], :hashtype => type, :cracked => false })
-  #    userarray.push([data[1], data[0]])
-  #  end
-  #}
-  # Step one Update any existing hash that matches but has the wrong hashtype
-  #conflicting_hashes = @hashes.where(originalhash: array, cracked: false, hashtype: !~ type)
-
-  #p 'Array Buildouts: ' + time.to_s
-
-  #puts "Attempt to do a big insert"
-  #addHash(hasharray)
-  #mymatches = @hashes.where(:originalhash=>array)
-  #puts "I found #{mymatches.count} that match"
-  #mymatches.each do |mymatch|
-  #  userarray.select{|hash, _| hash == mymatch[:originalhash]}.map{|_, username|
-  #  idarray.push({:hash_id=>mymatch[:id].to_i,:username=>username,:hashfile_id=>hashfile_id})
-  #  }
-  #end
-  #updateHashfileHashes(idarray)
 end
 
 def importHashSalt(hash, hashfile_id, type)
@@ -507,7 +476,7 @@ end
 
 def importHash(hash, file_type, hashfile_id, hashtype)
   if file_type == 'pwdump' or file_type == 'smart hashdump'
-    importPwdump(hash, hashfile_id, hashtype) #because the format is the same aside from the trailing ::
+    importPwdump(hash, hashfile_id, hashtype) # because the format is the same aside from the trailing ::
   elsif file_type == 'shadow'
     importShadow(hash, hashfile_id, hashtype)
   elsif file_type == 'hash_only'
