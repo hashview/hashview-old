@@ -80,7 +80,7 @@ Sequel.migration do
       String :status, size: 100
       DateTime :queued_at
       DateTime :started_at
-      DateTime :started_at
+      DateTime :ended_at
       Integer :hashfile_id
       Integer :customer_id
       TrueClass :notify_completed
