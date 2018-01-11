@@ -56,9 +56,9 @@
                           Add Task
                           %span.caret
                         %ul.dropdown-menu.dropdown-menu-left
-                          - @tasks.each do |task|
+                          - @available_tasks.each do |task|
                             %li
-                              %a{href: "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task.id}"} #{task.name}
+                              %a{href: "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task['id']}"} #{task['name']}
                     %td
                     %td
       .container

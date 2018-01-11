@@ -13,8 +13,7 @@ end
 
 get '/home' do
 
-
-  @jobs = Jobs.all(order: [:queued_at.asc])
+  @jobs = Jobs.order(Sequel.asc(:queued_at)).all
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all
@@ -22,7 +21,7 @@ get '/home' do
   @time_now = Time.now
 
   @customers = Customers.all
-  @active_jobs = Jobs.all(fields: [:id, :status], status: 'Running')
+  @active_jobs = Jobs.where(status: 'Running').select(:id, :status)
 
   # JumboTron Display
   # Building out an array of hashes for the jumbotron display
@@ -40,34 +39,36 @@ get '/home' do
       element['job_name'] = job.name
 
       @hash_ids = Array.new
-      Hashfilehashes.all(fields: [:hash_id], hashfile_id: job.hashfile_id).each do |entry|
-        @hash_ids.push(entry.hash_id)
+
+      Hashfilehashes.where(hashfile_id: job[:hashfile_id]).select(:hash_id).each do |entry|
+        @hash_ids.push(entry[:hash_id])
       end
 
-      hashfile_total = Hashes.count(id: @hash_ids)
-      hashfile_cracked = Hashes.count(id: @hash_ids, cracked: 1)
+      hashfile_total = Hashes.where(id: @hash_ids)
+      hashfile_cracked = Hashes.where(id: @hash_ids, cracked: 1)
 
-      element['hashfile_cracked'] = hashfile_cracked
-      element['hashfile_total'] = hashfile_total
-      element['hashfile_progress'] = (hashfile_cracked.to_f / hashfile_total.to_f) * 100
-      element['job_starttime'] = job.started_at
+
+      element['hashfile_cracked'] = hashfile_cracked.count
+      element['hashfile_total'] = hashfile_total.count
+      element['hashfile_progress'] = (hashfile_cracked.count.to_f / hashfile_total.count.to_f) * 100
+      element['job_starttime'] = job[:started_at]
 
       time_now = Time.now
-      if time_now.to_time - job.started_at.to_time > 86400
-        element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 86400).round(2).to_s + ' Days'
-      elsif time_now.to_time - job.started_at.to_time > 3600
-        element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 3600).round(2).to_s + ' Hours'
-      elsif time_now.to_time - job.started_at.to_time > 60
-        element['job_runtime'] = ((time_now.to_time - job.started_at.to_time).to_f / 60).round(2).to_s + ' Minutes'
-      elsif time_now.to_time - job.started_at.to_time >= 0
-        element['job_runtime'] = (time_now.to_time - job.started_at.to_time).to_f.round(2).to_s + ' Seconds'
+      if time_now.to_time - job[:started_at].to_time > 86400
+        element['job_runtime'] = ((time_now.to_time - job[:started_at].to_time).to_f / 86400).round(2).to_s + ' Days'
+      elsif time_now.to_time - job[:started_at].to_time > 3600
+        element['job_runtime'] = ((time_now.to_time - job[:started_at].to_time).to_f / 3600).round(2).to_s + ' Hours'
+      elsif time_now.to_time - job[:started_at].to_time > 60
+        element['job_runtime'] = ((time_now.to_time - job[:started_at].to_time).to_f / 60).round(2).to_s + ' Minutes'
+      elsif time_now.to_time - job[:started_at].to_time >= 0
+        element['job_runtime'] = (time_now.to_time - job[:started_at].to_time).to_f.round(2).to_s + ' Seconds'
       else
         element['job_runtime'] = 'Im ready coach, just send me in.'
       end
 
       total_speed = 0
-      Taskqueues.all(job_id: job.id, status: 'Running').each do |queued_task|
-        agent = Agents.first(id: queued_task.agent_id)
+      Taskqueues.where(job_id: job[:id], status: 'Running').all.each do |queued_task|
+        agent = Agents.first(id: queued_task[:agent_id])
 
         if agent.benchmark
           # Normalizing Benchmark Speeds

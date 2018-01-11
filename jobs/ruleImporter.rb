@@ -3,6 +3,7 @@ module RuleImporter
 
   def self.perform()
     sleep(rand(10))
+    require_relative '../models/master'
     logger_ruleimporter = Logger.new('logs/jobs/ruleImporter.log', 'daily')
     if ENV['RACK_ENV'] == 'development'
       logger_ruleimporter.level = Logger::DEBUG

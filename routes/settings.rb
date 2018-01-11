@@ -74,6 +74,9 @@ post '/settings' do
     # Max Task time looks good
     hc_settings.max_task_time = params[:max_task_time]
 
+    # Save Optimized Drivers
+    params[:optimized_drivers] == 'on' ? hc_settings.optimized_drivers = 1 : hc_settings.optimized_drivers = 0
+
     # Sanity Check for opencl-device-types
     if params[:opencl_device_types]
       if params[:opencl_device_types] == '0' || params[:opencl_device_types] == '1' || params[:opencl_device_types] == '2' || params[:opencl_device_types] == '3'

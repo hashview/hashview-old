@@ -12,6 +12,8 @@ helpers do
           status['Recovered'] = line.split(': ')[-1].strip
         elsif line.start_with?('Input.Mode.')
           status['Input_Mode'] = line.split(': ')[-1].strip
+        elsif line.start_with?('Guess_Mask')
+          status['Guess_Mask'] = line.split(': ')[-1].strip
         elsif line.start_with?('Speed.Dev.')
           item = line.split(': ')
           gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')

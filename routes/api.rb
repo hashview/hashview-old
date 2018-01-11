@@ -16,7 +16,7 @@ get '/v1/queue' do
   # grab next task to be performed
   @queue = Taskqueues.first(status: 'Queued')
   if @queue
-    return @queue.to_json
+    return @queue.to_a.to_json
   else
     status 200
     {
@@ -81,9 +81,7 @@ end
 post '/v1/jobtask/:jobtask_id/status' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
-
   jdata = JSON.parse(request.body.read)
-
   updateJobTaskStatus(jdata['jobtask_id'], jdata['status'])
 end
 
@@ -200,16 +198,15 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
 
   # we need jobtask info to make hashfile path
   jobtasks = Jobtasks.first(id: jobtask_id)
-  #job = jobs.first(id: jobtasks.job_id)
 
   @hash_ids = Set.new
-  Hashfilehashes.all(fields: [:hash_id], hashfile_id: hashfile_id).each do |entry|
+  Hashfilehashes.where(hashfile_id: hashfile_id).select(:hash_id).each do |entry|
     @hash_ids.add(entry.hash_id)
   end
-  targets = Hashes.all(fields: [:originalhash], id: @hash_ids, cracked: 0)
+  targets = Hashes.where(id: @hash_ids.to_a, cracked: 0).select(:originalhash).all
 
   hash_file = 'control/hashes/hashfile_' + jobtasks.job_id.to_s + '_' + jobtasks.task_id.to_s + '.txt'
-  hashtype_target = Hashes.first(id: @hash_ids)
+  hashtype_target = Hashes.first(id: @hash_ids.to_a)
   hashtype = hashtype_target.hashtype.to_s
 
   # if requester is local agent, write directly to disk, otherwise serve as download

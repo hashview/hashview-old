@@ -35,7 +35,7 @@ def importCracked(id, crack_file, run_time)
       hash_pass.pop # removes tail entry which should have been the plaintext (in hex)
       # Handle salted hashes
       # There's gotta be a better way to do this
-      if hashtype == '10' || hashtype == '20' || hashtype == '30' || hashtype == '40' || hashtype == '50' || hashtype == '60' ||hashtype == '110' || hashtype == '120' || hashtype == '121' || hashtype == '130' || hashtype == '140' || hashtype == '150' || hashtype == '160' || hashtype == '1100' || hashtype == '1410' || hashtype == '1420' || hashtype == '1430' || hashtype == '1440' || hashtype == '1450' || hashtype == '1460' || hashtype == '2611' || hashtype == '2711' || hashtype == '3610' || hashtype == '3710' || hashtype == '3720' || hashtype == '3910' || hashtype == '4010' || hashtype == '4110' || hashtype == '2711' || hashtype == '11000'
+      if hashtype == '10' || hashtype == '20' || hashtype == '30' || hashtype == '40' || hashtype == '50' || hashtype == '60' ||hashtype == '110' || hashtype == '120' || hashtype == '121' || hashtype == '130' || hashtype == '140' || hashtype == '150' || hashtype == '160' || hashtype == '1100' || hashtype == '1410' || hashtype == '1420' || hashtype == '1430' || hashtype == '1440' || hashtype == '1450' || hashtype == '1460' || hashtype == '2811' || hashtype == '2611' || hashtype == '2711' || hashtype == '3610' || hashtype == '3710' || hashtype == '3720' || hashtype == '3910' || hashtype == '4010' || hashtype == '4110' || hashtype == '2711' || hashtype == '11000'
         hash = hash_pass.join(":")
       elsif hashtype == '5500'
         hash = hash_pass[3] + ':' + hash_pass[4] + ':' + hash_pass[5]
@@ -51,10 +51,10 @@ def importCracked(id, crack_file, run_time)
 
       # This will pull all hashes from DB regardless of job id
       if hashtype == '7400'
-        results = repository(:default).adapter.select('SELECT * FROM hashes WHERE (hashtype = 7400 AND originalhash like ?)', hash)[0]
-        records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], id: results.id)
+        results = HVDB.fetch('SELECT * FROM hashes WHERE (hashtype = 7400 AND originalhash like ?)', hash)[0]
+        records = Hashes.where(id: results.id).select(:id, :cracked, :plaintext, :lastupdated)
       else
-        records = Hashes.all(fields: [:id, :cracked, :plaintext, :lastupdated], originalhash: hash, cracked: 0)
+        records = Hashes.where(originalhash: hash, cracked: 0 ).select(:id, :cracked, :plaintext, :lastupdated)
       end
       # Yes its slow... we know.
       records.each do |entry|

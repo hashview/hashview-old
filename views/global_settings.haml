@@ -59,6 +59,13 @@
             .col-xs-7
               %h3 The following Hashcat settings are optional
           .form-group
+            %label.control-label.col-xs-2{for: ''} Optimized Drivers (-O)
+            .col-xs-1
+              - if @hc_settings.optimized_drivers == false
+                %input.checkbox.pull-left{type: 'checkbox', name: 'optimized_drivers'}
+              -else
+                %input.checkbox.pull-left{type: 'checkbox', name: 'optimized_drivers', checked: 'checked'}
+          .form-group
             %label.control-label.col-xs-2{for: ''} --opencl-device-types (-D)
             .col-xs-6
               %select.form-control{name: 'opencl_device_types'}

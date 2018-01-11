@@ -1,12 +1,15 @@
 # encoding: utf-8
 get '/customers/list' do
-  @customers = Customers.all(order: [:name.asc])
+  @customers = Customers.order(Sequel.asc(:name)).all
   @total_jobs = []
   @total_hashfiles = []
 
   @customers.each do |customer|
-    @total_jobs[customer.id] = Jobs.count(customer_id: customer.id)
-    @total_hashfiles[customer.id] = Hashfiles.count(customer_id: customer.id)
+
+    total = HVDB.fetch('SELECT COUNT(*) as count FROM jobs WHERE customer_id = ?', customer.id)[:count]
+    @total_jobs[customer.id] = total[:count]
+    total = HVDB.fetch('SELECT COUNT(*) as count FROM hashfiles WHERE customer_id = ?', customer.id)[:count]
+    @total_hashfiles[customer.id] = total[:count]
   end
 
   haml :customer_list
@@ -24,7 +27,7 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
-  pre_existing_customer = Customers.all(name: params[:name])
+  pre_existing_customer = Customers.where(name: params[:name]).all
   if !pre_existing_customer.empty? || pre_existing_customer.nil?
     flash[:error] = 'Customer ' + params[:name] + ' already exists.'
     redirect to('/customers/create')
@@ -41,7 +44,7 @@ end
 get '/customers/edit/:id' do
   varWash(params)
   @customer = Customers.first(id: params[:id])
-  
+
   haml :customer_edit
 end
 
@@ -63,23 +66,21 @@ end
 get '/customers/delete/:id' do
   varWash(params)
 
-  @customer = Customers.first(id: params[:id])
-  @customer.destroy unless @customer.nil?
+  customer = HVDB[:customers]
+  customer.filter(id: params[:id]).delete
 
-  @jobs = Jobs.all(customer_id: params[:id])
+  @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
-      @jobtasks = Jobtasks.all(job_id: job.id)
-      @jobtasks.destroy unless @jobtasks.nil?
+      jobtasks = HVDB[:jobtasks]
+      jobtasks.filter(job_id: job.id).delete
     end
-    @jobs.destroy unless @jobs.nil?
+    @jobs = HVDB[:jobs]
+    @jobs.filter(customer_id: params[:id]).delete
   end
 
-  # @hashfilehashes = Hashfilehashes.all(hashfile_id:
-  # Need to select/identify what hashfiles are associated with this customer then remove them from hashfilehashes
-
-  @hashfiles = Hashfiles.all(customer_id: params[:id])
-  @hashfiles.destroy unless @hashfiles.nil?
+  @hashfiles = HVDB[:hashfiles]
+  @hashfiles.filter(customer_id: params[:id]).delete
 
   redirect to('/customers/list')
 end
@@ -163,7 +164,7 @@ end
 get '/customers/upload/verify_filetype' do
   varWash(params)
 
-  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
+  @filetypes = ['pwdump', 'shadow', 'dsusers', 'smart_hashdump', '$hash', '$user:$hash', '$hash:$salt', '$user:$hash:$salt', '$user::$domain:$hash:$hash:$hash (NetNTLMv1)', '$user::$domain:$challenge:$hash:$hash (NetNTLMv2)']
   @job = Jobs.first(id: params[:job_id])
   haml :verify_filetypes
 end
@@ -176,27 +177,12 @@ post '/customers/upload/verify_filetype' do
     redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
   end
 
-  if params[:filetype] == '$hash'
-    params[:filetype] = 'hash_only'
-  end
-
-  if params[:filetype] == '$user:$hash'
-    params[:filetype] = 'user_hash'
-  end
-
-  if params[:filetype] == '$hash:$salt'
-    params[:filetype] = 'hash_salt'
-  end
-
-  if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
-    params[:filetype] = 'NetNTLMv1'
-  end
-
-  if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
-    params[:filetype] = 'NetNTLMv2'
-  end
-
-  p 'PARAMS: ' + params[:filetype].to_s
+  params[:filetype] = 'hash_only' if params[:filetype] == '$hash'
+  params[:filetype] = 'user_hash' if params[:filetype] == '$user:$hash'
+  params[:filetype] = 'hash_salt' if params[:filetype] == '$hash:$salt'
+  params[:filetype] = 'user_hash_salt' if params[:filetype] == '$user:$hash:$salt'
+  params[:filetype] = 'NetNTLMv1' if params[:filetype] == '$user::$domain:$hash:$hash:$hash NetNTLMv1'
+  params[:filetype] = 'NetNTLMv2' if params[:filetype] == '$user::$domain:$challenge:$hash:$hash NetNTLMv2'
 
   redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
 end
@@ -221,24 +207,23 @@ post '/customers/upload/verify_hashtype' do
 
   hash_file = "control/hashes/hashfile_upload_job_id-#{params[:job_id]}-#{hashfile.hash_str}.txt"
 
-  hash_array = []
   File.open(hash_file, 'r').each do |line|
-    hash_array << line
+    unless importHash(line, filetype, hashfile.id, hashtype)
+      flash[:error] = 'Error importing hashes'
+      redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
+    end
   end
 
   @job = Jobs.first(id: params[:job_id])
   @job.hashfile_id = hashfile.id
   @job.save
 
-  unless importHash(hash_array, hashfile.id, filetype, hashtype)
-    flash[:error] = 'Error importing hashes'
-    redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
-  end
-
-  total_cnt = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[0].to_s
+  total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
+  total_cnt = total_cnt[:count]
 
   unless total_cnt.nil?
     flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
+    #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes taking a total of ' + time.real.to_s + ' seconds.'
   end
 
   # Delete file, no longer needed

@@ -5,7 +5,6 @@ require 'benchmark'
 # api calls
 
 class Api
-
   # obtain remote ip and port from local config
   begin
     options = JSON.parse(File.read('config/agent_config.json'))
@@ -22,7 +21,7 @@ class Api
       response = RestClient::Request.execute(
         method: :get,
         url: url,
-        cookies: {agent_uuid: @uuid},
+        cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
       return response.body
@@ -37,8 +36,8 @@ class Api
         method: :post,
         url: url,
         payload: payload.to_json,
-        headers: {accept: :json},
-        cookies: {agent_uuid: @uuid},
+        headers: { accept: :json },
+        cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
       return response.body
@@ -149,7 +148,7 @@ class Api
           file: File.new(crack_file, 'rb'),
           runtime: run_time
         },
-        cookies: {agent_uuid: @uuid},
+        cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
       response = request.execute
@@ -177,11 +176,15 @@ def hashcatParser(filepath)
     if line.start_with?('Time.Started.')
       status['Time_Started'] = line.split(': ')[-1].strip
     elsif line.start_with?('Time.Estimated.')
-      status['Time_Estimated'] = line.split(': ')[-1].strip
+      status['Time_Estimated'] = line.split('.: ')[-1].strip
+    elsif line.start_with?('Hash.Type.')
+      status['Hash_Type'] = line.split(': ')[-1].strip
     elsif line.start_with?('Recovered.')
       status['Recovered'] = line.split(': ')[-1].strip
     elsif line.start_with?('Input.Mode.')
       status['Input_Mode'] = line.split(': ')[-1].strip
+    elsif line.start_with?('Guess.Mask.')
+      status['Guess_Mask'] = line.split(': ')[-1].strip
     elsif line.start_with?('Speed.Dev.')
       item = line.split(': ')
       gpu = item[0].gsub!('Speed.Dev.', 'Speed Dev ').gsub!('.', '')
@@ -213,7 +216,7 @@ def hashcatDeviceParser(output)
 end
 
 def hashcatBenchmarkParser(output)
-  max_speed = ""
+  max_speed = ''
   output.each_line do |line|
     if line.start_with?('Speed.Dev.#')
       max_speed = line.split(': ')[-1].to_s
@@ -248,12 +251,10 @@ def hc_device_list(hashcatbinpath)
   return hc_devices
 end
 
-
 class LocalAgent
   @queue = :hashcat
 
   def self.perform()
-
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
 
@@ -330,13 +331,15 @@ class LocalAgent
             job = JSON.parse(job)
 
             # we need to get task_id which is stored in jobtasks
-            jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+            # jobtask = Jobtasks.first(id: jdata['jobtask_id'])
+            jobtask = Api.jobtask(jdata['jobtask_id'])
+            jobtask = JSON.parse(jobtask)
 
             # We need to know if the wordlist we're working on is a smart wordlist
             # This is kinda dumb we should really be building the cmd on the agents size
             # Might be nice to pause the task instead of claim its running
             # what happens if the next chunk also uses this smart hashfile?
-            task = Api.task(jobtask.task_id)
+            task = Api.task(jobtask[:task_id])
             task = JSON.parse(task)
 
             wordlists = Api.wordlists
@@ -376,7 +379,6 @@ class LocalAgent
             catch :mainloop do
               while thread1.status do
                 sleep 4
-                #puts 'WORKING IN THREAD'
                 logger_background_worker.info("WORKING ON ID: #{jdata['id']}")
                 payload = {}
                 payload['agent_status'] = 'Working'

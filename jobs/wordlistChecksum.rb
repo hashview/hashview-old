@@ -3,6 +3,7 @@
 module WordlistChecksum
   @queue = :management
   def self.perform()
+    require_relative '../models/master'
     # Setup Logger
     logger_wordlistchecksum = Logger.new('logs/jobs/wordlistchecksum.log', 'daily')
     if ENV['RACK_ENV'] == 'development'
@@ -14,7 +15,7 @@ module WordlistChecksum
     logger_wordlistchecksum.debug('Wordlist Checksum Class() - has started')
 
     # Identify all wordlists without checksums
-    @wordlist = Wordlists.all(checksum: nil)
+    @wordlist = Wordlists.where(checksum: nil).all
     @wordlist.each do |wl|
       # generate checksum
       logger_wordlistchecksum.info('generating checksum for: ' + wl.path.to_s)

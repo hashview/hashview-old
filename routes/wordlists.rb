@@ -19,14 +19,18 @@ get '/wordlists/delete/:id' do
     redirect to('/wordlists/list')
   else
     # check if wordlist is in use
-    @task_list = Tasks.all(wl_id: @wordlist.id)
+    @task_list = Tasks.select(wl_id: @wordlist.id).all
     unless @task_list.empty?
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
       redirect to('/wordlists/list')
     end
 
-    # remove from filesystem
-    File.delete(@wordlist.path)
+    # Remove from filesystem
+    begin
+      File.delete(@wordlist.path)
+    rescue
+      flash[:warning] = 'No file found on disk.'
+    end
 
     # delete from db
     @wordlist.destroy

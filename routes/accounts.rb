@@ -27,7 +27,7 @@ post '/accounts/create' do
   end
 
   # validate that no other user account exists
-  @users = User.all(username: params[:username])
+  @users = User.where(username: params[:username]).all
   if @users.empty?
     if params[:password] != params[:confirm]
       flash[:error] = 'Passwords do not match'
@@ -45,6 +45,7 @@ post '/accounts/create' do
         new_user.auth_secret = ''
       end
       new_user.admin = 't'
+      new_user.id = User.last[:id].to_i + 1 # sequel does not understand composite primary keys, and cant figure out which autoincrements
       new_user.save
     end
   else
