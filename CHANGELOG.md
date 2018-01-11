@@ -4,7 +4,7 @@ Notable changes will be documented here
 ## Current Release
 ## [v0.7.3-beta] - 2018-01-10
 ### Added
-- Added support for $user:$hash:$salt hashtypes (thanks https://github.com/nicbrink): https://github.com/hashview/hashview/issues/373
+- Added support for $user:$hash:$salt hashtypes (thanks https://github.com/GrepItAll): https://github.com/hashview/hashview/issues/373
 - Added support for sequel (vs data mapper) (MAJOR THANKS to https://github.com/nicbrink)
 - Added support for hashtype 2811 (IPB 2+)
 - Added support for optimized drivers (-O)
