@@ -164,6 +164,7 @@ Sequel.migration do
       String :phone, size: 50
       String :email, size: 50
       TrueClass :mfa
+      String :auth_secret, size: 50
 
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:id), 0)
     end
