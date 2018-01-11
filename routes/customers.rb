@@ -209,6 +209,7 @@ post '/customers/upload/verify_hashtype' do
 
   File.open(hash_file, 'r').each do |line|
     unless importHash(line, filetype, hashfile.id, hashtype)
+      line = line.gsub(/\r\n/, '')
       flash[:error] = 'Error importing hashes'
       redirect to("/customers/upload/verify_hashtype?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&hashid=#{params[:hashid]}&filetype=#{params[:filetype]}")
     end
