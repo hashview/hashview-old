@@ -36,7 +36,7 @@ post '/register' do
       new_user.password = params[:password]
       new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
       new_user.admin = 't'
-      new_user.id = 1  #since this is the first user
+      new_user.id = 1 # since this is the first user
       new_user.save
       flash[:success] = "User #{params[:username]} created successfully"
     end
@@ -44,4 +44,3 @@ post '/register' do
 
   redirect to('/login')
 end
-

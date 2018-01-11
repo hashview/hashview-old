@@ -45,7 +45,7 @@ post '/accounts/create' do
         new_user.auth_secret = ''
       end
       new_user.admin = 't'
-      new_user.id = User.last[:id].to_i + 1  #sequel does not understand composite primary keys, and cant figure out which autoincrements
+      new_user.id = User.last[:id].to_i + 1 # sequel does not understand composite primary keys, and cant figure out which autoincrements
       new_user.save
     end
   else

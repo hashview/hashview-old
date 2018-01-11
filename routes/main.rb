@@ -21,7 +21,7 @@ get '/home' do
   @time_now = Time.now
 
   @customers = Customers.all
-  @active_jobs = Jobs.where(:status => 'Running').select(:id, :status)
+  @active_jobs = Jobs.where(status: 'Running').select(:id, :status)
 
   # JumboTron Display
   # Building out an array of hashes for the jumbotron display

@@ -72,7 +72,6 @@ get '/analytics' do
       @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
 
       # Used for Total Run Time: Customer: Hashfile
-      #@total_run_time = Hashfiles.first(id: params[:hashfile_id]).select(:total_run_time).values[:total_run_time]
       @total_run_time = Hashfiles.first(id: params[:hashfile_id])[:total_run_time]
 
       # Used for Mask Generator: Customer: Hashfile
@@ -193,7 +192,6 @@ get '/analytics' do
       @total_unique_originalhash_count = @total_unique_originalhash_count[:count]
 
       # Used for Total Run Time: Customer:
-      #@total_run_time = Hashfiles.sum(:total_run_time, conditions: { :customer_id => params[:customer_id] })
       @total_run_time = Hashfiles.where(:customer_id => params[:customer_id]).sum(:total_run_time)
 
       # Used for Mask Generator: Customer: Hashfile
@@ -322,7 +320,7 @@ get '/analytics/graph1' do
 
   @cracked_results.each do |crack|
     unless crack[:plaintext].nil?
-      unless crack[:plaintext].length == 0
+      unless crack[:plaintext].empty?
         len = crack[:plaintext].length
         @passwords[len].nil? ? @passwords[len] = 1 : @passwords[len] = @passwords[len].to_i + 1
       end

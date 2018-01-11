@@ -14,7 +14,6 @@ get '/v1/queue' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   # grab next task to be performed
-  #@queue = Taskqueues.first(status: 'Queued')
   @queue = Taskqueues.first(status: 'Queued')
   if @queue
     return @queue.to_a.to_json
@@ -110,7 +109,6 @@ get '/v1/job/:id' do
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
   @job = Jobs.first(id: params[:id])
-  #test = Jobs.first(id: params[:id])
   return @job.to_json
 end
 
@@ -200,7 +198,6 @@ get '/v1/jobtask/:jobtask_id/hashfile/:hashfile_id' do
 
   # we need jobtask info to make hashfile path
   jobtasks = Jobtasks.first(id: jobtask_id)
-  job = Jobs.first(id: jobtasks[:job_id])
 
   @hash_ids = Set.new
   Hashfilehashes.where(hashfile_id: hashfile_id).select(:hash_id).each do |entry|
