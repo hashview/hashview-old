@@ -72,7 +72,7 @@ class User < Sequel::Model(:users)
 
   def self.delete_all_users
     @users = User.all
-    @users.each do | user |
+    @users.each do |user|
       user.delete
     end
   end
@@ -81,7 +81,6 @@ end
 
 # Class to handle authenticated sessions
 class Sessions < Sequel::Model(:sessions)
-
   def self.isValid?(session_key)
     sessions = Sessions.first(session_key: session_key)
 

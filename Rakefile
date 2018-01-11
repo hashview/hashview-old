@@ -3,14 +3,14 @@ require 'resque/scheduler/tasks'
 require 'rake/testtask'
 require 'sequel'
 require 'mysql'
-#require './models/master.rb'
+# require './models/master.rb'
 require './helpers/email.rb'
 require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
 require 'data_mapper'
 
 require_relative 'jobs/init'
-#require_relative 'helpers/init'
+# require_relative 'helpers/init'
 
 Sequel.extension :migration, :core_extensions
 
@@ -110,11 +110,11 @@ namespace :db do
       db.execute "CREATE DATABASE #{config['database']} DEFAULT CHARACTER SET #{charset} DEFAULT COLLATE #{collation}"
     end
 
-    #get reference to database
-    db = Sequel.mysql(config)    
-    
-    #pull in schemma
-    #https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
+    # get reference to database
+    db = Sequel.mysql(config)
+
+    # pull in schemma
+    # https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
     Sequel::Migrator.run(db, 'db/migrations')
   end
 
@@ -397,26 +397,24 @@ namespace :db do
       puts '[*] Your version is up to date!'
     end
 
-    # Incase we missed anything
-    #DataMapper.repository.auto_upgrade!
+    # In case we missed anything
+    # DataMapper.repository.auto_upgrade!
     # DataMapper::Model.descendants.each {|m| m.auto_upgrade! if m.superclass == Object}
     # puts 'db:auto:upgrade executed'
   end
 
   desc 'Perform a sequel db migration'
   task :migrate do
-    #should be replaced with https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
+    # should be replaced with https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
     if ENV['RACK_ENV'].nil?
       ENV['RACK_ENV'] = 'development'
     end
 
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['host']
-    database = config['database']
 
     db = Sequel.mysql(config)
-    Sequel::Migrator.run(db, "db/migrations")
+    Sequel::Migrator.run(db, 'db/migrations')
 
   end
 end
@@ -707,16 +705,14 @@ end
 def upgrade_to_v073(user, password, host, database)
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
   conn = Mysql.new host, user, password, database
-  #config = YAML.load_file('config/database.yml')
-  #config = config[ENV['RACK_ENV']]
 
   puts '[*] Adding new column for hashcat settings.'
   conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
-  conn.query('UPDATE hashcat_settings set optimized_drivers = "0" where optimized_drivers = "NULL"')
+  conn.query('UPDATE hashcat_settings set optimized_drivers = "0" where optimized_drivers is NULL')
   # do database migrations
   # we normally do this but since this is our first migration to sequel and we have not db changes. We comment it out.
-  #db = Sequel.mysql(config)
-  #Sequel::Migrator.run(db, "db/migrations")
+  # db = Sequel.mysql(config)
+  # Sequel::Migrator.run(db, "db/migrations")
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
