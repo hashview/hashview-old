@@ -109,6 +109,7 @@ def updateJobTaskStatus(jobtask_id, status)
     @taskqueues.filter(job_id: job.id).delete
 
   end
+  true
 end
 
 def hubEnabled?
