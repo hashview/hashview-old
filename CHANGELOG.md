@@ -6,6 +6,7 @@ Notable changes will be documented here
 ### Added
 - Addes support for $user:$hash:$salt hashtypes (thanks https://github.com/nicbrink): https://github.com/hashview/hashview/issues/373
 - Added support for hashtype 2811 (IPB 2+)
+- Added support for optimized drivers (-O)
 
 ### Removed
 
