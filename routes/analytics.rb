@@ -218,8 +218,8 @@ get '/analytics' do
         key = key.gsub(/L/, '?l')
         key = key.gsub(/D/, '?d')
         key = key.gsub(/S/, '?s')
-        @top_5_masks[key] = ((value.to_f/@cracked_pw_count.to_f) * 100)
-        total += ((value.to_f/@cracked_pw_count.to_f) * 100)
+        @top_5_masks[key] = ((value.to_f + 1 / @cracked_pw_count.to_f) * 100)
+        total += ((value.to_f + 1 / @cracked_pw_count.to_f) * 100)
       end
       @top_5_masks['OTHER'] = (100 - total).to_s
 
@@ -289,8 +289,8 @@ get '/analytics' do
       key = key.gsub(/L/, '?l')
       key = key.gsub(/D/, '?d')
       key = key.gsub(/S/, '?s')
-      @top_5_masks[key] = ((value.to_f / @cracked_pw_count.to_f) * 100)
-      total += ((value.to_s.to_f / @cracked_pw_count.to_f) * 100)
+      @top_5_masks[key] = ((value.to_f + 1 / @cracked_pw_count.to_f) * 100)
+      total += ((value.to_s.to_f + 1 / @cracked_pw_count.to_f) * 100)
     end
     @top_5_masks['OTHER'] = (100 - total).to_s
 
