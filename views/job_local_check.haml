@@ -32,10 +32,10 @@
                   - if @previously_cracked
                     - @previously_cracked.each do |entry|
                       %tr
-                        %td #{entry.username}
-                        %td #{modeToFriendly(entry.hashtype.to_s)}
-                        %td #{entry.originalhash}
-                        %td #{entry.plaintext}
+                        %td #{entry[:username]}
+                        %td #{modeToFriendly(entry[:hashtype].to_s)}
+                        %td #{entry[:originalhash]}
+                        %td #{entry[:plaintext]}
                   - else
                     %tr
                       %td
