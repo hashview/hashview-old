@@ -82,7 +82,7 @@ get '/analytics' do
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-        entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
+        entry = entry.force_encoding('UTF-8').gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
         if @mask_list[entry].nil?
           @mask_list[entry] = 0
         else
@@ -202,7 +202,7 @@ get '/analytics' do
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-        entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
+        entry = entry.force_encoding('UTF-8').gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
         if @mask_list[entry].nil?
           @mask_list[entry] = 0
         else
@@ -273,7 +273,7 @@ get '/analytics' do
       entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
       entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
       entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-      entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
+      entry = entry.force_encoding('UTF-8').gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
       if @mask_list[entry].nil?
         @mask_list[entry] = 0
       else
