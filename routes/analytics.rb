@@ -53,7 +53,7 @@ get '/analytics' do
           flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
           flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
           flags += 1 if entry[:plaintext].to_s =~ /\d/
-          flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+          flags += 1 if entry[:plaintext].to_s.force_encoding('UTF-8') =~ /\p{S}/
           @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
         end
         @fails_complexity_count = @fails_complexity.length
@@ -82,7 +82,7 @@ get '/analytics' do
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-        entry = entry.gsub(Regexp.new('[\p{Punct} ]'.force_encoding('utf-8'), Regexp::FIXEDENCODING), 'S')
+        entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
         if @mask_list[entry].nil?
           @mask_list[entry] = 0
         else
@@ -175,7 +175,7 @@ get '/analytics' do
           flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
           flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
           flags += 1 if entry[:plaintext].to_s =~ /\d/
-          flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+          flags += 1 if entry[:plaintext].to_s.force_encoding =~ /\p{S}/
           @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
         end
         @fails_complexity_count = @fails_complexity.length
@@ -202,7 +202,7 @@ get '/analytics' do
         entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
         entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
         entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-        entry = entry.gsub(Regexp.new('[\p{Punct} ]'.force_encoding('utf-8'), Regexp::FIXEDENCODING), 'S')
+        entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
         if @mask_list[entry].nil?
           @mask_list[entry] = 0
         else
@@ -246,7 +246,7 @@ get '/analytics' do
         flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
         flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
         flags += 1 if entry[:plaintext].to_s =~ /\d/
-        flags += 1 if entry[:plaintext].to_s =~ /\p{S}/
+        flags += 1 if entry[:plaintext].to_s.force_encoding =~ /\p{S}/
         @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
       end
       @fails_complexity_count = @fails_complexity.length
@@ -273,7 +273,7 @@ get '/analytics' do
       entry = entry.gsub(/[A-Z]/, 'U') # Find all upper case chars
       entry = entry.gsub(/[a-z]/, 'L') # Find all lower case chars
       entry = entry.gsub(/[0-9]/, 'D') # Find all digits
-      entry = entry.gsub(Regexp.new('[\p{Punct} ]'.force_encoding('utf-8'), Regexp::FIXEDENCODING), 'S')
+      entry = entry.force_encoding.gsub(Regexp.new('[\p{Punct} ]', Regexp::FIXEDENCODING), 'S')
       if @mask_list[entry].nil?
         @mask_list[entry] = 0
       else
