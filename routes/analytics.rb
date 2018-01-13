@@ -246,7 +246,7 @@ get '/analytics' do
         flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
         flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
         flags += 1 if entry[:plaintext].to_s =~ /\d/
-        flags += 1 if entry[:plaintext].to_s.force_encoding =~ /\p{S}/
+        flags += 1 if entry[:plaintext].to_s.force_encoding('UTF-8') =~ /\p{S}/
         @fails_complexity[entry[:username]] = entry[:plaintext] if flags < 3
       end
       @fails_complexity_count = @fails_complexity.length
