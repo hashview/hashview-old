@@ -15,7 +15,7 @@ end
 def addHash(hash, hashtype)
   entry = Hashes.new
   entry[:originalhash] = hash
-  entry[:hashtype] = hashtype
+  entry[:hashtype] = hashtypef
   entry[:cracked] = false
   entry.save
 end
@@ -30,9 +30,9 @@ end
 
 def importPwdump(hash, hashfile_id, type)
   data = hash.split(':')
-  return if machineAcct?(data[0])
-  return if data[2].nil?
-  return if data[3].nil?
+  return true if machineAcct?(data[0])
+  return true if data[2].nil?
+  return true if data[3].nil?
 
   # if hashtype is lm
   if type == '3000'
@@ -534,5 +534,3 @@ def detectHashType(hash_file, file_type)
   end
   @hashtypes
 end
-
-
