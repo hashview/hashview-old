@@ -46,9 +46,6 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry[:plaintext].to_s.length < 8
-          @fails_complexity[entry[:username]] = entry[:plaintext]
-        else
           flags = 0
           flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
           flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
@@ -169,9 +166,6 @@ get '/analytics' do
       @fails_complexity_count = 0
       @fails_complexity = {}
       @complexity_hashes.each do |entry|
-        if entry[:plaintext].to_s.length < 8
-          @fails_complexity[entry[:username]] = entry[:plaintext]
-        else
           flags = 0
           flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
           flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
@@ -241,9 +235,6 @@ get '/analytics' do
     @fails_complexity_count = 0
     @fails_complexity = {}
     @complexity_hashes.each do |entry|
-      if entry[:plaintext].to_s.length < 8
-        @fails_complexity[entry[:username]] = entry[:plaintext]
-      else
         flags = 0
         flags += 1 if entry[:plaintext].to_s =~ /[a-z]/
         flags += 1 if entry[:plaintext].to_s =~ /[A-Z]/
