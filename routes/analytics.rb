@@ -304,6 +304,22 @@ get '/analytics' do
   haml :analytics
 end
 
+# Callback for d3 graph for displaying Total Hashes Cracked
+get '/analytics/graph/TotalHashesCracked' do
+  varWash(params)
+
+  @cracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[0].to_s
+  @uncracked_pw_count = repository(:default).adapter.select('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 0)')[0].to_s
+  mass = []
+  content = []
+  content << { "label":"cracked", "value":5 }
+  content << { "label":"uncracked", "value":4 }
+  data = {"content": content}
+  mass << data
+  p content.to_json
+  return content.to_json
+end
+
 # callback for d3 graph displaying passwords by length
 get '/analytics/graph1' do
   varWash(params)

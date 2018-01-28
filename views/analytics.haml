@@ -63,22 +63,27 @@
                   :plain
                     <script src= '/js/d3.min.js'></script>
                     <script type= "text/javascript">
-                      var data = [{"label":"Cracked", "value":"#{@cracked_pw_count}"},
-                        {"label":"Uncracked", "value":"#{@uncracked_pw_count}"}];
+                    var url = '/analytics/graph/TotalHashesCracked?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                    var data2 = [];
+                    d3.json(url, function(error, json){
+                      $.each(json, function(d,i){
+                        data2.push({
+                          label: i.label,
+                          value: i.value
+                        })
+                      })
                       var w = 200;
                       var h = 200;
                       var r = h/2;
                       var iw = 50;
 
-                      //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
                       var color = d3.scaleOrdinal()
                         .range(['#d9534f', '#5cb85c']);  //'#FFBF00', '#0000FF', '#008C00']);
-                      var visual1 = d3.select('#chart1').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                      var visual7 = d3.select('#TotalHashesCracked').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
                       var pie = d3.pie().value(function(d){return d.value;});
                       var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
 
-                      var arcs = visual1.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
-
+                      var arcs = visual7.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
 
                       arcs.append("svg:path")
                         .attr("fill", function(d, i){
@@ -94,7 +99,7 @@
                         d.outerRadius = r;
                         return "translate(" + arc.centroid(d) + ")";});
 
-                      var legend = d3.select("#chart1").append("svg")
+                      var legend = d3.select("#TotalHashesCracked").append("svg")
                         .attr("class", "legend")
                         .attr("width", r * 2)
                         .attr("height", r * 2)
@@ -113,9 +118,9 @@
                         .attr("y", 9)
                         .attr("dy", ".35em")
                         .style("font-family","Calibri")
-                        .text(function( d,i ) {return data[i].label +": " + data[i].value })
+                        .text(function( d,i ) {return data2[i].label +": " + data2[i].value })
                         .style("font-size","px");
-                    </script>
+                      })
                   %br
           .col-md-6
             - if !@cracked_pw_count && !@uncracked_pw_count #@cracked_results.nil?
