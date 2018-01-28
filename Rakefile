@@ -393,6 +393,10 @@ namespace :db do
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.3')
         upgrade_to_v073(user, password, host, database)
       end
+      # Upgrade to v0.7.4
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.4')
+        upgrade_to_v074(user, password, host, database)
+      end
     else
       puts '[*] Your version is up to date!'
     end
@@ -719,4 +723,13 @@ def upgrade_to_v073(user, password, host, database)
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
   puts '[+] Upgrade to v0.7.3 complete.'
+end
+
+def upgrade_to_v074(user, password, host, database)
+  puts '[*] Upgrading from v0.7.3 to v0.7.4'
+  conn = Mysql.new host, user, password, database
+
+  # FINALIZE UPGRADE
+  conn.query('UPDATE settings SET version = \'0.7.4\'')
+  puts '[+] Upgrade to v0.7.4 complete.'
 end
