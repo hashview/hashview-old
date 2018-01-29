@@ -15,7 +15,7 @@ end
 def addHash(hash, hashtype)
   entry = Hashes.new
   entry[:originalhash] = hash
-  entry[:hashtype] = hashtypef
+  entry[:hashtype] = hashtype
   entry[:cracked] = false
   entry.save
 end
