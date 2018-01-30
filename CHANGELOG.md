@@ -2,6 +2,16 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.4-beta] - 2018-xx-xx
+### Added
+- Added new Analytics portlet "charset breakdown"
+- Extended Masks list to be to 10 instead of top 4.
+
+### Removed
+
+### Fixed
+
+
 ## [v0.7.3-beta] - 2018-01-10
 ### Added
 - Added support for $user:$hash:$salt hashtypes (thanks https://github.com/GrepItAll): https://github.com/hashview/hashview/issues/373
