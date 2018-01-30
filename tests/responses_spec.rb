@@ -250,7 +250,7 @@ class MyTest < MiniTest::Test
   # Accounts with Weak Passwords
   def test_analytics_Weak_Passwords_response
     userid = login_testuser
-    get 'analytics/AccountsWithWeakPasswords'
+    get '/analytics/AccountsWithWeakPasswords'
     assert_equal 200, last_response.status
     delete_testuser(userid)
   end
