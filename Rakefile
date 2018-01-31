@@ -10,6 +10,7 @@ require './helpers/compute_task_keyspace.rb'
 require 'data_mapper'
 
 require_relative 'jobs/init'
+require_relative 'models/master'
 # require_relative 'helpers/init'
 
 Sequel.extension :migration, :core_extensions
@@ -741,16 +742,18 @@ def upgrade_to_v074(user, password, host, database)
 
   # Altering columns
   puts '[*] Renaming existing columns'
-  conn.query('ALTER TABLE jobs CHANGE \'last_updated_by\' \'owner\' varchar(40)')
+  conn.query('ALTER TABLE jobs CHANGE COLUMN last_updated_by owner varchar(40)')
 
   # Create a dynamic wordlist for each hashfile
   puts '[*] Creating new dynamic wordlists for existing hashfile'
-  hash = rand(36**8).to_s(36)
+
+
   @hashfiles = Hashfiles.all
   @hashfiles.each do |entry|
+    hash = rand(36**8).to_s(36)
     wordlist = Wordlists.new
     wordlist.type = 'dynamic'
-    wordlist.name = 'DYNAMIC - ' + entry['name'].to_s
+    wordlist.name = 'DYNAMIC - ' + entry[:name].to_s
     wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
     wordlist.size = 0
     wordlist.checksum = nil
