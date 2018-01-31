@@ -77,7 +77,7 @@ Sequel.migration do
     create_table(:jobs) do
       primary_key :id, type: :Bignum
       String :name, size: 50
-      String :last_updated_by, size: 40
+      String :owner, size: 40
       DateTime :updated_at, default: DateTime.parse('2017-08-03T16:06:21.000000000+0000')
       String :status, size: 100
       DateTime :queued_at

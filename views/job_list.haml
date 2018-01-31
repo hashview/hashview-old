@@ -28,9 +28,11 @@
                     %th
                       %b Name
                     %th
+                      %b Hashfile
+                    %th
                       %b Status
                     %th
-                      %b Last updated by
+                      %b Owner
                     %th
                       %b Control
                 %tbody
@@ -39,6 +41,10 @@
                       %tr
                         %td #{@customer_names[job.customer_id]}
                         %td #{job.name}
+                        %td
+                          - @hashfiles.each do | hashfile |
+                            - if hashfile.id == job.hashfile_id
+                              #{hashfile.name}
                         - if job.status == 'Running'
                           %td Running
                         - elsif job.status == 'Queued'
@@ -49,7 +55,7 @@
                           %td Importing
                         - else
                           %td Stopped
-                        %td #{job.last_updated_by}
+                        %td #{job.owner}
                         %td
                           - if job.status == 'Running'
                             %a.btn.btn-danger{href: "/jobs/stop/#{job.id}"}

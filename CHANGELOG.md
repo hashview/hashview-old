@@ -6,6 +6,10 @@ Notable changes will be documented here
 ### Added
 - Added new Analytics portlet "charset breakdown"
 - Extended Masks list to be to 10 instead of top 4.
+- Added Hashfile to Job listings
+
+### Changed
+- The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
 
 ### Removed
 
