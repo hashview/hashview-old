@@ -77,5 +77,6 @@ def importCracked(id, crack_file, run_time)
   end
 
   # TODO this might be broken now that we are chunking
+  # # Totally broken ~ int128
   updateDbRunTime(id, job.hashfile_id, run_time)
 end

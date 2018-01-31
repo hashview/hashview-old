@@ -113,11 +113,22 @@ post '/customers/upload/hashfile' do
     hash_array << line
   end
 
+  # Create Dynamic Wordlist for hashfile
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.name = 'DYNAMIC - ' + params[:hashfile_name].to_s
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
+
   # save location of tmp hash file
   hashfile = Hashfiles.new
   hashfile.name = params[:hashfile_name]
   hashfile.customer_id = params[:customer_id]
   hashfile.hash_str = hash
+  hashfile.wl_id = wordlist.id
   hashfile.save
 
   @job.save # <---- edit bug here

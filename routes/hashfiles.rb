@@ -23,11 +23,35 @@ end
 get '/hashfiles/delete' do
   varWash(params)
 
+  # First check to see if any jobs exists where hashfile is used
+  @jobs = Jobs.select(hashfile_id: params[:hashfile_id]).all
+  unless @jobs.empty?
+    flash[:error] = 'Fail to delete Hashfile. Hashfile exists in a job.'
+    redirect to('/hashfiles/list')
+  end
+
+  # Next we identify what the dynamic wordlist id is
+  @hashfiles = Hashfiles.first(id: params[:hashfile_id])
+  wordlist_id = @hashfiles[:wl_id]
+
+  # Next we remove any tasks using a dynamic wordlist
+  @tasks = HVDB[:tasks]
+  @tasks.filter(wl_id: wordlist_id).delete
+
+  # Next Remove Dynamic Wordlists
+  @wordlists = HVDB[:wordlists]
+  @wordlists.filter(id: wordlist_id).delete
+
+  # Remove username to password associations
   hashfilehashes = HVDB[:hashfilehashes]
   hashfilehashes.filter(hashfile_id: params[:hashfile_id]).delete
 
+  # Remove hashfile
   hashfile = HVDB[:hashfiles]
   hashfile.filter(id: params[:hashfile_id]).delete
+
+  # Remove extraneous hashes
+  HVDB.run('DELETE h FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE(a.hashfile_id is NULL AND h.cracked = 0)')
 
   flash[:success] = 'Successfully removed hashfile.'
 

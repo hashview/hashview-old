@@ -729,6 +729,33 @@ def upgrade_to_v074(user, password, host, database)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
   conn = Mysql.new host, user, password, database
 
+  # Remove unused columns
+  puts '[*] Removing unused database structures'
+  conn.query('ALTER TABLE tasks DROP COLUMN source')
+  conn.query('ALTER TABLE tasks DROP COLUMN mask')
+  conn.query('ALTER TABLE tasks DROP COLUMN command')
+
+  # Adding new columns
+  conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
+
+  # Create a dynamic wordlist for each hashfile
+  puts '[*] Creating new dynamic wordlists for existing hashfile'
+  hash = rand(36**8).to_s(36)
+  @hashfiles = Hashfiles.all
+  @hashfiles.each do |entry|
+    wordlist = Wordlists.new
+    wordlist.type = 'dynamic'
+    wordlist.name = 'DYNAMIC - ' + entry['name'].to_s
+    wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+    wordlist.size = 0
+    wordlist.checksum = nil
+    wordlist.lastupdated = Time.now
+    wordlist.save
+
+    entry.wl_id = wordlist.id
+    entry.save
+  end
+
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.4\'')
   puts '[+] Upgrade to v0.7.4 complete.'

@@ -103,6 +103,7 @@ class Api
   # task details
   def self.task(task_id)
     url = "https://#{@server}/v1/task/#{task_id}"
+    p 'URL: ' + url.to_s
     return self.get(url)
   end
 
@@ -127,6 +128,11 @@ class Api
   # wordlists
   def self.get_updateSmartWordlist()
     url = "https://#{@server}/v1/updateSmartWordlist"
+    return self.get(url)
+  end
+
+  def self.updateWordlist(wl_id)
+    url = "https://#{@server}/v1/updateWordlist/#{wl_id}"
     return self.get(url)
   end
 
@@ -313,7 +319,7 @@ class LocalAgent
           jdata = JSON.parse(jdata)
 
           # we must have an item from the queue before we start processing
-          if jdata['type'] != 'Error'
+          unless jdata['type'] == 'Error'
 
             # save task data to tmp to signify we are working
             File.open('control/tmp/agent_current_task.txt', 'w') do |f|
@@ -339,18 +345,19 @@ class LocalAgent
             # This is kinda dumb we should really be building the cmd on the agents size
             # Might be nice to pause the task instead of claim its running
             # what happens if the next chunk also uses this smart hashfile?
-            task = Api.task(jobtask[:task_id])
+            task = Api.task(jobtask['task_id'])
             task = JSON.parse(task)
 
             wordlists = Api.wordlists
             wordlists = JSON.parse(wordlists)
 
+
             wordlists['wordlists'].each do |wordlist|
+              p wordlist['id'].to_s + ' vs ' + task['wl_id'].to_s
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
-                if wordlist['name'] == 'Smart Wordlist'
-                  p 'Updating Smart Wordlist'
-                  Api.get_updateSmartWordlist
+                if wordlist['type'] == 'dynamic'
+                  Api.updateWordlist(wordlist['id'])
                 end
               end
             end

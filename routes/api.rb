@@ -167,6 +167,19 @@ get '/v1/updateSmartWordlist' do
   return data.to_json
 end
 
+get '/v1/updateWordlist/:wl_id' do
+  # is agent authorized
+  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
+
+  updateDynamicWordlist(params[:wl_id])
+  data = {
+      status: 200,
+      type: 'message',
+      msg: 'OK'
+  }
+  return data.to_json
+end
+
 # provide Rules file info
 get '/v1/rules' do
   # is agent authorized

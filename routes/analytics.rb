@@ -412,6 +412,7 @@ get '/analytics/graph/CharsetBreakdown' do
   end
   data = {"content": content}
   mass << data
+
   return content.to_json
 end
 

@@ -60,6 +60,7 @@ Sequel.migration do
       Integer :customer_id
       String :name, size: 256
       String :hash_str, size: 256
+      Integer :wl_id
       Integer :total_run_time, default: 0
     end
 
@@ -141,9 +142,6 @@ Sequel.migration do
     create_table(:tasks, ignore_index_errors: true) do
       primary_key :id, type: :Bignum
       String :name, size: 50
-      String :source, size: 50
-      String :mask, size: 50
-      String :command, size: 4000
       String :wl_id, size: 256
       String :hc_attackmode, size: 25
       String :hc_rule, size: 50
