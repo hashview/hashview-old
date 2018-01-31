@@ -1,7 +1,8 @@
 # encoding: utf-8
 
 get '/wordlists/list' do
-  @wordlists = Wordlists.all
+  @static_wordlists = Wordlists.where(type: 'static').all
+  @dynamic_wordlists = Wordlists.where(type: 'dynamic').all
 
   haml :wordlist_list
 end

@@ -729,6 +729,19 @@ def upgrade_to_v074(user, password, host, database)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
   conn = Mysql.new host, user, password, database
 
+  # Remove unused columns
+  puts '[*] Removing unused database structures'
+  conn.query('ALTER TABLE tasks DROP COLUMN source')
+  conn.query('ALTER TABLE tasks DROP COLUMN mask')
+  conn.query('ALTER TABLE tasks DROP COLUMN command')
+
+  # Adding new columns
+  conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
+
+  # Create a dynamic wordlist for each hashfile
+
+  # on hashfile upload, create dynamic hashfile
+  #
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.4\'')
   puts '[+] Upgrade to v0.7.4 complete.'
