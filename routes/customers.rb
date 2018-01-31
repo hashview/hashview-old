@@ -122,8 +122,6 @@ post '/customers/upload/hashfile' do
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
-  Resque.enqueue(WordlistImporter)
-  Resque.enqueue(WordlistChecksum)
 
   # save location of tmp hash file
   hashfile = Hashfiles.new
