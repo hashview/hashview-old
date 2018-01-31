@@ -7,6 +7,9 @@ Notable changes will be documented here
 - Added new Analytics portlet "charset breakdown"
 - Extended Masks list to be to 10 instead of top 4.
 - Added Hashfile to Job listings
+- Added ability to create new tasks mid job creation. New tasks are automatically applied to the job.
+- Added new wordlist type (dynamic). These wordlists are dynamic as in they are ever changing based on outside conditions.
+- Newly imported hashfiles automatically trigger and generate a corresponding dynamic wordlist. 
 
 ### Changed
 - The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
@@ -15,7 +18,7 @@ Notable changes will be documented here
 
 ### Fixed
 - Fixed issue when reordering tasks
-- Fixed bug where getBusy? function was incorrectly citing if hashiew was busy
+- Fixed bug where getBusy? function was incorrectly citing if hashview was busy
 
 
 ## [v0.7.3-beta] - 2018-01-10
@@ -30,10 +33,10 @@ Notable changes will be documented here
 ### Fixed
 - Fixed issue with chunking calculations: https://github.com/hashview/hashview/issues/358
 - Fixed calculation of password complexity in analytics page: https://github.com/hashview/hashview/issues/360 
-- Fixed hard crash error when attempting to delete non-existant file: https://github.com/hashview/hashview/issues/365
+- Fixed hard crash error when attempting to delete non-existent file: https://github.com/hashview/hashview/issues/365
 - Updated Gemlock to require rubocop 0.51.0 due to security vulns.
 - Fixed issue where Time Remaining listed in the jumbo tron was not properly populating (note requires agent update if using distributed): https://github.com/hashview/hashview/issues/371
-- Fixed task list when adding tasks to new jobs. Now nolonger lets you select a task that was already assigned.
+- Fixed task list when adding tasks to new jobs. Now no longer lets you select a task that was already assigned.
 
 ## [v0.7.2-beta] - 2017-10-19
 ### Added

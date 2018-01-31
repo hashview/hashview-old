@@ -177,6 +177,9 @@ get '/jobs/assign_tasks' do
 
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
+  @wordlists = Wordlists.all
+  @hc_settings = HashcatSettings.first
+  @rules = Rules.all
   @tasks = Tasks.all
   @available_tasks = []
   # Im sure there's a better way to do this
@@ -585,7 +588,6 @@ get '/jobs/hub_check' do
     redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 
-  p 'RESULTS: ' + @results.to_s
   haml :job_hub_check
 end
 
