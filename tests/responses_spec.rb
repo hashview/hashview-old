@@ -207,23 +207,50 @@ class MyTest < MiniTest::Test
     delete_testuser(userid)
   end
 
-  def test_analytics_graph1_response
+  # Total Hashes Cracked
+  def test_analytics_Total_Hashes_Cracked_response
     userid = login_testuser
-    get '/analytics/graph1'
+    get '/analytics/graph/TotalHashesCracked'
     assert_equal 200, last_response.status
     delete_testuser(userid)
   end
 
-  def test_analytics_graph2_response
+  # Complexity Breakdown
+  def test_analytics_Complexity_Breakdown_response
     userid = login_testuser
-    get '/analytics/graph2'
+    get '/analytics/graph/ComplexityBreakdown'
     assert_equal 200, last_response.status
     delete_testuser(userid)
   end
 
-  def test_analytics_graph3_response
+  # Charset Breakdown
+  def test_analytics_Charset_Breakdown_response
     userid = login_testuser
-    get '/analytics/graph3'
+    get '/analytics/graph/CharsetBreakdown'
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
+  # Password Counts by Length
+  def test_analytics_Password_Count_By_Length_response
+    userid = login_testuser
+    get '/analytics/PasswordsCountByLength'
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
+  # Top Ten Basewords
+  def test_analytics_Top_Ten_Basewords_response
+    userid = login_testuser
+    get '/analytics/Top10BaseWords'
+    assert_equal 200, last_response.status
+    delete_testuser(userid)
+  end
+
+  # Accounts with Weak Passwords
+  def test_analytics_Weak_Passwords_response
+    userid = login_testuser
+    get '/analytics/AccountsWithWeakPasswords'
     assert_equal 200, last_response.status
     delete_testuser(userid)
   end
