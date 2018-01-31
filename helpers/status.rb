@@ -1,6 +1,6 @@
 def isBusy?
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  true if @results.length > 1
+  @jobs = Jobs.first(status: 'running')
+  return true unless @jobs.nil?
 end
 
 def isDevelopment?

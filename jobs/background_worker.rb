@@ -103,7 +103,6 @@ class Api
   # task details
   def self.task(task_id)
     url = "https://#{@server}/v1/task/#{task_id}"
-    p 'URL: ' + url.to_s
     return self.get(url)
   end
 
@@ -353,7 +352,6 @@ class LocalAgent
 
 
             wordlists['wordlists'].each do |wordlist|
-              p wordlist['id'].to_s + ' vs ' + task['wl_id'].to_s
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
                 if wordlist['type'] == 'dynamic'

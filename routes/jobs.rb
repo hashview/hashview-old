@@ -251,7 +251,9 @@ get '/jobs/move_task' do
     end
   end
 
-  @jobtasks.destroy
+  @jobtasks = HVDB[:jobtasks]
+  @jobtasks.filter(job_id: params[:job_id]).delete
+
   @new_jobtasks.each do |task|
     jobtask = Jobtasks.new
     jobtask.job_id = params[:job_id]

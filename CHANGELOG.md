@@ -14,6 +14,8 @@ Notable changes will be documented here
 ### Removed
 
 ### Fixed
+- Fixed issue when reordering tasks
+- Fixed bug where getBusy? function was incorrectly citing if hashiew was busy
 
 
 ## [v0.7.3-beta] - 2018-01-10
