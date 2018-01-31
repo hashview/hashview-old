@@ -205,8 +205,6 @@ post '/tasks/create' do
   task.save
 
   flash[:success] = "Task #{task.name} successfully created."
-  p 'DEBUG: ' + URI(request.referer).path.to_s
-  p 'DEBUG: ' + URI(request.referer).query.to_s
   if URI(request.referer).path == '/jobs/assign_tasks'
     redirect to '/jobs/assign_task?' + URI(request.referer).query.to_s + '&task_id=' + task.id.to_s
   else
