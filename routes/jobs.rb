@@ -8,6 +8,7 @@ get '/jobs/list' do
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
   @wordlists = Wordlists.all
+  @hashfiles = Hashfiles.all
 
   @wordlists.each do |wordlist|
     @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name
@@ -117,7 +118,7 @@ post '/jobs/create' do
   params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
 
   job.name = params[:job_name]
-  job.last_updated_by = getUsername
+  job.owner = getUsername
   job.customer_id = customer_id
 
   params[:notify] == 'on' ? job.notify_completed = '1' : job.notify_completed = '0'
