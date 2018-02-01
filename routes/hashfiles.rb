@@ -1,5 +1,5 @@
-# encoding: utf-8
 get '/hashfiles/list' do
+
   @hub_settings = HubSettings.first
   @customers = Customers.order(Sequel.asc(:name)).all
   @hashfiles = Hashfiles.all

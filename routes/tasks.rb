@@ -1,5 +1,5 @@
-# encoding: utf-8
 get '/tasks/list' do
+
   @tasks = Tasks.all
   @wordlists = Wordlists.all
   @rules = Rules.all
@@ -10,6 +10,7 @@ get '/tasks/list' do
 end
 
 get '/tasks/delete/:id' do
+
   varWash(params)
 
   @job_tasks = Jobtasks.where(task_id: params[:id]).all
@@ -25,7 +26,9 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
+
   varWash(params)
+
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
   @hc_settings = HashcatSettings.first
@@ -48,7 +51,9 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
+
   varWash(params)
+
   if !params[:name] || params[:name].nil?
     flash[:error] = 'The task requires a name.'
     redirect to("/tasks/edit/#{params[:id]}")
@@ -115,7 +120,9 @@ post '/tasks/edit/:id' do
 end
 
 get '/tasks/create' do
+
   varWash(params)
+
   @hc_settings = HashcatSettings.first
 
   @rules = Rules.all
@@ -125,6 +132,7 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
+
   varWash(params)
 
   if !params[:name] || params[:name].empty?

@@ -350,7 +350,6 @@ class LocalAgent
             wordlists = Api.wordlists
             wordlists = JSON.parse(wordlists)
 
-
             wordlists['wordlists'].each do |wordlist|
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
