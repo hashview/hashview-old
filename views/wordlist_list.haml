@@ -7,7 +7,7 @@
           .row
             .page-header
               %h1
-                Wordlists
+                Static Wordlists
             .row
               .col-md-10.pull-left
                 Wordlists are used in dictionary attacks. Hashview comes preloaded with one wordlist, but you can upload more by clicking the 'Upload Wordlist' button to the left or by dropping the files to /[install path]/control/wordlists/.
@@ -35,10 +35,36 @@
                         %td #{wordlist.name}
                         %td #{wordlist.size}
                         %td
-                          - unless wordlist.name == 'Smart Wordlist'
-                            %a.btn.btn-danger{href: "/wordlists/delete/#{wordlist.id}"}
-                              %i.glyphicon.glyphicon-trash{title: 'Delete'}
+                          %a.btn.btn-info{href: "#modal-wordlist-info", "data-toggle" => 'modal'}
+                            %i.glyphicon.glyphicon-info-sign{title: 'Info'}
+                          .modal.fade.modal{id: "modal-wordlist-info", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
+                            .modal-dialog.modal-lg
+                              .modal-content
+                                .modal-header
+                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
+                                    %span{'aria-hidden' => 'true'} &times;
+                                  %h4.modal-title Details for #{wordlist.name}
+                                .modal-body
+                                  %p
+                                    The following tasks are using this wordlist.
+                                  .table
+                                    %table{class: 'table table-striped'}
+                                      - if @tasks
+                                        - @tasks.each do |task|
+                                          - if task.wl_id.to_i == wordlist.id.to_i
+                                            %tr
+                                              %td #{task.name}
+                                      - else
+                                        No task is using this wordlist
+                                  %p
+                                .modal-footer
+                                  %button.btn.btn-default{"data-dismiss" => "modal", type: 'button'} Close
+                          %a.btn.btn-danger{href: "/wordlists/delete/#{wordlist.id}"}
+                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
       .container
+        .row
+          %h1
+            Dynamic Wordlists
         .row
           .col-md-12
             .table
