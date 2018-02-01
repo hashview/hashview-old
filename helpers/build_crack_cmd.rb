@@ -1,6 +1,7 @@
 helpers do
   # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
   def buildCrackCmd(job_id, task_id)
+    p 'BUILD CRACK CMD: ' + job_id.to_s + ' ' + task_id.to_s
     cmds = []
 
     chunk_size = Settings.first().chunk_size
