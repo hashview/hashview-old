@@ -1,17 +1,23 @@
 def updateDynamicWordlist(wordlist_id)
+
   wordlist = Wordlists.first(id: wordlist_id)
   file = wordlist.path
 
   hashfile = Hashfiles.first(wl_id: wordlist_id)
-  return true if hashfile.nil? # Should we return an error instead?
+  if !hashfile.nil?
+    @results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (a.hashfile_id = ? and h.cracked = 1)', hashfile[:id])
+  else
+    # Maybe we have a customer list?
+    # BTW this is dumb logic, we should build a scope into the schema
+    customer = Customers.first(wl_id: wordlist_id)
+    @results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', customer[:id])
+  end
 
   # if file is not there, create it
   unless File.file?(file)
     handler = File.open(file, 'w')
     handler.close
   end
-
-  @results = HVDB.fetch('SELECT h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (a.hashfile_id = ? and h.cracked = 1)', hashfile[:id])
 
   File.open(file, 'w') do |f|
     @results.each do |entry|
