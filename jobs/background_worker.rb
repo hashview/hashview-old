@@ -53,14 +53,14 @@ class Api
   def self.heartbeat()
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
     # puts "HEARTBEETING"
-    return self.get(url)
+    get(url)
   end
 
   # post hearbeat is used when agent is working
   def self.post_heartbeat(payload)
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
     # puts "HEARTBEETING"
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # change status of jobtask
@@ -69,7 +69,7 @@ class Api
     payload = {}
     payload['status'] = status
     payload['jobtask_id'] = jobtask_id
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # change status of taskqueue item
@@ -79,65 +79,65 @@ class Api
     payload['status'] = status
     payload['taskqueue_id'] = taskqueue_id
     payload['agent_uuid'] = @uuid
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # get next item in queue
   def self.queue
     url = "https://#{@server}/v1/queue"
-    return self.get(url)
+    get(url)
   end
 
   # get specific item from queue (must already be assigned to agent)
   def self.queue_by_id(id)
     url = "https://#{@server}/v1/queue/#{id}"
-    return self.get(url)
+    get(url)
   end
 
-    # remove item from queue
+  # remove item from queue
   def self.queue_remove(queue_id)
     url = "https://#{@server}/v1/queue/#{queue_id}/remove"
-    return self.get(url)
+    get(url)
   end
 
   # task details
   def self.task(task_id)
     url = "https://#{@server}/v1/task/#{task_id}"
-    return self.get(url)
+    get(url)
   end
 
   # jobtask details
   def self.jobtask(jobtask_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}"
-    return self.get(url)
+    get(url)
   end
 
   # job details
   def self.job(job_id)
     url = "https://#{@server}/v1/job/#{job_id}"
-    return self.get(url)
+    get(url)
   end
 
   # download hashfile
   def self.hashfile(jobtask_id, hashfile_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/hashfile/#{hashfile_id}"
-    return self.get(url)
+    get(url)
   end
 
   # wordlists
   def self.get_updateSmartWordlist()
     url = "https://#{@server}/v1/updateSmartWordlist"
-    return self.get(url)
+    get(url)
   end
 
   def self.updateWordlist(wl_id)
     url = "https://#{@server}/v1/updateWordlist/#{wl_id}"
-    return self.get(url)
+    get(url)
   end
 
-  def self.wordlists()
+  def self.wordlists
     url = "https://#{@server}/v1/wordlist"
-    return self.get(url)
+    get(url)
   end
 
   # upload crack file
@@ -156,7 +156,7 @@ class Api
         cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
-      response = request.execute
+      request.execute
     rescue RestClient::Exception => e
       puts e
       return '{error_msg: \'api call failed\'}'
@@ -170,7 +170,7 @@ class Api
     payload['gpu_count'] = hc_devices['gpus']
     payload['benchmark'] = hc_perfstats
     puts payload
-    return self.post(url, payload)
+    post(url, payload)
   end
 end
 
@@ -259,7 +259,7 @@ end
 class LocalAgent
   @queue = :hashcat
 
-  def self.perform()
+  def self.perform
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
 
@@ -283,7 +283,7 @@ class LocalAgent
     hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
     Api.stats(hc_devices, hc_perfstats)
 
-    while(true)
+    while true
       sleep(4)
 
       # find pid
@@ -412,7 +412,7 @@ class LocalAgent
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-            if File.exist?(crack_file) && ! File.zero?(crack_file)
+            if File.exist?(crack_file) && !File.zero?(crack_file)
               Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
               # Does this need to be logged?
