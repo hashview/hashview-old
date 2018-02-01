@@ -4,9 +4,9 @@ def updateDbRunTime(job_id, hashfile_id, run_time)
   jobtask.run_time = run_time
   jobtask.save
 
-  hashfile = Hashfiles.first(id: hashfile_id)
-  hashfile.total_run_time = hashfile.total_run_time + run_time.to_i
-  hashfile.save
+  #hashfile = Hashfiles.first(id: hashfile_id)
+  #hashfile.total_run_time = hashfile.total_run_time + run_time.to_i
+  #hashfile.save
 end
 
 # imports the uploaded crackfile
