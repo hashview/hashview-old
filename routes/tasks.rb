@@ -3,6 +3,8 @@ get '/tasks/list' do
   @tasks = Tasks.all
   @wordlists = Wordlists.all
   @rules = Rules.all
+  @jobtasks = Jobtasks.all
+  @jobs = Jobs.all
 
   haml :task_list
 end

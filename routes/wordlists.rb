@@ -3,7 +3,8 @@
 get '/wordlists/list' do
   @static_wordlists = Wordlists.where(type: 'static').all
   @dynamic_wordlists = Wordlists.where(type: 'dynamic').all
-
+  @tasks = Tasks.all
+  @jobtasks = Jobtasks.all
   haml :wordlist_list
 end
 

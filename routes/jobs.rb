@@ -299,6 +299,13 @@ get '/jobs/complete' do
   varWash(params)
 
   jobtasks = Jobtasks.where(job_id: params[:job_id]).all
+
+  if jobtasks.empty?
+    flash[:error] = 'You must assign at least one task.'
+    redirect to '/jobs/assign_tasks?job_id=' + params[:job_id].to_s
+  end
+
+
   jobtasks.each do |task|
     task.status = 'Queued'
     task.save
@@ -310,68 +317,6 @@ get '/jobs/complete' do
 
   params[:edit].to_s == '1' ? flash[:success] = 'Job updated.' : flash[:success] = 'Job created.'
   redirect to('/jobs/list')
-end
-
-post '/jobs/complete' do
-
-  if !params[:tasks] || params[:tasks].nil?
-    if !params[:edit] || params[:edit].nil?
-      flash[:error] = 'You must assign at least one task'
-      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
-    end
-  end
-
-  # create the job if it doesnt exist yet and make sure its stopped
-  job = Jobs.first(id: params[:job_id])
-  job.status = 'Stopped'
-  job.save
-
-  # grab existing jobtasks if there are any
-  @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
-  @tasks = Tasks.all
-
-  # prevent adding duplicate tasks to a job
-
-  puts params
-  if params[:tasks]
-    # make sure the task that the user is adding is not already assigned to the job
-    if params[:edit]
-      params[:tasks].each do |t|
-        @jobtasks.each do |jt|
-          if jt.task_id == t.to_i
-            flash[:error] = "Your job already has a task you are trying to add (task id: #{t})"
-            redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
-          end
-        end
-      end
-    end
-    # prevent user from adding multiples of the same task
-    if params[:tasks].uniq!
-      puts params
-      flash[:error] = 'You cannot have duplicate tasks.'
-      url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-      url += '&edit=1' if params[:edit]
-      redirect to(url)
-    end
-  end
-
-  # assign tasks to the job
-  if params[:tasks] && !params[:tasks].nil?
-    assignTasksToJob(params[:tasks], job.id)
-  end
-
-  # Resets jobtasks tables
-  if params[:edit] && !params[:edit].nil?
-    @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
-    @jobtasks.each do |jobtask|
-      jobtask.status = 'Queued'
-      jobtask.save
-    end
-  end
-
-  flash[:success] = 'Successfully created job.'
-  redirect to('/jobs/list')
-
 end
 
 get '/jobs/start/:id' do
