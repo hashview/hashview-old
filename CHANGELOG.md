@@ -18,9 +18,10 @@ Notable changes will be documented here
 ### Removed
 
 ### Fixed
-- Fixed issue when reordering tasks
-- Fixed bug where getBusy? function was incorrectly citing if hashview was busy
+- Fixed issue when reordering tasks.
+- Fixed bug where getBusy? function was incorrectly citing if hashview was busy.
 - Now prevents the creation of a job with no tasks assigned.
+- Fixed time run calculation bug used in hashfiles
 
 
 ## [v0.7.3-beta] - 2018-01-10

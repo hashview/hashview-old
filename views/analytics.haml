@@ -197,13 +197,6 @@
                 %b Analysis Details
               .panel-body
                 %table{class: 'table'}
-                  - if params[:hashfile_id].nil?
-                    %td
-                      %b All Hashfiles
-                    %td
-                  -else
-                    %td
-                      %b #{@hashfiles[:name]}
                   %tr
                     %td Total Hashes:
                     %td #{@total_accounts}
@@ -213,7 +206,7 @@
                   %tr
                     %td Total Unique Passwords:
                     %td #{@total_unique_originalhash_count}
-                  -#%tr
+                  %tr
                     %td Total Run Time:
                     - if @total_run_time and @total_run_time > 86400
                       %td #{(@total_run_time.to_f/86400).round(2)} Days
