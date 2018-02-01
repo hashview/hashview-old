@@ -34,6 +34,7 @@ post '/customers/create' do
   end
 
   # Create Dynamic Wordlist for Customer
+  hash = rand(36**8).to_s(36)
   wordlist = Wordlists.new
   wordlist.type = 'dynamic'
   wordlist.name = 'DYNAMIC [customer] - ' + params[:name].to_s
@@ -77,6 +78,15 @@ end
 get '/customers/delete/:id' do
   varWash(params)
 
+  @customers = Customers.first(id: params[:id])
+
+  # Remove Dynamic wordlist
+  @wordlists = HVDB[:wordlists]
+  @wordlists.filter(id: @customers.wl_id).delete
+
+  @hashfiles = HVDB[:hashfiles]
+  @hashfiles.filter(customer_id: params[:id]).delete
+
   customer = HVDB[:customers]
   customer.filter(id: params[:id]).delete
 
@@ -90,13 +100,6 @@ get '/customers/delete/:id' do
     @jobs = HVDB[:jobs]
     @jobs.filter(customer_id: params[:id]).delete
   end
-
-  # Remove Dynamic wordlist
-  @wordlists = HVDB[:wordlists]
-  @wordlists.filter(id: customer.wl_id).delete
-
-  @hashfiles = HVDB[:hashfiles]
-  @hashfiles.filter(customer_id: params[:id]).delete
 
   redirect to('/customers/list')
 end
