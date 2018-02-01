@@ -106,9 +106,6 @@ def updateJobTaskStatus(jobtask_id, status)
     job.save
 
     # Calculate time difference and update hashfile
-    p 'DEBUG: DateTime start.to_i' + job.started_at.to_i.to_s
-    p 'DEBUG: DateTime end.to_i ' + job.ended_at.to_i.to_s
-
     hashfile = Hashfiles.first(id: job.hashfile_id)
     hashfile.total_run_time += (job.ended_at.to_i - job.started_at.to_i)
     hashfile.save
