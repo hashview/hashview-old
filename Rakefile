@@ -731,29 +731,47 @@ def upgrade_to_v074(user, password, host, database)
   conn = Mysql.new host, user, password, database
 
   # Remove unused columns
-  puts '[*] Removing unused database structures'
+  puts '[*] Removing unused database structures.'
   conn.query('ALTER TABLE tasks DROP COLUMN source')
   conn.query('ALTER TABLE tasks DROP COLUMN mask')
   conn.query('ALTER TABLE tasks DROP COLUMN command')
 
   # Adding new columns
-  puts '[*] Adding new columns'
+  puts '[*] Adding new columns.'
   conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
+  conn.query('ALTER TABLE customers ADD COLUMN wl_id int(10)')
 
   # Altering columns
-  puts '[*] Renaming existing columns'
+  puts '[*] Renaming existing columns.'
   conn.query('ALTER TABLE jobs CHANGE COLUMN last_updated_by owner varchar(40)')
 
   # Create a dynamic wordlist for each hashfile
-  puts '[*] Creating new dynamic wordlists for existing hashfile'
-
+  puts '[*] Creating new dynamic wordlists for existing hashfiles.'
 
   @hashfiles = Hashfiles.all
   @hashfiles.each do |entry|
     hash = rand(36**8).to_s(36)
     wordlist = Wordlists.new
     wordlist.type = 'dynamic'
-    wordlist.name = 'DYNAMIC - ' + entry[:name].to_s
+    wordlist.name = 'DYNAMIC [hashfile] - ' + entry[:name].to_s
+    wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+    wordlist.size = 0
+    wordlist.checksum = nil
+    wordlist.lastupdated = Time.now
+    wordlist.save
+
+    entry.wl_id = wordlist.id
+    entry.save
+  end
+
+  # Create a dynamic wordlist for each customer
+  puts '[*] Creating new dynamic wordlists for existing customers.'
+  @customers = Customers.all
+  @customers.each do |entry|
+    hash = rand(36**8).to_s(36)
+    wordlist = Wordlists.new
+    wordlist.type = 'dynamic'
+    wordlist.name = 'DYNAMIC [customer] - ' + entry[:name].to_s
     wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
     wordlist.size = 0
     wordlist.checksum = nil

@@ -18,6 +18,7 @@ Sequel.migration do
       primary_key :id, type: :Bignum
       String :name, size: 40
       String :description, size: 500
+      Integer :wl_id
     end
 
     create_table(:hashcat_settings) do

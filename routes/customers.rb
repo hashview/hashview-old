@@ -33,9 +33,20 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
+  # Create Dynamic Wordlist for Customer
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.name = 'DYNAMIC [customer] - ' + params[:name].to_s
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
+
   customer = Customers.new
   customer.name = params[:name]
   customer.description = params[:desc]
+  customer.wl_id = wordlist.id
   customer.save
 
   redirect to('customers/list')
@@ -69,6 +80,7 @@ get '/customers/delete/:id' do
   customer = HVDB[:customers]
   customer.filter(id: params[:id]).delete
 
+  # Remove any existing jobs
   @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
@@ -78,6 +90,10 @@ get '/customers/delete/:id' do
     @jobs = HVDB[:jobs]
     @jobs.filter(customer_id: params[:id]).delete
   end
+
+  # Remove Dynamic wordlist
+  @wordlists = HVDB[:wordlists]
+  @wordlists.filter(id: customer.wl_id).delete
 
   @hashfiles = HVDB[:hashfiles]
   @hashfiles.filter(customer_id: params[:id]).delete
@@ -116,7 +132,7 @@ post '/customers/upload/hashfile' do
   # Create Dynamic Wordlist for hashfile
   wordlist = Wordlists.new
   wordlist.type = 'dynamic'
-  wordlist.name = 'DYNAMIC - ' + params[:hashfile_name].to_s
+  wordlist.name = 'DYNAMIC [hashfile] - ' + params[:hashfile_name].to_s
   wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
   wordlist.size = 0
   wordlist.checksum = nil
