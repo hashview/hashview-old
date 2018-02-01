@@ -10,6 +10,7 @@ Notable changes will be documented here
 - Added ability to create new tasks mid job creation. New tasks are automatically applied to the job.
 - Added new wordlist type (dynamic). These wordlists are dynamic as in they are ever changing based on outside conditions.
 - Newly imported hashfiles automatically trigger and generate a corresponding dynamic wordlist. 
+- Added more info for Tasks and Wordlists, now you can easily see which tasks are assigned to what job, and what wordlists are assigned to what tasks.
 
 ### Changed
 - The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
@@ -19,6 +20,7 @@ Notable changes will be documented here
 ### Fixed
 - Fixed issue when reordering tasks
 - Fixed bug where getBusy? function was incorrectly citing if hashview was busy
+- Now prevents the creation of a job with no tasks assigned.
 
 
 ## [v0.7.3-beta] - 2018-01-10
