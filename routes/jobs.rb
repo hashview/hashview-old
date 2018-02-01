@@ -305,7 +305,6 @@ get '/jobs/complete' do
     redirect to '/jobs/assign_tasks?job_id=' + params[:job_id].to_s
   end
 
-
   jobtasks.each do |task|
     task.status = 'Queued'
     task.save

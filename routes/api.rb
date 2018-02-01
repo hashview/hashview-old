@@ -173,9 +173,9 @@ get '/v1/updateWordlist/:wl_id' do
 
   updateDynamicWordlist(params[:wl_id])
   data = {
-      status: 200,
-      type: 'message',
-      msg: 'OK'
+    status: 200,
+    type: 'message',
+    msg: 'OK'
   }
   return data.to_json
 end

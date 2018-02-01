@@ -1,6 +1,5 @@
-# encoding: utf-8
-
 get '/wordlists/list' do
+
   @static_wordlists = Wordlists.where(type: 'static').all
   @dynamic_wordlists = Wordlists.where(type: 'dynamic').all
   @tasks = Tasks.all
@@ -9,10 +8,12 @@ get '/wordlists/list' do
 end
 
 get '/wordlists/add' do
+
   haml :wordlist_add
 end
 
 get '/wordlists/delete/:id' do
+
   varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
@@ -21,7 +22,7 @@ get '/wordlists/delete/:id' do
     redirect to('/wordlists/list')
   else
     # check if wordlist is in use
-    @task_list = Tasks.select(wl_id: @wordlist.id).all
+    @task_list = Tasks.where(wl_id: params[:id]).all
     unless @task_list.empty?
       flash[:error] = 'This word list is associated with a task, it cannot be deleted.'
       redirect to('/wordlists/list')
@@ -42,7 +43,9 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
+
   varWash(params)
+
   if !params[:file] || params[:file].nil?
     flash[:error] = 'You must specify a file.'
     redirect to('/wordlists/add')

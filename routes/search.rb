@@ -1,10 +1,12 @@
-# encoding: utf-8
 get '/search' do
+
   haml :search
 end
 
 post '/search' do
+
   varWash(params)
+
   @customers = Customers.all
   hub_settings = HubSettings.first
 
@@ -166,7 +168,7 @@ post '/search' do
             new_hash_entry = Hashes.new
             new_hash_entry.originalhash = entry['ciphertext']
             new_hash_entry.hashtype = entry['hashtype']
-            new_hash_entry.cracked = '0';
+            new_hash_entry.cracked = '0'
             new_hash_entry.save
             db_entry = Hashes.first(originalhash: entry['ciphertext'])
             results_entry['id'] = db_entry.id

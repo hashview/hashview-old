@@ -35,9 +35,9 @@
                         %td #{wordlist.name}
                         %td #{wordlist.size}
                         %td
-                          %a.btn.btn-info{href: "#modal-wordlist-info", "data-toggle" => 'modal'}
+                          %a.btn.btn-info{href: "#modal-wordlist-#{wordlist.id}-info", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{title: 'Info'}
-                          .modal.fade.modal{id: "modal-wordlist-info", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
+                          .modal.fade.modal{id: "modal-wordlist-#{wordlist.id}-info", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
                             .modal-dialog.modal-lg
                               .modal-content
                                 .modal-header

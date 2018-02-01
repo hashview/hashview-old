@@ -1,8 +1,8 @@
-# encoding: utf-8
 require 'json'
 
 # displays analytics for a specific client, job
 get '/analytics' do
+
   varWash(params)
 
   @customer_id = params[:customer_id]
@@ -41,7 +41,7 @@ get '/analytics' do
       @total_accounts = @uncracked_pw_count.to_i + @cracked_pw_count.to_i
 
       # Used for Total Unique Users and originalhashes Table: Customer: Hashfile
-      @total_users_originalhash = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:customer_id],params[:hashfile_id])
+      @total_users_originalhash = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND f.id = ?)', params[:customer_id], params[:hashfile_id])
 
       @total_unique_users_count = HVDB.fetch('SELECT COUNT(DISTINCT(username)) as count FROM hashfilehashes WHERE hashfile_id = ?', params[:hashfile_id])[:count]
       @total_unique_users_count = @total_unique_users_count[:count]
@@ -216,6 +216,7 @@ end
 
 # Callback for d3 graph for displaying Total Hashes Cracked
 get '/analytics/graph/TotalHashesCracked' do
+
   varWash(params)
 
   if params[:customer_id] && !params[:customer_id].empty?
@@ -242,20 +243,17 @@ get '/analytics/graph/TotalHashesCracked' do
     @uncracked_pw_count = @uncracked_pw_count[:count]
   end
 
-  mass = []
   content = []
   content << { 'label':'Cracked', 'value':@cracked_pw_count }
   content << { 'label':'Uncracked', 'value':@uncracked_pw_count }
-  data = {"content": content}
-  mass << data
   return content.to_json
 end
 
 # Callback for d3 graph for displaying Complexity Breakdown
 get '/analytics/graph/ComplexityBreakdown' do
+
   varWash(params)
 
-  # TODO
   if params[:customer_id] && !params[:customer_id].empty?
     # if we have a hashfile
     if params[:hashfile_id] && !params[:hashfile_id].empty?
@@ -294,20 +292,17 @@ get '/analytics/graph/ComplexityBreakdown' do
     @meets_complexity_count = @cracked_pw_count.to_i - @fails_complexity_count.to_i
   end
 
-  mass = []
   content = []
   content << { 'label':'Fails Complexity', 'value':@fails_complexity_count }
   content << { 'label':'Meets Complexity', 'value':@meets_complexity_count }
-  data = {"content": content}
-  mass << data
   return content.to_json
 end
 
 # Callback for d3 graph for displaying Complexity Breakdown
 get '/analytics/graph/CharsetBreakdown' do
+
   varWash(params)
 
-  # TODO
   if params[:customer_id] && !params[:customer_id].empty?
     # if we have a hashfile
     if params[:hashfile_id] && !params[:hashfile_id].empty?
@@ -404,20 +399,18 @@ get '/analytics/graph/CharsetBreakdown' do
   charset_list[:loweralphaspecialnum] = loweralphaspecialnum
   charset_list[:mixedalphanum] = mixedalphanum
 
-  mass = []
   content = []
   charset_list = charset_list.sort_by { |_key, value| -value }[0..5]
   charset_list.each do |key, value|
     content << { 'label':key, 'value':value } if value > 0
   end
-  data = {"content": content}
-  mass << data
 
   return content.to_json
 end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/PasswordsCountByLength' do
+
   varWash(params)
 
   @counts = []
@@ -455,6 +448,7 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/Top10Passwords' do
+
   varWash(params)
 
   # This could probably be replaced with: SELECT COUNT(a.hash_id) AS frq, h.plaintext FROM hashfilehashes a LEFT JOIN hashes h ON h.id =  a.hash_id WHERE h.cracked = '1' GROUP BY a.hash_id ORDER BY frq DESC LIMIT 10;
@@ -501,6 +495,7 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/Top10BaseWords' do
+
   varWash(params)
 
   plaintext = []
@@ -547,6 +542,7 @@ end
 
 # callback for Accounts with Weak Passwords
 get '/analytics/AccountsWithWeakPasswords' do
+
   varWash(params)
 
   # TODO
