@@ -727,7 +727,6 @@ end
 
 def upgrade_to_v074(user, password, host, database)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
-  require_relative 'models/master'
   conn = Mysql.new host, user, password, database
 
   # Remove unused columns
@@ -748,6 +747,7 @@ def upgrade_to_v074(user, password, host, database)
   # Create a dynamic wordlist for each hashfile
   puts '[*] Creating new dynamic wordlists for existing hashfiles.'
 
+  require_relative 'models/master'
   @hashfiles = Hashfiles.all
   @hashfiles.each do |entry|
     hash = rand(36**8).to_s(36)
