@@ -25,22 +25,22 @@ helpers do
     mask = @task.hc_mask
 
     # if task contains a keyspace that is gt 0 perform chunking
-    if @task[:keyspace].nil?
-      chunking = false
-    elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
-      chunking = true
+    #if @task[:keyspace].nil?
+    #  chunking = false
+    #elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
+    #  chunking = true
 
       # build a hash containing our skip and limit values
-      chunk_num = 0
-      while chunk_skip < @task[:keyspace].to_i
-        skip = chunk_skip
+    #  chunk_num = 0
+    #  while chunk_skip < @task[:keyspace].to_i
+    #    skip = chunk_skip
 
-        chunks[chunk_num] = [skip, chunk_size]
+     #   chunks[chunk_num] = [skip, chunk_size]
 
-        chunk_num += 1
-        chunk_skip = skip + chunk_size
-      end
-    end
+     #   chunk_num += 1
+     #   chunk_skip = skip + chunk_size
+     # end
+    #end
 
     if attackmode == 'combinator'
       wordlist_list = @task.wl_id
@@ -112,17 +112,17 @@ helpers do
     end
 
     # add skip and limit if we are chunking this task
-    if chunking == true
-      chunks.each do |_unused, value|
-        if attackmode == 'maskmode' || attackmode == 'dictionary'
-          cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
-          p cmd
-        end
-      end
-    else
-      cmds << cmd
-    end
+    #if chunking == true
+    #  chunks.each do |_unused, value|
+    #    if attackmode == 'maskmode' || attackmode == 'dictionary'
+    #      cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
+    #      p cmd
+    #    end
+    #  end
+    #else
+    #  cmds << cmd
+    #end
 
-    cmds
+    cmd
   end
 end

@@ -739,10 +739,13 @@ def upgrade_to_v074(user, password, host, database)
   puts '[*] Adding new columns.'
   conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
   conn.query('ALTER TABLE customers ADD COLUMN wl_id int(10)')
+  conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace_pos BIGINT')
+  conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace BIGINT')
 
   # Altering columns
   puts '[*] Renaming existing columns.'
   conn.query('ALTER TABLE jobs CHANGE COLUMN last_updated_by owner varchar(40)')
+  conn.query('ALTER TABLE jobtasks CHANGE COLUMN build_cmd command varchar(4000)')
 
   # Create a dynamic wordlist for each hashfile
   puts '[*] Creating new dynamic wordlists for existing hashfiles.'

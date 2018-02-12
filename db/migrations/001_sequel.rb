@@ -5,6 +5,7 @@ Sequel.migration do
       String :name, size: 100
       String :src_ip, size: 45
       String :uuid, size: 60
+      # Status can be 'Pending', 'Authorized', 'Error','Offline', 'Online', 'Working'
       String :status, size: 40
       String :hc_status, size: 6000
       DateTime :heartbeat
@@ -80,6 +81,7 @@ Sequel.migration do
       String :name, size: 50
       String :owner, size: 40
       DateTime :updated_at, default: DateTime.parse('2017-08-03T16:06:21.000000000+0000')
+      # Status options should be 'Running', 'Paused', 'Completed', 'Queued', 'Canceled', 'Ready'
       String :status, size: 100
       DateTime :queued_at
       DateTime :started_at
@@ -94,8 +96,11 @@ Sequel.migration do
       Integer :job_id
       Integer :task_id
       String :build_cmd, size: 5000
+      # Status options should be 'Running', 'Paused', 'Not Started', 'Completed', 'Queued', 'Failed', 'Canceled', 'Importing'
       String :status, size: 50
       Integer :run_time
+      BigNum :keyspace_pos
+      BigNum :keyspace
     end
 
     create_table(:rules) do
@@ -120,6 +125,7 @@ Sequel.migration do
       String :smtp_user, size: 50
       String :smtp_pass, size: 50
       TrueClass :smtp_use_tls
+      # Options include 'plain', 'login', 'cram_md5', 'none'
       String :smtp_auth_type, size: 50
       TrueClass :clientmode
       String :ui_themes, default: 'Light', size: 50, null: false
@@ -135,6 +141,7 @@ Sequel.migration do
       Integer :job_id
       DateTime :updated_at, default: DateTime.parse('2017-08-03T16:06:21.000000000+0000')
       DateTime :queued_at
+      # Status options should be 'Running', 'Completed', 'Queued', 'Canceled', 'Paused'
       String :status, size: 100
       String :agent_id, size: 2000
       String :command, size: 4000
