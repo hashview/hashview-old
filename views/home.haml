@@ -85,14 +85,9 @@
                                   - if jt.status == 'Running'
                                     %div{id: "collapse-#{link}", class: 'panel-collapse collapse in'}
                                       .panel-body
-                                        Remaining chunks:
-                                        - remaining_chunks = 0
-                                        - @taskqueues.each do |tq|
-                                          - if job.id == tq.job_id
-                                            - if jt.id == tq.jobtask_id
-                                              - if tq.status == 'Queued' || tq.status == 'Paused'
-                                                - remaining_chunks += 1
-                                        #{remaining_chunks}
+                                        - progress = jt.keyspace_pos.to_f / jt.keyspace.to_f
+                                        .progress
+                                          .progress-bar.progress-bar-striped.active{'aria-valuemax' => '100', 'aria-valuemin' => '0', 'aria-valuenow' => "#{progress.round(1)}", role: 'progressbar', style: "width: #{progress.round(1)}%;min-width: 4em;"} #{progress.round(1)}%
                                         %p
                                         %ul{class: 'list-group borderless row'}
                                           - @taskqueues.each do |tq|
