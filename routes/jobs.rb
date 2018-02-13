@@ -430,7 +430,7 @@ get '/jobs/stop/:job_id/:task_id' do
     tq.save
   end
 
-  # If there are no more jobtasks, set job status to
+  # If there are no more jobtasks, set job status to canceled
 
   referer = request.referer.split('/')
 
