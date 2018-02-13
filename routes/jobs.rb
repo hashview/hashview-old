@@ -257,11 +257,23 @@ get '/jobs/move_task' do
   @jobtasks = HVDB[:jobtasks]
   @jobtasks.filter(job_id: params[:job_id]).delete
 
-  @new_jobtasks.each do |task|
-    jobtask = Jobtasks.new
-    jobtask.job_id = params[:job_id]
-    jobtask.task_id = task.to_i
-    jobtask.save
+  @new_jobtasks.each do |new_jobtask_entry|
+    job_task = Jobtasks.new
+    job_task.job_id = params[:job_id]
+    job_task.task_id = new_jobtask_entry.to_i
+    task = Tasks.first(id: job_task.task_id)
+    if task.keyspace.to_i.zero? || task.keyspace.nil?
+      p 'Key space is too small, recalculating.'
+      new_keyspace = getKeyspace(task)
+      new_keyspace =  999_999_999_999_999_999 if new_keyspace.to_i.zero?
+      task.keyspace = new_keyspace
+      task.save
+      p 'New Task keyspace: ' + new_keyspace.to_s
+    end
+    task = Tasks.first(id: job_task.task_id)
+    job_task.keyspace = task.keyspace
+    job_task.keyspace_pos = 0
+    job_task.save
   end
 
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
@@ -293,10 +305,10 @@ get '/jobs/assign_task' do
   # TODO
   # Test what happens for a wordlist of size 0, where keyspace = 0
   task = Tasks.first(id: params[:task_id])
-  if task.keyspace == '0' or task.keyspace.nil?
+  if task.keyspace.to_i.zero? || task.keyspace.nil?
     p 'Key space is too small, recalculating.'
     new_keyspace = getKeyspace(task)
-    new_keyspace == 999_999_999_999_999_999 if new_keyspace == 0
+    new_keyspace =  999_999_999_999_999_999 if new_keyspace.to_i.zero?
     task.keyspace = new_keyspace
     task.save
     p 'New Task keyspace: ' + new_keyspace.to_s
@@ -363,6 +375,7 @@ get '/jobs/start/:id' do
       # set jobtask status to queued
       job_task.status = 'Queued'
       job_task.command = buildCrackCmd(job.id, job_task.task_id)
+      job_task.keyspace_pos = 0
       job_task.save
     end
   end
@@ -431,6 +444,12 @@ get '/jobs/stop/:job_id/:task_id' do
   end
 
   # If there are no more jobtasks, set job status to canceled
+  @job_tasks = Jobtasks.where(job_id: params[:job_id], status: 'Running').or(job_id: params[:job_id], status: 'Queued').all
+  if @job_tasks.empty?
+    job = Jobs.first(id: params[:job_id])
+    job.status = 'Canceled'
+    job.save
+  end
 
   referer = request.referer.split('/')
 
