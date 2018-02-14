@@ -376,6 +376,7 @@ class LocalAgent
             # # thread off hashcat
             thread1 = Thread.new {
               run_time = Benchmark.realtime do
+                p 'command: ' + cmd.to_s
                 system(cmd)
               end
             }

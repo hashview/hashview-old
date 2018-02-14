@@ -59,19 +59,22 @@ helpers do
     crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
     File.open(crack_file, 'w')
 
+    # Add Session
+    session = rand(36**8).to_s(36)[0..3]
+
     case attackmode
     when 'bruteforce'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --runtime=' + max_task_time + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --runtime=' + max_task_time + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
     when 'maskmode'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
     when 'dictionary'
       if @task.hc_rule.nil? || @task.hc_rule == 'none'
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
       else
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
       end
     when 'combinator'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
     else
       puts 'INVALID ATTACK MODE: ' + attackmode.to_s
     end

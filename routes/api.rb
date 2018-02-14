@@ -347,6 +347,8 @@ post '/v1/agents/:uuid/heartbeat' do
 
         elsif payload['agent_status'] == 'Idle'
           # assign work to agent
+          p 'Agent: ' + agent.id.to_s + ' Checking in'
+
 
           # get next task_queue item for this agent if there is anything in the queue
           already_assigned_chunk = Taskqueues.first(agent_id: agent.id)
@@ -390,104 +392,139 @@ post '/v1/agents/:uuid/heartbeat' do
             if @jobtask_queue && !@jobtask_queue.empty? # useing.empty since we're doing a where / all select
               p 'We have a running jobtask at the moment: ' + @jobtask_queue.to_s
               @jobtask_queue.each do |jobtask_queue_entry|
-                # Now lets see if there's any jobtasks left where there's a chunk to be made
-                p 'Curent task: ' + jobtask_queue_entry.task_id.to_s
-                p 'Task keyspace: ' + jobtask_queue_entry.keyspace.to_s
-                p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
-                if jobtask_queue_entry.keyspace_pos.to_i < jobtask_queue_entry.keyspace.to_i
-                  crack_command = jobtask_queue_entry.command
-                  # Do we care if the mode is dictionary or mask, or do we do it all?
-                  crack_command += ' -s ' + jobtask_queue_entry.keyspace_pos.to_i.to_s
-                  crack_command += ' -l ' + speed.to_i.to_s
-                  crack_command += ' | tee -a control/outfiles/hcoutput_'
-                  crack_command += jobtask_queue_entry.job_id.to_s
-                  crack_command += '_'
-                  crack_command += jobtask_queue_entry.task_id.to_s
-                  crack_command += '.txt'
-                  p 'crack_command: ' + crack_command.to_s
 
-                  # Update pos
-                  if jobtask_queue_entry.keyspace_pos + speed > jobtask_queue_entry.keyspace
-                    jobtask_queue_entry.keyspace_pos = jobtask_queue_entry.keyspace
-                  else
-                    jobtask_queue_entry.keyspace_pos += speed
-                  end
+                task = Tasks.first(id: jobtask_queue_entry.task_id)
+                # We only want to hand out chunks for masks and dictionary tasks
+                # i.e. no subdivision for bruteforce
+                if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
+                  # Lets update the keyspace for these tasks
+                  # This is especially important for dictionary tasks using dynamic dictionaries
+                  task.keyspace = getKeyspace(task)
+                  task.save
+
+                  # Requery to get up-to-date value
+                  task = Tasks.first(id: jobtask_queue_entry.task_id)
+                  jobtask_queue_entry.keyspace = task.keyspace
                   jobtask_queue_entry.save
 
-                  # Create new agent task command
-                  task_queue_entry = Taskqueues.new
-                  task_queue_entry.job_id = jobtask_queue_entry.job_id
-                  task_queue_entry.jobtask_id = jobtask_queue_entry.id
-                  task_queue_entry.status = 'Queued'
-                  task_queue_entry.agent_id = agent.id
-                  task_queue_entry.command = crack_command
-                  task_queue_entry.save
+                  # Now lets see if there's any jobtasks left where there's a chunk to be made
+                  p 'Curent task: ' + jobtask_queue_entry.task_id.to_s
+                  p 'Task keyspace: ' + task.keyspace.to_s
+                  p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
+                  if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
+                    # There's still work to be done
+                    p 'There\s still work to be done'
+                    crack_command = jobtask_queue_entry.command
+                    # Do we care if the mode is dictionary or mask, or do we do it all?
+                    crack_command += ' -s ' + jobtask_queue_entry.keyspace_pos.to_i.to_s
+                    crack_command += ' -l ' + speed.to_i.to_s
+                    crack_command += ' | tee -a control/outfiles/hcoutput_'
+                    crack_command += jobtask_queue_entry.job_id.to_s
+                    crack_command += '_'
+                    crack_command += jobtask_queue_entry.task_id.to_s
+                    crack_command += '.txt'
+                    p 'crack_command: ' + crack_command.to_s
 
-                  # return to agent chunk_queue id
-                  p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
-                  response = {}
-                  response['status'] = 200
-                  response['type'] = 'message'
-                  response['msg'] = 'START'
-                  response['task_id'] = task_queue_entry.id
-                  return response.to_json
+                    # Update pos
+                    if jobtask_queue_entry.keyspace_pos.to_i + speed.to_i > task.keyspace.to_i
+                      jobtask_queue_entry.keyspace_pos = task.keyspace
+                    else
+                      jobtask_queue_entry.keyspace_pos += speed
+                    end
+                    jobtask_queue_entry.save
+
+                    # Create new agent task command
+                    task_queue_entry = Taskqueues.new
+                    task_queue_entry.job_id = jobtask_queue_entry.job_id
+                    task_queue_entry.jobtask_id = jobtask_queue_entry.id
+                    task_queue_entry.status = 'Queued'
+                    task_queue_entry.agent_id = agent.id
+                    task_queue_entry.command = crack_command
+                    task_queue_entry.save
+
+                    # return to agent chunk_queue id
+                    p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
+                    response = {}
+                    response['status'] = 200
+                    response['type'] = 'message'
+                    response['msg'] = 'START'
+                    response['task_id'] = task_queue_entry.id
+                    return response.to_json
+                  end
                 end
               end
-            else
-              p 'We do not have a running task queue entry. checking for queued tasks'
-              # Looks like there are no running jobtasks, time to start a new one
-              jobtask_queue_entry = Jobtasks.first(status: 'Queued')
-              if jobtask_queue_entry && ! jobtask_queue_entry.nil? # using nil since we're doing a single line select
-                p 'We have a queued task: ' + jobtask_queue_entry.to_s
-                p 'Current jobtasks id: ' + jobtask_queue_entry.id.to_s
-                p 'Current task: ' + jobtask_queue_entry.task_id.to_s
-                p 'Task keyspace: ' + jobtask_queue_entry.keyspace.to_s
-                p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
-                if jobtask_queue_entry.keyspace_pos.to_i < jobtask_queue_entry.keyspace.to_i
-                  crack_command = jobtask_queue_entry.command
-                  # Do we care if the mode is dictionary or mask, or do we do it all?
-                  crack_command += ' -s ' + jobtask_queue_entry.keyspace_pos.to_i.to_s
-                  crack_command += ' -l ' + speed.to_i.to_s
-                  crack_command += ' | tee -a control/outfiles/hcoutput_'
-                  crack_command += jobtask_queue_entry.job_id.to_s
-                  crack_command += '_'
-                  crack_command += jobtask_queue_entry.task_id.to_s
-                  crack_command += '.txt'
-                  p 'crack_command: ' + crack_command.to_s
-
-                  # Update pos
-                  if jobtask_queue_entry.keyspace_pos + speed > jobtask_queue_entry.keyspace
-                    jobtask_queue_entry.keyspace_pos = jobtask_queue_entry.keyspace
-                  else
-                    jobtask_queue_entry.keyspace_pos += speed
-                  end
-                  jobtask_queue_entry.save
-
-                  # Create new agent task command
-                  task_queue_entry = Taskqueues.new
-                  task_queue_entry.job_id = jobtask_queue_entry.job_id
-                  task_queue_entry.jobtask_id = jobtask_queue_entry.id
-                  task_queue_entry.status = 'Queued'
-                  task_queue_entry.agent_id = agent.id
-                  task_queue_entry.command = crack_command
-                  task_queue_entry.save
-
-                  # return to agent agentqueue id
-                  p "======== Setting taskqueue #{jobtask_queue_entry.id} to Running"
-                  jobtask_queue_entry.status = 'Running'
-                  jobtask_queue_entry.save
-                  p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
-                  response = {}
-                  response['status'] = 200
-                  response['type'] = 'message'
-                  response['msg'] = 'START'
-                  response['task_id'] = task_queue_entry.id
-                  return response.to_json
-                end
-              end
-              p 'No Queued Task exists.'
             end
-            p 'Letting agent know there\'s nothing to do'
+            p 'We do not have a running task queue entry. checking for queued tasks'
+            # Looks like there are no running jobtasks, time to start a new one
+            jobtask_queue_entry = Jobtasks.first(status: 'Queued')
+            if jobtask_queue_entry && ! jobtask_queue_entry.nil? # using nil since we're doing a single line select
+              p 'We have a queued task: ' + jobtask_queue_entry.to_s
+              p 'Current jobtasks id: ' + jobtask_queue_entry.id.to_s
+              p 'Current task: ' + jobtask_queue_entry.task_id.to_s
+              task = Tasks.first(id: jobtask_queue_entry.task_id)
+              crack_command = jobtask_queue_entry.command
+              if task.hc_attackmode == 'bruteforce'
+                # Since we're brute force we dont want to hand out a chunk
+                crack_command += ' | tee -a control/outfiles/hcoutput_'
+                crack_command += jobtask_queue_entry.job_id.to_s
+                crack_command += '_'
+                crack_command += jobtask_queue_entry.task_id.to_s
+                crack_command += '.txt'
+              elsif task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
+                task.keyspace = getKeyspace(task) if task.keyspace.to_i.zero? || task.keyspace.nil?
+                task.save
+                task = Tasks.first(id: jobtask_queue_entry.task_id)
+                jobtask_queue_entry.keyspace = task.keyspace
+                jobtask_queue_entry.keyspace_pos = 0
+                jobtask_queue_entry.save
+
+                p 'Task keyspace: ' + jobtask_queue_entry.keyspace.to_s
+                p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
+
+                if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
+                  crack_command += ' -s 0 -l ' + speed.to_i.to_s
+                  crack_command += ' | tee -a control/outfiles/hcoutput_'
+                  crack_command += jobtask_queue_entry.job_id.to_s
+                  crack_command += '_'
+                  crack_command += jobtask_queue_entry.task_id.to_s
+                  crack_command += '.txt'
+                  p 'crack_command: ' + crack_command.to_s
+
+                  # Update pos
+                  if jobtask_queue_entry.keyspace_pos.to_i + speed > task.keyspace.to_i
+                    jobtask_queue_entry.keyspace_pos = task.keyspace
+                  else
+                    jobtask_queue_entry.keyspace_pos += speed
+                  end
+                  jobtask_queue_entry.save
+                end
+
+              end
+
+              # Create new agent task command
+              task_queue_entry = Taskqueues.new
+              task_queue_entry.job_id = jobtask_queue_entry.job_id
+              task_queue_entry.jobtask_id = jobtask_queue_entry.id
+              task_queue_entry.status = 'Queued'
+              task_queue_entry.agent_id = agent.id
+              task_queue_entry.command = crack_command
+              task_queue_entry.save
+
+              # return to agent agentqueue id
+              p "======== Setting taskqueue #{jobtask_queue_entry.id} to Running"
+              jobtask_queue_entry.status = 'Running'
+              jobtask_queue_entry.save
+              p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
+              response = {}
+              response['status'] = 200
+              response['type'] = 'message'
+              response['msg'] = 'START'
+              response['task_id'] = task_queue_entry.id
+              return response.to_json
+            end
+            p 'No Queued Task exists.'
+
+            p 'Letting agent (' + agent.id.to_s + ') know there\'s nothing to do'
             # update agent heartbeat but do nothing for now
             agent.heartbeat = Time.now
             agent.status = payload['agent_status']

@@ -261,18 +261,6 @@ get '/jobs/move_task' do
     job_task = Jobtasks.new
     job_task.job_id = params[:job_id]
     job_task.task_id = new_jobtask_entry.to_i
-    task = Tasks.first(id: job_task.task_id)
-    if task.keyspace.to_i.zero? || task.keyspace.nil?
-      p 'Key space is too small, recalculating.'
-      new_keyspace = getKeyspace(task)
-      new_keyspace =  999_999_999_999_999_999 if new_keyspace.to_i.zero?
-      task.keyspace = new_keyspace
-      task.save
-      p 'New Task keyspace: ' + new_keyspace.to_s
-    end
-    task = Tasks.first(id: job_task.task_id)
-    job_task.keyspace = task.keyspace
-    job_task.keyspace_pos = 0
     job_task.save
   end
 
@@ -301,21 +289,6 @@ get '/jobs/assign_task' do
   job_task = Jobtasks.new
   job_task.job_id = params[:job_id]
   job_task.task_id = params[:task_id]
-  # If a task has no or too small of a keyspace, recalculate (we set a hard high limit for keyspace of 0)
-  # TODO
-  # Test what happens for a wordlist of size 0, where keyspace = 0
-  task = Tasks.first(id: params[:task_id])
-  if task.keyspace.to_i.zero? || task.keyspace.nil?
-    p 'Key space is too small, recalculating.'
-    new_keyspace = getKeyspace(task)
-    new_keyspace =  999_999_999_999_999_999 if new_keyspace.to_i.zero?
-    task.keyspace = new_keyspace
-    task.save
-    p 'New Task keyspace: ' + new_keyspace.to_s
-  end
-  task = Tasks.first(id: job_task.task_id)
-  job_task.keyspace = task.keyspace
-  job_task.keyspace_pos = 0
   job_task.save
 
   # return to assign_tasks
