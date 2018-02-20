@@ -262,7 +262,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '2', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '4', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -273,7 +273,7 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '2', 'dictionary', '5')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '4', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
