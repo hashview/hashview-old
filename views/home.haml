@@ -129,7 +129,7 @@
                                                     %td{:colspan => 6}
                                                       %table{:class => 'table'}
                                                         - @agents.each do |agent|
-                                                          - if agent.id.to_i == tq.agent_id.to_i && JSON.parse(agent.hc_status)
+                                                          - if agent.id.to_i == tq.agent_id.to_i && agent.hc_status.length >= 2
                                                             - JSON.parse(agent.hc_status).each do |k,v|
                                                               %tr
                                                                 %td.col-md-4
