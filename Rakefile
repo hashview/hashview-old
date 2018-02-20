@@ -227,7 +227,7 @@ namespace :db do
     puts '[*] Setting up default Dynamic Wordlist [customer] - acme ...'
     hash = rand(36**8).to_s(36)
     query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [customer] - acme', 'dynamic', 'all', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [customer] - acme', 'dynamic', 'customer', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
     ]
     begin
       system(query.compact.join(' '))
