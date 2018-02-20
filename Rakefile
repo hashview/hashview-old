@@ -210,6 +210,19 @@ namespace :db do
       raise 'Error in creating smart wordlist'
     end
 
+    # Create Smart Wordlist
+    puts '[*] Setting up default Dynamic Wordlists [all]...'
+    hash = rand(36**8).to_s(36)
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [All]', 'dynamic', 'all', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+      system('touch control/wordlists/wordlist-' + hash + '.txt')
+    rescue
+      raise 'Error in creating dynamic wordlists [all]'
+    end
+
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     system('gunzip -k control/wordlists/password.gz')
@@ -741,6 +754,7 @@ def upgrade_to_v074(user, password, host, database)
   conn.query('ALTER TABLE customers ADD COLUMN wl_id int(10)')
   conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace_pos BIGINT')
   conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace BIGINT')
+  conn.query('ALTER TABLE wordlists ADD COLUMN scope varchar(25)')
 
   # Altering columns
   puts '[*] Renaming existing columns.'
@@ -756,6 +770,7 @@ def upgrade_to_v074(user, password, host, database)
     hash = rand(36**8).to_s(36)
     wordlist = Wordlists.new
     wordlist.type = 'dynamic'
+    wordlist.scope = 'hashfile'
     wordlist.name = 'DYNAMIC [hashfile] - ' + entry[:name].to_s
     wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
     wordlist.size = 0
@@ -774,6 +789,7 @@ def upgrade_to_v074(user, password, host, database)
     hash = rand(36**8).to_s(36)
     wordlist = Wordlists.new
     wordlist.type = 'dynamic'
+    wordlist.scope = 'customer'
     wordlist.name = 'DYNAMIC [customer] - ' + entry[:name].to_s
     wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
     wordlist.size = 0
@@ -784,6 +800,19 @@ def upgrade_to_v074(user, password, host, database)
     entry.wl_id = wordlist.id
     entry.save
   end
+
+  # Create a dynamic wordlist for entire DB
+  puts '[*] Creating new dynamic wordlists for Hashview.'
+  hash = rand(36**8).to_s(36)
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.scope = 'all'
+  wordlist.name = 'DYNAMIC [ALL]'
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.4\'')

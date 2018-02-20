@@ -179,6 +179,8 @@ Sequel.migration do
       primary_key :id, type: :Bignum
       DateTime :lastupdated
       String :type, size: 25
+      String :scope, size: 25
+      # Scope Options include 'customers', 'hashfiles', 'all'
       String :name, size: 256
       String :path, size: 2000
       String :size, size: 100
