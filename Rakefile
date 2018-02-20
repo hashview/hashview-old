@@ -210,8 +210,8 @@ namespace :db do
       raise 'Error in creating smart wordlist'
     end
 
-    # Create Smart Wordlist
-    puts '[*] Setting up default Dynamic Wordlists [all]...'
+    # Create Dynamic Wordlist - all
+    puts '[*] Setting up default Dynamic Wordlist [all] ...'
     hash = rand(36**8).to_s(36)
     query = [
         'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [All]', 'dynamic', 'all', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
@@ -223,6 +223,30 @@ namespace :db do
       raise 'Error in creating dynamic wordlists [all]'
     end
 
+    # Create Dynamic Wordlist [customer] - acme
+    puts '[*] Setting up default Dynamic Wordlist [customer] - acme ...'
+    hash = rand(36**8).to_s(36)
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [customer] - acme', 'dynamic', 'all', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+      system('touch control/wordlists/wordlist-' + hash + '.txt')
+    rescue
+      raise 'Error in creating dynamic wordlists [all]'
+    end
+    
+    # Assign dynamic wordlist to acme customer
+    puts '[*] Assigning Dynamic wordlist [customer] acme to acme ...'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE TABLE customers SET wl_id = '3' where id = '1'".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in assigning Dynamic Wordlist [customer] - acme'
+    end
+    
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     system('gunzip -k control/wordlists/password.gz')
