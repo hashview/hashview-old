@@ -95,7 +95,7 @@ Sequel.migration do
       primary_key :id, type: :Bignum
       Integer :job_id
       Integer :task_id
-      String :build_cmd, size: 5000
+      String :command, size: 5000
       # Status options should be 'Running', 'Paused', 'Not Started', 'Completed', 'Queued', 'Failed', 'Canceled', 'Importing'
       String :status, size: 50
       Integer :run_time
