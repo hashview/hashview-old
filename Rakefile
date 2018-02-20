@@ -239,7 +239,7 @@ namespace :db do
     # Assign dynamic wordlist to acme customer
     puts '[*] Assigning Dynamic wordlist [customer] acme to acme ...'
     query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE TABLE customers SET wl_id = '3' where id = '1'".inspect
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE customers SET wl_id = '3' where id = '1'".inspect
     ]
     begin
       system(query.compact.join(' '))
