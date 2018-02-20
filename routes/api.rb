@@ -400,7 +400,7 @@ post '/v1/agents/:uuid/heartbeat' do
                   # Lets update the keyspace for these tasks
                   # This is especially important for dictionary tasks using dynamic dictionaries
                   wordlist = Wordlists.first(id: task.wl_id)
-                  updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic'
+                  updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic' && task.hc_attackmode == 'dictionary'
                   task.keyspace = getKeyspace(task)
                   task.save
 
@@ -467,7 +467,7 @@ post '/v1/agents/:uuid/heartbeat' do
               crack_command = jobtask_queue_entry.command
               if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
                 wordlist = Wordlists.first(id: task.wl_id)
-                updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic'
+                updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic' && task.hc_attackmode == 'dictionary'
                 task.keyspace = getKeyspace(task)
                 task.save
                 task = Tasks.first(id: jobtask_queue_entry.task_id)
