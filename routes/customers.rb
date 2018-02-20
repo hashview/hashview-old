@@ -37,6 +37,7 @@ post '/customers/create' do
   hash = rand(36**8).to_s(36)
   wordlist = Wordlists.new
   wordlist.type = 'dynamic'
+  wordlist.scope = 'customer'
   wordlist.name = 'DYNAMIC [customer] - ' + params[:name].to_s
   wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
   wordlist.size = 0
