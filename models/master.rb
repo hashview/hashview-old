@@ -174,8 +174,3 @@ end
 class Taskqueues < Sequel::Model(:taskqueues)
 
 end
-
-# chunk queue
-class Chunkqueues < Sequel::Model(:chunkqueues)
-
-end
