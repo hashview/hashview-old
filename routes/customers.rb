@@ -136,6 +136,7 @@ post '/customers/upload/hashfile' do
   # Create Dynamic Wordlist for hashfile
   wordlist = Wordlists.new
   wordlist.type = 'dynamic'
+  wordlist.scope = 'hashfile'
   wordlist.name = 'DYNAMIC [hashfile] - ' + params[:hashfile_name].to_s
   wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
   wordlist.size = 0
