@@ -99,8 +99,8 @@ Sequel.migration do
       # Status options should be 'Running', 'Paused', 'Not Started', 'Completed', 'Queued', 'Failed', 'Canceled', 'Importing'
       String :status, size: 50
       Integer :run_time
-      Integer :keyspace_pos
-      Integer :keyspace
+      Bignum :keyspace_pos
+      Bignum :keyspace
     end
 
     create_table(:rules) do
@@ -154,7 +154,7 @@ Sequel.migration do
       String :hc_attackmode, size: 25
       String :hc_rule, size: 50
       String :hc_mask, size: 50
-      Integer :keyspace
+      Bignum :keyspace
 
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:keyspace), 0)
 
