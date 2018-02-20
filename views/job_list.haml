@@ -114,7 +114,10 @@
                                                         .form-group
                                                           %label.control-label.col-xs-2{for: ''} Dictionary Rules
                                                           .col-xs-4
-                                                            #{task.hc_rule}
+                                                            - if @rules
+                                                              - @rules.each do |rule|
+                                                                - if task.hc_rule.to_i == rule.id.to_i
+                                                                  #{rule.name}
                                       - else
                                         No tasks are assigned to this job
                                   %p
