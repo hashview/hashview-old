@@ -9,6 +9,7 @@ get '/jobs/list' do
   @jobtasks = Jobtasks.all
   @wordlists = Wordlists.all
   @hashfiles = Hashfiles.all
+  @rules = Rules.all
 
   @wordlists.each do |wordlist|
     @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name

@@ -250,12 +250,13 @@ post '/customers/upload/verify_hashtype' do
   @job.hashfile_id = hashfile.id
   @job.save
 
-  total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
-  total_cnt = total_cnt[:count]
+  total_cnt = HVDB.fetch('SELECT h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)
 
-  unless total_cnt.nil?
-    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
-    #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes taking a total of ' + time.real.to_s + ' seconds.'
+  if total_cnt.count.zero? || total_cnt.nil?
+    flash[:error] = 'Error importing hashes. Did you select the right file type?'
+    redirect to "/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}"
+  else
+    flash[:success] = 'Successfully uploaded ' + total_cnt.count.to_s + ' hashes.'
   end
 
   # Delete file, no longer needed
