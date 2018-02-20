@@ -5,6 +5,7 @@ production:
   user: "root"
   password: ""
   database: "hashview"
+  encoding: "utf8"
 
 development:
   adapter: mysql
@@ -13,6 +14,7 @@ development:
   user: "root"
   password: ""
   database: "hashview_dev"
+  encoding: "utf8"
 
 test:
   adapter: mysql
@@ -21,3 +23,4 @@ test:
   user: "root"
   password: ""
   database: "hashview_test"
+  encoding: "utf8"
