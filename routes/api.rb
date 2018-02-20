@@ -399,6 +399,8 @@ post '/v1/agents/:uuid/heartbeat' do
                 if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
                   # Lets update the keyspace for these tasks
                   # This is especially important for dictionary tasks using dynamic dictionaries
+                  wordlist = Wordlists.first(id: task.wl_id)
+                  updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic'
                   task.keyspace = getKeyspace(task)
                   task.save
 
@@ -463,15 +465,10 @@ post '/v1/agents/:uuid/heartbeat' do
               p 'Current task: ' + jobtask_queue_entry.task_id.to_s
               task = Tasks.first(id: jobtask_queue_entry.task_id)
               crack_command = jobtask_queue_entry.command
-              if task.hc_attackmode == 'bruteforce'
-                # Since we're brute force we dont want to hand out a chunk
-                crack_command += ' | tee -a control/outfiles/hcoutput_'
-                crack_command += jobtask_queue_entry.job_id.to_s
-                crack_command += '_'
-                crack_command += jobtask_queue_entry.task_id.to_s
-                crack_command += '.txt'
-              elsif task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
-                task.keyspace = getKeyspace(task) if task.keyspace.to_i.zero? || task.keyspace.nil?
+              if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
+                wordlist = Wordlists.first(id: task.wl_id)
+                updateDynamicWordlist(wordlist.id) if wordlist.type == 'dynamic'
+                task.keyspace = getKeyspace(task)
                 task.save
                 task = Tasks.first(id: jobtask_queue_entry.task_id)
                 jobtask_queue_entry.keyspace = task.keyspace
@@ -483,12 +480,6 @@ post '/v1/agents/:uuid/heartbeat' do
 
                 if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
                   crack_command += ' -s 0 -l ' + speed.to_i.to_s
-                  crack_command += ' | tee -a control/outfiles/hcoutput_'
-                  crack_command += jobtask_queue_entry.job_id.to_s
-                  crack_command += '_'
-                  crack_command += jobtask_queue_entry.task_id.to_s
-                  crack_command += '.txt'
-                  p 'crack_command: ' + crack_command.to_s
 
                   # Update pos
                   if jobtask_queue_entry.keyspace_pos.to_i + speed > task.keyspace.to_i
@@ -498,8 +489,14 @@ post '/v1/agents/:uuid/heartbeat' do
                   end
                   jobtask_queue_entry.save
                 end
-
               end
+              
+              crack_command += ' | tee -a control/outfiles/hcoutput_'
+              crack_command += jobtask_queue_entry.job_id.to_s
+              crack_command += '_'
+              crack_command += jobtask_queue_entry.task_id.to_s
+              crack_command += '.txt'
+              p 'crack_command: ' + crack_command.to_s
 
               # Create new agent task command
               task_queue_entry = Taskqueues.new
