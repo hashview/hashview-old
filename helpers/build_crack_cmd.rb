@@ -25,22 +25,22 @@ helpers do
     mask = @task.hc_mask
 
     # if task contains a keyspace that is gt 0 perform chunking
-    if @task[:keyspace].nil?
-      chunking = false
-    elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
-      chunking = true
+    #if @task[:keyspace].nil?
+    #  chunking = false
+    #elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
+    #  chunking = true
 
       # build a hash containing our skip and limit values
-      chunk_num = 0
-      while chunk_skip < @task[:keyspace].to_i
-        skip = chunk_skip
+    #  chunk_num = 0
+    #  while chunk_skip < @task[:keyspace].to_i
+    #    skip = chunk_skip
 
-        chunks[chunk_num] = [skip, chunk_size]
+     #   chunks[chunk_num] = [skip, chunk_size]
 
-        chunk_num += 1
-        chunk_skip = skip + chunk_size
-      end
-    end
+     #   chunk_num += 1
+     #   chunk_skip = skip + chunk_size
+     # end
+    #end
 
     if attackmode == 'combinator'
       wordlist_list = @task.wl_id
@@ -59,19 +59,22 @@ helpers do
     crack_file = 'control/outfiles/hc_cracked_' + @job.id.to_s + '_' + @task.id.to_s + '.txt'
     File.open(crack_file, 'w')
 
+    # Add Session
+    session = rand(36**8).to_s(36)[0..3]
+
     case attackmode
     when 'bruteforce'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --runtime=' + max_task_time + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --runtime=' + max_task_time + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file
     when 'maskmode'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 3 ' + target_file + ' ' + mask
     when 'dictionary'
       if @task.hc_rule.nil? || @task.hc_rule == 'none'
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + target_file + ' ' + wordlist.path
       else
-        cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
+        cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -r ' + rules_file.path + ' ' + target_file + ' ' + wordlist.path
       end
     when 'combinator'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+      cmd = hc_binpath + ' --session ' + session.to_s + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
     else
       puts 'INVALID ATTACK MODE: ' + attackmode.to_s
     end
@@ -112,17 +115,17 @@ helpers do
     end
 
     # add skip and limit if we are chunking this task
-    if chunking == true
-      chunks.each do |_unused, value|
-        if attackmode == 'maskmode' || attackmode == 'dictionary'
-          cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
-          p cmd
-        end
-      end
-    else
-      cmds << cmd
-    end
+    #if chunking == true
+    #  chunks.each do |_unused, value|
+    #    if attackmode == 'maskmode' || attackmode == 'dictionary'
+    #      cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
+    #      p cmd
+    #    end
+    #  end
+    #else
+    #  cmds << cmd
+    #end
 
-    cmds
+    cmd
   end
 end

@@ -257,11 +257,11 @@ get '/jobs/move_task' do
   @jobtasks = HVDB[:jobtasks]
   @jobtasks.filter(job_id: params[:job_id]).delete
 
-  @new_jobtasks.each do |task|
-    jobtask = Jobtasks.new
-    jobtask.job_id = params[:job_id]
-    jobtask.task_id = task.to_i
-    jobtask.save
+  @new_jobtasks.each do |new_jobtask_entry|
+    job_task = Jobtasks.new
+    job_task.job_id = params[:job_id]
+    job_task.task_id = new_jobtask_entry.to_i
+    job_task.save
   end
 
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
@@ -286,10 +286,10 @@ get '/jobs/assign_task' do
   end
 
   # Append task to job
-  jobtask = Jobtasks.new
-  jobtask.job_id = params[:job_id]
-  jobtask.task_id = params[:task_id]
-  jobtask.save
+  job_task = Jobtasks.new
+  job_task.job_id = params[:job_id]
+  job_task.task_id = params[:task_id]
+  job_task.save
 
   # return to assign_tasks
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
@@ -306,7 +306,7 @@ get '/jobs/complete' do
   end
 
   jobtasks.each do |task|
-    task.status = 'Queued'
+    task.status = 'Ready'
     task.save
   end
 
@@ -321,53 +321,39 @@ end
 get '/jobs/start/:id' do
   varWash(params)
 
-  tasks = []
-  @job = Jobs.first(id: params[:id])
-  unless @job
+  job = Jobs.first(id: params[:id])
+  unless job
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
-  else
-    @jobtasks = Jobtasks.where(job_id: params[:id]).all
-    unless @jobtasks
-      flash[:error] = 'This job has no tasks to run.'
-      return 'This job has no tasks to run.'
-    else
-      @jobtasks.each do |jt|
-        tasks << Tasks.first(id: jt.task_id)
-      end
-    end
   end
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+  @jobtasks = Jobtasks.where(job_id: params[:id]).all
+  unless @jobtasks
+    flash[:error] = 'This job has no tasks to run.'
+    return 'This job has no tasks to run.'
+  end
+
+  @jobtasks.each do |job_task|
+
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
-    unless jt.status == 'Completed'
-      # set jobtask status to queued
-      jt.status = 'Queued'
-      jt.save
+
+    if job_task.status != 'Completed'
       # toggle the job status to run
       # We shouldn't need to do this for every task, just once
-      @job.status = 'Queued'
-      @job.queued_at = DateTime.now
-      @job.save
+      job.status = 'Queued'
+      job.queued_at = DateTime.now
+      job.save
 
-      cmds = buildCrackCmd(@job.id, task.id)
-      cmds. each do |cmd|
-        cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-        # we are using a db queue instead for public api
-        queue = Taskqueues.new
-        queue.jobtask_id = jt.id
-        queue.job_id = @job.id
-        queue.command = cmd
-        queue.status = 'Queued'
-        queue.queued_at = DateTime.now
-        queue.save
-      end
+      # set jobtask status to queued
+      job_task.status = 'Queued'
+      job_task.command = buildCrackCmd(job.id, job_task.task_id)
+      job_task.keyspace_pos = 0
+      job_task.save
     end
   end
 
-  if @job.status == 'Completed'
+  if job.status == 'Completed'
     flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
     redirect to('/jobs/list')
   end
@@ -428,6 +414,14 @@ get '/jobs/stop/:job_id/:task_id' do
   taskqueue.each do |tq|
     tq.status = 'Canceled'
     tq.save
+  end
+
+  # If there are no more jobtasks, set job status to canceled
+  @job_tasks = Jobtasks.where(job_id: params[:job_id], status: 'Running').or(job_id: params[:job_id], status: 'Queued').all
+  if @job_tasks.empty?
+    job = Jobs.first(id: params[:job_id])
+    job.status = 'Canceled'
+    job.save
   end
 
   referer = request.referer.split('/')

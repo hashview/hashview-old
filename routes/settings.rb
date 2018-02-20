@@ -150,14 +150,6 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
-  elsif params[:form_id] == '4' # Distributed settings
-    settings = Settings.first
-    # distributed settings
-    if params[:chunk_size]
-      settings.chunk_size = params[:chunk_size].to_i
-      settings.save
-    end
-
   elsif params[:form_id] == '5' # Hub
 
     if params[:email].nil? || params[:email].empty?

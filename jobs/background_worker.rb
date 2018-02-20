@@ -315,7 +315,9 @@ class LocalAgent
         if heartbeat['type'] == 'message' && heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
+          p 'jdata unparsed: ' + jdata.to_s
           jdata = JSON.parse(jdata)
+          p 'background_worker jdata: ' + jdata.to_s
 
           # we must have an item from the queue before we start processing
           unless jdata['type'] == 'Error'
@@ -325,7 +327,7 @@ class LocalAgent
               f.write(jdata)
             end
 
-            # take queue item and set status to running
+            # take chunk_queue item and set status to running
             Api.post_queue_status(jdata['id'], 'Running')
 
             # set the jobtask to running
@@ -374,6 +376,7 @@ class LocalAgent
             # # thread off hashcat
             thread1 = Thread.new {
               run_time = Benchmark.realtime do
+                p 'command: ' + cmd.to_s
                 system(cmd)
               end
             }
@@ -388,7 +391,7 @@ class LocalAgent
                 payload['agent_status'] = 'Working'
                 payload['agent_task'] = jdata['id']
                 # provide hashcat status with hearbeat
-                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}.txt")
+                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}_#{task['id']}.txt")
                 heartbeat = Api.post_heartbeat(payload)
                 heartbeat = JSON.parse(heartbeat)
 
@@ -406,13 +409,15 @@ class LocalAgent
               end
             end
 
-            # set jobtask status to importing
+            # set chunk queue entry status to importing
             # commenting out now that we are chunking
             Api.post_queue_status(jdata['id'], 'Importing')
+            p 'setting status to importing'
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
             if File.exist?(crack_file) && !File.zero?(crack_file)
+              p 'Uploading cracked hashes.'
               Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
               # Does this need to be logged?
@@ -422,8 +427,9 @@ class LocalAgent
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
-            # set taskqueue item to complete and remove from queue
+            # set chunk queue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')
+            p 'setting status to complete'
           end
         end
       end

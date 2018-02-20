@@ -35,7 +35,9 @@ def getKeyspace(task)
     wordlist2_path = wordlist2.path
 
     # hashcat keyspace switch cannot compute in this mode. we just add the two keyspaces together
-    cmd = hashcatbinpath + ' ' + wordlist1_path + ' --keyspace'
+    # get rand string for session
+    session = rand(36**8).to_s(36)
+    cmd = hashcatbinpath + ' --session ' + session.to_s + ' ' + wordlist1_path + ' --keyspace'
     keyspace2 = `#{cmd}`
     cmd = hashcatbinpath + ' ' + wordlist2_path + ' --keyspace'
   end
