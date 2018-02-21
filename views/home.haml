@@ -85,6 +85,9 @@
                                       %span.label.label-default.labelfixedwidth.pull-right #{jt.status}
                                   - if jt.status == 'Running'
                                     %div{id: "collapse-#{link}", class: 'panel-collapse collapse in'}
+                                      %p
+                                        %center
+                                          Chunk Assignments
                                       .panel-body
                                         - progress = (jt.keyspace_pos.to_f / jt.keyspace.to_f) * 100
                                         - progress = 0 if progress.nan?
@@ -100,24 +103,20 @@
                                                 %table{:class => 'table'}
                                                   %thead
                                                     %td
-                                                      %b Chunk
+                                                      %b Agent
                                                     %td
                                                       - if tq.status == 'Queued' || tq.status == 'Paused'
                                                         %b Command
-                                                      - else
-                                                        %b Agent
                                                     %td
                                                     %td
                                                   %tbody
                                                     %td
-                                                      #{tq.id}
+                                                      - @agents.each do |agent|
+                                                        - if agent.id.to_i == tq.agent_id.to_i
+                                                          #{agent.name}
                                                     %td
                                                       - if tq.status == 'Queued' || tq.status == 'Paused'
                                                         #{tq.command}
-                                                      - else
-                                                        - @agents.each do |agent|
-                                                          - if agent.id.to_i == tq.agent_id.to_i
-                                                            #{agent.name}
                                                     %td
                                                       - if tq.status == 'Running'
                                                       - elsif tq.status == 'Queued' || tq.status == 'Paused'
@@ -142,6 +141,9 @@
                                                 #{tq.command}
                                   - else
                                     %div{id: "collapse-#{link}", class: "panel-collapse collapse"}
+                                      %p
+                                        %center
+                                          Chunk Assignments
                                       .panel-body
                                         - progress = (jt.keyspace_pos.to_f / jt.keyspace.to_f) * 100
                                         .progress
