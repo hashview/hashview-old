@@ -2,7 +2,7 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.7.4-beta] - 2018-xx-xx
+## [v0.7.4-beta] - 2018-02-xx
 ### Added
 - Added new Analytics portlet "charset breakdown"
 - Extended Masks list to be to 10 instead of top 4.
@@ -20,6 +20,7 @@ Notable changes will be documented here
 ### Removed
 
 ### Fixed
+- Fixed issue where homepage fails to render if remote agents dont checkin
 - Fixed issue when reordering tasks.
 - Fixed bug where getBusy? function was incorrectly citing if hashview was busy.
 - Now prevents the creation of a job with no tasks assigned.
