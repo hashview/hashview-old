@@ -837,6 +837,15 @@ def upgrade_to_v074(user, password, host, database)
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
+  
+  puts '[*] Updating existing tasks keyspace'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    if task.keyspace.nil? || task.keyspace == 0
+      task.keyspace = getKeyspace(task)
+      task.save
+    end
+  end
 
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.4\'')
