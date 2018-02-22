@@ -4,6 +4,10 @@ def getKeyspace(task)
   # get hashcat binarypath from config
   hashcatbinpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
 
+  # Append session
+  session = rand(36**8).to_s(36)
+  hashcatbinpath += ' --session ' + session.to_s
+  
   # is task a dictionary attack mode (-a 0)
   if task.hc_attackmode == 'dictionary'
     # TODO: 5/18/17 normally we'd check if it has rules too, but i cant get hashcat to compute keyspace with rules :-(
@@ -35,9 +39,7 @@ def getKeyspace(task)
     wordlist2_path = wordlist2.path
 
     # hashcat keyspace switch cannot compute in this mode. we just add the two keyspaces together
-    # get rand string for session
-    session = rand(36**8).to_s(36)
-    cmd = hashcatbinpath + ' --session ' + session.to_s + ' ' + wordlist1_path + ' --keyspace'
+    cmd =  ' ' + wordlist1_path + ' --keyspace'
     keyspace2 = `#{cmd}`
     cmd = hashcatbinpath + ' ' + wordlist2_path + ' --keyspace'
   end
