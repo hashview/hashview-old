@@ -6,6 +6,8 @@ production:
   password: ""
   database: "hashview"
   encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600
 
 development:
   adapter: mysql
@@ -15,6 +17,8 @@ development:
   password: ""
   database: "hashview_dev"
   encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600
 
 test:
   adapter: mysql
@@ -24,3 +28,5 @@ test:
   password: ""
   database: "hashview_test"
   encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600
