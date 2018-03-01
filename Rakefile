@@ -772,6 +772,10 @@ def upgrade_to_v074(user, password, host, database)
     wordlist.lastupdated = Time.now
     wordlist.save
 
+    # Create Shell file
+    file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+    file_shell.close
+    
     entry.wl_id = wordlist.id
     entry.save
   end
@@ -790,6 +794,10 @@ def upgrade_to_v074(user, password, host, database)
     wordlist.checksum = nil
     wordlist.lastupdated = Time.now
     wordlist.save
+    
+    # Create Shell file
+    file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+    file_shell.close
 
     entry.wl_id = wordlist.id
     entry.save
@@ -807,6 +815,10 @@ def upgrade_to_v074(user, password, host, database)
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
+  
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
 
   puts '[*] Updating existing tasks keyspace'
   @tasks = Tasks.all
