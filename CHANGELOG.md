@@ -18,6 +18,7 @@ Notable changes will be documented here
 - The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
 
 ### Removed
+- Removed Smart Wordlists in favor Customer/Hashfile/All dynamic wordlists.
 
 ### Fixed
 - Fixed issue where homepage fails to render if remote agents dont checkin
