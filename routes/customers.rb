@@ -44,6 +44,10 @@ post '/customers/create' do
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
+  
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
 
   customer = Customers.new
   customer.name = params[:name]
@@ -143,6 +147,10 @@ post '/customers/upload/hashfile' do
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
+  
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
 
   # save location of tmp hash file
   hashfile = Hashfiles.new
