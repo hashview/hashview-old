@@ -712,6 +712,11 @@ end
 
 def upgrade_to_v074(user, password, host, database)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
+  puts '[*] Updating DB to support UTF-8, More Connections, and Longer pool timeouts.'
+  system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
+  system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
+  system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
+
   conn = Mysql.new host, user, password, database
 
   # Remove unused columns
