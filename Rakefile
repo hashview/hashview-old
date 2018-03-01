@@ -198,18 +198,6 @@ namespace :db do
       raise 'Error in creating default customer'
     end
 
-    # Create Smart Wordlist
-    puts '[*] Setting up default Smart Wordlist ...'
-    query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('Smart Wordlist', 'dynamic', NOW(), 'control/wordlists/SmartWordlist.txt', '0')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-      system('touch control/wordlists/SmartWordlist.txt')
-    rescue
-      raise 'Error in creating smart wordlist'
-    end
-
     # Create Dynamic Wordlist - all
     puts '[*] Setting up default Dynamic Wordlist [all] ...'
     hash = rand(36**8).to_s(36)
@@ -235,18 +223,18 @@ namespace :db do
     rescue
       raise 'Error in creating dynamic wordlists [all]'
     end
-    
+
     # Assign dynamic wordlist to acme customer
     puts '[*] Assigning Dynamic wordlist [customer] acme to acme ...'
     query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE customers SET wl_id = '3' where id = '1'".inspect
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE customers SET wl_id = '2' where id = '1'".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in assigning Dynamic Wordlist [customer] - acme'
     end
-    
+
     puts '[*] Settings up default wordlist ...'
     # Create Default Wordlist
     system('gunzip -k control/wordlists/password.gz')
@@ -273,34 +261,12 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '4', 'dictionary', '5')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '3', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default dictionary task + rule'
-    end
-
-    # Create Default SmartWordlist Dictionary
-    puts '[*] Setting up default smart wordlist task'
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('Smart Wordlist Dictionary', '1', 'dictionary')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Error in creating default SmartWordlist task'
-    end
-
-    # Create Default SmartWordlist Dictionary + Rule Task
-    puts '[*] Setting up Smart Wordlist dictionary + rule task'
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Smart Wordlist Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Error in creating Smart Wordlist dictionary task + rule'
     end
 
     # Create Default Mask task
@@ -623,23 +589,6 @@ def upgrade_to_v070(user, password, host, database)
     entry.save
   end
 
-  # Create new smart word list
-  # should probably be moved to first but we'd break existing tasks
-  puts '[*] Generating Smart Wordlist ... this could take some time be patient'
-  updateSmartWordlist
-
-  # Identify all wordlists without checksums
-  @wordlist = Wordlists.where(checksum: nil).all
-  @wordlist.each do |wl|
-    # generate checksum
-    puts 'generating checksum'
-    checksum = Digest::SHA2.hexdigest(File.read(wl.path))
-
-    # save checksum to database
-    wl.checksum = checksum
-    wl.save
-  end
-
   # add existing rules to db
   # this is not DRY, oh well, gotta ship code before blackhat!
   puts '[*] Add existing rules to database'
@@ -785,10 +734,32 @@ def upgrade_to_v074(user, password, host, database)
   conn.query('ALTER TABLE jobs CHANGE COLUMN last_updated_by owner varchar(40)')
   conn.query('ALTER TABLE jobtasks CHANGE COLUMN build_cmd command varchar(4000)')
 
+  # Removing old smart wordlist
+  put '[*] Removing Smart Wordlists.'
+  require_relative 'models/master'
+  wordlist = Wordlists.first(path: 'control/wordlists/SmartWordlist.txt')
+
+  # Remove from any existing job (keep job)
+  @tasks.where(wl_id: wordlist.id).all
+  @tasks.each do |task|
+    @jobtasks = HVDB[:jobtasks]
+    @jobtasks.filter(task_id: task.id).delete
+  end
+
+  # Remove from any tasks
+  @tasks = HVDB[:tasks]
+  @tasks.filter(wl_id: wordlist.id).delete
+
+  # Remove from filesystem
+  begin
+    File.delete(@wordlist.path)
+  rescue
+    flash[:warning] = 'No file found on disk.'
+  end
+
   # Create a dynamic wordlist for each hashfile
   puts '[*] Creating new dynamic wordlists for existing hashfiles.'
 
-  require_relative 'models/master'
   @hashfiles = Hashfiles.all
   @hashfiles.each do |entry|
     hash = rand(36**8).to_s(36)
@@ -837,7 +808,7 @@ def upgrade_to_v074(user, password, host, database)
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
-  
+
   puts '[*] Updating existing tasks keyspace'
   @tasks = Tasks.all
   @tasks.each do |task|
