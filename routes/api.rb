@@ -155,19 +155,6 @@ get 'v1/wordlist/by_jobtask_id/:id' do
 
 end
 
-# Initiate an update to smart wordlist
-get '/v1/updateSmartWordlist' do
-  # is agent authorized
-  redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
-  updateSmartWordlist
-  data = {
-    status: 200,
-    type: 'message',
-    msg: 'OK'
-  }
-  return data.to_json
-end
-
 get '/v1/updateWordlist/:wl_id' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
@@ -349,7 +336,6 @@ post '/v1/agents/:uuid/heartbeat' do
           # assign work to agent
           p 'Agent: ' + agent.id.to_s + ' Checking in'
 
-
           # get next task_queue item for this agent if there is anything in the queue
           already_assigned_chunk = Taskqueues.first(agent_id: agent.id)
           if already_assigned_chunk and !already_assigned_chunk.nil?
@@ -401,7 +387,7 @@ post '/v1/agents/:uuid/heartbeat' do
                   # This is especially important for dictionary tasks using dynamic dictionaries
                   wordlist = Wordlists.first(id: task.wl_id)
                   updateDynamicWordlist(wordlist.id) if wordlist && wordlist.type == 'dynamic'
-                  task.keyspace = getKeyspace(task)
+                  task.keyspace = getKeyspace(task) if wordlist && wordlist.type == 'dynamic'
                   task.save
 
                   # Requery to get up-to-date value
@@ -468,7 +454,7 @@ post '/v1/agents/:uuid/heartbeat' do
               if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
                 wordlist = Wordlists.first(id: task.wl_id)
                 updateDynamicWordlist(wordlist.id) if wordlist && wordlist.type == 'dynamic'
-                task.keyspace = getKeyspace(task)
+                task.keyspace = getKeyspace(task) if wordlist && wordlist.type == 'dynamic'
                 task.save
                 task = Tasks.first(id: jobtask_queue_entry.task_id)
                 jobtask_queue_entry.keyspace = task.keyspace
