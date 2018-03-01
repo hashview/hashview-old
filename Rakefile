@@ -5,7 +5,6 @@ require 'sequel'
 require 'mysql'
 # require './models/master.rb'
 require './helpers/email.rb'
-require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
 require 'data_mapper'
 
