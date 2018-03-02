@@ -125,7 +125,6 @@ get '/tasks/create' do
   varWash(params)
 
   @hc_settings = HashcatSettings.first
-
   @rules = Rules.all
   @wordlists = Wordlists.all
 
@@ -218,6 +217,8 @@ post '/tasks/create' do
   flash[:success] = "Task #{task.name} successfully created."
   if URI(request.referer).path == '/jobs/assign_tasks'
     redirect to '/jobs/assign_task?' + URI(request.referer).query.to_s + '&task_id=' + task.id.to_s
+  elsif URI(request.referer).path == '/task_groups/assign_tasks'
+    redirect to '/task_groups/assign_task?' + URI(request.referer).query.to_s + '&task_id=' + task.id.to_s
   else
     redirect to('/tasks/list')
   end

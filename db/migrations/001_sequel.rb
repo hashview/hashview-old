@@ -161,6 +161,12 @@ Sequel.migration do
       index [:name, :hc_mask], name: :ix_uq, unique: true
     end
 
+    create_table(:task_groups) do
+      primary_key :id, type: :Bignum
+      String :name, size: 255
+      String :tasks, size: 1024
+    end
+
     create_table(:users) do
       primary_key :id, null: false, auto_increment: true
       String :username, size: 40, null: false

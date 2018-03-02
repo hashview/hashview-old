@@ -13,6 +13,7 @@ Notable changes will be documented here
 - Added more info for Tasks and Wordlists, now you can easily see which tasks are assigned to what job, and what wordlists are assigned to what tasks.
 - Added dynamic chunking! Now each agent will work on chunks based off of their computed benchmarks.
 - Added fail check when hashfile fails import and loads a hashfile of 0/0.
+- Added ability to create task group ( a predefined set of tasks for easy job assignment)
 
 ### Changed
 - The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
