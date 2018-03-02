@@ -11,108 +11,10 @@ end
 get '/task_groups/delete/:id' do
   varWash(params)
 
-  @job_tasks = Jobtasks.where(task_id: params[:id]).all
-  unless @job_tasks.empty?
-    flash[:error] = 'That task is currently used in a job.'
-    redirect to('/tasks/list')
-  end
+  task_group = TaskGroups.first(id: params[:id])
+  task_group.destroy if task_group
 
-  @task = Tasks.first(id: params[:id])
-  @task.destroy if @task
-
-  redirect to('/tasks/list')
-end
-
-get '/task_groups/edit/:id' do
-  varWash(params)
-
-  @task = Tasks.first(id: params[:id])
-  @wordlists = Wordlists.all
-  @hc_settings = HashcatSettings.first
-
-  if @task.hc_attackmode == 'combinator'
-    @combinator_wordlists = @task.wl_id.split(',')
-    if @task.hc_rule =~ /--rule-left=(.*) --rule-right=(.*)/
-      @combinator_left_rule = Regexp.last_match(1)
-      @combinator_right_rule = Regexp.last_match(2)
-    elsif @task.hc_rule =~ /--rule-left=(.*)/
-      @combinator_left_rule = Regexp.last_match(1)
-    elsif @task.hc_rule =~ /--rule-right=(.*)/
-      @combinator_right_rule = Regexp.last_match(1)
-    end
-  end
-
-  @rules = Rules.all
-
-  haml :task_edit
-end
-
-post '/task_groups/edit/:id' do
-  varWash(params)
-
-  if !params[:name] || params[:name].nil?
-    flash[:error] = 'The task requires a name.'
-    redirect to("/tasks/edit/#{params[:id]}")
-  end
-
-  wordlist = Wordlists.first(id: params[:wordlist])
-
-  # must have two word lists
-  if params[:attackmode] == 'combinator'
-    wordlist_count = 0
-    wordlist_list = ''
-    rule_list = ''
-    @wordlists = Wordlists.all
-    @wordlists.each do |wordlist_check|
-      params.keys.each do |key|
-        next unless params[key] == 'on' && key == "combinator_wordlist_#{wordlist_check.id}"
-        if wordlist_list == ''
-          wordlist_list = wordlist_check.id.to_s + ','
-        else
-          wordlist_list += wordlist_check.id.to_s
-        end
-        wordlist_count += 1
-      end
-    end
-
-    if wordlist_count != 2
-      flash[:error] = 'You must specify at exactly 2 wordlists.'
-      redirect to("/tasks/edit/#{params[:id]}")
-    end
-
-    if params[:combinator_left_rule] && !params[:combinator_left_rule].empty? && params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
-      rule_list = '--rule-left=' + params[:combinator_left_rule] + ' --rule-right=' + params[:combinator_right_rule]
-    elsif params[:combinator_left_rule] && !params[:combinator_left_rule].empty?
-      rule_list = '--rule-left=' + params[:combinator_left_rule]
-    elsif params[:combinator_right_rule] && !params[:combinator_right_rule].empty?
-      rule_list = '--rule-right=' + params[:combinator_right_rule]
-    else
-      rule_list = ''
-    end
-  end
-
-  task = Tasks.first(id: params[:id])
-  task.name = params[:name]
-
-  task.hc_attackmode = params[:attackmode]
-
-  if params[:attackmode] == 'dictionary'
-    task.wl_id = wordlist.id
-    task.hc_rule = params[:rule].to_i
-    task.hc_rule = 'none' if params[:rule].to_i.zero?
-    task.hc_mask = 'NULL'
-  elsif params[:attackmode] == 'maskmode'
-    task.wl_id = 'NULL'
-    task.hc_rule = 'NULL'
-    task.hc_mask = params[:mask]
-  elsif params[:attackmode] == 'combinator'
-    task.wl_id = wordlist_list
-    task.hc_rule = rule_list
-    task.hc_mask = 'NULL'
-  end
-  task.save
-
-  redirect to('/tasks/list')
+  redirect to('/task_groups/list')
 end
 
 get '/task_groups/create' do
@@ -179,7 +81,7 @@ get '/task_groups/assign_tasks' do
   # Im sure there's a better way to do this
   @tasks.each do |task|
     element = {}
-    next if @task_group_task_ids.include? task.id.to_s
+    next if @task_group_task_ids && (@task_group_task_ids.include? task.id.to_s)
     element['id'] = task.id
     element['name'] = task.name
     @available_tasks.push(element)

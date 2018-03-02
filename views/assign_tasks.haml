@@ -53,7 +53,7 @@
                       %label.control-label{for: ''}
                       .btn-group
                         .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
-                          Add Task
+                          Assign Task
                           %span.caret
                         %ul.dropdown-menu.dropdown-menu-left
                           %li
@@ -62,6 +62,15 @@
                           - @available_tasks.each do |task|
                             %li
                               %a{href: "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task['id']}"} #{task['name']}
+                      - if @task_groups.size > 0
+                        .btn-group
+                          .btn.btn-default.dropdown-toggle{'data-toggle' => 'dropdown'}
+                            Assign Task Group
+                            %span.caret
+                          %ul.dropdown-menu.dropdown-menu-left
+                            - @task_groups.each do |group|
+                              %li
+                                %a{href: "/jobs/assign_task_group?job_id=#{@job.id}&task_group_id=#{group.id}"} #{group.name}
                     %td
                     %td
       .modal.fade.modal{id: "modal-create-task", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}

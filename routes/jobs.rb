@@ -178,6 +178,7 @@ get '/jobs/assign_tasks' do
 
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
+  @task_groups = TaskGroups.all
   @wordlists = Wordlists.all
   @hc_settings = HashcatSettings.first
   @rules = Rules.all
@@ -291,6 +292,31 @@ get '/jobs/assign_task' do
   job_task.job_id = params[:job_id]
   job_task.task_id = params[:task_id]
   job_task.save
+
+  # return to assign_tasks
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/assign_task_group' do
+  varWash(params)
+
+  task_group = TaskGroups.first(id: params[:task_group_id])
+  unless task_group.nil?
+    p 'Task group is not empty'
+    @task_group_ids = task_group.tasks.scan(/\d/)
+    @task_group_ids.each do |task_id|
+      p ' checking to see if ' + task_id.to_s + ' is assigned'
+      existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: task_id)
+      if existing_jobtask.nil?
+        p ' we can assign ' + task_id.to_s
+        # Append task to job
+        job_task = Jobtasks.new
+        job_task.job_id = params[:job_id]
+        job_task.task_id = task_id
+        job_task.save
+      end
+    end
+  end
 
   # return to assign_tasks
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
