@@ -1,0 +1,42 @@
+!!!
+%html
+  %body
+    .span15
+      .container
+        .col-md-12
+          .row
+            .page-header
+              %h1
+                Task Groups
+            .row
+              .col-md-10.pull-left
+                Task Groups are a set of tasks that can be assigned to job.
+              .col-md-2.pull-right
+                %a.btn.btn-primary.pull-right{href: '/task_groups/create'}
+                  Create Task Group
+      %br
+      %br
+      .container
+        .row
+          .col-md-12
+            .table
+              %table{class: 'table table-striped'}
+                %thead
+                  %tr
+                    %th
+                      %b Task Group Name
+                    %th
+                      %b Number of Tasks
+                    %th
+                      %b Controls
+                %tbody
+                  - if @task_groups
+                    - @task_groups.each do |task|
+                      %tr
+                        %td #{task.name}
+                        %td Size
+                        %td
+                          %a.btn.btn-warning{href: "/tasks/edit/#{task.id}"}
+                            %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                          %a.btn.btn-danger{href: "/tasks/delete/#{task.id}"}
+                            %i.glyphicon.glyphicon-trash{title: 'Delete'}

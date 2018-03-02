@@ -718,6 +718,8 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
 
   conn = Mysql.new host, user, password, database
+  # Creating New Task Groups Table
+  conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
 
   # Remove unused columns
   puts '[*] Removing unused database structures.'

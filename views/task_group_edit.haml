@@ -1,0 +1,64 @@
+!!!
+%html
+  %body
+    %p
+    - if @task_group
+      .span15
+        %br
+        .container
+          .row
+            .col-md-12
+              .container
+                .row
+                  .col-md-12
+                    .page-header
+                      %h1 Edit Task Group
+                  .row
+                    .col-md-10.pull-left
+                      Select from the following options to create a new task to be run.
+          %br
+          %br
+        .container
+          .row
+            .col-md-12
+              .table
+
+              %form{name: 'taskForm', id: 'taskForm', class: 'form-horizontal', action: "/tasks/edit/#{@task_group.id}", method: 'post'}
+                .form-group
+                  %label.control-label.col-xs-2{for: ''} Task Name
+                  .col-xs-10
+                    %input{type: 'textbox', class: 'form-control', name: 'name', id: 'name', value: "#{@task_group.name}"}
+                .form-group
+                  .col-xs-offset-2.col-xs-1
+                    %button.btn.btn-primary{type: 'submit'} Update
+
+    - else
+      .span15
+        %br
+        .container
+          .row
+            .col-md-12
+              .container
+                .row
+                  .col-md-12
+                    .page-header
+                      %h1 Create a New Task Group
+                  .row
+                    .col-md-10.pull-left
+                      Enter the name of the task group.
+          %br
+          %br
+        .container
+          .row
+            .col-md-12
+              .table
+              %form{name: 'taskGroupForm', id: 'taskGroupForm', class: 'form-horizontal', action: '/task_groups/create', method: 'post'}
+                .form-group
+                  %label.control-label.col-xs-2{for: ''} Group Name
+                  .col-xs-10
+                    %input{type: 'textbox', class: 'form-control', name: 'name', id: 'name'}
+                .section
+
+                .form-group
+                  .col-xs-offset-2.col-xs-1
+                    %button.btn.btn-primary{type: 'submit'} Create

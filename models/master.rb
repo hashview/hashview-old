@@ -130,6 +130,11 @@ class Tasks < Sequel::Model(:tasks)
 
 end
 
+# Task Groups
+class TaskGroups < Sequel::Model(:task_groups)
+
+end
+
 # Table for handling hashes cracked and uncracked
 class Hashes < Sequel::Model(:hashes)
 
