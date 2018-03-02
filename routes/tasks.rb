@@ -125,7 +125,6 @@ get '/tasks/create' do
   varWash(params)
 
   @hc_settings = HashcatSettings.first
-
   @rules = Rules.all
   @wordlists = Wordlists.all
 

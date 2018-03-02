@@ -58,12 +58,8 @@ get '/task_groups/assign_tasks' do
   unless @task_group.tasks.nil?
 
     @task_group_task_ids = @task_group.tasks.scan(/\d/)
-    p 'task group task ids type: ' + @task_group_task_ids.class.to_s
-    p 'task group task id: ' + @task_group_task_ids.to_s
     @task_group_task_ids.each do |id|
-      p 'id type: ' + id.class.to_s
       element = {}
-      p 'task id: ' + id.to_s
       task = Tasks.first(id: id)
       next unless task
       element['task_id'] = task.id
