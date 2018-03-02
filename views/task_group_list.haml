@@ -36,6 +36,39 @@
                         %td #{task_group.name}
                         %td #{task_group.tasks.scan(/\d/).size}
                         %td
+                          %a.btn.btn-info{href: "#modal#{task_group.id}", "data-toggle" => 'modal'}
+                            %i.glyphicon.glyphicon-info-sign{title: 'Info'}
+                          .modal.fade.modal{id: "modal#{task_group.id}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
+                            .modal-dialog.modal-lg
+                              .modal-content
+                                .modal-header
+                                  %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
+                                    %span{'aria-hidden' => 'true'} &times;
+                                  %h4.modal-title Tasks Group Tasks:
+                                .modal-body
+                                  %p
+                                  .table
+                                    %table{class: 'table table-striped'}
+                                      %thead
+                                        %tr
+                                          %th
+                                            %b Task Name
+                                          %th
+                                            %b Type
+                                      %tbody
+                                      - if task_group.tasks
+                                        - @task_groups_task_ids = task_group.tasks.scan(/\d/)
+                                        - @tasks.each do | task |
+                                          - @task_groups_task_ids.each do | task_group_task_id |
+                                            - if task_group_task_id.to_i == task.id.to_i
+                                              %td
+                                                #{task.name}
+                                              %td
+                                                #{task.hc_attackmode}
+                                              %tr
+                                  %p
+                                .modal-footer
+                                  %button.btn.btn-default{"data-dismiss" => "modal", type: 'button'} Close
                           %a.btn.btn-warning{href: "/task_groups/assign_tasks?id=#{task_group.id}"}
                             %i.glyphicon.glyphicon-cog{title: 'Edit'}
                           %a.btn.btn-danger{href: "/task_groups/delete/#{task_group.id}"}

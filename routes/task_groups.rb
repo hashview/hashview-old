@@ -1,9 +1,6 @@
 get '/task_groups/list' do
   @task_groups = TaskGroups.all
-  @wordlists = Wordlists.all
-  @rules = Rules.all
-  @jobtasks = Jobtasks.all
-  @jobs = Jobs.all
+  @tasks = Tasks.all
 
   haml :task_group_list
 end
