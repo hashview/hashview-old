@@ -713,9 +713,9 @@ end
 def upgrade_to_v074(user, password, host, database)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
   puts '[*] Updating DB to support UTF-8, More Connections, and Longer pool timeouts.'
-  system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
-  system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
-  system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"\' config/database.yml')
+  system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
 
   conn = Mysql.new host, user, password, database
   # Creating New Task Groups Table
@@ -741,7 +741,7 @@ def upgrade_to_v074(user, password, host, database)
   conn.query('ALTER TABLE jobtasks CHANGE COLUMN build_cmd command varchar(4000)')
 
   # Removing old smart wordlist
-  put '[*] Removing Smart Wordlists.'
+  puts '[*] Removing Smart Wordlists.'
   require_relative 'models/master'
   wordlist = Wordlists.first(path: 'control/wordlists/SmartWordlist.txt')
 
