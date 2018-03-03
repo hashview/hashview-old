@@ -6,6 +6,7 @@ get '/hashfiles/list' do
   @cracked_status = {}
   @local_cracked_cnt = {}
   @local_uncracked_cnt = {}
+  @hashtype = {}
 
   @hashfiles.each do |hashfile|
     hashfile_cracked_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', hashfile.id)[:count]
@@ -15,6 +16,12 @@ get '/hashfiles/list' do
     @local_cracked_cnt[hashfile.id] = hashfile_cracked_count.to_s
     @local_uncracked_cnt[hashfile.id] = hashfile_total_count.to_i - hashfile_cracked_count.to_i
     @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
+    hash_id = Hashfilehashes.first(hashfile_id: hashfile.id).hash_id
+    p 'hash id: ' + hash_id.to_s
+    hashtype = Hashes.first(id: hash_id).hashtype.to_s
+    p 'hashtype: ' + hashtype.to_s
+    #@hashtype[hashfile.id] = hashtype
+    @hashtype[hashfile.id] = Hashes.first(id: hash_id).hashtype.to_s
   end
 
   haml :hashfile_list

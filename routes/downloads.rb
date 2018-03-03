@@ -107,4 +107,25 @@ get '/download' do
       # DO Something
     end
   end
+
+  if params[:hashfile_id]
+    @filecontents = Set.new
+    @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])
+    file_name = 'control/tmp/hashfile_' + params[:hashfile_id].to_s + '.txt'
+
+    @results.each do |entry|
+      entry[:username].nil? ? line = '' : line = entry[:username].to_s + ':'
+      line += entry[:originalhash].to_s
+      line += ':' + entry[:plaintext].to_s if entry[:plaintext]
+      @filecontents.add(line)
+    end
+
+    File.open(file_name, 'w') do |f|
+      @filecontents.each do |entry|
+        f.puts entry
+      end
+    end
+
+    send_file file_name, filename: file_name, type: 'Application/octet-stream'
+  end
 end
