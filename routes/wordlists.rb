@@ -1,5 +1,4 @@
 get '/wordlists/list' do
-
   @static_wordlists = Wordlists.where(type: 'static').all
   @dynamic_wordlists = Wordlists.where(type: 'dynamic').all
   @tasks = Tasks.all
@@ -8,12 +7,10 @@ get '/wordlists/list' do
 end
 
 get '/wordlists/add' do
-
   haml :wordlist_add
 end
 
 get '/wordlists/delete/:id' do
-
   varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])
@@ -43,7 +40,6 @@ get '/wordlists/delete/:id' do
 end
 
 post '/wordlists/upload/' do
-
   varWash(params)
 
   if !params[:file] || params[:file].nil?

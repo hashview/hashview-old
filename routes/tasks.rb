@@ -1,5 +1,4 @@
 get '/tasks/list' do
-
   @tasks = Tasks.all
   @wordlists = Wordlists.all
   @rules = Rules.all
@@ -10,7 +9,6 @@ get '/tasks/list' do
 end
 
 get '/tasks/delete/:id' do
-
   varWash(params)
 
   @job_tasks = Jobtasks.where(task_id: params[:id]).all
@@ -26,7 +24,6 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
-
   varWash(params)
 
   @task = Tasks.first(id: params[:id])
@@ -51,7 +48,6 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
-
   varWash(params)
 
   if !params[:name] || params[:name].nil?
@@ -121,7 +117,6 @@ post '/tasks/edit/:id' do
 end
 
 get '/tasks/create' do
-
   varWash(params)
 
   @hc_settings = HashcatSettings.first
@@ -132,7 +127,6 @@ get '/tasks/create' do
 end
 
 post '/tasks/create' do
-
   varWash(params)
 
   if !params[:name] || params[:name].empty?

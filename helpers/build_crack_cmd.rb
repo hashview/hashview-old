@@ -2,11 +2,6 @@ helpers do
   # this function builds the main hashcat cmd we use to crack. this should be moved to a helper script soon
   def buildCrackCmd(job_id, task_id)
     p 'BUILD CRACK CMD: ' + job_id.to_s + ' ' + task_id.to_s
-    cmds = []
-
-    chunk_size = Settings.first().chunk_size
-    chunks = {}
-    chunk_skip = 0
 
     # order of opterations -m hashtype -a attackmode is dictionary? set wordlist, set rules if exist file/hash
     hc_settings = HashcatSettings.first
@@ -23,24 +18,6 @@ helpers do
 
     attackmode = @task.hc_attackmode.to_s
     mask = @task.hc_mask
-
-    # if task contains a keyspace that is gt 0 perform chunking
-    #if @task[:keyspace].nil?
-    #  chunking = false
-    #elsif @task[:keyspace].to_i > 0 && @task[:keyspace].to_i > chunk_size
-    #  chunking = true
-
-      # build a hash containing our skip and limit values
-    #  chunk_num = 0
-    #  while chunk_skip < @task[:keyspace].to_i
-    #    skip = chunk_skip
-
-     #   chunks[chunk_num] = [skip, chunk_size]
-
-     #   chunk_num += 1
-     #   chunk_skip = skip + chunk_size
-     # end
-    #end
 
     if attackmode == 'combinator'
       wordlist_list = @task.wl_id
@@ -81,50 +58,24 @@ helpers do
 
     # Add global options
     # --opencl-device-types
-    if hc_settings.opencl_device_types.to_s != '0'
-      cmd += ' --opencl-device-types ' + hc_settings.opencl_device_types.to_s
-    end
+    cmd += ' --opencl-device-types ' + hc_settings.opencl_device_types.to_s if hc_settings.opencl_device_types.to_s != '0'
 
     # --workload-profile
-    if hc_settings.workload_profile.to_s != '0'
-      cmd += ' --workload-profile ' + hc_settings.workload_profile.to_s
-    end
+    cmd += ' --workload-profile ' + hc_settings.workload_profile.to_s if hc_settings.workload_profile.to_s != '0'
 
     # --gpu-temp-disable
-    if hc_settings.gpu_temp_disable == true
-      cmd += ' --gpu-temp-disable'
-    end
+    cmd += ' --gpu-temp-disable' if hc_settings.gpu_temp_disable
 
     # --gpu-temp-abort
-    if hc_settings.gpu_temp_abort.to_s != '0'
-      cmd += ' --gpu-temp-abort=' + hc_settings.gpu_temp_abort.to_s
-    end
+    cmd += ' --gpu-temp-abort=' + hc_settings.gpu_temp_abort.to_s if hc_settings.gpu_temp_abort.to_s != '0'
 
     # --gpu-temp-retain
-    if hc_settings.gpu_temp_retain.to_s != '0'
-      cmd += ' --gpu-temp-retain=' + hc_settings.gpu_temp_retain.to_s
-    end
+    cmd += ' --gpu-temp-retain=' + hc_settings.gpu_temp_retain.to_s if hc_settings.gpu_temp_retain.to_s != '0'
 
     # --force
-    if hc_settings.hc_force == true
-      cmd += ' --force'
-    end
+    cmd += ' --force' if hc_settings.hc_force
 
-    if hc_settings.optimized_drivers == true
-      cmd += ' -O'
-    end
-
-    # add skip and limit if we are chunking this task
-    #if chunking == true
-    #  chunks.each do |_unused, value|
-    #    if attackmode == 'maskmode' || attackmode == 'dictionary'
-    #      cmds << cmd + ' -s ' + value[0].to_s + ' -l ' + value[1].to_s
-    #      p cmd
-    #    end
-    #  end
-    #else
-    #  cmds << cmd
-    #end
+    cmd += ' -O' if hc_settings.optimized_drivers
 
     cmd
   end

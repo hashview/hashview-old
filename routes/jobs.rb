@@ -188,11 +188,10 @@ get '/jobs/assign_tasks' do
   @tasks.each do |task|
     element = {}
     inuse = Jobtasks.where(job_id: params[:job_id], task_id: task.id).first
-    if inuse.nil?
-      element['id'] = task.id
-      element['name'] = task.name
-      @available_tasks.push(element)
-    end
+    next unless inuse.nil?
+    element['id'] = task.id
+    element['name'] = task.name
+    @available_tasks.push(element)
   end
 
   # Create jobtasks_task object
@@ -302,19 +301,15 @@ get '/jobs/assign_task_group' do
 
   task_group = TaskGroups.first(id: params[:task_group_id])
   unless task_group.nil?
-    p 'Task group is not empty'
     @task_group_ids = task_group.tasks.scan(/\d/)
     @task_group_ids.each do |task_id|
-      p ' checking to see if ' + task_id.to_s + ' is assigned'
       existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: task_id)
-      if existing_jobtask.nil?
-        p ' we can assign ' + task_id.to_s
-        # Append task to job
-        job_task = Jobtasks.new
-        job_task.job_id = params[:job_id]
-        job_task.task_id = task_id
-        job_task.save
-      end
+      next unless existing_jobtask.nil?
+      # Append task to job
+      job_task = Jobtasks.new
+      job_task.job_id = params[:job_id]
+      job_task.task_id = task_id
+      job_task.save
     end
   end
 
@@ -365,19 +360,18 @@ get '/jobs/start/:id' do
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
 
-    if job_task.status != 'Completed'
-      # toggle the job status to run
-      # We shouldn't need to do this for every task, just once
-      job.status = 'Queued'
-      job.queued_at = DateTime.now
-      job.save
+    next unless job_task.status != 'Completed'
+    # toggle the job status to run
+    # We shouldn't need to do this for every task, just once
+    job.status = 'Queued'
+    job.queued_at = DateTime.now
+    job.save
 
-      # set jobtask status to queued
-      job_task.status = 'Queued'
-      job_task.command = buildCrackCmd(job.id, job_task.task_id)
-      job_task.keyspace_pos = 0
-      job_task.save
-    end
+    # set jobtask status to queued
+    job_task.status = 'Queued'
+    job_task.command = buildCrackCmd(job.id, job_task.task_id)
+    job_task.keyspace_pos = 0
+    job_task.save
   end
 
   if job.status == 'Completed'
@@ -520,12 +514,11 @@ get '/jobs/hub_check' do
   @hash_array = []
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
-    unless hash.nil?
-      element = {}
-      element['ciphertext'] = hash.originalhash
-      element['hashtype'] = hash.hashtype.to_s
-      @hash_array.push(element)
-    end
+    next if hash.nil?
+    element = {}
+    element['ciphertext'] = hash.originalhash
+    element['hashtype'] = hash.hashtype.to_s
+    @hash_array.push(element)
   end
 
   hub_response = Hub.hashSearch(@hash_array)
@@ -533,18 +526,17 @@ get '/jobs/hub_check' do
   if hub_response['status'] == '200'
     @hub_hash_results = hub_response['hashes']
     @hub_hash_results.each do |element|
-      if element['cracked'] == '1'
-        hash = Hashes.first(originalhash: element['ciphertext'])
-        results_entry['id'] = hash.id
-        # TODO
-        # Adding usernames to this result would be great
-        results_entry['ciphertext'] = element['ciphertext']
-        results_entry['hub_hash_id'] = element['hash_id']
-        results_entry['hashtype'] = element['hashtype']
-        results_entry['show_results'] = '1'
-        @results.push(results_entry)
-        results_entry = {}
-      end
+      next unless element['cracked'] == '1'
+      hash = Hashes.first(originalhash: element['ciphertext'])
+      results_entry['id'] = hash.id
+      # TODO
+      # Adding usernames to this result would be great
+      results_entry['ciphertext'] = element['ciphertext']
+      results_entry['hub_hash_id'] = element['hash_id']
+      results_entry['hashtype'] = element['hashtype']
+      results_entry['show_results'] = '1'
+      @results.push(results_entry)
+      results_entry = {}
     end
   end
 

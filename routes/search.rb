@@ -1,10 +1,8 @@
 get '/search' do
-
   haml :search
 end
 
 post '/search' do
-
   varWash(params)
 
   @customers = Customers.all

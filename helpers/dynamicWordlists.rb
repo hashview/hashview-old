@@ -1,5 +1,4 @@
 def updateDynamicWordlist(wordlist_id)
-
   wordlist = Wordlists.first(id: wordlist_id)
   file = wordlist.path
 
@@ -31,5 +30,4 @@ def updateDynamicWordlist(wordlist_id)
   wordlist.size = size
   wordlist.save
   true
-
 end
