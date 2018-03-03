@@ -752,10 +752,14 @@ def upgrade_to_v074(user, password, host, database)
 
   # Remove from filesystem
   begin
-    File.delete(@wordlist.path)
+    File.delete(wordlist.path)
   rescue
     puts '[!] No file found on disk.'
   end
+  
+  # Remove from db
+  wordlist = HVDB[:wordlists]
+  wordlist.filter(path: 'control/wordlists/SmartWordlist.txt').delete
 
   # Create a dynamic wordlist for each hashfile
   puts '[*] Creating new dynamic wordlists for existing hashfiles.'
