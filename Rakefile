@@ -740,7 +740,7 @@ def upgrade_to_v074(user, password, host, database)
   wordlist = Wordlists.first(path: 'control/wordlists/SmartWordlist.txt')
 
   # Remove from any existing job (keep job)
-  @tasks.where(wl_id: wordlist.id).all
+  @tasks = Tasks.where(wl_id: wordlist.id).all
   @tasks.each do |task|
     @jobtasks = HVDB[:jobtasks]
     @jobtasks.filter(task_id: task.id).delete
