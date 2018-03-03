@@ -754,7 +754,7 @@ def upgrade_to_v074(user, password, host, database)
   begin
     File.delete(@wordlist.path)
   rescue
-    flash[:warning] = 'No file found on disk.'
+    puts [!] 'No file found on disk.'
   end
 
   # Create a dynamic wordlist for each hashfile
