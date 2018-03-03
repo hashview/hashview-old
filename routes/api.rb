@@ -31,7 +31,6 @@ end
 # used when agent goes offline and comes back online
 # without a running hashcat cmd while task still assigned to them
 get '/v1/queue/:id' do
-
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
 
@@ -339,7 +338,7 @@ post '/v1/agents/:uuid/heartbeat' do
           # get next task_queue item for this agent if there is anything in the queue
           already_assigned_chunk = Taskqueues.first(agent_id: agent.id)
           if already_assigned_chunk and !already_assigned_chunk.nil?
-            p "Agent already has a task: #{already_assigned_chunk.to_s}"
+            p "Agent already has a task: #{already_assigned_chunk}"
             p 'Agent Chunk ID: ' + already_assigned_chunk.id.to_s
             response = {}
             response['status'] = 200
@@ -378,7 +377,6 @@ post '/v1/agents/:uuid/heartbeat' do
             if @jobtask_queue && !@jobtask_queue.empty? # useing.empty since we're doing a where / all select
               p 'We have a running jobtask at the moment: ' + @jobtask_queue.to_s
               @jobtask_queue.each do |jobtask_queue_entry|
-
                 task = Tasks.first(id: jobtask_queue_entry.task_id)
                 # We only want to hand out chunks for masks and dictionary tasks
                 # i.e. no subdivision for bruteforce
@@ -445,7 +443,7 @@ post '/v1/agents/:uuid/heartbeat' do
             p 'We do not have a running task queue entry. checking for queued tasks'
             # Looks like there are no running jobtasks, time to start a new one
             jobtask_queue_entry = Jobtasks.first(status: 'Queued')
-            if jobtask_queue_entry && ! jobtask_queue_entry.nil? # using nil since we're doing a single line select
+            if jobtask_queue_entry && !jobtask_queue_entry.nil? # using nil since we're doing a single line select
               p 'We have a queued task: ' + jobtask_queue_entry.to_s
               p 'Current jobtasks id: ' + jobtask_queue_entry.id.to_s
               p 'Current task: ' + jobtask_queue_entry.task_id.to_s
