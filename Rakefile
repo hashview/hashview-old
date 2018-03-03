@@ -721,12 +721,6 @@ def upgrade_to_v074(user, password, host, database)
   # Creating New Task Groups Table
   conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
 
-  # Remove unused columns
-  puts '[*] Removing unused database structures.'
-  conn.query('ALTER TABLE tasks DROP COLUMN source')
-  conn.query('ALTER TABLE tasks DROP COLUMN mask')
-  conn.query('ALTER TABLE tasks DROP COLUMN command')
-
   # Adding new columns
   puts '[*] Adding new columns.'
   conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
