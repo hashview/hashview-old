@@ -57,7 +57,7 @@
                                             %b Type
                                       %tbody
                                       - if task_group.tasks
-                                        - @task_groups_task_ids = task_group.tasks.scan(/\d/)
+                                        - @task_groups_task_ids = task_group.tasks.scan(/\d+/)
                                         - @tasks.each do | task |
                                           - @task_groups_task_ids.each do | task_group_task_id |
                                             - if task_group_task_id.to_i == task.id.to_i
