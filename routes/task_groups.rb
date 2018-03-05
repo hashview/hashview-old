@@ -113,10 +113,12 @@ get '/task_groups/move_task' do
       end
 
       @task_group_task_ids.each_with_index do |_unused, index|
-        @new_task_ids.push(@task_group_task_ids[index])
         if @task_group_task_ids[index] == params[:task_id]
+          @new_task_ids.push(@task_group_task_ids[index + 1])
           @new_task_ids.push(params[:task_id])
           @task_group_task_ids.delete_at(index + 1)
+        else
+          @new_task_ids.push(@task_group_task_ids[index])
         end
       end
     end
