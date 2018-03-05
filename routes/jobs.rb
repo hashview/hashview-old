@@ -301,7 +301,7 @@ get '/jobs/assign_task_group' do
 
   task_group = TaskGroups.first(id: params[:task_group_id])
   unless task_group.nil?
-    @task_group_ids = task_group.tasks.scan(/\d/)
+    @task_group_ids = task_group.tasks.scan(/\d+/)
     @task_group_ids.each do |task_id|
       existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: task_id)
       next unless existing_jobtask.nil?
