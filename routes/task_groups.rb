@@ -54,7 +54,7 @@ get '/task_groups/assign_tasks' do
   @task_group_tasks = []
   unless @task_group.tasks.nil?
 
-    @task_group_task_ids = @task_group.tasks.scan(/\d/)
+    @task_group_task_ids = @task_group.tasks.scan(/\d+/)
     @task_group_task_ids.each do |id|
       element = {}
       task = Tasks.first(id: id)
@@ -90,7 +90,7 @@ get '/task_groups/move_task' do
   task_group = TaskGroups.first(id: params[:id])
   @new_task_ids = []
   unless task_group.tasks.nil?
-    @task_group_task_ids = task_group.tasks.scan(/\d/)
+    @task_group_task_ids = task_group.tasks.scan(/\d+/)
     if params[:action] == 'UP'
       if @task_group_task_ids[0] == params[:task_id]
         flash[:error] = 'Task is already at the top.'
@@ -133,7 +133,7 @@ get '/task_groups/remove_task' do
 
   task_group = TaskGroups.first(id: params[:id])
   unless task_group.tasks.nil?
-    @task_group_ids = task_group.tasks.scan(/\d/)
+    @task_group_ids = task_group.tasks.scan(/\d+/)
     @remaining_task_ids = []
     @task_group_ids.each do |task|
       next if task.to_i == params['task_id'].to_i
@@ -156,7 +156,7 @@ get '/task_groups/assign_task' do
   if task_group.tasks.nil?
     task_group.tasks = Array(params['task_id']).to_s
   else
-    @task_group_ids = task_group.tasks.scan(/\d/)
+    @task_group_ids = task_group.tasks.scan(/\d+/)
     if @task_group_ids.include? params['task_id']
       flash[:error] = 'Task is already assigned to the group.'
       redirect to("/tasks_groups/assign_tasks?id=#{params[:id]}")
