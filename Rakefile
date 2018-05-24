@@ -319,6 +319,8 @@ namespace :db do
     agent_config['port'] = '4567'
     agent_config['uuid'] = SecureRandom.uuid.to_s
     agent_config['hc_binary_path'] = ''
+    agent_config['hc_pre_cmd'] = ''
+    agent_config['hc_post_cmd'] = ''
     agent_config['type'] = 'master'
     File.open('config/agent_config.json', 'w') do |f|
       f.write(JSON.pretty_generate(agent_config))
@@ -525,6 +527,8 @@ def upgrade_to_v060(user, password, host, database)
   agent_config['port'] = '4567'
   agent_config['uuid'] = SecureRandom.uuid.to_s
   agent_config['hc_binary_path'] = ''
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
@@ -575,6 +579,8 @@ def upgrade_to_v070(user, password, host, database)
   puts '[*] Writing new parameters to agent config'
   agent_config = JSON.parse(File.read('config/agent_config.json'))
   agent_config['hc_binary_path'] = @hc_binpath
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
