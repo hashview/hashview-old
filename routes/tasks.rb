@@ -53,8 +53,8 @@ post '/tasks/edit/:id' do
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
-  wordlist1 = Wordlists.first(id: params[:wordlist1])
-  wordlist2 = Wordlists.first(id: params[:wordlist2])
+  wordlist_wm = Wordlists.first(id: params[:wordlist_wm])
+  wordlist_mw = Wordlists.first(id: params[:wordlist_mw])
   # must have two word lists
   if params[:attackmode] == 'combinator'
     wordlist_count = 0
@@ -108,12 +108,12 @@ post '/tasks/edit/:id' do
     task.hc_rule = rule_list
     task.hc_mask = 'NULL'
   elsif params[:attackmode] == 'wordmask'
-    task.wl_id = wordlist2.id
-    task.hc_mask = params[:mask2]
+    task.wl_id = wordlist_wm.id
+    task.hc_mask = params[:mask_wm]
     task.hc_rule = 'NULL'
   elsif params[:attackmode] == 'maskword'
-    task.wl_id = wordlist3.id
-    task.hc_mask = params[:mask3]
+    task.wl_id = wordlist_mw.id
+    task.hc_mask = params[:mask_mw]
     task.hc_rule = 'NULL'
   end
   task.save
@@ -150,8 +150,8 @@ post '/tasks/create' do
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
-  wordlist1 = Wordlists.first(id: params[:wordlist1])
-  wordlist2 = Wordlists.first(id: params[:wordlist2])
+  wordlist_wm = Wordlists.first(id: params[:wordlist_wm])
+  wordlist_mw = Wordlists.first(id: params[:wordlist_mw])
   # mask field cannot be empty
   if params[:attackmode] == 'maskmode'
     if !params[:mask] || params[:mask].empty?
@@ -209,12 +209,12 @@ post '/tasks/create' do
     task.wl_id = wordlist_list
     task.hc_rule = rule_list
   elsif params[:attackmode] == 'wordmask'
-    task.wl_id = wordlist2.id
-    task.hc_mask = params[:mask2]
+    task.wl_id = wordlist_wm.id
+    task.hc_mask = params[:mask_wm]
     task.hc_rule = 'NULL'
   elsif params[:attackmode] == 'maskword'
-    task.wl_id = wordlist3.id
-    task.hc_mask = params[:mask3]
+    task.wl_id = wordlist_mw.id
+    task.hc_mask = params[:mask_mw]
     task.hc_rule = 'NULL'
   end
 

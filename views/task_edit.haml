@@ -265,7 +265,7 @@
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Wordlist:
                           .col-xs-4
-                            %select.form-control{name: 'wordlist2'}
+                            %select.form-control{name: 'wordlist_wm'}
                               - @wordlists.each do |wordlist|
                                 - if @task.wl_id.to_i == wordlist[:id].to_i
                                   %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist[:name]} (#{wordlist[:size]} words)
@@ -275,7 +275,7 @@
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                           .col-xs-4
-                            <input class='form-control' id='mask2' name='mask2' type='textbox' value="#{@task.hc_mask}" >
+                            <input class='form-control' id='mask_wm' name='mask_wm' type='textbox' value="#{@task.hc_mask}" >
                           %p
                         .form-group
                           .col-xs-offset-2.col-xs-10
@@ -285,13 +285,13 @@
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Wordlist:
                           .col-xs-4
-                            %select.form-control{name: 'wordlist2'}
+                            %select.form-control{name: 'wordlist_wm'}
                               - @wordlists.each do |wordlist|
                                 %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                           .col-xs-4
-                            <input class='form-control' id='mask2' name='mask2' type='textbox' value="#{@task.hc_mask}" >
+                            <input class='form-control' id='mask_wm' name='mask_wm' type='textbox' value="#{@task.hc_mask}" >
                           %p
                         .form-group
                           .col-xs-offset-2.col-xs-10
@@ -301,12 +301,12 @@
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                           .col-xs-4
-                            <input class='form-control' id='mask3' name='mask3' type='textbox' value="#{@task.hc_mask}" >
+                            <input class='form-control' id='mask_mw' name='mask_mw' type='textbox' value="#{@task.hc_mask}" >
                           %p
                           .form-group
                           %label.control-label.col-xs-2{for: ''} Wordlist:
                           .col-xs-4
-                            %select.form-control{name: 'wordlist3'}
+                            %select.form-control{name: 'wordlist_mw'}
                               - @wordlists.each do |wordlist|
                                 - if @task.wl_id.to_i == wordlist[:id].to_i
                                   %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist[:name]} (#{wordlist[:size]} words)
@@ -321,12 +321,12 @@
                         .form-group
                           %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                           .col-xs-4
-                            <input class='form-control' id='mask3' name='mask3' type='textbox' value="#{@task.hc_mask}" >
+                            <input class='form-control' id='mask_mw' name='mask_mw' type='textbox' value="#{@task.hc_mask}" >
                           %p
                           .form-group
                           %label.control-label.col-xs-2{for: ''} Wordlist:
                           .col-xs-4
-                            %select.form-control{name: 'wordlist3'}
+                            %select.form-control{name: 'wordlist_mw'}
                               - @wordlists.each do |wordlist|
                                 %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                         .form-group
@@ -436,13 +436,13 @@
                       .form-group
                         %label.control-label.col-xs-2{for: ''} Wordlist:
                         .col-xs-4
-                          %select.form-control{name: 'wordlist2'}
+                          %select.form-control{name: 'wordlist_wm'}
                             - @wordlists.each do |wordlist|
                               %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                       .form-group
                         %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                         .col-xs-4
-                          <input class='form-control' id='mask2' name='mask2' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                          <input class='form-control' id='mask_wm' name='mask_wm' type='textbox' placeholder='i.e. ?l?u?u?u' >
                       .form-group
                         .col-xs-offset-2.col-xs-10
                           %button.btn.btn-primary{type: 'submit'} Create
@@ -450,11 +450,11 @@
                       .form-group
                         %label.control-label.col-xs-2{for: ''} Hashcat Mask:
                         .col-xs-4
-                          <input class='form-control' id='mask3' name='mask3' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                          <input class='form-control' id='mask_mw' name='mask_mw' type='textbox' placeholder='i.e. ?l?u?u?u' >
                       .form-group
                         %label.control-label.col-xs-2{for: ''} Wordlist:
                         .col-xs-4
-                          %select.form-control{name: 'wordlist3'}
+                          %select.form-control{name: 'wordlist_mw'}
                             - @wordlists.each do |wordlist|
                               %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                       .form-group
