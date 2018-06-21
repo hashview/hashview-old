@@ -74,7 +74,7 @@ helpers do
     when 'maskword'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 6 ' + target_file + ' ' + wordlist.path + ' ' + mask
     when 'wordmask'
-      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 6 ' + target_file + ' ' + mask + ' ' + wordlist.path
+      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 7 ' + target_file + ' ' + mask + ' ' + wordlist.path
 
     else
       puts 'INVALID ATTACK MODE: ' + attackmode.to_s
