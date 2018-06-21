@@ -11,6 +11,9 @@
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'none';
           document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'none';
+          
         }
         else if(Index == "maskmode")
         {
@@ -18,6 +21,8 @@
           document.getElementById('maskmode_div').style.display = 'inline';
           document.getElementById('bruteforce_div').style.display = 'none';
           document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'none';
         }
         else if(Index == "bruteforce")
         {
@@ -25,6 +30,8 @@
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'inline';
           document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'none';
         }
         else if(Index == "combinator")
         {
@@ -32,6 +39,26 @@
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'none';
           document.getElementById('combinator_div').style.display = 'inline';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'none';
+        }
+        else if(Index == "wordmask")
+        {
+          document.getElementById('dictionary_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'inline';
+          document.getElementById('maskword_div').style.display = 'none';
+        }
+        else if(Index == "maskword")
+        {
+          document.getElementById('dictionary_div').style.display = 'none';
+          document.getElementById('maskmode_div').style.display = 'none';
+          document.getElementById('bruteforce_div').style.display = 'none';
+          document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'inline';
         }
         else
         {
@@ -39,6 +66,8 @@
           document.getElementById('maskmode_div').style.display = 'none';
           document.getElementById('bruteforce_div').style.display = 'none';
           document.getElementById('combinator_div').style.display = 'none';
+          document.getElementById('wordmask_div').style.display = 'none';
+          document.getElementById('maskword_div').style.display = 'none';
         }
       }
     - if @task
@@ -76,21 +105,43 @@
                         %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
                         %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
                         %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
                       - elsif @task.hc_attackmode == 'maskmode'
                         %option{value: 'dictionary', name: 'attackmode', type: 'button'} Dictionary
                         %option{value: 'maskmode', name: 'attackmode', type: 'button', selected: 'selected'} Mask Mode
                         %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
                         %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
                       - elsif @task.hc_attackmode == 'combinator'
                         %option{value: 'dictionary', name: 'attackmode', type: 'button'} Dictionary
                         %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
                         %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
                         %option{value: 'combinator', name: 'combinator', type: 'button', selected: 'selected'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
                       - elsif @task.hc_attackmode == 'bruteforce'
                         %option{value: 'dictionary', name: 'attackmode', type: 'button'} Dictionary
                         %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
                         %option{value: 'bruteforce', name: 'attackmode', type: 'button', selected: 'selected'} Brute Force
                         %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
+                      - elsif @task.hc_attackmode == 'wordmask'
+                        %option{value: 'dictionary', name: 'attackmode', type: 'button'} Dictionary
+                        %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
+                        %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
+                        %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button', selected: 'selected'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
+                      - elsif @task.hc_attackmode == 'maskword'
+                        %option{value: 'dictionary', name: 'attackmode', type: 'button'} Dictionary
+                        %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
+                        %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
+                        %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
+                        %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                        %option{value: 'maskword', name: 'attackmode', type: 'button', selected: 'selected'} Hybrid Mask + Wordlist
                 .section
                   %div{class: "label_leftalign field"}
                     - if @task.hc_attackmode == 'dictionary'
@@ -209,6 +260,78 @@
                         .form-group
                           .col-xs-offset-2.col-xs-1
                             %button.btn.btn-primary{type: 'submit'} Update
+                    - if @task.hc_attackmode == 'wordmask'
+                      #wordmask_div{style: 'display:inline'}
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          .col-xs-4
+                            %select.form-control{name: 'wordlist2'}
+                              - @wordlists.each do |wordlist|
+                                - if @task.wl_id.to_i == wordlist[:id].to_i
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist[:name]} (#{wordlist[:size]} words)
+                                - else
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button'} #{wordlist[:name]} (#{wordlist[:size]} words)
+                        %p
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          .col-xs-4
+                            <input class='form-control' id='mask2' name='mask2' type='textbox' value="#{@task.hc_mask}" >
+                          %p
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{type: 'submit'} Update
+                    - else
+                      #wordmask_div{style: 'display:none'}
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          .col-xs-4
+                            %select.form-control{name: 'wordlist2'}
+                              - @wordlists.each do |wordlist|
+                                %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          .col-xs-4
+                            <input class='form-control' id='mask2' name='mask2' type='textbox' value="#{@task.hc_mask}" >
+                          %p
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{type: 'submit'} Update
+                    - if @task.hc_attackmode == 'maskword'
+                      #maskword_div{style: 'display:inline'}
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          .col-xs-4
+                            <input class='form-control' id='mask3' name='mask3' type='textbox' value="#{@task.hc_mask}" >
+                          %p
+                          .form-group
+                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          .col-xs-4
+                            %select.form-control{name: 'wordlist3'}
+                              - @wordlists.each do |wordlist|
+                                - if @task.wl_id.to_i == wordlist[:id].to_i
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button', selected: 'selected'} #{wordlist[:name]} (#{wordlist[:size]} words)
+                                - else
+                                  %option{value: "#{wordlist[:id]}", name: 'wl_id', type: 'button'} #{wordlist[:name]} (#{wordlist[:size]} words)
+                        %p
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{type: 'submit'} Update
+                    - else
+                      #maskword_div{style: 'display:none'}
+                        .form-group
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          .col-xs-4
+                            <input class='form-control' id='mask3' name='mask3' type='textbox' value="#{@task.hc_mask}" >
+                          %p
+                          .form-group
+                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          .col-xs-4
+                            %select.form-control{name: 'wordlist3'}
+                              - @wordlists.each do |wordlist|
+                                %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
+                        .form-group
+                          .col-xs-offset-2.col-xs-10
+                            %button.btn.btn-primary{type: 'submit'} Update
                       
     - else
       .span15
@@ -245,6 +368,8 @@
                       %option{value: 'maskmode', name: 'attackmode', type: 'button'} Mask Mode
                       %option{value: 'combinator', name: 'combinator', type: 'button'} Combinator
                       %option{value: 'bruteforce', name: 'attackmode', type: 'button'} Brute Force
+                      %option{value: 'wordmask', name: 'attackmode', type: 'button'} Hybrid Wordlist + Mask
+                      %option{value: 'maskword', name: 'attackmode', type: 'button'} Hybrid Mask + Wordlist
                 .section
                   %div{class: "label_leftalign field"}
                     #dictionary_div{style: 'display:none'}
@@ -306,4 +431,32 @@
                             WARNING: Set max task time in Hashcat global settings.
                       .form-group
                         .col-xs-offset-2.col-xs-1
+                          %button.btn.btn-primary{type: 'submit'} Create
+                    #wordmask_div{style: 'display:none'}
+                      .form-group
+                        %label.control-label.col-xs-2{for: ''} Wordlist:
+                        .col-xs-4
+                          %select.form-control{name: 'wordlist2'}
+                            - @wordlists.each do |wordlist|
+                              %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
+                      .form-group
+                        %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                        .col-xs-4
+                          <input class='form-control' id='mask2' name='mask2' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                      .form-group
+                        .col-xs-offset-2.col-xs-10
+                          %button.btn.btn-primary{type: 'submit'} Create
+                    #maskword_div{style: 'display:none'}
+                      .form-group
+                        %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                        .col-xs-4
+                          <input class='form-control' id='mask3' name='mask3' type='textbox' placeholder='i.e. ?l?u?u?u' >
+                      .form-group
+                        %label.control-label.col-xs-2{for: ''} Wordlist:
+                        .col-xs-4
+                          %select.form-control{name: 'wordlist3'}
+                            - @wordlists.each do |wordlist|
+                              %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
+                      .form-group
+                        .col-xs-offset-2.col-xs-10
                           %button.btn.btn-primary{type: 'submit'} Create

@@ -53,7 +53,8 @@ post '/tasks/edit/:id' do
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
-
+  wordlist1 = Wordlists.first(id: params[:wordlist1])
+  wordlist2 = Wordlists.first(id: params[:wordlist2])
   # must have two word lists
   if params[:attackmode] == 'combinator'
     wordlist_count = 0
@@ -106,6 +107,14 @@ post '/tasks/edit/:id' do
     task.wl_id = wordlist_list
     task.hc_rule = rule_list
     task.hc_mask = 'NULL'
+  elsif params[:attackmode] == 'wordmask'
+    task.wl_id = wordlist2.id
+    task.hc_mask = params[:mask2]
+    task.hc_rule = 'NULL'
+  elsif params[:attackmode] == 'maskword'
+    task.wl_id = wordlist3.id
+    task.hc_mask = params[:mask3]
+    task.hc_rule = 'NULL'
   end
   task.save
 
@@ -141,7 +150,8 @@ post '/tasks/create' do
   end
 
   wordlist = Wordlists.first(id: params[:wordlist])
-
+  wordlist1 = Wordlists.first(id: params[:wordlist1])
+  wordlist2 = Wordlists.first(id: params[:wordlist2])
   # mask field cannot be empty
   if params[:attackmode] == 'maskmode'
     if !params[:mask] || params[:mask].empty?
@@ -198,6 +208,14 @@ post '/tasks/create' do
   elsif params[:attackmode] == 'combinator'
     task.wl_id = wordlist_list
     task.hc_rule = rule_list
+  elsif params[:attackmode] == 'wordmask'
+    task.wl_id = wordlist2.id
+    task.hc_mask = params[:mask2]
+    task.hc_rule = 'NULL'
+  elsif params[:attackmode] == 'maskword'
+    task.wl_id = wordlist3.id
+    task.hc_mask = params[:mask3]
+    task.hc_rule = 'NULL'
   end
 
   # generate keyspace of new task and save to db
