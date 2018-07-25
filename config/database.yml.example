@@ -1,5 +1,5 @@
 production:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
@@ -8,7 +8,7 @@ production:
   encoding: "utf8"
 
 development:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
@@ -17,7 +17,7 @@ development:
   encoding: "utf8"
 
 test:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"

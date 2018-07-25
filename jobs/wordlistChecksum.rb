@@ -19,7 +19,7 @@ module WordlistChecksum
     @wordlist.each do |wl|
       # generate checksum
       logger_wordlistchecksum.info('generating checksum for: ' + wl.path.to_s)
-      checksum = Digest::SHA2.hexdigest(File.read(wl.path))
+      checksum = Digest::SHA256.file(wl.path).hexdigest
 
       # save checksum to database
       wl.checksum = checksum
