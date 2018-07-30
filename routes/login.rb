@@ -1,5 +1,6 @@
 # encoding: utf-8
 get '/login' do
+
   @users = User.all
   @settings = Settings.first
   if @users.empty?
@@ -10,6 +11,7 @@ get '/login' do
 end
 
 get '/logout' do
+
   varWash(params)
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
@@ -19,6 +21,7 @@ get '/logout' do
 end
 
 post '/login' do
+
   varWash(params)
   if !params[:username] || params[:username].nil?
     flash[:error] = 'You must supply a username.'

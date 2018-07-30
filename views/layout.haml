@@ -26,7 +26,7 @@
     .navbar.navbar-inverse.navbar-static-top
       .container
         %a.navbar-brand(href="/home")
-          Hashview
+          Hashview (v#{@settings.version}-beta)
         %button.navbar-toggle(data-toggle="collapse" data-target=".navHeaderCollapse")
           %span.icon-bar
           %span.icon-bar
@@ -41,38 +41,45 @@
             - if validSession?
               %li
                 %a(href="/jobs/list") Jobs
-              %li
-                %a(href="/tasks/list") Tasks
+              %li.dropdown
+                %a.dropdown-toggle(data-toggle='dropdown' href='#')
+                  Tasks
+                  %b.caret
+                %ul.dropdown-menu
+                  %li
+                    %a(href='/tasks/list') Tasks
+                  %li
+                    %a(href='/task_groups/list') Task Groups
               - if hubEnabled?
                 %li
                   %a(href="/hub") Hub
               %li.dropdown
-                %a.dropdown-toggle(data-toggle="dropdown" href="#")
+                %a.dropdown-toggle(data-toggle='dropdown' href='#')
                   Manage
                   %b.caret
                 %ul.dropdown-menu
                   %li
-                    %a(href="/customers/list") Customers
+                    %a(href='/customers/list') Customers
                   %li
-                    %a(href="/wordlists/list") Wordlists
+                    %a(href='/wordlists/list') Wordlists
                   %li
-                    %a(href="/rules/list") Rules
+                    %a(href='/rules/list') Rules
                   %li
                     %a(href='/hashfiles/list') Hashfiles
                   %li
                     %a(href='/agents/list') Agents
                   %li.divider{role: 'separator'}
                   %li
-                    %a(href="/analytics") Analytics
+                    %a(href='/analytics') Analytics
                   %li
-                    %a(href="/search") Search
+                    %a(href='/search') Search
                   %li.divider{role: 'separator'}
                   %li
                     %a(href='/accounts/list') User Accounts
                   %li
-                    %a(href="/settings") Global Settings
+                    %a(href='/settings') Global Settings
                   %li
-                    %a(href="/logout") Logout
+                    %a(href='/logout') Logout
             %li
               - if !validSession?                
                 %a(href="/login") Login

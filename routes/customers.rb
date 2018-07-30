@@ -33,9 +33,26 @@ post '/customers/create' do
     redirect to('/customers/create')
   end
 
+  # Create Dynamic Wordlist for Customer
+  hash = rand(36**8).to_s(36)
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.scope = 'customer'
+  wordlist.name = 'DYNAMIC [customer] - ' + params[:name].to_s
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
+  
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
+
   customer = Customers.new
   customer.name = params[:name]
   customer.description = params[:desc]
+  customer.wl_id = wordlist.id
   customer.save
 
   redirect to('customers/list')
@@ -66,9 +83,19 @@ end
 get '/customers/delete/:id' do
   varWash(params)
 
+  @customers = Customers.first(id: params[:id])
+
+  # Remove Dynamic wordlist
+  @wordlists = HVDB[:wordlists]
+  @wordlists.filter(id: @customers.wl_id).delete
+
+  @hashfiles = HVDB[:hashfiles]
+  @hashfiles.filter(customer_id: params[:id]).delete
+
   customer = HVDB[:customers]
   customer.filter(id: params[:id]).delete
 
+  # Remove any existing jobs
   @jobs = Jobs.where(customer_id: params[:id]).all
   unless @jobs.nil?
     @jobs.each do |job|
@@ -78,9 +105,6 @@ get '/customers/delete/:id' do
     @jobs = HVDB[:jobs]
     @jobs.filter(customer_id: params[:id]).delete
   end
-
-  @hashfiles = HVDB[:hashfiles]
-  @hashfiles.filter(customer_id: params[:id]).delete
 
   redirect to('/customers/list')
 end
@@ -113,11 +137,27 @@ post '/customers/upload/hashfile' do
     hash_array << line
   end
 
+  # Create Dynamic Wordlist for hashfile
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.scope = 'hashfile'
+  wordlist.name = 'DYNAMIC [hashfile] - ' + params[:hashfile_name].to_s
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
+  
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
+
   # save location of tmp hash file
   hashfile = Hashfiles.new
   hashfile.name = params[:hashfile_name]
   hashfile.customer_id = params[:customer_id]
   hashfile.hash_str = hash
+  hashfile.wl_id = wordlist.id
   hashfile.save
 
   @job.save # <---- edit bug here
@@ -220,12 +260,13 @@ post '/customers/upload/verify_hashtype' do
   @job.hashfile_id = hashfile.id
   @job.save
 
-  total_cnt = HVDB.fetch('SELECT COUNT(h.originalhash) FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)[:count]
-  total_cnt = total_cnt[:count]
+  total_cnt = HVDB.fetch('SELECT h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', hashfile.id)
 
-  unless total_cnt.nil?
-    flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes.'
-    #flash[:success] = 'Successfully uploaded ' + total_cnt + ' hashes taking a total of ' + time.real.to_s + ' seconds.'
+  if total_cnt.count.zero? || total_cnt.nil?
+    flash[:error] = 'Error importing hashes. Did you select the right file type?'
+    redirect to "/jobs/assign_hashfile?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}"
+  else
+    flash[:success] = 'Successfully uploaded ' + total_cnt.count.to_s + ' hashes.'
   end
 
   # Delete file, no longer needed

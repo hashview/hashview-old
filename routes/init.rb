@@ -1,4 +1,3 @@
-# encoding: utf-8
 require_relative 'customers'
 require_relative 'accounts'
 require_relative 'tasks'
@@ -16,3 +15,4 @@ require_relative 'api'
 require_relative 'agents'
 require_relative 'hub'
 require_relative 'rules'
+require_relative 'task_groups'

@@ -96,7 +96,7 @@
                     - if @task.hc_attackmode == 'dictionary'
                       #dictionary_div{style: 'display:inline'}
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          %label.control-label.col-xs-2{for: ''} Wordlist
                           .col-xs-4
                             %select.form-control{name: 'wordlist'}
                               - @wordlists.each do |wordlist|
@@ -122,13 +122,13 @@
                     - else
                       #dictionary_div{style: 'display:none'}
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Wordlist:
+                          %label.control-label.col-xs-2{for: ''} Wordlist
                           .col-xs-4
                             %select.form-control{name: 'wordlist'}
                               - @wordlists.each do |wordlist|
                                 %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Dictionary Rules
+                          %label.control-label.col-xs-2{for: ''} Dictionary Rule
                           .col-xs-4
                             %select.form-control{name: 'rule'}
                               %option{value: 'none', name: 'rule', type: 'button', selected: 'selected'} None
@@ -140,7 +140,7 @@
                     - if @task.hc_attackmode == 'maskmode'
                       #maskmode_div{style: 'display:inline'}
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask
                           .col-xs-4
                             <input class='form-control' id='mask' name='mask' type='textbox' value="#{@task.hc_mask}" >
                         .form-group
@@ -149,7 +149,7 @@
                     - else
                       #maskmode_div{style: 'display:none'}
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Hashcat Mask:
+                          %label.control-label.col-xs-2{for: ''} Hashcat Mask
                           .col-xs-4
                             <input class='form-control' id='mask' name='mask' type='textbox' placeholder='i.e. ?l?u?u?u' >
                           %p
@@ -159,7 +159,7 @@
                     - if @task.hc_attackmode == 'combinator'
                       #combinator_div{style: 'display:inline'}
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Wordlists (Req 2):
+                          %label.control-label.col-xs-2{for: ''} Wordlists (Req 2)
                           .col-xs-4
                             .table
                               %table{class: 'table table'}
@@ -177,14 +177,14 @@
                                       #{wordlist.name}
                                     %tr
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Left Rule:
+                          %label.control-label.col-xs-2{for: ''} Left Rule
                           .col-xs-4
                             - if @combinator_left_rule
                               <input class='form-control' id='combinator_left_rule' name='combinator_left_rule' type='textbox' value="#{@combinator_left_rule}" >
                             -else
                               <input class='form-control' id='combinator_left_rule' name='combinator_left_rule' type='textbox' placeholder=' (optional)' >
                         .form-group
-                          %label.control-label.col-xs-2{for: ''} Right Rule:
+                          %label.control-label.col-xs-2{for: ''} Right Rule
                           .col-xs-4
                             - if @combinator_right_rule
                               <input class='form-control' id='combinator_right_rule' name='combinator_right_rule' type='textbox' value="#{@combinator_right_rule}" >
@@ -255,7 +255,7 @@
                             - @wordlists.each do |wordlist|
                               %option{value: "#{wordlist.id}", name: 'wl_id', type: 'button'} #{wordlist.name} (#{wordlist.size} words)
                       .form-group
-                        %label.control-label.col-xs-2{for: ''} Dictionary Rules
+                        %label.control-label.col-xs-2{for: ''} Dictionary Rule
                         .col-xs-4
                           %select.form-control{name: 'rule'}
                             %option{value: 'none', name: 'rule', type: 'button', selected: 'selected'} None

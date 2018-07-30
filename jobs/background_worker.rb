@@ -53,14 +53,14 @@ class Api
   def self.heartbeat()
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
     # puts "HEARTBEETING"
-    return self.get(url)
+    get(url)
   end
 
   # post hearbeat is used when agent is working
   def self.post_heartbeat(payload)
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
     # puts "HEARTBEETING"
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # change status of jobtask
@@ -69,7 +69,7 @@ class Api
     payload = {}
     payload['status'] = status
     payload['jobtask_id'] = jobtask_id
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # change status of taskqueue item
@@ -79,60 +79,65 @@ class Api
     payload['status'] = status
     payload['taskqueue_id'] = taskqueue_id
     payload['agent_uuid'] = @uuid
-    return self.post(url, payload)
+    post(url, payload)
   end
 
   # get next item in queue
   def self.queue
     url = "https://#{@server}/v1/queue"
-    return self.get(url)
+    get(url)
   end
 
   # get specific item from queue (must already be assigned to agent)
   def self.queue_by_id(id)
     url = "https://#{@server}/v1/queue/#{id}"
-    return self.get(url)
+    get(url)
   end
 
-    # remove item from queue
+  # remove item from queue
   def self.queue_remove(queue_id)
     url = "https://#{@server}/v1/queue/#{queue_id}/remove"
-    return self.get(url)
+    get(url)
   end
 
   # task details
   def self.task(task_id)
     url = "https://#{@server}/v1/task/#{task_id}"
-    return self.get(url)
+    get(url)
   end
 
   # jobtask details
   def self.jobtask(jobtask_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}"
-    return self.get(url)
+    get(url)
   end
 
   # job details
   def self.job(job_id)
     url = "https://#{@server}/v1/job/#{job_id}"
-    return self.get(url)
+    get(url)
   end
 
   # download hashfile
   def self.hashfile(jobtask_id, hashfile_id)
     url = "https://#{@server}/v1/jobtask/#{jobtask_id}/hashfile/#{hashfile_id}"
-    return self.get(url)
+    get(url)
   end
 
   # wordlists
   def self.get_updateSmartWordlist()
     url = "https://#{@server}/v1/updateSmartWordlist"
-    return self.get(url)
+    get(url)
   end
 
-  def self.wordlists()
+  def self.updateWordlist(wl_id)
+    url = "https://#{@server}/v1/updateWordlist/#{wl_id}"
+    get(url)
+  end
+
+  def self.wordlists
     url = "https://#{@server}/v1/wordlist"
-    return self.get(url)
+    get(url)
   end
 
   # upload crack file
@@ -151,7 +156,7 @@ class Api
         cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
-      response = request.execute
+      request.execute
     rescue RestClient::Exception => e
       puts e
       return '{error_msg: \'api call failed\'}'
@@ -165,7 +170,7 @@ class Api
     payload['gpu_count'] = hc_devices['gpus']
     payload['benchmark'] = hc_perfstats
     puts payload
-    return self.post(url, payload)
+    post(url, payload)
   end
 end
 
@@ -254,7 +259,7 @@ end
 class LocalAgent
   @queue = :hashcat
 
-  def self.perform()
+  def self.perform
     # this is our background worker for the task queue
     # other workers will be ran from a hashview agent
 
@@ -278,7 +283,7 @@ class LocalAgent
     hc_perfstats = hashcatBenchmarkParser(hc_benchmark(hashcatbinpath))
     Api.stats(hc_devices, hc_perfstats)
 
-    while(true)
+    loop do
       sleep(4)
 
       # find pid
@@ -310,17 +315,19 @@ class LocalAgent
         if heartbeat['type'] == 'message' && heartbeat['msg'] == 'START'
 
           jdata = Api.queue_by_id(heartbeat['task_id'])
+          p 'jdata unparsed: ' + jdata.to_s
           jdata = JSON.parse(jdata)
+          p 'background_worker jdata: ' + jdata.to_s
 
           # we must have an item from the queue before we start processing
-          if jdata['type'] != 'Error'
+          unless jdata['type'] == 'Error'
 
             # save task data to tmp to signify we are working
             File.open('control/tmp/agent_current_task.txt', 'w') do |f|
               f.write(jdata)
             end
 
-            # take queue item and set status to running
+            # take chunk_queue item and set status to running
             Api.post_queue_status(jdata['id'], 'Running')
 
             # set the jobtask to running
@@ -339,7 +346,7 @@ class LocalAgent
             # This is kinda dumb we should really be building the cmd on the agents size
             # Might be nice to pause the task instead of claim its running
             # what happens if the next chunk also uses this smart hashfile?
-            task = Api.task(jobtask[:task_id])
+            task = Api.task(jobtask['task_id'])
             task = JSON.parse(task)
 
             wordlists = Api.wordlists
@@ -348,9 +355,8 @@ class LocalAgent
             wordlists['wordlists'].each do |wordlist|
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
-                if wordlist['name'] == 'Smart Wordlist'
-                  p 'Updating Smart Wordlist'
-                  Api.get_updateSmartWordlist
+                if wordlist['type'] == 'dynamic'
+                  Api.updateWordlist(wordlist['id'])
                 end
               end
             end
@@ -370,6 +376,7 @@ class LocalAgent
             # # thread off hashcat
             thread1 = Thread.new {
               run_time = Benchmark.realtime do
+                p 'command: ' + cmd.to_s
                 system(cmd)
               end
             }
@@ -384,7 +391,7 @@ class LocalAgent
                 payload['agent_status'] = 'Working'
                 payload['agent_task'] = jdata['id']
                 # provide hashcat status with hearbeat
-                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}.txt")
+                payload['hc_status'] = hashcatParser("control/outfiles/hcoutput_#{@jobid}_#{task['id']}.txt")
                 heartbeat = Api.post_heartbeat(payload)
                 heartbeat = JSON.parse(heartbeat)
 
@@ -402,13 +409,15 @@ class LocalAgent
               end
             end
 
-            # set jobtask status to importing
+            # set chunk queue entry status to importing
             # commenting out now that we are chunking
             Api.post_queue_status(jdata['id'], 'Importing')
+            p 'setting status to importing'
 
             # upload results
             crack_file = 'control/outfiles/hc_cracked_' + jdata['job_id'].to_s + '_' + jobtask['task_id'].to_s + '.txt'
-            if File.exist?(crack_file) && ! File.zero?(crack_file)
+            if File.exist?(crack_file) && !File.zero?(crack_file)
+              p 'Uploading cracked hashes.'
               Api.upload_crackfile(jobtask['id'], crack_file, run_time)
             else
               # Does this need to be logged?
@@ -418,8 +427,9 @@ class LocalAgent
             # remove task data tmp file
             File.delete('control/tmp/agent_current_task.txt') if File.exist?('control/tmp/agent_current_task.txt')
 
-            # set taskqueue item to complete and remove from queue
+            # set chunk queue item to complete and remove from queue
             Api.post_queue_status(jdata['id'], 'Completed')
+            p 'setting status to complete'
           end
         end
       end

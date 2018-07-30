@@ -1,5 +1,5 @@
-# encoding: utf-8
 get '/download' do
+
   varWash(params)
 
   if params[:graph] && !params[:graph].empty?
@@ -15,10 +15,10 @@ get '/download' do
         if params[:hashfile_id] && !params[:hashfile_id].nil?
           # Customer and Hashfile
           if params[:type] == 'cracked'
-            @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id],params[:hashfile_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 1)', params[:customer_id], params[:hashfile_id])
             file_name = "found_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           elsif params[:type] == 'uncracked'
-            @results = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id],params[:hashfile_id])
+            @results = HVDB.fetch('SELECT a.username, h.originalhash FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND a.hashfile_id = ? and h.cracked = 0)', params[:customer_id], params[:hashfile_id])
             file_name = "left_#{params[:customer_id]}_#{params[:hashfile_id]}.txt"
           else
             # Do Something
@@ -83,7 +83,7 @@ get '/download' do
         end
       else
         @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
-        file_name = "Weak_Accounts_all.csv"
+        file_name = 'Weak_Accounts_all.csv'
       end
 
       file_name = 'control/tmp/' + file_name
@@ -107,5 +107,25 @@ get '/download' do
       # DO Something
     end
   end
-end
 
+  if params[:hashfile_id]
+    @filecontents = Set.new
+    @results = HVDB.fetch('SELECT a.username, h.originalhash, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE a.hashfile_id = ?', params[:hashfile_id])
+    file_name = 'control/tmp/hashfile_' + params[:hashfile_id].to_s + '.txt'
+
+    @results.each do |entry|
+      entry[:username].nil? ? line = '' : line = entry[:username].to_s + ':'
+      line += entry[:originalhash].to_s
+      line += ':' + entry[:plaintext].to_s if entry[:plaintext]
+      @filecontents.add(line)
+    end
+
+    File.open(file_name, 'w') do |f|
+      @filecontents.each do |entry|
+        f.puts entry
+      end
+    end
+
+    send_file file_name, filename: file_name, type: 'Application/octet-stream'
+  end
+end

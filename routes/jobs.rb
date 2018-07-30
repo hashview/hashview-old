@@ -8,6 +8,8 @@ get '/jobs/list' do
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
   @wordlists = Wordlists.all
+  @hashfiles = Hashfiles.all
+  @rules = Rules.all
 
   @wordlists.each do |wordlist|
     @wordlist_id_to_name[wordlist.id.to_s] = wordlist.name
@@ -117,7 +119,7 @@ post '/jobs/create' do
   params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
 
   job.name = params[:job_name]
-  job.last_updated_by = getUsername
+  job.owner = getUsername
   job.customer_id = customer_id
 
   params[:notify] == 'on' ? job.notify_completed = '1' : job.notify_completed = '0'
@@ -176,17 +178,20 @@ get '/jobs/assign_tasks' do
 
   @job = Jobs.first(id: params[:job_id])
   @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
+  @task_groups = TaskGroups.all
+  @wordlists = Wordlists.all
+  @hc_settings = HashcatSettings.first
+  @rules = Rules.all
   @tasks = Tasks.all
   @available_tasks = []
   # Im sure there's a better way to do this
   @tasks.each do |task|
     element = {}
     inuse = Jobtasks.where(job_id: params[:job_id], task_id: task.id).first
-    if inuse.nil?
-      element['id'] = task.id
-      element['name'] = task.name
-      @available_tasks.push(element)
-    end
+    next unless inuse.nil?
+    element['id'] = task.id
+    element['name'] = task.name
+    @available_tasks.push(element)
   end
 
   # Create jobtasks_task object
@@ -250,12 +255,14 @@ get '/jobs/move_task' do
     end
   end
 
-  @jobtasks.destroy
-  @new_jobtasks.each do |task|
-    jobtask = Jobtasks.new
-    jobtask.job_id = params[:job_id]
-    jobtask.task_id = task.to_i
-    jobtask.save
+  @jobtasks = HVDB[:jobtasks]
+  @jobtasks.filter(job_id: params[:job_id]).delete
+
+  @new_jobtasks.each do |new_jobtask_entry|
+    job_task = Jobtasks.new
+    job_task.job_id = params[:job_id]
+    job_task.task_id = new_jobtask_entry.to_i
+    job_task.save
   end
 
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
@@ -280,10 +287,31 @@ get '/jobs/assign_task' do
   end
 
   # Append task to job
-  jobtask = Jobtasks.new
-  jobtask.job_id = params[:job_id]
-  jobtask.task_id = params[:task_id]
-  jobtask.save
+  job_task = Jobtasks.new
+  job_task.job_id = params[:job_id]
+  job_task.task_id = params[:task_id]
+  job_task.save
+
+  # return to assign_tasks
+  redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
+end
+
+get '/jobs/assign_task_group' do
+  varWash(params)
+
+  task_group = TaskGroups.first(id: params[:task_group_id])
+  unless task_group.nil?
+    @task_group_ids = task_group.tasks.scan(/\d+/)
+    @task_group_ids.each do |task_id|
+      existing_jobtask = Jobtasks.first(job_id: params[:job_id], task_id: task_id)
+      next unless existing_jobtask.nil?
+      # Append task to job
+      job_task = Jobtasks.new
+      job_task.job_id = params[:job_id]
+      job_task.task_id = task_id
+      job_task.save
+    end
+  end
 
   # return to assign_tasks
   redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
@@ -293,8 +321,14 @@ get '/jobs/complete' do
   varWash(params)
 
   jobtasks = Jobtasks.where(job_id: params[:job_id]).all
+
+  if jobtasks.empty?
+    flash[:error] = 'You must assign at least one task.'
+    redirect to '/jobs/assign_tasks?job_id=' + params[:job_id].to_s
+  end
+
   jobtasks.each do |task|
-    task.status = 'Queued'
+    task.status = 'Ready'
     task.save
   end
 
@@ -306,118 +340,41 @@ get '/jobs/complete' do
   redirect to('/jobs/list')
 end
 
-post '/jobs/complete' do
-
-  if !params[:tasks] || params[:tasks].nil?
-    if !params[:edit] || params[:edit].nil?
-      flash[:error] = 'You must assign at least one task'
-      redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}")
-    end
-  end
-
-  # create the job if it doesnt exist yet and make sure its stopped
-  job = Jobs.first(id: params[:job_id])
-  job.status = 'Stopped'
-  job.save
-
-  # grab existing jobtasks if there are any
-  @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
-  @tasks = Tasks.all
-
-  # prevent adding duplicate tasks to a job
-
-  puts params
-  if params[:tasks]
-    # make sure the task that the user is adding is not already assigned to the job
-    if params[:edit]
-      params[:tasks].each do |t|
-        @jobtasks.each do |jt|
-          if jt.task_id == t.to_i
-            flash[:error] = "Your job already has a task you are trying to add (task id: #{t})"
-            redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}&edit=1")
-          end
-        end
-      end
-    end
-    # prevent user from adding multiples of the same task
-    if params[:tasks].uniq!
-      puts params
-      flash[:error] = 'You cannot have duplicate tasks.'
-      url = "/jobs/assign_tasks?job_id=#{params[:job_id]}&customer_id=#{params[:customer_id]}&hashid=#{params[:hash_file]}"
-      url += '&edit=1' if params[:edit]
-      redirect to(url)
-    end
-  end
-
-  # assign tasks to the job
-  if params[:tasks] && !params[:tasks].nil?
-    assignTasksToJob(params[:tasks], job.id)
-  end
-
-  # Resets jobtasks tables
-  if params[:edit] && !params[:edit].nil?
-    @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
-    @jobtasks.each do |jobtask|
-      jobtask.status = 'Queued'
-      jobtask.save
-    end
-  end
-
-  flash[:success] = 'Successfully created job.'
-  redirect to('/jobs/list')
-
-end
-
 get '/jobs/start/:id' do
   varWash(params)
 
-  tasks = []
-  @job = Jobs.first(id: params[:id])
-  unless @job
+  job = Jobs.first(id: params[:id])
+  unless job
     flash[:error] = 'No such job exists.'
     redirect to('/jobs/list')
-  else
-    @jobtasks = Jobtasks.where(job_id: params[:id]).all
-    unless @jobtasks
-      flash[:error] = 'This job has no tasks to run.'
-      return 'This job has no tasks to run.'
-    else
-      @jobtasks.each do |jt|
-        tasks << Tasks.first(id: jt.task_id)
-      end
-    end
   end
 
-  tasks.each do |task|
-    jt = Jobtasks.first(task_id: task.id, job_id: @job.id)
+  @jobtasks = Jobtasks.where(job_id: params[:id]).all
+  unless @jobtasks
+    flash[:error] = 'This job has no tasks to run.'
+    return 'This job has no tasks to run.'
+  end
+
+  @jobtasks.each do |job_task|
+
     # do not start tasks if they have already been completed.
     # set all other tasks to status of queued
-    unless jt.status == 'Completed'
-      # set jobtask status to queued
-      jt.status = 'Queued'
-      jt.save
-      # toggle the job status to run
-      # We shouldn't need to do this for every task, just once
-      @job.status = 'Queued'
-      @job.queued_at = DateTime.now
-      @job.save
 
-      cmds = buildCrackCmd(@job.id, task.id)
-      cmds. each do |cmd|
-        cmd = cmd + ' | tee -a control/outfiles/hcoutput_' + @job.id.to_s + '.txt'
-        # we are using a db queue instead for public api
-        queue = Taskqueues.new
-        queue.jobtask_id = jt.id
-        queue.job_id = @job.id
-        queue.command = cmd
-        queue.status = 'Queued'
-        queue.queued_at = DateTime.now
-        queue.save
-      end
-    end
+    next unless job_task.status != 'Completed'
+    # toggle the job status to run
+    # We shouldn't need to do this for every task, just once
+    job.status = 'Queued'
+    job.queued_at = DateTime.now
+    job.save
+
+    # set jobtask status to queued
+    job_task.status = 'Queued'
+    job_task.command = buildCrackCmd(job.id, job_task.task_id)
+    job_task.keyspace_pos = 0
+    job_task.save
   end
 
-  if @job.status == 'Completed'
+  if job.status == 'Completed'
     flash[:error] = 'All tasks for this job have been completed. To prevent overwriting your results, you will need to create a new job with the same tasks in order to rerun the job.'
     redirect to('/jobs/list')
   end
@@ -478,6 +435,14 @@ get '/jobs/stop/:job_id/:task_id' do
   taskqueue.each do |tq|
     tq.status = 'Canceled'
     tq.save
+  end
+
+  # If there are no more jobtasks, set job status to canceled
+  @job_tasks = Jobtasks.where(job_id: params[:job_id], status: 'Running').or(job_id: params[:job_id], status: 'Queued').all
+  if @job_tasks.empty?
+    job = Jobs.first(id: params[:job_id])
+    job.status = 'Canceled'
+    job.save
   end
 
   referer = request.referer.split('/')
@@ -549,12 +514,11 @@ get '/jobs/hub_check' do
   @hash_array = []
   @hashfile_hashes.each do |entry|
     hash = Hashes.first(id: entry.hash_id, cracked: '0')
-    unless hash.nil?
-      element = {}
-      element['ciphertext'] = hash.originalhash
-      element['hashtype'] = hash.hashtype.to_s
-      @hash_array.push(element)
-    end
+    next if hash.nil?
+    element = {}
+    element['ciphertext'] = hash.originalhash
+    element['hashtype'] = hash.hashtype.to_s
+    @hash_array.push(element)
   end
 
   hub_response = Hub.hashSearch(@hash_array)
@@ -562,18 +526,17 @@ get '/jobs/hub_check' do
   if hub_response['status'] == '200'
     @hub_hash_results = hub_response['hashes']
     @hub_hash_results.each do |element|
-      if element['cracked'] == '1'
-        hash = Hashes.first(originalhash: element['ciphertext'])
-        results_entry['id'] = hash.id
-        # TODO
-        # Adding usernames to this result would be great
-        results_entry['ciphertext'] = element['ciphertext']
-        results_entry['hub_hash_id'] = element['hash_id']
-        results_entry['hashtype'] = element['hashtype']
-        results_entry['show_results'] = '1'
-        @results.push(results_entry)
-        results_entry = {}
-      end
+      next unless element['cracked'] == '1'
+      hash = Hashes.first(originalhash: element['ciphertext'])
+      results_entry['id'] = hash.id
+      # TODO
+      # Adding usernames to this result would be great
+      results_entry['ciphertext'] = element['ciphertext']
+      results_entry['hub_hash_id'] = element['hash_id']
+      results_entry['hashtype'] = element['hashtype']
+      results_entry['show_results'] = '1'
+      @results.push(results_entry)
+      results_entry = {}
     end
   end
 
@@ -582,7 +545,6 @@ get '/jobs/hub_check' do
     redirect to("/jobs/assign_tasks?job_id=#{params[:job_id]}")
   end
 
-  p 'RESULTS: ' + @results.to_s
   haml :job_hub_check
 end
 

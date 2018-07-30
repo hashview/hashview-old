@@ -1,12 +1,8 @@
 # updates run time for each hashfile after a job has completed
-def updateDbRunTime(job_id, hashfile_id, run_time)
+def updateDbRunTime(job_id, _hashfile_id, run_time)
   jobtask = Jobtasks.first(id: job_id)
   jobtask.run_time = run_time
   jobtask.save
-
-  hashfile = Hashfiles.first(id: hashfile_id)
-  hashfile.total_run_time = hashfile.total_run_time + run_time.to_i
-  hashfile.save
 end
 
 # imports the uploaded crackfile
@@ -77,5 +73,6 @@ def importCracked(id, crack_file, run_time)
   end
 
   # TODO this might be broken now that we are chunking
+  # # Totally broken ~ int128
   updateDbRunTime(id, job.hashfile_id, run_time)
 end
