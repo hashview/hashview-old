@@ -32,6 +32,10 @@ post '/accounts/create' do
     if params[:password] != params[:confirm]
       flash[:error] = 'Passwords do not match'
       redirect to('/accounts/create')
+    elsif check_password_complexity(params[:password], 3)
+      flash[:error] = 'Passwords do not match the security requirements
+      minimum length 8 and 3 of 4 groups : uppercase, lowercase, digits, special char'
+      redirect to('/accounts/create')
     else
       new_user = User.new
       new_user.username = params[:username]
