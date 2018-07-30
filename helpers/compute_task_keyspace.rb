@@ -22,7 +22,16 @@ def getKeyspace(task)
   elsif task.hc_attackmode == 'maskmode'
 
     # build hashcat keyspace command
-    cmd = hashcatbinpath + ' -a 3 ' + task.hc_mask + ' --keyspace'
+    # cmd = hashcatbinpath + ' -a 3 ' + task.hc_mask + ' --keyspace'
+    keyspace = 0
+    task.hc_mask.to_s.each_char do |char|
+      keyspace *= 26 if char == 'u' || char == 'l'
+      keyspace *= 10 if char == 'd'
+      keyspace *= 32 if char == 's'
+      keyspace *= 42 if char == 'a'
+      keyspace *= 256 if char == 'b'
+    end
+    return keyspace.to_i
 
   elsif task.hc_attackmode == 'bruteforce'
 
