@@ -66,7 +66,7 @@ post '/rules/new' do
     f.puts(rules_array)
   end
 
-  rules_file.checksum = Digest::SHA2.hexdigest(File.read(rules_file_path_name))
+  rules_file.checksum = Digest::SHA256.file(rules_file_path_name).hexdigest
   rules_file.save
 
   flash[:success] = 'Successfully created new rule.'
@@ -134,7 +134,7 @@ post '/rules/save/:id' do
     c + 1
   end
   rules_file.size = size
-  rules_file.checksum = Digest::SHA2.hexdigest(File.read(rules_file.path))
+  rules_file.checksum = Digest::SHA256.file(rules_file.path).hexdigest
   rules_file.save
 
   flash[:success] = 'Successfully uploaded rules file.'

@@ -375,7 +375,7 @@ def getMode(hash)
     @modes.push('8000') # Sybase ASE
   elsif hash =~ /^[a-f0-9]{49}$/
     @modes.push('8100') # Citrix NetScaler
-  elsif hash =~ /^[a-z0-9]{32}(:([a-z0-9-]+\.)?[a-z0-9-.]+\.[a-z]{2,7}:.+:[0-9]+)?$/
+  elsif hash =~ /^[a-z0-9]{32}(:([a-z0-9\-]+\.)?[a-z0-9\-.]+\.[a-z]{2,7}:.+:[0-9]+)?$/
     @modes.push('8300') # DNSSEC (NSEC3)
   elsif hash =~ /^(\$wbb3\$\*1\*)?[a-f0-9]{40}[:*][a-f0-9]{40}$/
     @modes.push('8400') # WBB3 (Woltlab Burning Board)

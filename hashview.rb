@@ -37,10 +37,10 @@ if options['hc_binary_path'].empty? || options['hc_binary_path'].nil?
 end
 
 # Check for valid session before proccessing
-before /^(?!\/(login|register|logout|v1\/))/ do
-  @settings = Settings.first
-  if !validSession?
-    redirect to('/login')
+before do
+  unless %w[login register logout v1].include?(request.path_info.split('/')[1])
+    @settings = Settings.first
+    redirect '/login' unless validSession?
   end
 end
 

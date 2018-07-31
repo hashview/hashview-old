@@ -20,7 +20,8 @@ control/wordlists/*
 !control/wordlists/password.gz
 control/tmp/*
 !control/tmp/.blank
-control/rules/*.rules
+control/rules/*
+!control/rules/.blank
 logs/*.log
 !logs/.blank
 logs/jobs/*
