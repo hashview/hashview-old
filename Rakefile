@@ -714,6 +714,7 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
 
   conn = Mysql2.new host, user, password, database
   # Creating New Task Groups Table
