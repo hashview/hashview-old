@@ -368,6 +368,7 @@ post '/v1/agents/:uuid/heartbeat' do
               speed = benchmark.split()[0].to_f
               speed *= 1000000000000
             end
+            speed *= 10 # bump up speed by a factor of 10
             # if for whatever reason we dont have a value for speed set it here.
             speed = 50000 if speed.zero?
             p 'Benchmark: ' + benchmark.to_s
