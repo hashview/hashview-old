@@ -2,11 +2,9 @@ require 'resque/tasks'
 require 'resque/scheduler/tasks'
 require 'rake/testtask'
 require 'sequel'
-require 'mysql'
-# require './models/master.rb'
+require 'mysql2'
 require './helpers/email.rb'
 require './helpers/compute_task_keyspace.rb'
-require 'data_mapper'
 
 require_relative 'jobs/init'
 # require_relative 'helpers/init'
@@ -110,7 +108,7 @@ namespace :db do
     end
 
     # get reference to database
-    db = Sequel.mysql(config)
+    db = Sequel.mysql2(config)
 
     # pull in schemma
     # https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
@@ -125,8 +123,8 @@ namespace :db do
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
 
-    # destroy database in mysql 
-    Sequel.connect(config.merge('database' => 'mysql')) do |db|
+    # destroy database in mysql
+    Sequel.connect(config) do |db|
       db.execute "DROP DATABASE IF EXISTS #{config['database']}"
     end
   end
@@ -355,7 +353,7 @@ namespace :db do
     database = config['database']
 
     puts '[*] Connecting to DB'
-    conn = Mysql.new host, user, password, database
+    conn = Mysql2.new host, user, password, database
 
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
@@ -423,7 +421,7 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
-    db = Sequel.mysql(config)
+    db = Sequel.mysql2(config)
     Sequel::Migrator.run(db, 'db/migrations')
 
   end
@@ -432,7 +430,7 @@ end
 
 def upgrade_to_v060(user, password, host, database)
   puts '[*] Upgrading from v0.5.1 to v0.6.0'
-  conn = Mysql.new host, user, password, database
+  conn = Mysql2.new host, user, password, database
 
   # Check for my.cnf requirements
   # Large file Prefix?
@@ -552,7 +550,7 @@ def upgrade_to_v061(user, password, host, database)
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
-  conn = Mysql.new host, user, password, database
+  conn = Mysql2.new host, user, password, database
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.6.1'")
@@ -613,7 +611,7 @@ def upgrade_to_v070(user, password, host, database)
       rule_file.name = name
       rule_file.path = path_file
       rule_file.size = 0
-      rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
+      rule_file.checksum = Digest::SHA256.file(path_file).hexdigest
       rule_file.save
 
     end
@@ -665,7 +663,7 @@ def upgrade_to_v071(user, password, host, database)
 
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
-  conn = Mysql.new host, user, password, database
+  conn = Mysql2.new host, user, password, database
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.1'")
@@ -701,7 +699,7 @@ end
 
 def upgrade_to_v073(user, password, host, database)
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
-  conn = Mysql.new host, user, password, database
+  conn = Mysql2.new host, user, password, database
 
   puts '[*] Adding new column for hashcat settings.'
   conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
@@ -722,8 +720,9 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
 
-  conn = Mysql.new host, user, password, database
+  conn = Mysql2.new host, user, password, database
   # Creating New Task Groups Table
   conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
 
@@ -762,7 +761,7 @@ def upgrade_to_v074(user, password, host, database)
   rescue
     puts '[!] No file found on disk.'
   end
-  
+
   # Remove from db
   wordlist = HVDB[:wordlists]
   wordlist.filter(path: 'control/wordlists/SmartWordlist.txt').delete
@@ -786,7 +785,7 @@ def upgrade_to_v074(user, password, host, database)
     # Create Shell file
     file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
     file_shell.close
-    
+
     entry.wl_id = wordlist.id
     entry.save
   end
@@ -805,7 +804,7 @@ def upgrade_to_v074(user, password, host, database)
     wordlist.checksum = nil
     wordlist.lastupdated = Time.now
     wordlist.save
-    
+
     # Create Shell file
     file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
     file_shell.close
@@ -826,7 +825,7 @@ def upgrade_to_v074(user, password, host, database)
   wordlist.checksum = nil
   wordlist.lastupdated = Time.now
   wordlist.save
-  
+
   # Create Shell file
   file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
   file_shell.close

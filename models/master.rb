@@ -10,17 +10,17 @@ options = YAML.load_file('config/database.yml')
 
 # there has to be a better way to handle this shit
 if ENV['RACK_ENV'] == 'test'
-  HVDB = Sequel.mysql(options['test'])
+  HVDB = Sequel.mysql2(options['test'])
   HVDB.loggers << Logger.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == 'development'
-  HVDB = Sequel.mysql(options['development'])
+  HVDB = Sequel.mysql2(options['development'])
   #HVDB.max_connections = '10'
   #HVDB.pool_timeout = '600'
   HVDB.loggers << Logger.new(STDOUT)
   HVDB.sql_log_level = :debug
 elsif ENV['RACK_ENV'] == ('production' || 'default')
-  HVDB = Sequel.mysql(options['production'])
+  HVDB = Sequel.mysql2(options['production'])
   # HVDB.loggers << Logger.new(STDOUT)
 else
   puts 'ERROR: You must define an environment. ex: RACK_ENV=production'

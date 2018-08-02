@@ -21,7 +21,6 @@ def getKeyspace(task)
 
   elsif task.hc_attackmode == 'maskmode'
 
-    # build hashcat keyspace command
     cmd = hashcatbinpath + ' -a 3 ' + task.hc_mask + ' --keyspace'
 
   elsif task.hc_attackmode == 'bruteforce'

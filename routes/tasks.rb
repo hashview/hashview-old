@@ -111,6 +111,7 @@ post '/tasks/edit/:id' do
     task.hc_rule = rule_list
     task.hc_mask = 'NULL'
   end
+  task.keyspace = getKeyspace(task)
   task.save
 
   redirect to('/tasks/list')

@@ -1,5 +1,5 @@
 production:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
@@ -10,7 +10,7 @@ production:
   pool_timeout: 600
 
 development:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
@@ -21,7 +21,7 @@ development:
   pool_timeout: 600
 
 test:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"

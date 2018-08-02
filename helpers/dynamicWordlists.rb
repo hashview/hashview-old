@@ -23,7 +23,7 @@ def updateDynamicWordlist(wordlist_id)
       f.puts entry['plaintext']
     end
   end
-  wordlist.checksum = Digest::SHA2.hexdigest(File.read(file))
+  wordlist.checksum = Digest::SHA256.file(file).hexdigest
   size = File.foreach(file).inject(0) do |c|
     c + 1
   end

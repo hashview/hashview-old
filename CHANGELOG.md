@@ -2,7 +2,7 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.7.4-beta] - 2018-02-xx
+## [v0.7.4-beta] - 2018-0X-xx
 ### Added
 - Added new Analytics portlet "charset breakdown"
 - Extended Masks list to be to 10 instead of top 4.
@@ -17,6 +17,7 @@ Notable changes will be documented here
 
 ### Changed
 - The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
+- Updated Gems and Base Ruby to 2.4.4 Thanks https://github.com/HugoPouliquen
 
 ### Removed
 - Removed Smart Wordlists in favor Customer/Hashfile/All dynamic wordlists.
