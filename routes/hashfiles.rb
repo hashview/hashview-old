@@ -16,12 +16,13 @@ get '/hashfiles/list' do
     @local_cracked_cnt[hashfile.id] = hashfile_cracked_count.to_s
     @local_uncracked_cnt[hashfile.id] = hashfile_total_count.to_i - hashfile_cracked_count.to_i
     @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
-    hash_id = Hashfilehashes.first(hashfile_id: hashfile.id).hash_id
-    p 'hash id: ' + hash_id.to_s
-    hashtype = Hashes.first(id: hash_id).hashtype.to_s
-    p 'hashtype: ' + hashtype.to_s
-    #@hashtype[hashfile.id] = hashtype
-    @hashtype[hashfile.id] = Hashes.first(id: hash_id).hashtype.to_s
+
+    hashfilehash = Hashfilehashes.first(hashfile_id: hashfile.id)
+    hash_id = hashfilehash&.hash_id.to_s || 'hash id error'
+    p "hash id: #{hash_id}"
+
+    @hashtype[hashfile.id] = Hashes.first(id: hash_id)&.hashtype.to_s
+    p "hashtype: #{@hashtype[hashfile.id] || 'unknown'}"
   end
 
   haml :hashfile_list
