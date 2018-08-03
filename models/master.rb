@@ -30,8 +30,22 @@ end
 # User class object to handle user account credentials
 class User < Sequel::Model(:users)
   plugin :validation_class_methods
+  plugin :validation_helpers
   attr_accessor :password
-  validates_presence_of :username
+
+  def validate
+    super
+    validates_presence %i[username]
+    validates_unique :username
+    validate_password(password) if password
+  end
+
+  def validate_password(password)
+    unless PasswordValidator.call(password)
+      errors.add(:password, 'must be at least 8 characters long, and contain 3 of 4 ' \
+        'groups: upper cases, lower cases, digits and specials')
+    end
+  end
 
   def password=(pass)
     @password = pass
@@ -57,7 +71,7 @@ class User < Sequel::Model(:users)
       admin: true,
       phone: '12223334444',
       email: 'test@localhost.com',
-      hashed_password: BCrypt::Password.create('omgplains')
+      password: 'Omgpl@in5'
     )
     user.save
     user.update(attrs) if attrs
