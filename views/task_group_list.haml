@@ -34,7 +34,7 @@
                     - @task_groups.each do |task_group|
                       %tr
                         %td #{task_group.name}
-                        %td #{task_group.tasks.scan(/\d/).size}
+                        %td #{task_group.tasks.scan(/\d+/).size}
                         %td
                           %a.btn.btn-info{href: "#modal#{task_group.id}", "data-toggle" => 'modal'}
                             %i.glyphicon.glyphicon-info-sign{title: 'Info'}
