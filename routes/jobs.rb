@@ -344,8 +344,16 @@ get '/jobs/start/:id' do
   varWash(params)
 
   job = Jobs.first(id: params[:id])
+  hashfile = Hashfiles.find(id: job.hashfile_id)
+  hashfile_hash = Hashfilehashes.find(hashfile_id: hashfile.id) if hashfile
+
   unless job
     flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
+  end
+
+  if hashfile.nil? || hashfile_hash.nil?
+    flash[:error] = 'You have an error in your hashfile'
     redirect to('/jobs/list')
   end
 
@@ -564,4 +572,3 @@ get '/jobs/remove_task' do
 
   redirect to("/jobs/assign_tasks?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")
 end
-
