@@ -317,6 +317,8 @@ namespace :db do
     agent_config['port'] = '4567'
     agent_config['uuid'] = SecureRandom.uuid.to_s
     agent_config['hc_binary_path'] = ''
+    agent_config['hc_pre_cmd'] = ''
+    agent_config['hc_post_cmd'] = ''
     agent_config['type'] = 'master'
     File.open('config/agent_config.json', 'w') do |f|
       f.write(JSON.pretty_generate(agent_config))
@@ -523,6 +525,8 @@ def upgrade_to_v060(user, password, host, database)
   agent_config['port'] = '4567'
   agent_config['uuid'] = SecureRandom.uuid.to_s
   agent_config['hc_binary_path'] = ''
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
@@ -573,6 +577,8 @@ def upgrade_to_v070(user, password, host, database)
   puts '[*] Writing new parameters to agent config'
   agent_config = JSON.parse(File.read('config/agent_config.json'))
   agent_config['hc_binary_path'] = @hc_binpath
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
@@ -714,6 +720,7 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
 
   conn = Mysql2.new host, user, password, database
   # Creating New Task Groups Table

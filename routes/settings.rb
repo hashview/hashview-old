@@ -51,6 +51,12 @@ get '/settings' do
   # get hcbinpath (stored in config file vs db)
   @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
 
+  # get hcprecmd
+  @hc_precmd = JSON.parse(File.read('config/agent_config.json'))['hc_pre_cmd']
+
+  # get hcpostcmd
+  @hc_postcmd = JSON.parse(File.read('config/agent_config.json'))['hc_post_cmd']
+
   haml :global_settings
 end
 

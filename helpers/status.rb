@@ -91,15 +91,15 @@ def updateJobTaskStatus(jobtask_id, status)
   # Send email
   if job.notify_completed == true && done == true
     puts '===== Sending Email ====='
-    user = User.first(username: job.last_updated_by)
+    user = User.first(username: job.owner)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
-    @hash_ids = Set.new
+    @hash_ids = Array.new
     Hashfilehashes.where(hashfile_id: hashfile.id).each do |entry|
-      @hash_ids.add(entry.hash_id)
+      @hash_ids.push(entry.hash_id)
     end
-    total_cracked = Hashes.count(id: @hash_ids, cracked: 1)
-    total = Hashes.count(id: @hash_ids, cracked: 0)
+    total_cracked = Hashes.where(id: @hash_ids, cracked: 1).count
+    total = Hashes.where(id: @hash_ids, cracked: 0).count
     if user.email
       sendEmail(user.email, "Your Job: #{job.name} for #{customer.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
     end

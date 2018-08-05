@@ -36,7 +36,7 @@ class Api
         method: :post,
         url: url,
         payload: payload.to_json,
-        headers: { accept: :json },
+        headers: { accept: :json, :content_type=>'application/json' },
         cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
@@ -372,6 +372,12 @@ class LocalAgent
             # this variable is used to determine if the job was canceled
             @canceled = false
 
+            # pre-cmd           
+            pre_cmd = JSON.parse(File.read('config/agent_config.json'))['hc_pre_cmd']
+            unless pre_cmd.nil?
+              system(pre_cmd)
+            end
+
             run_time = 0
             # # thread off hashcat
             thread1 = Thread.new {
@@ -407,6 +413,12 @@ class LocalAgent
                   throw :mainloop
                 end
               end
+            end
+
+            # post cmd
+            post_cmd = JSON.parse(File.read('config/agent_config.json'))['hc_post_cmd']
+            unless post_cmd.nil?
+              system(post_cmd)
             end
 
             # set chunk queue entry status to importing

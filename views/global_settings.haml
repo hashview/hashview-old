@@ -53,6 +53,18 @@
               - if @hc_binpath
                 %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_binpath}
               Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it. Make sure the user running hashview has the ability to read the hashcat root folder
+          - if @hc_precmd
+            .form-group
+              %label.control-label.col-xs-2{for: ''} Hashcat Pre-run Command
+              .col-xs-10
+                %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_precmd}
+                Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it.
+          - if @hc_postcmd
+            .form-group
+              %label.control-label.col-xs-2{for: ''} Hashcat Post-run Command
+              .col-xs-10
+                %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_postcmd}
+                Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it.
           .form-group
             %label.control-label.col-xs-2{for: ''} Max Task Runtime
             .col-xs-3

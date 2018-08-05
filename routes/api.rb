@@ -368,6 +368,7 @@ post '/v1/agents/:uuid/heartbeat' do
               speed = benchmark.split()[0].to_f
               speed *= 1000000000000
             end
+
             # Fudge by factor of ten to ensure no to small of chunking
             speed *= 10
             
