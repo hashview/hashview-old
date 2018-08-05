@@ -49,20 +49,8 @@
                     - @results.each do |entry|
                       %td #{entry['username']}
                       %td
-                        // LC && RC
-                        - if entry['local_cracked'] == '1' and entry['hub_cracked'] == '1'
+                        - if entry['local_cracked'] == '1'
                           #{entry['plaintext']}
-                          // LC && RU
-                        - elsif entry['local_cracked'] == '1' and entry['hub_cracked'] == '0'
-                          #{entry['plaintext']}
-                          // LU && RC
-                        - elsif entry['local_cracked'] == '0' and entry['hub_cracked'] == '1'
-                          - if entry['show_hub_results'] == '1'
-                            %a.btn.btn-success{href: "/hub/hash/reveal/hash/#{entry['id']}"}
-                              reveal
-                          - else
-                            %em uncracked
-                          // LU && RU
                         - else
                           %em uncracked
                       %td #{modeToFriendly(entry['hashtype'].to_s)}
