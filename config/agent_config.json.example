@@ -1,7 +1,0 @@
-{
-  "ip": "127.0.0.1",
-  "port": "4567",
-  "uuid": "0cea5500-cc00-0000-b000-bb9946644000",
-  "hc_binary_path": "tests/fakehashcat.bin",
-  "type": "master"
-}
