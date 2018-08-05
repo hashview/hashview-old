@@ -12,7 +12,6 @@ end
 
 gem 'bcrypt', '~> 3.1', '>= 3.1.12'
 gem 'data_objects', '~> 0.10.17'
-gem 'digest', :git => 'https://github.com/hashview/digest'
 gem 'foreman', '~> 0.85.0'
 gem 'haml', '~> 5.0', '>= 5.0.4'
 gem 'json', '~> 1.6'
