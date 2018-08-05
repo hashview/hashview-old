@@ -130,7 +130,7 @@ Sequel.migration do
       TrueClass :clientmode
       String :ui_themes, default: 'Light', size: 50, null: false
       String :version, size: 5
-      TrueClass :dynamic_chunking
+      TrueClass :use_dynamic_chunking
       Bignum :chunk_size, default: 500000
 
       check Sequel::SQL::BooleanExpression.new(:>=, Sequel::SQL::Identifier.new(:chunk_size), 0)
