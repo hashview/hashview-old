@@ -733,6 +733,7 @@ def upgrade_to_v074(user, password, host, database)
   conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace_pos BIGINT')
   conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace BIGINT')
   conn.query('ALTER TABLE wordlists ADD COLUMN scope varchar(25)')
+  conn.query('ALTER TABLE settings ADD COLUMN use_dynamic_chunking TINYINT(1)')
 
   # Altering columns
   puts '[*] Renaming existing columns.'

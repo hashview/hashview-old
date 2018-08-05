@@ -368,7 +368,13 @@ post '/v1/agents/:uuid/heartbeat' do
               speed = benchmark.split()[0].to_f
               speed *= 1000000000000
             end
-            speed *= 10 # bump up speed by a factor of 10
+
+            # Fudge by factor of ten to ensure no to small of chunking
+            speed *= 10
+            
+            # if dynamic chunking is disabled use staticly assigned chunk
+            speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking
+
             # if for whatever reason we dont have a value for speed set it here.
             speed = 50000 if speed.zero?
             p 'Benchmark: ' + benchmark.to_s
@@ -475,7 +481,7 @@ post '/v1/agents/:uuid/heartbeat' do
                   jobtask_queue_entry.save
                 end
               end
-              
+
               crack_command += ' | tee -a control/outfiles/hcoutput_'
               crack_command += jobtask_queue_entry.job_id.to_s
               crack_command += '_'

@@ -13,6 +13,13 @@
           document.getElementById('smtp_auth_div').style.display = 'none';
         }
       }
+      function handleChecked(checkbox) {
+        if (checkbox.checked == true) {
+          document.getElementById('chunk_size').removeAttribute("disabled");
+        } else {
+          document.getElementById('chunk_size').setAttribute("disabled", "disabled");
+        }
+      }
     .span15
       .container
         .col-md-12
@@ -30,6 +37,8 @@
       %a{'data-toggle' => 'tab', href: '#2'} Email
     %li
       %a{'data-toggle' => 'tab', href: '#3'} UI
+    %li
+      %a{'data-toggle' => 'tab', href: '#4'} Distributed
     %li
       %a{'data-toggle' => 'tab', href: '#5'} Hashview Hub
 
@@ -248,6 +257,30 @@
             .col-md-1.pull-right
               %button.btn.btn-primary{type: 'submit'} Save
     #4.tab-pane
+      %br
+      .col-md-10
+        %form{name: 'distributed_settings_form', id: 'distributed_settings_form', class: 'form-horizontal', action: 'settings', method: 'post'}
+          .form-group
+            %label.control-label.col-xs-2{for: ''} Use Dynamic Chunking
+            .col-xs-10
+              - if @settings.use_dynamic_chunking == true
+                %input.checkbox{type: 'checkbox', id: 'use_dynamic_chunking', name: 'use_dynamic_chunking', onchange: 'handleChecked(this)', checked: 'checked'}
+              - else
+                %input.checkbox{type: 'checkbox', id: 'use_dynamic_chunking', name: 'use_dynamic_chunking', onchange: 'handleChecked(this)'}
+          .form-group
+            %label.control-label.col-xs-2{for: ''} Chunk size
+            .col-xs-10
+              - if @settings.use_dynamic_chunking == true
+                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
+              - else
+                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size, disabled: "disabled"}
+          .form-group
+            .col-xs-10
+              %input{type: 'hidden', name: 'form_id', value: '4'}
+          .form-group
+            .col-md-1.pull-right
+              %button.btn.btn-primary{type: 'submit'} Save
+    #5.tab-pane
       %br
       .col-md-10
         %form{name: 'hub_settings_form', id: 'hub_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}

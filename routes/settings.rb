@@ -156,6 +156,17 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
+  elsif params[:form_id] == '4' # Distributed
+    settings = Settings.first
+
+    params[:use_dynamic_chunking] == 'on' ? params[:use_dynamic_chunking] = '1' : params[:use_dynamic_chunking] = '0'
+
+    settings.use_dynamic_chunking = params[:use_dynamic_chunking] unless params[:use_dynamic_chunking].nil? || params[:use_dynamic_chunking].empty?
+    # we dont do any logic to parse if the chunk size is set when dynamic chunking option is enabled
+    #
+    settings.chunk_size = params[:chunk_size].to_i
+    settings.save
+
   elsif params[:form_id] == '5' # Hub
 
     if params[:email].nil? || params[:email].empty?
