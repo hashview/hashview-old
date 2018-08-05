@@ -176,7 +176,7 @@ namespace :db do
     application_version = File.open('VERSION') {|f| f.readline}
 
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','#{application_version}')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version, use_dynamic_chunking) VALUES ('Light','#{application_version}', '1')".inspect
     ]
     begin
       system(query.compact.join(' '))
