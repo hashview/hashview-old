@@ -35,7 +35,7 @@ class User < Sequel::Model(:users)
 
   def validate
     super
-    validates_presence %i[username]
+    validates_presence %i[username hashed_password]
     validates_unique :username
     validate_password(password) if password
   end
