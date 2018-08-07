@@ -28,7 +28,7 @@ gem 'bcrypt'
 gem 'mysql'
 gem 'foreman'
 gem 'rest-client'
-gem 'digest'
+#gem 'digest'
 gem 'logger'
 
 
