@@ -36,7 +36,7 @@ def connect_db
   database = config['database']
 
   puts '[*] Connecting to DB'
-  Mysql2::Client.new(:host host, username: user, password: password, database: database)
+  Mysql2::Client.new(host: host, username: user, password: password, database: database)
 end
 
 # Trap ^C
