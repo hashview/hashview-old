@@ -353,13 +353,13 @@ namespace :db do
     database = config['database']
 
     puts '[*] Connecting to DB'
-    conn = Mysql2.new host, user, password, database
+    conn = Mysql2.new(:host => host, :username => user, :password => password, :database => database)
 
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
     settings = conn.query('SELECT * FROM settings')
     has_version_column = false
-    settings.each_hash do |row|
+    settings.each do |row|
       if row['version']
         has_version_column = true
         db_version = Gem::Version.new(row['version'])
@@ -674,7 +674,7 @@ def upgrade_to_v072(user, password, host, database)
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.1 to v0.7.2'
-  conn = Mysql.new host, user, password, database
+  conn = Mysql.new(:host => host, :username => user, :password => password, :database => database)
 
   # Remove unused columns
   puts '[*] Removing unused database structures.'
