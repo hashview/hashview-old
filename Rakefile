@@ -29,6 +29,16 @@ def shut_down
   sleep(5)
 end
 
+def connect_db
+  config = YAML.load_file('config/database.yml')
+  config = config[ENV['RACK_ENV']]
+  user, password, host = config['user'], config['password'], config['host']
+  database = config['database']
+
+  puts '[*] Connecting to DB'
+  conn = Mysql2::Client.new(:host => host, :username => user, :password => password, :database => database)
+end
+
 # Trap ^C
 Signal.trap('INT') {
   shut_down
@@ -347,14 +357,7 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
 
-    config = YAML.load_file('config/database.yml')
-    config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['host']
-    database = config['database']
-
-    puts '[*] Connecting to DB'
-    conn = Mysql2.new(:host => host, :username => user, :password => password, :database => database)
-
+    conn = connect_db()
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
     settings = conn.query('SELECT * FROM settings')
@@ -372,32 +375,32 @@ namespace :db do
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       # Upgrade to v0.6.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
-        db_version = upgrade_to_v060(user, password, host, database)
+        db_version = upgrade_to_v060(conn)
       end
 
       # Upgrade to v0.6.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.1')
-        db_version = upgrade_to_v061(user, password, host, database)
+        db_version = upgrade_to_v061(conn)
       end
       # Upgrade to v0.7.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.7')
-        upgrade_to_v070(user, password, host, database)
+        upgrade_to_v070(conn)
       end
       # Upgrade to v0.7.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.1')
-        upgrade_to_v071(user, password, host, database)
+        upgrade_to_v071(conn)
       end
       # Upgrade to v0.7.2
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.2')
-        upgrade_to_v072(user, password, host, database)
+        upgrade_to_v072(conn)
       end
       # Upgrade to v0.7.3
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.3')
-        upgrade_to_v073(user, password, host, database)
+        upgrade_to_v073(conn)
       end
       # Upgrade to v0.7.4
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.4')
-        upgrade_to_v074(user, password, host, database)
+        upgrade_to_v074(conn)
       end
     else
       puts '[*] Your version is up to date!'
@@ -428,9 +431,9 @@ namespace :db do
 end
 
 
-def upgrade_to_v060(user, password, host, database)
+def upgrade_to_v060(db_connection)
   puts '[*] Upgrading from v0.5.1 to v0.6.0'
-  conn = Mysql2.new host, user, password, database
+  conn = db_connection
 
   # Check for my.cnf requirements
   # Large file Prefix?
@@ -545,12 +548,12 @@ def upgrade_to_v060(user, password, host, database)
   '0.6.0'
 end
 
-def upgrade_to_v061(user, password, host, database)
+def upgrade_to_v061(db_connection)
   #DataMapper.repository.auto_upgrade!
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
-  conn = Mysql2.new host, user, password, database
+  conn = db_connection
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.6.1'")
@@ -559,12 +562,12 @@ def upgrade_to_v061(user, password, host, database)
   '0.6.1'
 end
 
-def upgrade_to_v070(user, password, host, database)
+def upgrade_to_v070(db_connection)
   DataMapper.repository.auto_upgrade!
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # this upgrade path doesn't require anything complex, just move a value from db to config file
   puts '[*] Reading Settings Table.'
@@ -659,22 +662,22 @@ def upgrade_to_v070(user, password, host, database)
   puts '[+] Upgrade to v0.7.0 complete.'
 end
 
-def upgrade_to_v071(user, password, host, database)
+def upgrade_to_v071(db_connection)
 
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
-  conn = Mysql2.new host, user, password, database
+  conn = db_connection
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.1'")
   puts '[+] Upgrade to v0.7.1 complete.'
 end
 
-def upgrade_to_v072(user, password, host, database)
+def upgrade_to_v072(db_connection)
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.1 to v0.7.2'
-  conn = Mysql.new(:host => host, :username => user, :password => password, :database => database)
+  conn = db_connection
 
   # Remove unused columns
   puts '[*] Removing unused database structures.'
@@ -697,9 +700,9 @@ def upgrade_to_v072(user, password, host, database)
   puts '[+] Upgrade to v0.7.2 complete.'
 end
 
-def upgrade_to_v073(user, password, host, database)
+def upgrade_to_v073(db_connection)
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
-  conn = Mysql2.new host, user, password, database
+  conn = db_connection
 
   puts '[*] Adding new column for hashcat settings.'
   conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
@@ -714,7 +717,7 @@ def upgrade_to_v073(user, password, host, database)
   puts '[+] Upgrade to v0.7.3 complete.'
 end
 
-def upgrade_to_v074(user, password, host, database)
+def upgrade_to_v074(db_connection)
   puts '[*] Upgrading from v0.7.3 to v0.7.4'
   puts '[*] Updating DB to support UTF-8, More Connections, and Longer pool timeouts.'
   system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
@@ -722,7 +725,7 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
 
-  conn = Mysql2.new host, user, password, database
+  conn = db_connection
   # Creating New Task Groups Table
   conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
 
