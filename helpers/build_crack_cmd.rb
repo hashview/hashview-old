@@ -71,6 +71,11 @@ helpers do
       end
     when 'combinator'
       cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 1 ' + target_file + ' ' + wordlist_one.path + ' ' + ' ' + wordlist_two.path + ' ' + @task.hc_rule.to_s
+    when 'maskword'
+      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 6 ' + target_file + ' ' + wordlist.path + ' ' + mask
+    when 'wordmask'
+      cmd = hc_binpath + ' -m ' + hashtype + ' --potfile-disable' + ' --status --status-timer=15' + ' --outfile-format 5 ' + ' --outfile ' + crack_file + ' ' + ' -a 7 ' + target_file + ' ' + mask + ' ' + wordlist.path
+
     else
       puts 'INVALID ATTACK MODE: ' + attackmode.to_s
     end

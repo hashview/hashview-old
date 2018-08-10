@@ -38,6 +38,24 @@ def getKeyspace(task)
     cmd = hashcatbinpath + ' ' + wordlist1_path + ' --keyspace'
     keyspace2 = `#{cmd}`
     cmd = hashcatbinpath + ' ' + wordlist2_path + ' --keyspace'
+
+  elsif task.hc_attackmode == 'wordmask'
+    # get wordlist path
+    wordlist = Wordlists.first(id: task.wl_id)
+    wl_path = wordlist.path
+
+    # build hashcat keyspace command
+
+    cmd = hashcatbinpath + ' -a 6 ' + wl_path + ' ' + task.hc_mask + ' --keyspace'
+
+  elsif task.hc_attackmode == 'maskword'
+
+    # get wordlist path
+    wordlist = Wordlists.first(id: task.wl_id)
+    wl_path = wordlist.path
+
+    # build hashcat keyspace command
+    cmd = hashcatbinpath + ' -a 7 ' + task.hc_mask + ' ' + wl_path + ' --keyspace'
   end
 
   # run hashcat keyspace command
