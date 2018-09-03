@@ -7,7 +7,7 @@ group :development do
 end
 
 group :test, :development do
-  gem 'factory_girl', '~> 4.9'
+  gem 'factory_bot', '~> 4.9'
 end
 
 gem 'bcrypt', '~> 3.1', '>= 3.1.12'
@@ -27,3 +27,4 @@ gem 'sequel', '~> 5.9'
 gem 'sinatra', '~> 2.0', '>= 2.0.3'
 gem 'sinatra-contrib'
 gem 'sinatra-flash', '~> 0.3.0'
+gem 'sinatra-pundit', '~> 0.2.0'
