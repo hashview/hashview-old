@@ -11,6 +11,7 @@ get '/wordlists/add' do
 end
 
 get '/wordlists/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @wordlist = Wordlists.first(id: params[:id])

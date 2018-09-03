@@ -9,22 +9,20 @@ get '/analytics' do
   @hashfile_id = params[:hashfile_id]
   @button_select_customers = Customers.order(Sequel.asc(:name)).all
 
-  if params[:customer_id] && !params[:customer_id].empty?
-    @button_select_hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all
-  end
+  if @customer_id.present?
+    hashfile_ids = Jobs.where(owner: current_user.username, customer_id: @customer_id).select(:hashfile_id)
+    @button_select_hashfiles = Hashfiles.where(id: hashfile_ids).all
+    @button_select_hashfiles = Hashfiles.where(customer_id: @customer_id).all if current_user.admin
+    @button_select_hashfiles.each { |hf| authorize hf, :list? }
+    @hashfiles = @button_select_hashfiles
 
-  if params[:customer_id] && !params[:customer_id].empty?
-    @customers = Customers.first(id: params[:customer_id])
-  else
-    @customers = Customers.order(Sequel.asc(:name)).all
-  end
-
-  if params[:customer_id] && !params[:customer_id].empty?
-    if params[:hashfile_id] && !params[:hashfile_id].empty?
-      @hashfiles = Hashfiles.first(id: params[:hashfile_id])
-    else
-      @hashfiles = Hashfiles.order(Sequel.asc(:id)).all
+    @customers = Customers.find(id: @customer_id)
+    if @hashfile_id.present?
+      @hashfiles = Hashfiles.find(id: @hashfile_id)
+      authorize @hashfiles, :list?
     end
+  else
+    @customers = @button_select_customers
   end
 
   # get results of specific customer if customer_id is defined
@@ -104,7 +102,7 @@ get '/analytics' do
       end
 
     else
-
+      authorize :application, :admin_access?
       # Used for Complexity Breakdown doughnut: Customer
       @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
       @cracked_pw_count = HVDB.fetch('SELECT count(h.plaintext) as count FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[:count]
@@ -127,7 +125,7 @@ get '/analytics' do
 
     end
   else
-
+    authorize :application, :admin_access?
     # Used for Complexity Breakdown Doughnut: Total
     @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
     @cracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[:count]

@@ -4,7 +4,7 @@ get '/jobs/list' do
   @customer_names = {}
   @wordlist_id_to_name = {}
 
-  @jobs = Jobs.order(Sequel.desc(:id))
+  @jobs = policy_scope(Jobs)
   @tasks = Tasks.all
   @jobtasks = Jobtasks.all
   @wordlists = Wordlists.all
@@ -26,11 +26,9 @@ end
 get '/jobs/delete/:id' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:id])
-  unless @job
-    flash[:error] = 'No such job exists.'
-    redirect to('/jobs/list')
-  else
+  @job = Jobs[params[:id]]
+  if @job
+    authorize @job, :edit?
     if @job.status == 'Running' || @job.status == 'Importing' || @job.status == 'Queued'
       flash[:error] = 'You need to stop the job before deleting it.'
       redirect to('/jobs/list')
@@ -40,6 +38,9 @@ get '/jobs/delete/:id' do
       jobtask.destroy unless jobtask.nil?
     end
     @job.destroy
+  else
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   end
 
   redirect to('/jobs/list')
@@ -49,9 +50,10 @@ get '/jobs/create' do
   varWash(params)
 
   @customers = Customers.order(Sequel.asc(:name)).all
-  @job = Jobs.first(id: params[:job_id])
 
+  @job = Jobs[params[:job_id]]
   if @job
+    authorize @job, :edit?
     if @job.status == 'Running' || @job.status == 'Queued'
       flash[:error] = 'You cannot edit a job that is running or queued'
       redirect to('/jobs/list')
@@ -116,7 +118,8 @@ post '/jobs/create' do
   end
 
   # create new or update existing job
-  params[:edit] == '1' ? job = Jobs.first(id: params[:job_id]) : job = Jobs.new
+  params[:edit] == '1' ? job = Jobs[params[:job_id]] : job = Jobs.new
+  authorize job, :edit? if job.owner.present?
 
   job.name = params[:job_name]
   job.owner = getUsername
@@ -135,7 +138,8 @@ end
 get '/jobs/assign_hashfile' do
   varWash(params)
 
-  @hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all
+  @hashfiles = Hashfiles.where(id: Jobs.where(owner: current_user.username).select(:id)).all
+  @hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all if current_user.admin
   @customer = Customers.first(id: params[:customer_id])
 
   @cracked_status = {}
@@ -147,7 +151,8 @@ get '/jobs/assign_hashfile' do
     @cracked_status[hashfile.id] = hashfile_cracked_count.to_s + '/' + hashfile_total_count.to_s
   end
 
-  @job = Jobs.first(id: params[:job_id])
+  @job = Jobs[params[:job_id]]
+  authorize @job, :edit?
   return 'No such job exists' unless @job
 
   haml :assign_hashfile
@@ -157,13 +162,13 @@ post '/jobs/assign_hashfile' do
   varWash(params)
 
   if params[:hash_file] != 'add_new'
-    job = Jobs.first(id: params[:job_id])
+    job = Jobs[params[:job_id]]
     job.hashfile_id = params[:hash_file]
     job.save
   end
 
   if params[:edit] == '1'
-    job = Jobs.first(id: params[:job_id])
+    job = Jobs[params[:job_id]]
     job.hashfile_id = params[:hash_file]
     job.save
   end
@@ -176,7 +181,8 @@ end
 get '/jobs/assign_tasks' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:job_id])
+  @job = Jobs[params[:job_id]]
+  authorize @job, :edit?
   @jobtasks = Jobtasks.where(job_id: params[:job_id]).all
   @task_groups = TaskGroups.all
   @wordlists = Wordlists.all
@@ -332,7 +338,7 @@ get '/jobs/complete' do
     task.save
   end
 
-  job = Jobs.first(id: params[:job_id])
+  job = Jobs[params[:job_id]]
   job.status = 'Ready'
   job.save
 
@@ -343,7 +349,7 @@ end
 get '/jobs/start/:id' do
   varWash(params)
 
-  job = Jobs.first(id: params[:id])
+  job = Jobs[params[:id]]
   hashfile = Hashfiles.find(id: job.hashfile_id)
   hashfile_hash = Hashfilehashes.find(hashfile_id: hashfile.id) if hashfile
 
@@ -393,7 +399,7 @@ end
 get '/jobs/stop/:id' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:id])
+  @job = Jobs[params[:id]]
   @jobtasks = Jobtasks.where(job_id: params[:id]).all
 
   @job.status = 'Canceled'
@@ -448,7 +454,7 @@ get '/jobs/stop/:job_id/:task_id' do
   # If there are no more jobtasks, set job status to canceled
   @job_tasks = Jobtasks.where(job_id: params[:job_id], status: 'Running').or(job_id: params[:job_id], status: 'Queued').all
   if @job_tasks.empty?
-    job = Jobs.first(id: params[:job_id])
+    job = Jobs[params[:job_id]]
     job.status = 'Canceled'
     job.save
   end
@@ -467,7 +473,7 @@ get '/jobs/local_check' do
 
   # TODO offer the ability to upload to hub
 
-  @jobs = Jobs.first(id: params[:job_id])
+  @jobs = Jobs[params[:job_id]]
   @previously_cracked = HVDB.fetch('SELECT h.originalhash, h.plaintext, h.hashtype, a.username FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id =? AND h.cracked = 1)', @jobs.hashfile_id)
   @url = '/jobs'
 
@@ -483,7 +489,7 @@ end
 
 get '/jobs/hub_permission_check' do
   varWash(params)
-  @jobs = Jobs.first(id: params[:job_id])
+  @job = Jobs[params[:job_id]]
 
   haml :job_hub_permission_check
 end
@@ -491,7 +497,7 @@ end
 get '/jobs/hub_check' do
   varWash(params)
 
-  @jobs = Jobs.first(id: params[:job_id])
+  @jobs = Jobs[params[:job_id]]
   @hashfile_hashes = Hashfilehashes.first(hashfile_id: @jobs.hashfile_id)
   @hashes = Hashes.first(id: @hashfile_hashes.hash_id)
 
@@ -561,13 +567,13 @@ end
 get '/jobs/remove_task' do
   varWash(params)
 
-  @job = Jobs.first(id: params[:job_id])
-  unless @job
-    flash[:error] = 'No such job exists.'
-    redirect to('/jobs/list')
-  else
+  @job = Jobs[params[:job_id]]
+  if @job
     @jobtask = Jobtasks.first(id: params[:jobtaskid])
     @jobtask.destroy
+  else
+    flash[:error] = 'No such job exists.'
+    redirect to('/jobs/list')
   end
 
   redirect to("/jobs/assign_tasks?customer_id=#{params[:customer_id]}&job_id=#{params[:job_id]}&edit=1")

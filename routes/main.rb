@@ -12,8 +12,7 @@ get '/' do
 end
 
 get '/home' do
-
-  @jobs = Jobs.order(Sequel.asc(:queued_at)).all
+  @jobs = policy_scope(Jobs)
   @jobtasks = Jobtasks.all
   @tasks = Tasks.all
   @taskqueues = Taskqueues.all

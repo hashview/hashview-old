@@ -74,6 +74,7 @@ post '/rules/new' do
 end
 
 get '/rules/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   rules_file = Rules.first(id: params[:id])
@@ -105,6 +106,7 @@ get '/rules/delete/:id' do
 end
 
 post '/rules/save/:id' do
+  authorize :application, :admin_access?
   # varWash(params)
 
   if !params[:edit_rules] || params[:edit_rules].nil?
