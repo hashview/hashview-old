@@ -54,28 +54,44 @@
                         %td #{rule_file['name']}
                         %td #{rule_file['size']}
                         %td
-                          %a.btn.btn-warning{href: "#modal#{rule_file['id']}", "data-toggle" => 'modal'}
-                            %i.glyphicon.glyphicon-cog{title: 'Edit'}
-                          .modal.fade.modal{id: "modal#{rule_file['id']}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
-                            .modal-dialog.modal-lg
-                              .modal-content
-                                .modal-header
-                                  %button.close{"aria-label" => 'Close', "data-dismiss" => 'modal', type: 'button'}
-                                    %span{"aria-hidden" => 'true'} &times;
-                                  %h4.modal-title Rules for: #{rule_file['name']}
-                                .modal-body
-                                  %form{name: 'edit_rules_form', id: 'edit_rules_form', class: 'form-horizontal', action: "/rules/save/#{rule_file['id']}", method: 'post'}
-                                    .form-group
-                                      .col-xs-12
-                                        %textarea{name: 'edit_rules', rows: '10', cols: '12', class: 'form-control'}
-                                          - if rule_file['content']
-                                            - rule_file['content'].each do |line|
-                                              #{line}&#10;
-                                    .form-group
-                                      .col-xs-offset-2.col-xs-10
-                                        %input{type: 'hidden', name: 'id', value: "#{rule_file['id']}"}
-                                    .form-group
-                                      .col-xs-12
-                                        %button.btn.btn-primary.pull-right{type: 'submit'} Save
-                          %a.btn.btn-danger{href: "/rules/delete/#{rule_file['id']}"}
-                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
+                          - unless (authorize :application, :admin_access? rescue false)
+                            %a.btn.btn-info{href: "#modal#{rule_file['id']}-info", "data-toggle" => 'modal'}
+                              %i.glyphicon.glyphicon-info-sign{title: 'Info'}
+                            .modal.fade.modal{id: "modal#{rule_file['id']}-info", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
+                              .modal-dialog.modal-lg
+                                .modal-content
+                                  .modal-header
+                                    %button.close{'aria-label' => 'Close', 'data-dismiss' => 'modal', type: 'button'}
+                                      %span{'aria-hidden' => 'true'} &times;
+                                    %h4.modal-title Rules for: #{rule_file['name']}
+                                  .modal-body
+                                    %textarea{name: 'list_rules', rows: '10', cols: '12', class: 'form-control', readonly: true}
+                                      - if rule_file['content']
+                                        - rule_file['content'].each do |line|
+                                          #{line}&#10;
+                          - if current_user.admin
+                            %a.btn.btn-warning{href: "#modal#{rule_file['id']}", "data-toggle" => 'modal'}
+                              %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                            .modal.fade.modal{id: "modal#{rule_file['id']}", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
+                              .modal-dialog.modal-lg
+                                .modal-content
+                                  .modal-header
+                                    %button.close{"aria-label" => 'Close', "data-dismiss" => 'modal', type: 'button'}
+                                      %span{"aria-hidden" => 'true'} &times;
+                                    %h4.modal-title Rules for: #{rule_file['name']}
+                                  .modal-body
+                                    %form{name: 'edit_rules_form', id: 'edit_rules_form', class: 'form-horizontal', action: "/rules/save/#{rule_file['id']}", method: 'post'}
+                                      .form-group
+                                        .col-xs-12
+                                          %textarea{name: 'edit_rules', rows: '10', cols: '12', class: 'form-control'}
+                                            - if rule_file['content']
+                                              - rule_file['content'].each do |line|
+                                                #{line}&#10;
+                                      .form-group
+                                        .col-xs-offset-2.col-xs-10
+                                          %input{type: 'hidden', name: 'id', value: "#{rule_file['id']}"}
+                                      .form-group
+                                        .col-xs-12
+                                          %button.btn.btn-primary.pull-right{type: 'submit'} Save
+                            %a.btn.btn-danger{href: "/rules/delete/#{rule_file['id']}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}

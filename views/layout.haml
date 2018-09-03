@@ -69,19 +69,24 @@
                   %li
                     %a(href='/agents/list') Agents
                   %li.divider{role: 'separator'}
-                  %li
-                    %a(href='/analytics') Analytics
+                  - if current_user.admin
+                    %li
+                      %a(href='/analytics') Analytics
                   %li
                     %a(href='/search') Search
                   %li.divider{role: 'separator'}
                   %li
-                    %a(href='/accounts/list') User Accounts
-                  %li
-                    %a(href='/settings') Global Settings
+                    %a{href: '/accounts/me'} My Account
+                  - if current_user.admin
+                    %li
+                      %a(href='/accounts/list') User Accounts
+                  - if current_user.admin
+                    %li
+                      %a(href='/settings') Global Settings
                   %li
                     %a(href='/logout') Logout
             %li
-              - if !validSession?                
+              - if !validSession?
                 %a(href="/login") Login
     - if flash[:info]
       .container

@@ -59,8 +59,9 @@
                                   %p
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", type: 'button'} Close
-                          %a.btn.btn-danger{href: "/wordlists/delete/#{wordlist.id}"}
-                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
+                          - if current_user.admin
+                            %a.btn.btn-danger{href: "/wordlists/delete/#{wordlist.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}
       .container
         .row
           .page-header

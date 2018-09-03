@@ -91,8 +91,8 @@
                                                 - if job.id.to_i == jobtask.job_id.to_i
                                                   %p
                                                     #{job.name}
-
-                          %a.btn.btn-warning{href: "/tasks/edit/#{task.id}"}
-                            %i.glyphicon.glyphicon-cog{title: 'Edit'}
-                          %a.btn.btn-danger{href: "/tasks/delete/#{task.id}"}
-                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
+                          - if current_user.admin
+                            %a.btn.btn-warning{href: "/tasks/edit/#{task.id}"}
+                              %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                            %a.btn.btn-danger{href: "/tasks/delete/#{task.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}
