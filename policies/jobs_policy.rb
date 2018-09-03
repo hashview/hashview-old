@@ -1,3 +1,5 @@
+require 'application_policy'
+
 class JobsPolicy < ApplicationPolicy
   class Scope
     attr_reader :user, :scope

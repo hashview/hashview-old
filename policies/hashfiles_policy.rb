@@ -1,3 +1,5 @@
+require 'application_policy'
+
 class HashfilesPolicy < ApplicationPolicy
   def list?
     return hashfiles_exist? unless admin_access?
