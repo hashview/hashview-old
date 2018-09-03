@@ -1,6 +1,7 @@
 # encoding: utf-8
 require 'sinatra'
 require 'sinatra/flash'
+require 'sinatra/pundit'
 require 'haml'
 require 'resque'
 require 'resque/server'
@@ -45,6 +46,20 @@ before do
     @settings = Settings.first
     redirect '/login' unless validSession?
   end
+end
+
+# Catch pundit error and push 403 if not authorize
+configure do
+  set :show_exceptions, :after_handler
+  error Pundit::NotAuthorizedError do
+    status 403
+    body 'Forbidden'
+  end
+end
+
+# Add current_user in request env for Pundit
+current_user do
+  request.env['REMOTE_USER'] = current_user
 end
 
 # Set our key limit size
