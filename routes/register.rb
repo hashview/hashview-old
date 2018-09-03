@@ -9,15 +9,6 @@ end
 
 post '/register' do
   varWash(params)
-  if !params[:username] || params[:username].nil? || params[:username].empty?
-    flash[:error] = 'You must have a username.'
-    redirect to('/register')
-  end
-
-  if !params[:password] || params[:password].nil? || params[:password].empty?
-    flash[:error] = 'You must have a password.'
-    redirect to('/register')
-  end
 
   if !params[:confirm] || params[:confirm].nil? || params[:confirm].empty?
     flash[:error] = 'You must have a password.'
@@ -31,14 +22,22 @@ post '/register' do
       flash[:error] = 'Passwords do not match.'
       redirect to('/register')
     else
-      new_user = User.new
-      new_user.username = params[:username]
-      new_user.password = params[:password]
-      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
-      new_user.admin = 't'
+      new_user = User.new(
+        username: params[:username],
+        password: params[:password],
+        email: params[:email],
+        admin: 't',
+        mfa: params[:mfa] ? 't' : 'f',
+        auth_secret:  params[:mfa] ? ROTP::Base32.random_base32 : ''
+      )
       new_user.id = 1 # since this is the first user
-      new_user.save
-      flash[:success] = "User #{params[:username]} created successfully"
+      if new_user.valid?
+        new_user.save
+        flash[:success] = "User #{params[:username]} created successfully"
+      else
+        flash[:error] = new_user.errors.full_messages.first.capitalize
+        redirect to('/register')
+      end
     end
   end
 
