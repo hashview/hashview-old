@@ -51,6 +51,12 @@
                                       %label.control-label.col-xs-2{for: ''} Task Name
                                       .col-xs-10
                                         #{task.name}
+                                  - if task.hc_attackmode == 'maskmode'
+                                    .row
+                                      .form-group
+                                        %label.control-label.col-xs-2{for: ''} Mask
+                                        .col-xs-10
+                                          #{task.hc_mask}
                                   .row
                                     .form-group
                                       %label.control-label.col-xs-2{for: ''} Attack Mode
