@@ -50,7 +50,6 @@ end
 
 # Catch pundit error and push 403 if not authorize
 configure do
-  set :show_exceptions, :after_handler
   error Pundit::NotAuthorizedError do
     status 403
     body 'Forbidden'
