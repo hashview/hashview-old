@@ -353,13 +353,13 @@ namespace :db do
     database = config['database']
 
     puts '[*] Connecting to DB'
-    conn = Mysql2.new host, user, password, database
+    conn = Mysql2::Client.new(:hostname => host, :username =>user, :password => password, :database =>database)
 
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
     settings = conn.query('SELECT * FROM settings')
     has_version_column = false
-    settings.each_hash do |row|
+    settings.each do |row|
       if row['version']
         has_version_column = true
         db_version = Gem::Version.new(row['version'])
@@ -722,7 +722,7 @@ def upgrade_to_v074(user, password, host, database)
   system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
   system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
 
-  conn = Mysql2.new host, user, password, database
+  conn = Mysql2::Client.new(:host => host, :username => user, :password => password, :database => databasegit )
   # Creating New Task Groups Table
   conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
 
