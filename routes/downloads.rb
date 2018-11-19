@@ -1,5 +1,4 @@
 get '/download' do
-
   varWash(params)
 
   if params[:graph] && !params[:graph].empty?

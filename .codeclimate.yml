@@ -17,6 +17,8 @@ engines:
   rubocop:
     enabled: true
     checks:
+      Rubocop/Style/FrozenStringLiteralComment:
+        enabled: false
       Rubocop/Metrics/LineLength:
         enabled: false
       Rubocop/Metrics/AbcSize:
