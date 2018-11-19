@@ -1,5 +1,6 @@
-get '/hashfiles/list' do
+# frozen_string_literal: true
 
+get '/hashfiles/list' do
   @hub_settings = HubSettings.first
   @customers = Customers.order(Sequel.asc(:name)).all
   @hashfiles = Hashfiles.all
@@ -33,7 +34,7 @@ get '/hashfiles/delete' do
 
   # First check to see if any jobs exists where hashfile is used
   @jobs = Jobs.where(hashfile_id: params[:hashfile_id]).all
-  if @jobs.count.to_i > 0
+  if @jobs.count.to_i.positive?
     flash[:error] = 'Fail to delete Hashfile. Hashfile exists in a job.'
     redirect to('/hashfiles/list')
   end

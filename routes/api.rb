@@ -252,8 +252,8 @@ end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
-
   varWash(params)
+
   # error if no uuid is set in cookie
   if params[:uuid].nil?
     status 200
@@ -350,24 +350,24 @@ post '/v1/agents/:uuid/heartbeat' do
             # Convert to H/s
             speed = 0
             if benchmark =~ / H\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
             elsif benchmark =~ /kH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000
             elsif benchmark =~ /MH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000
             elsif benchmark =~ /GH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000000
             elsif benchmark =~ /TH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000000000
             end
 
             # Fudge by factor of ten to ensure no to small of chunking
             speed *= 100
-            
+
             # if dynamic chunking is disabled use staticly assigned chunk
             @settings = Settings.first
             speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking

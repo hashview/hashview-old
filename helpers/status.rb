@@ -50,10 +50,8 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
       remaining_running_tasks = Taskqueues.where(jobtask_id: jobtask_id, status: 'Running').all
       remaining_importing_tasks = Taskqueues.where(jobtask_id: jobtask_id, status: 'Importing').all
       if remaining_queued_tasks.empty? && remaining_running_tasks.empty? && remaining_importing_tasks.empty?
-        p 'Was this our last chunk?'
         jobtask = Jobtasks.first(id: jobtask_id)
         if jobtask.keyspace_pos.to_i >= jobtask.keyspace.to_i
-          'Yup, looks like this is it bois.'
           updateJobTaskStatus(jobtask_id, 'Completed')
         end
       end
@@ -94,7 +92,7 @@ def updateJobTaskStatus(jobtask_id, status)
     user = User.first(username: job.owner)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
-    @hash_ids = Array.new
+    @hash_ids = []
     Hashfilehashes.where(hashfile_id: hashfile.id).each do |entry|
       @hash_ids.push(entry.hash_id)
     end

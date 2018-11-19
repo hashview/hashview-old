@@ -36,7 +36,7 @@ class Api
         method: :post,
         url: url,
         payload: payload.to_json,
-        headers: { accept: :json, :content_type=>'application/json' },
+        headers: { accept: :json, :content_type => 'application/json' },
         cookies: { agent_uuid: @uuid },
         verify_ssl: false
       )
@@ -223,9 +223,7 @@ end
 def hashcatBenchmarkParser(output)
   max_speed = ''
   output.each_line do |line|
-    if line.start_with?('Speed.Dev.#')
-      max_speed = line.split(': ')[-1].to_s
-    end
+    max_speed = line.split(': ')[-1].to_s if line.start_with?('Speed.Dev.#')
   end
   puts "agent max cracking speed (single NTLM hash):\n #{max_speed}"
   return max_speed
@@ -355,9 +353,7 @@ class LocalAgent
             wordlists['wordlists'].each do |wordlist|
               if wordlist['id'].to_i == task['wl_id'].to_i
                 # we're working with our target wordlist
-                if wordlist['type'] == 'dynamic'
-                  Api.updateWordlist(wordlist['id'])
-                end
+                Api.updateWordlist(wordlist['id']) if wordlist['type'] == 'dynamic'
               end
             end
 
@@ -372,11 +368,9 @@ class LocalAgent
             # this variable is used to determine if the job was canceled
             @canceled = false
 
-            # pre-cmd           
+            # pre-cmd
             pre_cmd = JSON.parse(File.read('config/agent_config.json'))['hc_pre_cmd']
-            unless pre_cmd.nil?
-              system(pre_cmd)
-            end
+            system(pre_cmd) unless pre_cmd.nil?
 
             run_time = 0
             # # thread off hashcat
@@ -407,9 +401,7 @@ class LocalAgent
                   # for some reason hashcat doesnt always get killed when terminating the thread.
                   # manually kill it to be certain
                   pid = getHashcatPid
-                  if pid
-                    `kill -9 #{pid}`
-                  end
+                  `kill -9 #{pid}` if pid
                   throw :mainloop
                 end
               end
@@ -417,9 +409,7 @@ class LocalAgent
 
             # post cmd
             post_cmd = JSON.parse(File.read('config/agent_config.json'))['hc_post_cmd']
-            unless post_cmd.nil?
-              system(post_cmd)
-            end
+            system(post_cmd) unless post_cmd.nil?
 
             # set chunk queue entry status to importing
             # commenting out now that we are chunking
