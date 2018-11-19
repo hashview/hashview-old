@@ -357,7 +357,9 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
 
+    puts '[*] Connecting to DB'
     conn = connect_db()
+
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
     settings = conn.query('SELECT * FROM settings')
