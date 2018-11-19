@@ -20,9 +20,10 @@ def updateDynamicWordlist(wordlist_id)
 
   File.open(file, 'w') do |f|
     @results.each do |entry|
-      f.puts entry['plaintext']
+      f.puts entry[:plaintext]
     end
   end
+
   wordlist.checksum = Digest::SHA256.file(file).hexdigest
   size = File.foreach(file).inject(0) do |c|
     c + 1
