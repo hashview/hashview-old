@@ -1,6 +1,6 @@
 def isBusy?
-  @results = `ps awwux | grep -i Hashcat | egrep -v "(grep|sudo|resque|^$)"`
-  true if @results.length > 1
+  @jobs = Jobs.first(status: 'running')
+  return true unless @jobs.nil?
 end
 
 def isDevelopment?
@@ -42,14 +42,18 @@ def updateTaskqueueStatus(taskqueue_id, status, agent_id)
     queue.status = status
     queue.agent_id = agent_id
     queue.save
-
     # if we are setting a status to completed, check to see if this is the last task in queue. if so, set jobtask to completed
     if status == 'Completed'
-      remaining_queued_tasks = Taskqueues.where(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Queued').all
-      remaining_running_tasks = Taskqueues.where(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Running').all
-      remaining_importing_tasks = Taskqueues.where(jobtask_id: queue.jobtask_id, job_id: queue.job_id, status: 'Importing').all
+      jobtask_id = queue.jobtask_id
+      queue.destroy
+      remaining_queued_tasks = Taskqueues.where(jobtask_id: jobtask_id, status: 'Queued').all
+      remaining_running_tasks = Taskqueues.where(jobtask_id: jobtask_id, status: 'Running').all
+      remaining_importing_tasks = Taskqueues.where(jobtask_id: jobtask_id, status: 'Importing').all
       if remaining_queued_tasks.empty? && remaining_running_tasks.empty? && remaining_importing_tasks.empty?
-        updateJobTaskStatus(queue.jobtask_id, 'Completed')
+        jobtask = Jobtasks.first(id: jobtask_id)
+        if jobtask.keyspace_pos.to_i >= jobtask.keyspace.to_i
+          updateJobTaskStatus(jobtask_id, 'Completed')
+        end
       end
     end
   end
@@ -69,6 +73,7 @@ def updateJobTaskStatus(jobtask_id, status)
     job.started_at = Time.now
     job.save
   end
+
   # find all tasks for current job:
   jobtasks = Jobtasks.where(job_id: job[:id]).all
   # if no more job are set to queue, consider the job completed
@@ -84,15 +89,15 @@ def updateJobTaskStatus(jobtask_id, status)
   # Send email
   if job.notify_completed == true && done == true
     puts '===== Sending Email ====='
-    user = User.first(username: job.last_updated_by)
+    user = User.first(username: job.owner)
     hashfile = Hashfiles.first(id: job.hashfile_id)
     customer = Customers.first(id: job.customer_id)
-    @hash_ids = Set.new
+    @hash_ids = []
     Hashfilehashes.where(hashfile_id: hashfile.id).each do |entry|
-      @hash_ids.add(entry.hash_id)
+      @hash_ids.push(entry.hash_id)
     end
-    total_cracked = Hashes.count(id: @hash_ids, cracked: 1)
-    total = Hashes.count(id: @hash_ids, cracked: 0)
+    total_cracked = Hashes.where(id: @hash_ids, cracked: 1).count
+    total = Hashes.where(id: @hash_ids, cracked: 0).count
     if user.email
       sendEmail(user.email, "Your Job: #{job.name} for #{customer.name} has completed.", "#{user.username},\r\n\r\nHashview completed cracking #{hashfile.name}.\r\n\r\nTotal Cracked: #{total_cracked}.\r\nTotal Remaining: #{total}.")
     end
@@ -104,6 +109,12 @@ def updateJobTaskStatus(jobtask_id, status)
     job.status = 'Completed'
     job.ended_at = Time.now
     job.save
+
+    # Calculate time difference and update hashfile
+    hashfile = Hashfiles.first(id: job.hashfile_id)
+    hashfile.total_run_time += (job.ended_at.to_i - job.started_at.to_i)
+    hashfile.save
+
     # purge all queued tasks
     @taskqueues = HVDB[:taskqueues]
     @taskqueues.filter(job_id: job.id).delete

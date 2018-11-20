@@ -10,12 +10,10 @@
               - if params[:edit] == '1'
                 %h1 Edit Your Assigned Tasks.
               - else
-                %h1 Assign Tasks to Job: #{@job.name}
+                %h1 Assign Tasks to Group: #{@task_group.name}
             .row
               .col-md-10.pull-left
-                Each task will be ran once
-                = succeed "." do
-                  %u in order selected
+                Each task will be ran once in order selected
                 You can create new tasks by selecting 'tasks' in the above menu.
       %br
       %br
@@ -33,19 +31,19 @@
                     %th
                       %b Control
                 %tbody
-                  - if @jobtasks_tasks
-                    - @jobtasks_tasks.each do |jobtask|
+                  - if @task_group_tasks
+                    - @task_group_tasks.each do |task|
                       %tr
                         %td
-                          #{jobtask['task_name']}
+                          #{task['task_name']}
                         %td
-                          #{jobtask['task_type']}
+                          #{task['task_type']}
                         %td
-                          %a.btn.btn-success{href: "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=UP"}
+                          %a.btn.btn-success{href: "/task_groups/move_task?id=#{@task_group.id}&task_id=#{task['task_id']}&action=UP"}
                             %i.glyphicon.glyphicon-chevron-up{title: 'Move Up'}
-                          %a.btn.btn-success{href: "/jobs/move_task?job_id=#{@job.id}&task_id=#{jobtask['task_id']}&action=DOWN"}
+                          %a.btn.btn-success{href: "/task_groups/move_task?id=#{@task_group.id}&task_id=#{task['task_id']}&action=DOWN"}
                             %i.glyphicon.glyphicon-chevron-down{title: 'Move Down'}
-                          %a.btn.btn-danger{href: "/jobs/remove_task?job_id=#{@job.id}&jobtask_id=#{jobtask['jobtask_id']}"}
+                          %a.btn.btn-danger{href: "/task_groups/remove_task?id=#{@task_group.id}&task_id=#{task['task_id']}"}
                             %i.glyphicon.glyphicon-trash{title: 'Delete'}
                         %tr
                   %tr
@@ -53,7 +51,7 @@
                       %label.control-label{for: ''}
                       .btn-group
                         .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
-                          Assign Task
+                          Add Task
                           %span.caret
                         %ul.dropdown-menu.dropdown-menu-left
                           %li
@@ -61,16 +59,7 @@
                           %li.divider{role: 'separator'}
                           - @available_tasks.each do |task|
                             %li
-                              %a{href: "/jobs/assign_task?job_id=#{@job.id}&task_id=#{task['id']}"} #{task['name']}
-                      - if @task_groups.size > 0
-                        .btn-group
-                          .btn.btn-default.dropdown-toggle{'data-toggle' => 'dropdown'}
-                            Assign Task Group
-                            %span.caret
-                          %ul.dropdown-menu.dropdown-menu-left
-                            - @task_groups.each do |group|
-                              %li
-                                %a{href: "/jobs/assign_task_group?job_id=#{@job.id}&task_group_id=#{group.id}"} #{group.name}
+                              %a{href: "/task_groups/assign_task?id=#{@task_group.id}&task_id=#{task['id']}"} #{task['name']}
                     %td
                     %td
       .modal.fade.modal{id: "modal-create-task", role: 'dialog', tabindex: '-1', "aria-hidden" => 'true'}
@@ -197,5 +186,5 @@
       .container
         .row
           .col-md-12
-            %a.btn.btn-primary{href: "/jobs/complete?job_id=#{@job.id}"}
+            %a.btn.btn-primary{href: '/task_groups/list'}
               Done

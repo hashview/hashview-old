@@ -5,6 +5,7 @@ require 'haml'
 require 'resque'
 require 'resque/server'
 require 'logger'
+require 'rack/protection'
 
 require_relative 'models/master'
 require_relative 'helpers/init'
@@ -13,6 +14,8 @@ require_relative 'jobs/init'
 
 # Enable sessions
 enable :sessions
+
+use Rack::Protection::EscapedParams
 
 # Presume production if not told otherwise
 if ENV['RACK_ENV'].nil?
@@ -37,15 +40,19 @@ if options['hc_binary_path'].empty? || options['hc_binary_path'].nil?
 end
 
 # Check for valid session before proccessing
-before /^(?!\/(login|register|logout|v1\/))/ do
-  @settings = Settings.first
-  if !validSession?
-    redirect to('/login')
+before do
+  unless %w[login register logout v1].include?(request.path_info.split('/')[1])
+    @settings = Settings.first
+    redirect '/login' unless validSession?
   end
 end
 
 # Set our key limit size
 Rack::Utils.key_space_limit = 68719476736
+
+# Quick check to see if there are any new wordlists
+Resque.enqueue(WordlistImporter)
+Resque.enqueue(WordlistChecksum)
 
 # start our local agent
 Resque.enqueue(LocalAgent)

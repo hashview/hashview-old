@@ -2,6 +2,38 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.4-beta] - 2018-11-20
+### Added
+- Added new Analytics portlet "charset breakdown"
+- Extended Masks list to be to 10 instead of top 4.
+- Added Hashfile to Job listings
+- Added ability to create new tasks mid job creation. New tasks are automatically applied to the job.
+- Added new wordlist type (dynamic). These wordlists are dynamic as in they are ever changing based on outside conditions.
+- Newly imported hashfiles automatically trigger and generate a corresponding dynamic wordlist. 
+- Added more info for Tasks and Wordlists, now you can easily see which tasks are assigned to what job, and what wordlists are assigned to what tasks.
+- Added dynamic chunking! Now each agent will work on chunks based off of their computed benchmarks.
+- Added fail check when hashfile fails import and loads a hashfile of 0/0.
+- Added ability to create task group ( a predefined set of tasks for easy job assignment)
+- Added ability to perform pre/post shell commands per task (Thanks: https://github.com/dmaasland)
+
+### Changed
+- The Last Updated value for jobs has been changed to Job Owner. This value is no longer updated when a user edits a job.
+- Updated Gems and Base Ruby to 2.4.4 (Thanks https://github.com/HugoPouliquen)
+
+### Removed
+- Removed Smart Wordlists in favor Customer/Hashfile/All dynamic wordlists.
+
+### Fixed
+- Fixed issue where homepage fails to render if remote agents dont checkin
+- Fixed issue when reordering tasks.
+- Fixed bug where getBusy? function was incorrectly citing if hashview was busy.
+- Now prevents the creation of a job with no tasks assigned.
+- Fixed time run calculation bug used in hashfiles
+- Fixed bug where keyspace was improperly being calculated for new task when hashcat was actively running.
+- Fixed bug where rule name was not properly displaying in jobs listing
+- Fixed bug where hashfiles were failing to delete as they were falsely reporting as being associated to a job.
+- Fixed bug where emails were not sending on job completion (Thanks: https://github.com/dmaasland)
+
 ## [v0.7.3-beta] - 2018-01-10
 ### Added
 - Added support for $user:$hash:$salt hashtypes (thanks https://github.com/GrepItAll): https://github.com/hashview/hashview/issues/373
@@ -14,10 +46,10 @@ Notable changes will be documented here
 ### Fixed
 - Fixed issue with chunking calculations: https://github.com/hashview/hashview/issues/358
 - Fixed calculation of password complexity in analytics page: https://github.com/hashview/hashview/issues/360 
-- Fixed hard crash error when attempting to delete non-existant file: https://github.com/hashview/hashview/issues/365
+- Fixed hard crash error when attempting to delete non-existent file: https://github.com/hashview/hashview/issues/365
 - Updated Gemlock to require rubocop 0.51.0 due to security vulns.
 - Fixed issue where Time Remaining listed in the jumbo tron was not properly populating (note requires agent update if using distributed): https://github.com/hashview/hashview/issues/371
-- Fixed task list when adding tasks to new jobs. Now nolonger lets you select a task that was already assigned.
+- Fixed task list when adding tasks to new jobs. Now no longer lets you select a task that was already assigned.
 
 ## [v0.7.2-beta] - 2017-10-19
 ### Added

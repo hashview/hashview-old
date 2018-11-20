@@ -11,6 +11,7 @@ end
 
 get '/logout' do
   varWash(params)
+
   if session[:session_id]
     sess = Sessions.first(session_key: session[:session_id])
     sess.destroy if sess
@@ -20,6 +21,7 @@ end
 
 post '/login' do
   varWash(params)
+
   if !params[:username] || params[:username].nil?
     flash[:error] = 'You must supply a username.'
     redirect to('/login')

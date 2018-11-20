@@ -25,6 +25,8 @@
                     %th
                       %b Hash File
                     %th
+                      %b hashtype
+                    %th
                       %b Crack Rate
                     %th
                       %b Control
@@ -38,10 +40,15 @@
                       - @hashfiles.each do |hashfile|
                         - if hashfile.customer_id.to_i == customer.id.to_i
                           %td
-                          %td #{hashfile.name}
+                          %td
+                            #{hashfile.name}
+                          %td
+                            #{modeToFriendly(@hashtype[hashfile.id])}
                           %td 
                             #{@cracked_status[hashfile.id]}
                           %td
+                            %a.btn.btn-success{href: "/download?hashfile_id=#{hashfile.id}"}
+                              %i.glyphicon.glyphicon-download-alt{title: 'Download'}
                             %a.btn.btn-primary{href: "/analytics?customer_id=#{customer.id}&hashfile_id=#{hashfile.id}"}
                               %i.glyphicon.glyphicon-stats{title: 'Display crack stats'}
                             %a.btn.btn-danger{href: "/hashfiles/delete?hashfile_id=#{hashfile.id}"}

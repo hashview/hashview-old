@@ -13,6 +13,13 @@
           document.getElementById('smtp_auth_div').style.display = 'none';
         }
       }
+      function handleChecked(checkbox) {
+        if (checkbox.checked == true) {
+          document.getElementById('chunk_size').removeAttribute("disabled");
+        } else {
+          document.getElementById('chunk_size').setAttribute("disabled", "disabled");
+        }
+      }
     .span15
       .container
         .col-md-12
@@ -46,6 +53,18 @@
               - if @hc_binpath
                 %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_binpath}
               Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it. Make sure the user running hashview has the ability to read the hashcat root folder
+          - if @hc_precmd
+            .form-group
+              %label.control-label.col-xs-2{for: ''} Hashcat Pre-run Command
+              .col-xs-10
+                %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_precmd}
+                Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it.
+          - if @hc_postcmd
+            .form-group
+              %label.control-label.col-xs-2{for: ''} Hashcat Post-run Command
+              .col-xs-10
+                %input{type: 'textbox', class: 'form-control', disabled: 'disabled', value: @hc_postcmd}
+                Note: This setting can be edited in the config/agent_config.json file. You'll need to restart Hashview if you change it.
           .form-group
             %label.control-label.col-xs-2{for: ''} Max Task Runtime
             .col-xs-3
@@ -240,11 +259,21 @@
     #4.tab-pane
       %br
       .col-md-10
-        %form{name: 'distributed_settings_form', id: 'distributed_settings_form', class: 'form-horizontal', action: '/settings', method: 'post'}
+        %form{name: 'distributed_settings_form', id: 'distributed_settings_form', class: 'form-horizontal', action: 'settings', method: 'post'}
           .form-group
-            %label.control-label.col-xs-3{for: ''} Chunk Size (in keyspace)
-            .col-xs-2
-              %input{type: 'textbox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
+            %label.control-label.col-xs-2{for: ''} Use Dynamic Chunking
+            .col-xs-10
+              - if @settings.use_dynamic_chunking == true
+                %input.checkbox{type: 'checkbox', id: 'use_dynamic_chunking', name: 'use_dynamic_chunking', onchange: 'handleChecked(this)', checked: 'checked'}
+              - else
+                %input.checkbox{type: 'checkbox', id: 'use_dynamic_chunking', name: 'use_dynamic_chunking', onchange: 'handleChecked(this)'}
+          .form-group
+            %label.control-label.col-xs-2{for: ''} Chunk size
+            .col-xs-10
+              - if @settings.use_dynamic_chunking == true
+                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
+              - else
+                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size, disabled: "disabled"}
           .form-group
             .col-xs-10
               %input{type: 'hidden', name: 'form_id', value: '4'}

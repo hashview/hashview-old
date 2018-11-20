@@ -80,6 +80,18 @@
                                           Task will not be chunked
                                         - else
                                           #{task.keyspace}
+                                  .row
+                                    .form-group
+                                      %label.control-label.col-xs-2{for: ''} Associated Jobs
+                                      .col-xs-4
+                                        - if @jobtasks
+                                          - @jobtasks.each do |jobtask|
+                                            - if jobtask.task_id.to_i == task.id.to_i
+                                              - @jobs.each do |job|
+                                                - if job.id.to_i == jobtask.job_id.to_i
+                                                  %p
+                                                    #{job.name}
+
                           %a.btn.btn-warning{href: "/tasks/edit/#{task.id}"}
                             %i.glyphicon.glyphicon-cog{title: 'Edit'}
                           %a.btn.btn-danger{href: "/tasks/delete/#{task.id}"}

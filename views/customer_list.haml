@@ -36,6 +36,8 @@
                         %td #{customer.name}
                         %td #{customer.description}
                         %td
+                          %a.btn.btn-primary{href: "/analytics?customer_id=#{customer.id}"}
+                            %i.glyphicon.glyphicon-stats{title: 'Display crack stats'}
                           %a.btn.btn-warning{href: "/customers/edit/#{customer.id}"}
                             %i.glyphicon.glyphicon-cog{title: 'Edit'}
                           %a.btn.btn-danger{href: "#modal#{customer.id}", "data-toggle" => 'modal'}

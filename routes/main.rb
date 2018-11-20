@@ -1,7 +1,7 @@
-# encoding: utf-8
 get '/' do
+
   @users = User.all
-  
+
   if @users.empty?
     redirect to('/register')
   elsif !validSession?
@@ -29,7 +29,6 @@ get '/home' do
   @jobs.each do |job|
     element = {}
     if job.status == 'Running' || job.status == 'importing'
-      #@Customers = Customers.first(id: job.customer_id).each do |customer|
       @customers.each do |customer|
         if customer.id == job.customer_id.to_i
           element['customer_name'] = customer.name
@@ -38,7 +37,7 @@ get '/home' do
 
       element['job_name'] = job.name
 
-      @hash_ids = Array.new
+      @hash_ids = []
 
       Hashfilehashes.where(hashfile_id: job[:hashfile_id]).select(:hash_id).each do |entry|
         @hash_ids.push(entry[:hash_id])
@@ -46,7 +45,6 @@ get '/home' do
 
       hashfile_total = Hashes.where(id: @hash_ids)
       hashfile_cracked = Hashes.where(id: @hash_ids, cracked: 1)
-
 
       element['hashfile_cracked'] = hashfile_cracked.count
       element['hashfile_total'] = hashfile_total.count
@@ -115,6 +113,5 @@ get '/home' do
       @jumbotron.push(element)
     end
   end
-
   haml :home
 end

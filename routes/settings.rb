@@ -51,6 +51,12 @@ get '/settings' do
   # get hcbinpath (stored in config file vs db)
   @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
 
+  # get hcprecmd
+  @hc_precmd = JSON.parse(File.read('config/agent_config.json'))['hc_pre_cmd']
+
+  # get hcpostcmd
+  @hc_postcmd = JSON.parse(File.read('config/agent_config.json'))['hc_post_cmd']
+
   haml :global_settings
 end
 
@@ -150,13 +156,16 @@ post '/settings' do
     settings.ui_themes = params[:ui_themes] unless params[:ui_themes].nil? || params[:ui_themes].empty?
     settings.save
 
-  elsif params[:form_id] == '4' # Distributed settings
+  elsif params[:form_id] == '4' # Distributed
     settings = Settings.first
-    # distributed settings
-    if params[:chunk_size]
-      settings.chunk_size = params[:chunk_size].to_i
-      settings.save
-    end
+
+    params[:use_dynamic_chunking] == 'on' ? params[:use_dynamic_chunking] = '1' : params[:use_dynamic_chunking] = '0'
+
+    settings.use_dynamic_chunking = params[:use_dynamic_chunking] unless params[:use_dynamic_chunking].nil? || params[:use_dynamic_chunking].empty?
+    # we dont do any logic to parse if the chunk size is set when dynamic chunking option is enabled
+    #
+    settings.chunk_size = params[:chunk_size].to_i
+    settings.save
 
   elsif params[:form_id] == '5' # Hub
 

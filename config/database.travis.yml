@@ -1,23 +1,32 @@
 production:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
   password: ""
   database: "hashview"
+  encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600
 
 development:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
   password: ""
   database: "hashview_dev"
+  encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600
 
 test:
-  adapter: mysql
+  adapter: mysql2
   host: "localhost"
   port: 3306
   user: "root"
   password: ""
   database: "hashview_test"
+  encoding: "utf8"
+  max_connections: 10
+  pool_timeout: 600

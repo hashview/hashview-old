@@ -28,7 +28,7 @@ module RuleImporter
         rule_file.name = name
         rule_file.path = path_file
         rule_file.size = 0
-        rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
+        rule_file.checksum = Digest::SHA256.file(path_file).hexdigest
         rule_file.save
 
       end

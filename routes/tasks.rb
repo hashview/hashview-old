@@ -1,8 +1,9 @@
-# encoding: utf-8
 get '/tasks/list' do
   @tasks = Tasks.all
   @wordlists = Wordlists.all
   @rules = Rules.all
+  @jobtasks = Jobtasks.all
+  @jobs = Jobs.all
 
   haml :task_list
 end
@@ -24,6 +25,7 @@ end
 
 get '/tasks/edit/:id' do
   varWash(params)
+
   @task = Tasks.first(id: params[:id])
   @wordlists = Wordlists.all
   @hc_settings = HashcatSettings.first
@@ -47,6 +49,7 @@ end
 
 post '/tasks/edit/:id' do
   varWash(params)
+
   if !params[:name] || params[:name].nil?
     flash[:error] = 'The task requires a name.'
     redirect to("/tasks/edit/#{params[:id]}")
@@ -97,6 +100,7 @@ post '/tasks/edit/:id' do
   if params[:attackmode] == 'dictionary'
     task.wl_id = wordlist.id
     task.hc_rule = params[:rule].to_i
+    task.hc_rule = 'none' if params[:rule].to_i.zero?
     task.hc_mask = 'NULL'
   elsif params[:attackmode] == 'maskmode'
     task.wl_id = 'NULL'
@@ -107,6 +111,7 @@ post '/tasks/edit/:id' do
     task.hc_rule = rule_list
     task.hc_mask = 'NULL'
   end
+  task.keyspace = getKeyspace(task)
   task.save
 
   redirect to('/tasks/list')
@@ -114,8 +119,8 @@ end
 
 get '/tasks/create' do
   varWash(params)
-  @hc_settings = HashcatSettings.first
 
+  @hc_settings = HashcatSettings.first
   @rules = Rules.all
   @wordlists = Wordlists.all
 
@@ -205,5 +210,11 @@ post '/tasks/create' do
   task.save
 
   flash[:success] = "Task #{task.name} successfully created."
-  redirect to('/tasks/list')
+  if URI(request.referer).path == '/jobs/assign_tasks'
+    redirect to '/jobs/assign_task?' + URI(request.referer).query.to_s + '&task_id=' + task.id.to_s
+  elsif URI(request.referer).path == '/task_groups/assign_tasks'
+    redirect to '/task_groups/assign_task?' + URI(request.referer).query.to_s + '&task_id=' + task.id.to_s
+  else
+    redirect to('/tasks/list')
+  end
 end

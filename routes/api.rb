@@ -38,10 +38,10 @@ get '/v1/queue/:id' do
   uuid = request.cookies['agent_uuid']
 
   if uuid
-    @agent = Agents.first(uuid: uuid)
-    if @agent
-      # assign task from queue only if agent id is already assigned
-      @assigned_task = Taskqueues.first(id: params[:id], agent_id: @agent.id)
+    agent = Agents.first(uuid: uuid)
+    if agent
+      # assign chunk from queue only if agent id is already assigned
+      assigned_chunk = Taskqueues.first(id: params[:id], agent_id: agent.id)
     end
   else
     status 200
@@ -53,7 +53,7 @@ get '/v1/queue/:id' do
   end
 
   # check to see if this agent is suppose to be working on something
-  return @assigned_task.to_json if @assigned_task
+  return assigned_chunk.to_json if assigned_chunk
 end
 
 # remove item from queue
@@ -66,7 +66,7 @@ get '/v1/queue/:id/remove' do
   return
 end
 
-# update status of taskqueue item
+# update status of task_queue item
 post '/v1/queue/:taskqueue_id/status' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
@@ -154,11 +154,11 @@ get 'v1/wordlist/by_jobtask_id/:id' do
 
 end
 
-# Initiate an update to smart wordlist
-get '/v1/updateSmartWordlist' do
+get '/v1/updateWordlist/:wl_id' do
   # is agent authorized
   redirect to('/v1/notauthorized') unless agentAuthorized(request.cookies['agent_uuid'])
-  updateSmartWordlist
+
+  updateDynamicWordlist(params[:wl_id])
   data = {
     status: 200,
     type: 'message',
@@ -252,6 +252,8 @@ end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
+  varWash(params)
+
   # error if no uuid is set in cookie
   if params[:uuid].nil?
     status 200
@@ -265,24 +267,25 @@ post '/v1/agents/:uuid/heartbeat' do
     payload = JSON.parse(request.body.read)
 
     # get agent data from db if available
-    @agent = Agents.first(uuid: params[:uuid])
-    if !@agent.nil?
-      if @agent.status == 'Authorized'
+    agent = Agents.first(uuid: params[:uuid])
+    if !agent.nil?
+      # We have an Agent in our agents table
+      if agent.status == 'Authorized'
         # if agent is set to authorized, continue to authorization process
         redirect to("/v1/agents/#{params[:uuid]}/authorize")
-      elsif @agent.status == 'Pending'
+      elsif agent.status == 'Pending'
         # agent exists, but has been deactivated. update heartbeat and turn agent away
-        @agent.src_ip = "#{request.ip}"
-        @agent.heartbeat = Time.now
-        @agent.save
+        agent.src_ip = "#{request.ip}"
+        agent.heartbeat = Time.now
+        agent.save
         {
           status: 200,
           type: 'message',
           msg: 'Go Away'
         }.to_json
-      elsif @agent.status == 'Syncing'
-        @agent.heartbeat = Time.now
-        @agent.save
+      elsif agent.status == 'Syncing'
+        agent.heartbeat = Time.now
+        agent.save
         {
           status: 200,
           type: 'message',
@@ -295,32 +298,32 @@ post '/v1/agents/:uuid/heartbeat' do
         # is agent working?
         if payload['agent_status'] == 'Working'
           # read hashcat output and compare against job we think it should be working on
-          agenttask = payload['agent_task']
-          taskqueue = Taskqueues.first(id: agenttask, agent_id: @agent.id)
+          agent_task = payload['agent_task']
+          task_queue = Taskqueues.first(id: agent_task, agent_id: agent.id)
 
           # update db with the agents hashcat status
           if payload['hc_status']
             #puts payload['hc_status']
-            @agent.status = payload['agent_status']
-            @agent.hc_status = payload['hc_status'].to_json
+            agent.status = payload['agent_status']
+            agent.hc_status = payload['hc_status'].to_json
             payload['hc_status'].each do |item|
               if item.to_s =~ /Speed Dev #/
-                @agent.benchmark = item[1].split(' ')[0].to_s + ' ' + item[1].split(' ')[1].to_s
+                agent.benchmark = item[1].split(' ')[0].to_s + ' ' + item[1].split(' ')[1].to_s
               end
             end
-            @agent.save
+            agent.save
           end
 
-          if taskqueue.nil? || taskqueue.status == 'Canceled'
+          if task_queue.nil? || task_queue.status == 'Canceled'
             {
               status: 200,
               type: 'message',
               msg: 'Canceled'
             }.to_json
           else
-            @agent.heartbeat = Time.now
-            @agent.status = payload['agent_status']
-            @agent.save
+            agent.heartbeat = Time.now
+            agent.status = payload['agent_status']
+            agent.save
             {
               status: 200,
               type: 'message',
@@ -331,32 +334,173 @@ post '/v1/agents/:uuid/heartbeat' do
         elsif payload['agent_status'] == 'Idle'
           # assign work to agent
 
-          # set next taskqueue item for this agent if there is anything in the queue
-          already_assigned_task = Taskqueues.first(status: 'Running', agent_id: @agent.id)
-          if already_assigned_task and !already_assigned_task.nil?
-            taskqueue = already_assigned_task
+          # get next task_queue item for this agent if there is anything in the queue
+          already_assigned_chunk = Taskqueues.first(agent_id: agent.id)
+          if already_assigned_chunk and !already_assigned_chunk.nil?
+            response = {}
+            response['status'] = 200
+            response['type'] = 'message'
+            response['msg'] = 'START'
+            response['task_id'] = already_assigned_chunk.id
+            return response.to_json
           else
-            taskqueue = Taskqueues.first(status: 'Queued', agent_id: nil)
-          end
+            # Agent doesn't have anything to do. Lets carve it a chunk
+            # 1) Figure out how much this guy can eat
+            benchmark = agent.benchmark
+            # Convert to H/s
+            speed = 0
+            if benchmark =~ / H\/s/
+              speed = benchmark.split[0].to_f
+            elsif benchmark =~ /kH\/s/
+              speed = benchmark.split[0].to_f
+              speed *= 1000
+            elsif benchmark =~ /MH\/s/
+              speed = benchmark.split[0].to_f
+              speed *= 1000000
+            elsif benchmark =~ /GH\/s/
+              speed = benchmark.split[0].to_f
+              speed *= 1000000000
+            elsif benchmark =~ /TH\/s/
+              speed = benchmark.split[0].to_f
+              speed *= 1000000000000
+            end
 
-          if taskqueue and !taskqueue.nil?
-            p "=========== assigning agent task id: #{taskqueue.id}"
-            taskqueue.agent_id = @agent.id
-            taskqueue.save
+            # Fudge by factor of ten to ensure no to small of chunking
+            speed *= 100
 
-            {
-              status: 200,
-              type: 'message',
-              msg: 'START',
-              task_id: "#{taskqueue.id}"
-            }.to_json
-          else
+            # if dynamic chunking is disabled use staticly assigned chunk
+            @settings = Settings.first
+            speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking
+
+            # if for whatever reason we dont have a value for speed set it here.
+            speed = 50000 if speed.zero?
+
+            # First lets see if there's any active task queue items we can help with
+            @jobtask_queue = Jobtasks.where(status: 'Running').all
+            if @jobtask_queue && !@jobtask_queue.empty? # useing.empty since we're doing a where / all select
+
+              @jobtask_queue.each do |jobtask_queue_entry|
+                task = Tasks.first(id: jobtask_queue_entry.task_id)
+                # We only want to hand out chunks for masks and dictionary tasks
+                # i.e. no subdivision for bruteforce
+                if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
+                  # Lets update the keyspace for these tasks
+                  # This is especially important for dictionary tasks using dynamic dictionaries
+                  wordlist = Wordlists.first(id: task.wl_id)
+                  updateDynamicWordlist(wordlist.id) if wordlist && wordlist.type == 'dynamic'
+                  task.keyspace = getKeyspace(task) if wordlist && wordlist.type == 'dynamic'
+                  task.save
+
+                  # Requery to get up-to-date value
+                  task = Tasks.first(id: jobtask_queue_entry.task_id)
+                  jobtask_queue_entry.keyspace = task.keyspace
+                  jobtask_queue_entry.save
+
+                  # Now lets see if there's any jobtasks left where there's a chunk to be made
+
+                  if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
+                    # There's still work to be done
+
+                    crack_command = jobtask_queue_entry.command
+                    # Do we care if the mode is dictionary or mask, or do we do it all?
+                    crack_command += ' -s ' + jobtask_queue_entry.keyspace_pos.to_i.to_s
+                    crack_command += ' -l ' + speed.to_i.to_s
+                    crack_command += ' | tee -a control/outfiles/hcoutput_'
+                    crack_command += jobtask_queue_entry.job_id.to_s
+                    crack_command += '_'
+                    crack_command += jobtask_queue_entry.task_id.to_s
+                    crack_command += '.txt'
+
+                    # Update pos
+                    if jobtask_queue_entry.keyspace_pos.to_i + speed.to_i > task.keyspace.to_i
+                      jobtask_queue_entry.keyspace_pos = task.keyspace
+                    else
+                      jobtask_queue_entry.keyspace_pos += speed
+                    end
+                    jobtask_queue_entry.save
+
+                    # Create new agent task command
+                    task_queue_entry = Taskqueues.new
+                    task_queue_entry.job_id = jobtask_queue_entry.job_id
+                    task_queue_entry.jobtask_id = jobtask_queue_entry.id
+                    task_queue_entry.status = 'Queued'
+                    task_queue_entry.agent_id = agent.id
+                    task_queue_entry.command = crack_command
+                    task_queue_entry.save
+
+                    # return to agent chunk_queue id
+                    response = {}
+                    response['status'] = 200
+                    response['type'] = 'message'
+                    response['msg'] = 'START'
+                    response['task_id'] = task_queue_entry.id
+                    return response.to_json
+                  end
+                end
+              end
+            end
+
+            # Looks like there are no running jobtasks, time to start a new one
+            jobtask_queue_entry = Jobtasks.first(status: 'Queued')
+            if jobtask_queue_entry && !jobtask_queue_entry.nil? # using nil since we're doing a single line select
+
+              task = Tasks.first(id: jobtask_queue_entry.task_id)
+              crack_command = jobtask_queue_entry.command
+              if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
+                wordlist = Wordlists.first(id: task.wl_id)
+                updateDynamicWordlist(wordlist.id) if wordlist && wordlist.type == 'dynamic'
+                task.keyspace = getKeyspace(task) if wordlist && wordlist.type == 'dynamic'
+                task.save
+                task = Tasks.first(id: jobtask_queue_entry.task_id)
+                jobtask_queue_entry.keyspace = task.keyspace
+                jobtask_queue_entry.keyspace_pos = 0
+                jobtask_queue_entry.save
+
+                if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
+                  crack_command += ' -s 0 -l ' + speed.to_i.to_s
+
+                  # Update pos
+                  if jobtask_queue_entry.keyspace_pos.to_i + speed > task.keyspace.to_i
+                    jobtask_queue_entry.keyspace_pos = task.keyspace
+                  else
+                    jobtask_queue_entry.keyspace_pos += speed
+                  end
+                  jobtask_queue_entry.save
+                end
+              end
+
+              crack_command += ' | tee -a control/outfiles/hcoutput_'
+              crack_command += jobtask_queue_entry.job_id.to_s
+              crack_command += '_'
+              crack_command += jobtask_queue_entry.task_id.to_s
+              crack_command += '.txt'
+
+              # Create new agent task command
+              task_queue_entry = Taskqueues.new
+              task_queue_entry.job_id = jobtask_queue_entry.job_id
+              task_queue_entry.jobtask_id = jobtask_queue_entry.id
+              task_queue_entry.status = 'Queued'
+              task_queue_entry.agent_id = agent.id
+              task_queue_entry.command = crack_command
+              task_queue_entry.save
+
+              # return to agent agentqueue id
+              jobtask_queue_entry.status = 'Running'
+              jobtask_queue_entry.save
+              response = {}
+              response['status'] = 200
+              response['type'] = 'message'
+              response['msg'] = 'START'
+              response['task_id'] = task_queue_entry.id
+              return response.to_json
+            end
+
             # update agent heartbeat but do nothing for now
-            @agent.heartbeat = Time.now
-            @agent.status = payload['agent_status']
-            @agent.hc_status = ''
-            @agent.src_ip = "#{request.ip}"
-            @agent.save
+            agent.heartbeat = Time.now
+            agent.status = payload['agent_status']
+            agent.hc_status = ''
+            agent.src_ip = "#{request.ip}"
+            agent.save
             {
               status: 200,
               type: 'message',
@@ -374,6 +518,7 @@ post '/v1/agents/:uuid/heartbeat' do
       newagent.src_ip = "#{request.ip}"
       newagent.heartbeat = Time.now
       newagent.save
+      response = {}
       response['message'] = 'Go Away'
       return response.to_json
     end

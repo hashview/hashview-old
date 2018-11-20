@@ -1,17 +1,14 @@
-## rule: switch last two chars of word with each other
-## limits: words greater or equal 10 chars length
-## example: johnnoble ---> johnnobel
-## extras: experienced effective cases
-
->A k l
->A k u
->A k c
-
-## rule: permuted switch of chars of word with each other
-## limits: char positions 0 to 9
-## example: peterbishop ---> petrebishop
-## extras: none
-
+##rule:switchlasttwocharsofwordwitheachother
+##limits:wordsgreaterorequal10charslength
+##example:johnnoble--->johnnobel
+##extras:experiencedeffectivecases
+>Akl
+>Aku
+>Akc
+##rule:permutedswitchofcharsofwordwitheachother
+##limits:charpositions0to9
+##example:peterbishop--->petrebishop
+##extras:none
 *01
 *02
 *03
@@ -57,12 +54,10 @@
 *78
 *79
 *89
-
-## rule: increase char
-## limits: positions 0 to 9
-## example: nina555 ---> nina666
-## extras: none
-
+##rule:increasechar
+##limits:positions0to9
+##example:nina555--->nina666
+##extras:none
 +0
 +1
 +2
@@ -73,7 +68,6 @@
 +7
 +8
 +9
-
 +0+1
 +1+2
 +2+3
@@ -83,7 +77,6 @@
 +6+7
 +7+8
 +8+9
-
 +0+0
 +1+1
 +2+2
@@ -94,7 +87,6 @@
 +7+7
 +8+8
 +9+9
-
 +0+1+2
 +1+2+3
 +2+3+4
@@ -103,7 +95,6 @@
 +5+6+7
 +6+7+8
 +7+8+9
-
 +0+0+0
 +1+1+1
 +2+2+2
@@ -114,7 +105,6 @@
 +7+7+7
 +8+8+8
 +9+9+9
-
 +0+1+2+3
 +1+2+3+4
 +2+3+4+5
@@ -122,7 +112,6 @@
 +4+5+6+7
 +5+6+7+8
 +6+7+8+9
-
 +0+0+0+0
 +1+1+1+1
 +2+2+2+2
@@ -133,12 +122,10 @@
 +7+7+7+7
 +8+8+8+8
 +9+9+9+9
-
-## rule: decrease char
-## limits: positions 0 to 9
-## example: astrid0816 ---> astrid0815
-## extras: none
-
+##rule:decreasechar
+##limits:positions0to9
+##example:astrid0816--->astrid0815
+##extras:none
 -0
 -1
 -2
@@ -149,7 +136,6 @@
 -7
 -8
 -9
-
 -0-1
 -1-2
 -2-3
@@ -159,7 +145,6 @@
 -6-7
 -7-8
 -8-9
-
 -0-0
 -1-1
 -2-2
@@ -170,7 +155,6 @@
 -7-7
 -8-8
 -9-9
-
 -0-1-2
 -1-2-3
 -2-3-4
@@ -179,7 +163,6 @@
 -5-6-7
 -6-7-8
 -7-8-9
-
 -0-0-0
 -1-1-1
 -2-2-2
@@ -190,7 +173,6 @@
 -7-7-7
 -8-8-8
 -9-9-9
-
 -0-1-2-3
 -1-2-3-4
 -2-3-4-5
@@ -198,7 +180,6 @@
 -4-5-6-7
 -5-6-7-8
 -6-7-8-9
-
 -0-0-0-0
 -1-1-1-1
 -2-2-2-2

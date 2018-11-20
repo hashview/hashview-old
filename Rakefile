@@ -2,12 +2,9 @@ require 'resque/tasks'
 require 'resque/scheduler/tasks'
 require 'rake/testtask'
 require 'sequel'
-require 'mysql'
-# require './models/master.rb'
+require 'mysql2'
 require './helpers/email.rb'
-require './helpers/smartWordlist.rb'
 require './helpers/compute_task_keyspace.rb'
-require 'data_mapper'
 
 require_relative 'jobs/init'
 # require_relative 'helpers/init'
@@ -30,6 +27,16 @@ def shut_down
   end
   t.join
   sleep(5)
+end
+
+def connect_db
+  config = YAML.load_file('config/database.yml')
+  config = config[ENV['RACK_ENV']]
+  user, password, host = config['user'], config['password'], config['host']
+  database = config['database']
+
+  puts '[*] Connecting to DB'
+  Mysql2::Client.new(host: host, username: user, password: password, database: database)
 end
 
 # Trap ^C
@@ -111,7 +118,7 @@ namespace :db do
     end
 
     # get reference to database
-    db = Sequel.mysql(config)
+    db = Sequel.mysql2(config)
 
     # pull in schemma
     # https://github.com/jeremyevans/sequel/blob/master/doc/migration.rdoc
@@ -126,8 +133,8 @@ namespace :db do
     config = YAML.load_file('config/database.yml')
     config = config[ENV['RACK_ENV']]
 
-    # destroy database in mysql 
-    Sequel.connect(config.merge('database' => 'mysql')) do |db|
+    # destroy database in mysql
+    Sequel.connect(config) do |db|
       db.execute "DROP DATABASE IF EXISTS #{config['database']}"
     end
   end
@@ -179,7 +186,7 @@ namespace :db do
     application_version = File.open('VERSION') {|f| f.readline}
 
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version) VALUES ('Light','#{application_version}')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO settings (ui_themes, version, use_dynamic_chunking) VALUES ('Light','#{application_version}', '1')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -198,16 +205,41 @@ namespace :db do
       raise 'Error in creating default customer'
     end
 
-    # Create Smart Wordlist
-    puts '[*] Setting up default Smart Wordlist ...'
+    # Create Dynamic Wordlist - all
+    puts '[*] Setting up default Dynamic Wordlist [all] ...'
+    hash = rand(36**8).to_s(36)
     query = [
-        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, lastupdated, path, size) VALUES ('Smart Wordlist', 'dynamic', NOW(), 'control/wordlists/SmartWordlist.txt', '0')".inspect
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [All]', 'dynamic', 'all', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
     ]
     begin
       system(query.compact.join(' '))
-      system('touch control/wordlists/SmartWordlist.txt')
+      system('touch control/wordlists/wordlist-' + hash + '.txt')
     rescue
-      raise 'Error in creating smart wordlist'
+      raise 'Error in creating dynamic wordlists [all]'
+    end
+
+    # Create Dynamic Wordlist [customer] - acme
+    puts '[*] Setting up default Dynamic Wordlist [customer] - acme ...'
+    hash = rand(36**8).to_s(36)
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO wordlists (name, type, scope, lastupdated, path, size) VALUES ('Dynamic - [customer] - acme', 'dynamic', 'customer', NOW(), 'control/wordlists/wordlist-#{hash}.txt', '0')".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+      system('touch control/wordlists/wordlist-' + hash + '.txt')
+    rescue
+      raise 'Error in creating dynamic wordlists [all]'
+    end
+
+    # Assign dynamic wordlist to acme customer
+    puts '[*] Assigning Dynamic wordlist [customer] acme to acme ...'
+    query = [
+        'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e UPDATE customers SET wl_id = '2' where id = '1'".inspect
+    ]
+    begin
+      system(query.compact.join(' '))
+    rescue
+      raise 'Error in assigning Dynamic Wordlist [customer] - acme'
     end
 
     puts '[*] Settings up default wordlist ...'
@@ -225,7 +257,7 @@ namespace :db do
     # Create Default Task Dictionary
     puts '[*] Setting up default dictionary'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '2', 'dictionary', 'none')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary', '4', 'dictionary', 'none')".inspect
     ]
     begin
       system(query.compact.join(' '))
@@ -236,34 +268,12 @@ namespace :db do
     # Create Default Dictionary + Rule Task
     puts '[*] Setting up default dictionary + rule task'
     query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '2', 'dictionary', '5')".inspect
+      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Basic Dictionary + hob064 Rules', '3', 'dictionary', '5')".inspect
     ]
     begin
       system(query.compact.join(' '))
     rescue
       raise 'Error in creating default dictionary task + rule'
-    end
-
-    # Create Default SmartWordlist Dictionary
-    puts '[*] Setting up default smart wordlist task'
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode) VALUES ('Smart Wordlist Dictionary', '1', 'dictionary')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Error in creating default SmartWordlist task'
-    end
-
-    # Create Default SmartWordlist Dictionary + Rule Task
-    puts '[*] Setting up Smart Wordlist dictionary + rule task'
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO tasks (name, wl_id, hc_attackmode, hc_rule) VALUES ('Smart Wordlist Dictionary + hob064 Rules', '1', 'dictionary', '5')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Error in creating Smart Wordlist dictionary task + rule'
     end
 
     # Create Default Mask task
@@ -317,6 +327,8 @@ namespace :db do
     agent_config['port'] = '4567'
     agent_config['uuid'] = SecureRandom.uuid.to_s
     agent_config['hc_binary_path'] = ''
+    agent_config['hc_pre_cmd'] = ''
+    agent_config['hc_post_cmd'] = ''
     agent_config['type'] = 'master'
     File.open('config/agent_config.json', 'w') do |f|
       f.write(JSON.pretty_generate(agent_config))
@@ -345,19 +357,14 @@ namespace :db do
       ENV['RACK_ENV'] = 'development'
     end
 
-    config = YAML.load_file('config/database.yml')
-    config = config[ENV['RACK_ENV']]
-    user, password, host = config['user'], config['password'], config['host']
-    database = config['database']
-
     puts '[*] Connecting to DB'
-    conn = Mysql.new host, user, password, database
+    conn = connect_db()
 
     puts '[*] Collecting table information on Settings'
     #settings = conn.query('DESC settings')
     settings = conn.query('SELECT * FROM settings')
     has_version_column = false
-    settings.each_hash do |row|
+    settings.each do |row|
       if row['version']
         has_version_column = true
         db_version = Gem::Version.new(row['version'])
@@ -370,28 +377,32 @@ namespace :db do
     if Gem::Version.new(db_version) < Gem::Version.new(application_version)
       # Upgrade to v0.6.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.0')
-        db_version = upgrade_to_v060(user, password, host, database)
+        db_version = upgrade_to_v060(conn)
       end
 
       # Upgrade to v0.6.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.6.1')
-        db_version = upgrade_to_v061(user, password, host, database)
+        db_version = upgrade_to_v061(conn)
       end
       # Upgrade to v0.7.0
       if Gem::Version.new(db_version) < Gem::Version.new('0.7')
-        upgrade_to_v070(user, password, host, database)
+        upgrade_to_v070(conn)
       end
       # Upgrade to v0.7.1
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.1')
-        upgrade_to_v071(user, password, host, database)
+        upgrade_to_v071(conn)
       end
       # Upgrade to v0.7.2
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.2')
-        upgrade_to_v072(user, password, host, database)
+        upgrade_to_v072(conn)
       end
       # Upgrade to v0.7.3
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.3')
-        upgrade_to_v073(user, password, host, database)
+        upgrade_to_v073(conn)
+      end
+      # Upgrade to v0.7.4
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.4')
+        upgrade_to_v074(conn)
       end
     else
       puts '[*] Your version is up to date!'
@@ -415,16 +426,16 @@ namespace :db do
     user, password, host = config['user'], config['password'], config['host']
     database = config['database']
 
-    db = Sequel.mysql(config)
+    db = Sequel.mysql2(config)
     Sequel::Migrator.run(db, 'db/migrations')
 
   end
 end
 
 
-def upgrade_to_v060(user, password, host, database)
+def upgrade_to_v060(db_connection)
   puts '[*] Upgrading from v0.5.1 to v0.6.0'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # Check for my.cnf requirements
   # Large file Prefix?
@@ -519,6 +530,8 @@ def upgrade_to_v060(user, password, host, database)
   agent_config['port'] = '4567'
   agent_config['uuid'] = SecureRandom.uuid.to_s
   agent_config['hc_binary_path'] = ''
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
@@ -537,12 +550,12 @@ def upgrade_to_v060(user, password, host, database)
   '0.6.0'
 end
 
-def upgrade_to_v061(user, password, host, database)
+def upgrade_to_v061(db_connection)
   #DataMapper.repository.auto_upgrade!
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.0 to v0.6.1'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.6.1'")
@@ -551,12 +564,12 @@ def upgrade_to_v061(user, password, host, database)
   '0.6.1'
 end
 
-def upgrade_to_v070(user, password, host, database)
+def upgrade_to_v070(db_connection)
   DataMapper.repository.auto_upgrade!
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.6.1 to v0.7.0'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # this upgrade path doesn't require anything complex, just move a value from db to config file
   puts '[*] Reading Settings Table.'
@@ -569,6 +582,8 @@ def upgrade_to_v070(user, password, host, database)
   puts '[*] Writing new parameters to agent config'
   agent_config = JSON.parse(File.read('config/agent_config.json'))
   agent_config['hc_binary_path'] = @hc_binpath
+  agent_config['hc_pre_cmd'] = ''
+  agent_config['hc_post_cmd'] = ''
   agent_config['type'] = 'master'
   File.open('config/agent_config.json', 'w') do |f|
     f.write(JSON.pretty_generate(agent_config))
@@ -580,23 +595,6 @@ def upgrade_to_v070(user, password, host, database)
   @wordlists.each do |entry|
     entry.type = 'static'
     entry.save
-  end
-
-  # Create new smart word list
-  # should probably be moved to first but we'd break existing tasks
-  puts '[*] Generating Smart Wordlist ... this could take some time be patient'
-  updateSmartWordlist
-
-  # Identify all wordlists without checksums
-  @wordlist = Wordlists.where(checksum: nil).all
-  @wordlist.each do |wl|
-    # generate checksum
-    puts 'generating checksum'
-    checksum = Digest::SHA2.hexdigest(File.read(wl.path))
-
-    # save checksum to database
-    wl.checksum = checksum
-    wl.save
   end
 
   # add existing rules to db
@@ -618,7 +616,7 @@ def upgrade_to_v070(user, password, host, database)
       rule_file.name = name
       rule_file.path = path_file
       rule_file.size = 0
-      rule_file.checksum = Digest::SHA2.hexdigest(File.read(path_file))
+      rule_file.checksum = Digest::SHA256.file(path_file).hexdigest
       rule_file.save
 
     end
@@ -666,22 +664,22 @@ def upgrade_to_v070(user, password, host, database)
   puts '[+] Upgrade to v0.7.0 complete.'
 end
 
-def upgrade_to_v071(user, password, host, database)
+def upgrade_to_v071(db_connection)
 
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
   puts '[*] Upgrading from v0.7.0 to v0.7.1'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # FINALIZE UPGRADE
   conn.query("UPDATE settings SET version = '0.7.1'")
   puts '[+] Upgrade to v0.7.1 complete.'
 end
 
-def upgrade_to_v072(user, password, host, database)
+def upgrade_to_v072(db_connection)
   DataMapper::Model.descendants.each { |m| m.auto_upgrade! if m.superclass == Object }
 
   puts '[*] Upgrading from v0.7.1 to v0.7.2'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   # Remove unused columns
   puts '[*] Removing unused database structures.'
@@ -704,9 +702,9 @@ def upgrade_to_v072(user, password, host, database)
   puts '[+] Upgrade to v0.7.2 complete.'
 end
 
-def upgrade_to_v073(user, password, host, database)
+def upgrade_to_v073(db_connection)
   puts '[*] Upgrading from v0.7.2 to v0.7.3'
-  conn = Mysql.new host, user, password, database
+  conn = db_connection
 
   puts '[*] Adding new column for hashcat settings.'
   conn.query('ALTER TABLE hashcat_settings ADD COLUMN optimized_drivers tinyint(1)')
@@ -719,4 +717,135 @@ def upgrade_to_v073(user, password, host, database)
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.3\'')
   puts '[+] Upgrade to v0.7.3 complete.'
+end
+
+def upgrade_to_v074(db_connection)
+  puts '[*] Upgrading from v0.7.3 to v0.7.4'
+  puts '[*] Updating DB to support UTF-8, More Connections, and Longer pool timeouts.'
+  system('sed -i \'s/database: "hashview"/database: "hashview"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/database: "hashview_dev"/database: "hashview_dev"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/database: "hashview_test"/database: "hashview_test"\n  encoding: "utf8"\n  max_connections: "10"\n  pool_timeout: "600"/\' config/database.yml')
+  system('sed -i \'s/adapter: mysql/adapter: mysql2/g\' config/database.yml')
+
+  conn = db_connection
+  # Creating New Task Groups Table
+  conn.query('CREATE TABLE IF NOT EXISTS task_groups(id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), tasks VARCHAR(1024))')
+
+  # Adding new columns
+  puts '[*] Adding new columns.'
+  conn.query('ALTER TABLE hashfiles ADD COLUMN wl_id int(10)')
+  conn.query('ALTER TABLE customers ADD COLUMN wl_id int(10)')
+  conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace_pos BIGINT')
+  conn.query('ALTER TABLE jobtasks ADD COLUMN keyspace BIGINT')
+  conn.query('ALTER TABLE wordlists ADD COLUMN scope varchar(25)')
+  conn.query('ALTER TABLE settings ADD COLUMN use_dynamic_chunking TINYINT(1)')
+
+  # Altering columns
+  puts '[*] Renaming existing columns.'
+  conn.query('ALTER TABLE jobs CHANGE COLUMN last_updated_by owner varchar(40)')
+  conn.query('ALTER TABLE jobtasks CHANGE COLUMN build_cmd command varchar(4000)')
+
+  # Removing old smart wordlist
+  puts '[*] Removing Smart Wordlists.'
+  require_relative 'models/master'
+  wordlist = Wordlists.first(path: 'control/wordlists/SmartWordlist.txt')
+
+  # Remove from any existing job (keep job)
+  @tasks = Tasks.where(wl_id: wordlist.id).all
+  @tasks.each do |task|
+    @jobtasks = HVDB[:jobtasks]
+    @jobtasks.filter(task_id: task.id).delete
+  end
+
+  # Remove from any tasks
+  @tasks = HVDB[:tasks]
+  @tasks.filter(wl_id: wordlist.id).delete
+
+  # Remove from filesystem
+  begin
+    File.delete(wordlist.path)
+  rescue
+    puts '[!] No file found on disk.'
+  end
+
+  # Remove from db
+  wordlist = HVDB[:wordlists]
+  wordlist.filter(path: 'control/wordlists/SmartWordlist.txt').delete
+
+  # Create a dynamic wordlist for each hashfile
+  puts '[*] Creating new dynamic wordlists for existing hashfiles.'
+
+  @hashfiles = Hashfiles.all
+  @hashfiles.each do |entry|
+    hash = rand(36**8).to_s(36)
+    wordlist = Wordlists.new
+    wordlist.type = 'dynamic'
+    wordlist.scope = 'hashfile'
+    wordlist.name = 'DYNAMIC [hashfile] - ' + entry[:name].to_s
+    wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+    wordlist.size = 0
+    wordlist.checksum = nil
+    wordlist.lastupdated = Time.now
+    wordlist.save
+
+    # Create Shell file
+    file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+    file_shell.close
+
+    entry.wl_id = wordlist.id
+    entry.save
+  end
+
+  # Create a dynamic wordlist for each customer
+  puts '[*] Creating new dynamic wordlists for existing customers.'
+  @customers = Customers.all
+  @customers.each do |entry|
+    hash = rand(36**8).to_s(36)
+    wordlist = Wordlists.new
+    wordlist.type = 'dynamic'
+    wordlist.scope = 'customer'
+    wordlist.name = 'DYNAMIC [customer] - ' + entry[:name].to_s
+    wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+    wordlist.size = 0
+    wordlist.checksum = nil
+    wordlist.lastupdated = Time.now
+    wordlist.save
+
+    # Create Shell file
+    file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+    file_shell.close
+
+    entry.wl_id = wordlist.id
+    entry.save
+  end
+
+  # Create a dynamic wordlist for entire DB
+  puts '[*] Creating new dynamic wordlists for Hashview.'
+  hash = rand(36**8).to_s(36)
+  wordlist = Wordlists.new
+  wordlist.type = 'dynamic'
+  wordlist.scope = 'all'
+  wordlist.name = 'DYNAMIC [ALL]'
+  wordlist.path = 'control/wordlists/wordlist-' + hash + '.txt'
+  wordlist.size = 0
+  wordlist.checksum = nil
+  wordlist.lastupdated = Time.now
+  wordlist.save
+
+  # Create Shell file
+  file_shell = File.new('control/wordlists/wordlist-' + hash + '.txt', 'w')
+  file_shell.close
+
+  puts '[*] Updating existing tasks keyspace'
+  @tasks = Tasks.all
+  @tasks.each do |task|
+    if task.keyspace.nil? || task.keyspace == 0
+      task.keyspace = getKeyspace(task)
+      task.save
+    end
+  end
+
+  # FINALIZE UPGRADE
+  conn.query('UPDATE settings SET version = \'0.7.4\'')
+  puts '[+] Upgrade to v0.7.4 complete.'
 end

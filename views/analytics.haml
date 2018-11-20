@@ -50,35 +50,37 @@
       .container
         .row
           .col-md-6
-            - if !@cracked_pw_count && !@uncracked_pw_count #@cracked_results.nil?
-              No results for this job. Perhaps it was never started?
-            - else
-              .panel.panel-default
-                .panel-heading
-                  %b Total Hashes Cracked
-                .panel-body
-                  %br
-                  %div{id: 'chart1', style: 'text-align:center'}
-                  //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
-                  :plain
-                    <script src= '/js/d3.min.js'></script>
-                    <script type= "text/javascript">
-                      var data = [{"label":"Cracked", "value":"#{@cracked_pw_count}"},
-                        {"label":"Uncracked", "value":"#{@uncracked_pw_count}"}];
+            .panel.panel-default
+              .panel-heading
+                %b Total Hashes Cracked
+              .panel-body
+                %br
+                %div{id: 'TotalHashesCracked', style: 'text-align:center'}
+                //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                    var url = '/analytics/graph/TotalHashesCracked?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                    var THC_data = [];
+                    d3.json(url).then(function(json){
+                      $.each(json, function(d,i){
+                        THC_data.push({
+                          label: i.label,
+                          value: i.value
+                        })
+                      })
                       var w = 200;
                       var h = 200;
                       var r = h/2;
                       var iw = 50;
 
-                      //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
                       var color = d3.scaleOrdinal()
-                        .range(['#d9534f', '#5cb85c']);  //'#FFBF00', '#0000FF', '#008C00']);
-                      var visual1 = d3.select('#chart1').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                        .range([ '#d9534f', '#5cb85c']);  //'#FFBF00', '#0000FF', '#008C00']);
+                      var visual7 = d3.select('#TotalHashesCracked').append("svg:svg").data([THC_data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
                       var pie = d3.pie().value(function(d){return d.value;});
                       var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
 
-                      var arcs = visual1.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
-
+                      var arcs = visual7.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
 
                       arcs.append("svg:path")
                         .attr("fill", function(d, i){
@@ -94,7 +96,7 @@
                         d.outerRadius = r;
                         return "translate(" + arc.centroid(d) + ")";});
 
-                      var legend = d3.select("#chart1").append("svg")
+                      var legend = d3.select("#TotalHashesCracked").append("svg")
                         .attr("class", "legend")
                         .attr("width", r * 2)
                         .attr("height", r * 2)
@@ -113,40 +115,43 @@
                         .attr("y", 9)
                         .attr("dy", ".35em")
                         .style("font-family","Calibri")
-                        .text(function( d,i ) {return data[i].label +": " + data[i].value })
+                        .text(function( d,i ) {return THC_data[i].label +": " + THC_data[i].value })
                         .style("font-size","px");
-                    </script>
-                  %br
+                      })
+                  </script>
+                %br
           .col-md-6
-            - if !@cracked_pw_count && !@uncracked_pw_count #@cracked_results.nil?
-              No results for this job. Perhaps it was never started?
-            - else
-              .panel.panel-default
-                .panel-heading
-                  %b Composition Breakdown
-                .panel-body
-                  %br
-                  %div{id:  "chart2", :style => 'text-align:center'}
-                  //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
-                  :plain
-                    <script src= '/js/d3.min.js'></script>
-                    <script type= "text/javascript">
-                      var data = [{"label":"Fails Complexity", "value":"#{@fails_complexity_count}"},
-                        {"label":"Meets Complexity", "value":"#{@meets_complexity_count}"}];
+            .panel.panel-default
+              .panel-heading
+                %b Complexity Breakdown
+              .panel-body
+                %br
+                %div{id:  'ComplexityBreakdown', style: 'text-align:center'}
+                //cred to http://jsfiddle.net/ragingsquirrel3/qkHK6 for this
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                    var url = '/analytics/graph/ComplexityBreakdown?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                    var CB_data = [];
+                    d3.json(url).then(function(json){
+                      $.each(json, function(d,i){
+                        CB_data.push({
+                          label: i.label,
+                          value: i.value
+                        })
+                      })
                       var w = 200;
                       var h = 200;
                       var r = h/2;
                       var iw = 50;
 
-                      //d3.select("body").append("svg").attr("width", 50).attr("height", 50).append("circle").attr("cx", 25).attr("cy", 25).attr("r", 25).style("fill", "purple");
                       var color = d3.scaleOrdinal()
                         .range(['#d9534f', '#5cb85c']);  //'#FFBF00', '#0000FF', '#008C00']);
-                      var visual1 = d3.select('#chart2').append("svg:svg").data([data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                      var visual7 = d3.select('#ComplexityBreakdown').append("svg:svg").data([CB_data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
                       var pie = d3.pie().value(function(d){return d.value;});
                       var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
 
-                      var arcs = visual1.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
-
+                      var arcs = visual7.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
 
                       arcs.append("svg:path")
                         .attr("fill", function(d, i){
@@ -162,7 +167,7 @@
                         d.outerRadius = r;
                         return "translate(" + arc.centroid(d) + ")";});
 
-                      var legend = d3.select("#chart2").append("svg")
+                      var legend = d3.select("#ComplexityBreakdown").append("svg")
                         .attr("class", "legend")
                         .attr("width", r * 2)
                         .attr("height", r * 2)
@@ -181,23 +186,17 @@
                         .attr("y", 9)
                         .attr("dy", ".35em")
                         .style("font-family","Calibri")
-                        .text(function( d,i ) {return data[i].label +": " + data[i].value })
+                        .text(function( d,i ) {return CB_data[i].label +": " + CB_data[i].value })
                         .style("font-size","px");
-                    </script>
-                  %br
+                      })
+                  </script>
+                %br
           .col-md-6
             .panel.panel-default
               .panel-heading
                 %b Analysis Details
               .panel-body
                 %table{class: 'table'}
-                  - if params[:hashfile_id].nil?
-                    %td
-                      %b All Hashfiles
-                    %td
-                  -else
-                    %td
-                      %b #{@hashfiles[:name]}
                   %tr
                     %td Total Hashes:
                     %td #{@total_accounts}
@@ -226,22 +225,91 @@
                       - if @customer_id.nil?
                         %a.btn.btn-success.pull-left{href: '/download?graph=3&type=cracked'}
                           Cracked
-                        &nbsp; 
+                        &nbsp;
                         %a.btn.btn-danger.pull-center{href: '/download?graph=3&type=uncracked'}
-                          Uncracked 
+                          Uncracked
                       - elsif @customer_id && @hashfile_id.nil?
                         %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}"}
                           Cracked
                         &nbsp;
                         %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}"}
-                          Uncracked 
+                          Uncracked
                       - elsif @customer_id && @hashfile_id
                         %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
                         %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
-                          Uncracked 
+                          Uncracked
           .col-md-6
+            .panel.panel-default
+              .panel-heading
+                %b Charset Breakdown
+              .panel-body
+                %div{id: 'CharsetBreakdown', style: 'text-align:center'}
+                :plain
+                  <script src= '/js/d3.min.js'></script>
+                  <script type= "text/javascript">
+                    var url = '/analytics/graph/CharsetBreakdown?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                    var CSB_data = [];
+                    d3.json(url).then(function(json){
+                      $.each(json, function(d,i){
+                        CSB_data.push({
+                          label: i.label,
+                          value: i.value
+                        })
+                      })
+                      var w = 200;
+                      var h = 200;
+                      var r = h/2;
+                      var iw = 50;
+
+                      var color = d3.scaleOrdinal()
+                        .range(['#d9534f', '#5cb85c', '#ffbb33', '#33b5e5', '#2BBBAD', '#aa66cc']);  //'#FFBF00', '#0000FF', '#008C00']);
+                      var visual7 = d3.select('#CharsetBreakdown').append("svg:svg").data([CSB_data]).attr("width", w).attr("height", h).append("svg:g").attr("transform", "translate(" + r + "," + r + ")");
+                      var pie = d3.pie().value(function(d){return d.value;});
+                      var arc = d3.arc().innerRadius(r - iw).outerRadius(r);
+
+                      var arcs = visual7.selectAll("g.slice").data(pie).enter().append("svg:g").attr("class", "slice");
+
+                      arcs.append("svg:path")
+                        .attr("fill", function(d, i){
+                          return color(i);
+                          })
+                        .attr("stroke-width", 2.0)
+                        .attr("d", function (d) {
+                          console.log(arc(d));
+                          return arc(d);
+                        });
+                      arcs.append("svg:text").attr("transform", function(d){
+                        d.innerRadius = 0;
+                        d.outerRadius = r;
+                        return "translate(" + arc.centroid(d) + ")";});
+
+                      var legend = d3.select("#CharsetBreakdown").append("svg")
+                        .attr("class", "legend")
+                        .attr("width", r * 2)
+                        .attr("height", r * 2)
+                        .selectAll("g")
+                        .data(color.domain().slice())
+                        .enter().append("g")
+                        .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+
+                      legend.append("rect")
+                        .attr("width", 18)
+                        .attr("height", 18)
+                        .style("fill", color);
+
+                      legend.append("text")
+                        .attr("x", 24)
+                        .attr("y", 9)
+                        .attr("dy", ".35em")
+                        .style("font-family","Calibri")
+                        .text(function( d,i ) {return CSB_data[i].label +": " + CSB_data[i].value })
+                        .style("font-size","px");
+                      })
+                  </script>
+                %br
+          .col-md-12
             .panel.panel-default
               .panel-heading
                 %b Composition Details
@@ -250,23 +318,27 @@
                   %td
                     %b Mask
                   %td
+                    %b Count
+                  %td
+                    %b Percentage
                   %tr
-                  - @top_5_masks.each do |key, value|
-                    %td #{key}
-                    %td #{value.to_f.round(1)} %
+                  - @top_ten_masks.each do |entry|
+                    %td #{entry[:mask]}
+                    %td #{entry[:count]}
+                    %td #{entry[:percentage].to_f.round(1)} %
                     %tr
           .col-md-12
             .panel.panel-default
               .panel-heading
                 %b Password Count by Length
               .panel-body
-                %div{id: 'chart3'}
+                %div{id: 'PasswordsCountByLength'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart3').clientWidth * .90;
+                      width = document.getElementById('PasswordsCountByLength').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -279,7 +351,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual2 = d3.select("#chart3").append("svg")
+                  var visual2 = d3.select("#PasswordsCountByLength").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -287,9 +359,8 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph1?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  var url = '/analytics/PasswordsCountByLength?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data
@@ -302,7 +373,7 @@
                     y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
                     // append the rectangles for the bar chart
-                    visual2.selectAll("#chart3")
+                    visual2.selectAll("#PasswordsCountByLength")
                         .data(data)
                       .enter().append("rect")
                         .attr("class", "bar")
@@ -327,13 +398,13 @@
               .panel-heading
                 %b Top 10 Passwords
               .panel-body
-                %div{id: 'chart4'}
+                %div{id: 'Top10Passwords'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart4').clientWidth * .90;
+                      width = document.getElementById('Top10Passwords').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -346,7 +417,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual3 = d3.select("#chart4").append("svg")
+                  var visual3 = d3.select("#Top10Passwords").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -354,9 +425,8 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph2?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  var url = '/analytics/Top10Passwords?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data
@@ -369,7 +439,7 @@
                     y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
                     // append the rectangles for the bar chart
-                    visual3.selectAll("#chart4")
+                    visual3.selectAll("#Top10Passwords")
                         .data(data)
                       .enter().append("rect")
                         .attr("class", "bar")
@@ -394,13 +464,13 @@
               .panel-heading
                 %b Top 10 Base Words
               .panel-body
-                %div{id: 'chart5'}
+                %div{id: 'Top10BaseWords'}
                 :plain
                   <script src= '/js/d3.min.js'></script>
                   <script type= "text/javascript">
                   // set the dimensions and margins of the graph
                   var margin = {top: 20, right: 20, bottom: 30, left: 40},
-                      width = document.getElementById('chart5').clientWidth * .90;
+                      width = document.getElementById('Top10BaseWords').clientWidth * .90;
                       height = 350 - margin.top - margin.bottom;
 
                   // set the ranges
@@ -413,7 +483,7 @@
                   // append the svg object to the body of the page
                   // append a 'group' element to 'svg'
                   // moves the 'group' element to the top left margin
-                  var visual4 = d3.select("#chart5").append("svg")
+                  var visual4 = d3.select("#Top10BaseWords").append("svg")
                       .attr("width", width + margin.left + margin.right)
                       .attr("height", height + margin.top + margin.bottom)
                     .append("g")
@@ -421,9 +491,8 @@
                             "translate(" + margin.left + "," + margin.top + ")");
 
                   // get the data
-                  var url = '/analytics/graph3?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  var url = '/analytics/Top10BaseWords?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data
@@ -436,7 +505,7 @@
                     y.domain([0, d3.max(data, function(d) { return d.count; })]);
 
                     // append the rectangles for the bar chart
-                    visual4.selectAll("#chart5")
+                    visual4.selectAll("#Top10BaseWords")
                         .data(data)
                       .enter().append("rect")
                         .attr("class", "bar")
@@ -464,8 +533,28 @@
                   %a.pull-right{href: "/download?graph=6&type=csv&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                     csv
               .panel-body
+                :plain
+                  <script src= '/js/jquery-2.1.3.min.js'></script>
+                  <script type= "text/javascript">
+                  $.getJSON('/analytics/AccountsWithWeakPasswords', function(data){
+                    //document.write(data.label)
+                    console.log(data);
+                    for (var key in data) {
+                      if (data.hasOwnProperty(key)) {
+                      // once more!
+                      //for (var key2 in data[key]) {
+                      //  if (data[key].hasOwnProperty(key2)){
+                      //    console.log( key2 + "->" + data[key][key2]);
+                      //  }
+                      //}
+                      console.log( key + "->" + data[key]['label']);
+                      console.log( key + '->' + data[key]['value']);
+                      }
+                    }
+                  });
+                  </script>
                 - if @fails_complexity
-                  - if @fails_complexity.empty?
+                  - if @fails_complexity.empty? || @fails_complexity.nil?
                     No Weak Passwords!
                   - else
                     #accordion.panel-group
