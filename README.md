@@ -1,5 +1,8 @@
 # Hashview
+
 [![Build Status](https://travis-ci.org/hashview/hashview.svg?branch=master)](https://travis-ci.org/hashview/hashview)
+![](https://img.shields.io/github/license/hashview/hashview.svg)
+[![Rawsec's CyberSecurity Inventory](https://inventory.rawsec.ml/img/badges/Rawsec-inventoried-FF5050_flat.svg)](https://inventory.rawsec.ml/tools.html#Hashview)
 
 >**Hashview** is a tool for security professionals to help organize and automate the repetitious tasks related to password cracking. Hashview is a web application that manages hashcat (https://hashcat.net) commands. Hashview strives to bring constiency in your hashcat tasks while delivering analytics with pretty pictures ready for ctrl+c, ctrl+v into your reports.
 
