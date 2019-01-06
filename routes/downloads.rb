@@ -1,5 +1,4 @@
 get '/download' do
-
   varWash(params)
   @hashfiles = Hashfiles.find(id: params[:hashfile_id])
   authorize @hashfiles, :list? if params[:hashfile_id]

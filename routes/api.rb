@@ -252,8 +252,8 @@ end
 
 # post is used when agent is working
 post '/v1/agents/:uuid/heartbeat' do
-
   varWash(params)
+
   # error if no uuid is set in cookie
   if params[:uuid].nil?
     status 200
@@ -333,19 +333,15 @@ post '/v1/agents/:uuid/heartbeat' do
 
         elsif payload['agent_status'] == 'Idle'
           # assign work to agent
-          p 'Agent: ' + agent.id.to_s + ' Checking in'
 
           # get next task_queue item for this agent if there is anything in the queue
           already_assigned_chunk = Taskqueues.first(agent_id: agent.id)
           if already_assigned_chunk and !already_assigned_chunk.nil?
-            p "Agent already has a task: #{already_assigned_chunk}"
-            p 'Agent Chunk ID: ' + already_assigned_chunk.id.to_s
             response = {}
             response['status'] = 200
             response['type'] = 'message'
             response['msg'] = 'START'
             response['task_id'] = already_assigned_chunk.id
-            p 'RESPONSE: ' + response.to_json.to_s
             return response.to_json
           else
             # Agent doesn't have anything to do. Lets carve it a chunk
@@ -354,36 +350,35 @@ post '/v1/agents/:uuid/heartbeat' do
             # Convert to H/s
             speed = 0
             if benchmark =~ / H\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
             elsif benchmark =~ /kH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000
             elsif benchmark =~ /MH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000
             elsif benchmark =~ /GH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000000
             elsif benchmark =~ /TH\/s/
-              speed = benchmark.split()[0].to_f
+              speed = benchmark.split[0].to_f
               speed *= 1000000000000
             end
 
             # Fudge by factor of ten to ensure no to small of chunking
-            speed *= 10
-            
+            speed *= 100
+
             # if dynamic chunking is disabled use staticly assigned chunk
             @settings = Settings.first
             speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking
 
             # if for whatever reason we dont have a value for speed set it here.
             speed = 50000 if speed.zero?
-            p 'Benchmark: ' + benchmark.to_s
-            p 'Agent Speed: ' + speed.to_s
+
             # First lets see if there's any active task queue items we can help with
             @jobtask_queue = Jobtasks.where(status: 'Running').all
             if @jobtask_queue && !@jobtask_queue.empty? # useing.empty since we're doing a where / all select
-              p 'We have a running jobtask at the moment: ' + @jobtask_queue.to_s
+
               @jobtask_queue.each do |jobtask_queue_entry|
                 task = Tasks.first(id: jobtask_queue_entry.task_id)
                 # We only want to hand out chunks for masks and dictionary tasks
@@ -402,12 +397,10 @@ post '/v1/agents/:uuid/heartbeat' do
                   jobtask_queue_entry.save
 
                   # Now lets see if there's any jobtasks left where there's a chunk to be made
-                  p 'Curent task: ' + jobtask_queue_entry.task_id.to_s
-                  p 'Task keyspace: ' + task.keyspace.to_s
-                  p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
+
                   if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
                     # There's still work to be done
-                    p 'There\s still work to be done'
+
                     crack_command = jobtask_queue_entry.command
                     # Do we care if the mode is dictionary or mask, or do we do it all?
                     crack_command += ' -s ' + jobtask_queue_entry.keyspace_pos.to_i.to_s
@@ -417,7 +410,6 @@ post '/v1/agents/:uuid/heartbeat' do
                     crack_command += '_'
                     crack_command += jobtask_queue_entry.task_id.to_s
                     crack_command += '.txt'
-                    p 'crack_command: ' + crack_command.to_s
 
                     # Update pos
                     if jobtask_queue_entry.keyspace_pos.to_i + speed.to_i > task.keyspace.to_i
@@ -437,7 +429,6 @@ post '/v1/agents/:uuid/heartbeat' do
                     task_queue_entry.save
 
                     # return to agent chunk_queue id
-                    p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
                     response = {}
                     response['status'] = 200
                     response['type'] = 'message'
@@ -448,13 +439,11 @@ post '/v1/agents/:uuid/heartbeat' do
                 end
               end
             end
-            p 'We do not have a running task queue entry. checking for queued tasks'
+
             # Looks like there are no running jobtasks, time to start a new one
             jobtask_queue_entry = Jobtasks.first(status: 'Queued')
             if jobtask_queue_entry && !jobtask_queue_entry.nil? # using nil since we're doing a single line select
-              p 'We have a queued task: ' + jobtask_queue_entry.to_s
-              p 'Current jobtasks id: ' + jobtask_queue_entry.id.to_s
-              p 'Current task: ' + jobtask_queue_entry.task_id.to_s
+
               task = Tasks.first(id: jobtask_queue_entry.task_id)
               crack_command = jobtask_queue_entry.command
               if task.hc_attackmode == 'maskmode' || task.hc_attackmode == 'dictionary'
@@ -466,9 +455,6 @@ post '/v1/agents/:uuid/heartbeat' do
                 jobtask_queue_entry.keyspace = task.keyspace
                 jobtask_queue_entry.keyspace_pos = 0
                 jobtask_queue_entry.save
-
-                p 'Task keyspace: ' + jobtask_queue_entry.keyspace.to_s
-                p 'Task keyspace_pos: ' + jobtask_queue_entry.keyspace_pos.to_s
 
                 if jobtask_queue_entry.keyspace_pos.to_i < task.keyspace.to_i
                   crack_command += ' -s 0 -l ' + speed.to_i.to_s
@@ -488,7 +474,6 @@ post '/v1/agents/:uuid/heartbeat' do
               crack_command += '_'
               crack_command += jobtask_queue_entry.task_id.to_s
               crack_command += '.txt'
-              p 'crack_command: ' + crack_command.to_s
 
               # Create new agent task command
               task_queue_entry = Taskqueues.new
@@ -500,10 +485,8 @@ post '/v1/agents/:uuid/heartbeat' do
               task_queue_entry.save
 
               # return to agent agentqueue id
-              p "======== Setting taskqueue #{jobtask_queue_entry.id} to Running"
               jobtask_queue_entry.status = 'Running'
               jobtask_queue_entry.save
-              p "======== assigning agent #{agent.name} the task #{task_queue_entry.id}"
               response = {}
               response['status'] = 200
               response['type'] = 'message'
@@ -511,9 +494,7 @@ post '/v1/agents/:uuid/heartbeat' do
               response['task_id'] = task_queue_entry.id
               return response.to_json
             end
-            p 'No Queued Task exists.'
 
-            p 'Letting agent (' + agent.id.to_s + ') know there\'s nothing to do'
             # update agent heartbeat but do nothing for now
             agent.heartbeat = Time.now
             agent.status = payload['agent_status']

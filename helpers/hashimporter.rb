@@ -510,7 +510,7 @@ def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     entry = entry.gsub(/\s+/, "") # remove all spaces
-    if file_type == 'pwdump' || file_type == 'smart_hashdump'
+    if %w[pwdump smart_hashdump].include?(file_type)
       elements = entry.split(':')
       unless elements[2].nil?
         @modes = getMode(elements[2])
@@ -524,7 +524,7 @@ def detectHashType(hash_file, file_type)
           @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
         end
       end
-    elsif file_type == 'shadow' || file_type == 'dsusers' || file_type == 'user_hash'
+    elsif %w[shadow dsusers user_hash].include?(file_type)
       elements = entry.split(':')
       hash = elements[1]
       unless hash.nil?

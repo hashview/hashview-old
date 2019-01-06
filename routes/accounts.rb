@@ -27,10 +27,14 @@ post '/accounts/create' do
       username: params[:username],
       password: params[:password],
       email: params[:email],
-      admin: (params[:admin] == 'on' ? 't' : 'f'),
+      admin: 't',
       mfa: params[:mfa] ? 't' : 'f',
       auth_secret:  params[:mfa] ? ROTP::Base32.random_base32 : ''
     )
+    new_user.id = User.last[:id].to_i + 1
+    # sequel does not understand composite primary
+    # keys, and cant figure out which autoincrements
+
     if new_user.valid?
       new_user.save
     else
@@ -94,7 +98,7 @@ get '/accounts/me' do
   @user = current_user
 
   data = Rack::Utils.escape(ROTP::TOTP.new(@user.auth_secret).provisioning_uri(@user.username))
-  @otp = "https://chart.googleapis.​com/chart?chs=200x200&chld=M|0&cht=qr&chl=#{data}"
+  @otp = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=#{data}"
   haml :account_me
 end
 
