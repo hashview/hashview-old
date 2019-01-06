@@ -404,6 +404,10 @@ namespace :db do
       if Gem::Version.new(db_version) < Gem::Version.new('0.7.4')
         upgrade_to_v074(conn)
       end
+      # Upgrade to v0.7.5
+      if Gem::Version.new(db_version) < Gem::Version.new('0.7.5')
+        upgrade_to_v075(conn)
+      end
     else
       puts '[*] Your version is up to date!'
     end
@@ -848,4 +852,11 @@ def upgrade_to_v074(db_connection)
   # FINALIZE UPGRADE
   conn.query('UPDATE settings SET version = \'0.7.4\'')
   puts '[+] Upgrade to v0.7.4 complete.'
+end
+
+def upgrade_to_v075(db_connection)
+  puts '[*] Upgrading from v0.7.4 to v0.7.5'
+  conn = db_connection
+  conn.query('UPDATE settings SET version = \'0.7.5\'')
+  puts '[+] Upgrade to v0.7.5 complete.'
 end

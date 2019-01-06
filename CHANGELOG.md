@@ -2,6 +2,11 @@
 Notable changes will be documented here
 
 ## Current Release
+## [v0.7.5-beta] - 2019-xx-xx
+###
+- New user accounts are required to have 'complex' passwords. (Thanks: https://github.com/HugoPouliquen)
+- User roles user/admin (Thanks: https://github.com/HugoPouliquen)
+
 ## [v0.7.4-beta] - 2018-11-20
 ### Added
 - Added new Analytics portlet "charset breakdown"
