@@ -5,39 +5,40 @@
       .row
         .container
           .col-md-12
-            .form-group.text-right
-              %label.control-label{for: ''} Customer:
-              .btn-group
-                .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
-                  - if @customer_id.nil?
-                    All Time
-                  - else
-                    #{@customers.name}
-                  %span.caret
-                %ul.dropdown-menu.dropdown-menu-right
-                  %li
-                    %a{href: '/analytics'} All
-                  %li.divider{role: 'separator'}
-                  - @button_select_customers.each do |customer|
+            - if current_user.admin
+              .form-group.text-right
+                %label.control-label{for: ''} Customer:
+                .btn-group
+                  .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
+                    - if @customer_id.nil?
+                      All Time
+                    - else
+                      #{@customers.name}
+                    %span.caret
+                  %ul.dropdown-menu.dropdown-menu-right
                     %li
-                      %a{href: "/analytics?customer_id=#{customer.id}"} #{customer.name}
-              - if @customer_id
-                &nbsp
-                %label.control-label.text-right{for: ''} Hash File:
-                .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
-                  - if !params[:hashfile_id]
-                    All Hashes
-                  - else
-                    #{@hashfiles[:name]}
-                  %span.caret
-                %ul.dropdown-menu.dropdown-menu-right
-                  %li
-                    %a{href: "/analytics?customer_id=#{@customer_id}"} All Hashes
-                  %li.divider{role: 'separator'}
-                  - @button_select_hashfiles.each do |hashfile|
+                      %a{href: '/analytics'} All
+                      %li.divider{role: 'separator'}
+                    - @button_select_customers.each do |customer|
+                      %li
+                        %a{href: "/analytics?customer_id=#{customer.id}"} #{customer.name}
+                - if @customer_id
+                  &nbsp
+                  %label.control-label.text-right{for: ''} Hash File:
+                  .btn.btn-default.dropdown-toggle{"data-toggle" => 'dropdown'}
+                    - if !params[:hashfile_id]
+                      All Hashes
+                    - else
+                      #{@hashfiles[:name]}
+                    %span.caret
+                  %ul.dropdown-menu.dropdown-menu-right
                     %li
-                      %a{href: "/analytics?customer_id=#{@customer_id}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
-                &nbsp
+                      %a{href: "/analytics?customer_id=#{@customer_id}"} All Hashes
+                      %li.divider{role: 'separator'}
+                    - @button_select_hashfiles.each do |hashfile|
+                      %li
+                        %a{href: "/analytics?customer_id=#{@customer_id}&hashfile_id=#{hashfile.id}"} #{hashfile.name}
+                  &nbsp
           .col-md-12
             .page-header
               %h1

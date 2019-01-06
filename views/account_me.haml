@@ -4,23 +4,14 @@
     .span15
       %br
       .container
-        - if @user
-          %h2 Edit User
-        - else
-          %h2 Add User
+        %h2 Edit my account
         %br
         .row
           .col-md-10
-            %form{ class: 'form-horizontal', action: "/accounts/#{@user ? 'save' : 'create'}", method: 'post' }
+            %form{ class: 'form-horizontal', action: '/accounts/me', method: 'post' }
               .form-group
-                %label.control-label.col-xs-2{ for: '' } Username
-                .col-md-6
-                  %input{ type: 'textbox', class: 'form-control', name: 'username', id: 'username', value: "#{@user.username if @user}" }
               .form-group
-                - if @user
-                  %label.control-label.col-xs-2{for: ''} Reset password
-                - else
-                  %label.control-label.col-xs-2{for: ''} Password
+                %label.control-label.col-xs-2{for: ''} Reset password
                 .col-md-6
                   %input{ type: 'password', class: 'form-control', name: 'password', id: 'password' }
               .form-group
@@ -32,13 +23,6 @@
                 .col-md-6
                   %input{ type: 'textbox', class: 'form-control', name: 'email', id: 'email', value: "#{@user.email if @user}" }
               .form-group
-                %label.control-label.col-xs-2{ for: '' } Admin
-                .col-md-6
-                  - if @user && @user.admin
-                    %input.form-control{ type: 'checkbox', name: 'admin', id: 'admin', checked: 'y' }
-                  - else
-                    %input.form-control{ type: 'checkbox', name: 'admin', id: 'admin' }
-              .form-group
                 %label.control-label.col-xs-2{for: ''} MFA (Google Authenticator)
                 .col-md-6
                   - if @user && @user.mfa
@@ -49,8 +33,8 @@
                 .form-group
                   %label.control-label.col-xs-2{ for: '' } QR Code
                   .col-md-6
-                    %img{ :src => @otp, :alt => "Google Authenticator QR Code" }
-                    %link{ :href => "#{@otp}", rel: 'stylesheet' }
+                    %img{ src: @otp, :alt => "Google Authenticator QR Code" }
+                    %link{ href: "#{@otp}", rel: 'stylesheet' }
               .form-group
                 .col-xs-offset-2.col-xs-10
                   %button.btn.btn-primary{ type: 'submit' } Save

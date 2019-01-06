@@ -9,6 +9,7 @@ get '/tasks/list' do
 end
 
 get '/tasks/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @job_tasks = Jobtasks.where(task_id: params[:id]).all
@@ -24,6 +25,7 @@ get '/tasks/delete/:id' do
 end
 
 get '/tasks/edit/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @task = Tasks.first(id: params[:id])
@@ -48,6 +50,7 @@ get '/tasks/edit/:id' do
 end
 
 post '/tasks/edit/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   if !params[:name] || params[:name].nil?

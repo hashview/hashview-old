@@ -6,6 +6,7 @@ get '/task_groups/list' do
 end
 
 get '/task_groups/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   task_group = TaskGroups.first(id: params[:id])

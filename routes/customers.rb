@@ -59,6 +59,7 @@ post '/customers/create' do
 end
 
 get '/customers/edit/:id' do
+  authorize :application, :admin_access?
   varWash(params)
   @customer = Customers.first(id: params[:id])
 
@@ -66,6 +67,7 @@ get '/customers/edit/:id' do
 end
 
 post '/customers/edit/:id' do
+  authorize :application, :admin_access?
   varWash(params)
   if !params[:name] || params[:name].nil?
     flash[:error] = 'Customer must have a name.'
@@ -81,6 +83,7 @@ post '/customers/edit/:id' do
 end
 
 get '/customers/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @customers = Customers.first(id: params[:id])

@@ -1,14 +1,17 @@
 # encoding: utf-8
 get '/accounts/list' do
+  authorize :application, :admin_access?
   @users = User.all
   haml :account_list
 end
 
 get '/accounts/create' do
+  authorize :application, :admin_access?
   haml :account_edit
 end
 
 post '/accounts/create' do
+  authorize :application, :admin_access?
   varWash(params)
 
   if params[:confirm].nil? || params[:confirm].empty? && !params[:mfa]
@@ -43,6 +46,7 @@ post '/accounts/create' do
 end
 
 get '/accounts/edit/:account_id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @user = User.first(id: params[:account_id])
@@ -52,6 +56,7 @@ get '/accounts/edit/:account_id' do
 end
 
 post '/accounts/save' do
+  authorize :application, :admin_access?
   varWash(params)
 
   if params[:account_id].nil? || params[:account_id].empty?
@@ -70,6 +75,7 @@ post '/accounts/save' do
   end
 
   user = User.first(id: params[:account_id])
+  user.admin = (params[:admin] == 'on' ? 't' : 'f')
   user.username = params[:username]
   user.password = params[:password] unless params[:password].nil? || params[:password].empty?
   user.email = params[:email] unless params[:email].nil? || params[:email].empty?
@@ -86,7 +92,40 @@ post '/accounts/save' do
   end
 end
 
+get '/accounts/me' do
+  varWash(params)
+
+  @user = current_user
+
+  data = Rack::Utils.escape(ROTP::TOTP.new(@user.auth_secret).provisioning_uri(@user.username))
+  @otp = "https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=#{data}"
+  haml :account_me
+end
+
+post '/accounts/me' do
+  varWash(params)
+
+  if params[:password] != params[:confirm]
+    flash[:error] = 'Passwords do not match.'
+    redirect to('/accounts/me')
+  end
+
+  user = current_user
+  user.password = params[:password] unless params[:password].nil? || params[:password].empty?
+  user.email = params[:email] unless params[:email].nil? || params[:email].empty?
+  user.auth_secret = (params[:mfa] && user.auth_secret == '') ? ROTP::Base32.random_base32 : ''
+  user.mfa = params[:mfa] ? 't' : 'f'
+  if user.valid?
+    user.save
+    flash[:success] = 'Account successfully updated.'
+  else
+    flash[:error] = user.errors.full_messages.first.capitalize
+  end
+  redirect to('/accounts/me')
+end
+
 get '/accounts/delete/:id' do
+  authorize :application, :admin_access?
   varWash(params)
 
   @user = User.first(id: params[:id])

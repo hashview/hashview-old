@@ -69,7 +69,8 @@
                                   %p
                                 .modal-footer
                                   %button.btn.btn-default{"data-dismiss" => "modal", type: 'button'} Close
-                          %a.btn.btn-warning{href: "/task_groups/assign_tasks?id=#{task_group.id}"}
-                            %i.glyphicon.glyphicon-cog{title: 'Edit'}
-                          %a.btn.btn-danger{href: "/task_groups/delete/#{task_group.id}"}
-                            %i.glyphicon.glyphicon-trash{title: 'Delete'}
+                          - if current_user.admin
+                            %a.btn.btn-warning{href: "/task_groups/assign_tasks?id=#{task_group.id}"}
+                              %i.glyphicon.glyphicon-cog{title: 'Edit'}
+                            %a.btn.btn-danger{href: "/task_groups/delete/#{task_group.id}"}
+                              %i.glyphicon.glyphicon-trash{title: 'Delete'}

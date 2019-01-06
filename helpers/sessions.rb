@@ -14,4 +14,13 @@ helpers do
 
     auth ? true : false
   end
+
+  def current_session
+    Sessions.first(session_key: session[:session_id])
+  end
+
+  # Pull current_user to use everywhere
+  def current_user
+    User.find(username: current_session&.username)
+  end
 end

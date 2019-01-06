@@ -1,6 +1,7 @@
 get '/download' do
   varWash(params)
-
+  @hashfiles = Hashfiles.find(id: params[:hashfile_id])
+  authorize @hashfiles, :list? if params[:hashfile_id]
   if params[:graph] && !params[:graph].empty?
     # What kind of graph data are we dealing with here
     if params[:graph] == '1'    # Total Hashes Cracked

@@ -1,9 +1,10 @@
-# frozen_string_literal: true
 
 get '/hashfiles/list' do
   @hub_settings = HubSettings.first
   @customers = Customers.order(Sequel.asc(:name)).all
-  @hashfiles = Hashfiles.all
+  hf_ids = Jobs.where(owner: current_user.username).select(:hashfile_id)
+  @hashfiles = current_user.admin ? Hashfiles.all : Hashfiles.where(id: hf_ids).all
+  @hashfiles.each { |hf| authorize hf, :list? }
   @cracked_status = {}
   @local_cracked_cnt = {}
   @local_uncracked_cnt = {}

@@ -1,6 +1,6 @@
 # encoding: utf-8
 get '/settings' do
-
+  authorize :application, :admin_access?
   @hc_settings = HashcatSettings.first
   @hub_settings = HubSettings.first
 
@@ -61,6 +61,7 @@ get '/settings' do
 end
 
 post '/settings' do
+  authorize :application, :admin_access?
   if params[:form_id] == '1' # Hashcat Settings
 
     # Declare our db object first so that we can save values along the way instead of at the end
@@ -210,7 +211,7 @@ post '/settings' do
 end
 
 get '/test/email' do
-
+  authorize :application, :admin_access?
   account = User.first(username: getUsername)
   if account.email.nil? || account.email.empty?
     flash[:error] = 'Current logged on user has no email address associated.'
