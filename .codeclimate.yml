@@ -42,3 +42,4 @@ ratings:
 exclude_paths:
 - config/
 - tests/
+- public/
