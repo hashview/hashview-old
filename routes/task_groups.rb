@@ -162,7 +162,7 @@ get '/task_groups/assign_task' do
     @task_group_ids = task_group.tasks.scan(/\d+/)
     if @task_group_ids.include? params['task_id']
       flash[:error] = 'Task is already assigned to the group.'
-      redirect to("/tasks_groups/assign_tasks?id=#{params[:id]}")
+      redirect to("/task_groups/assign_tasks?id=#{params[:id]}")
     end
     @task_group_ids.push(params['task_id'])
     task_group.tasks = @task_group_ids.to_s
@@ -171,4 +171,19 @@ get '/task_groups/assign_task' do
   task_group.save
   # return to assign_tasks
   redirect to("/task_groups/assign_tasks?id=#{params[:id]}")
+end
+
+get '/task_groups/complete' do
+  varWash(params)
+
+  # Check to see if any tasks are assigned to the task group
+  task_group = TaskGroups.first(id: params[:id])
+  if task_group.tasks.nil?
+    flash[:error] = 'You must assign at least one task to the task group.'
+    redirect to("/task_groups/assign_tasks?id=#{params[:id]}")
+  end
+
+  # Sanity check complete
+  flash[:success] = "Task Group: #{task_group.name} created!"
+  redirect to('/task_groups/list')
 end
