@@ -7,8 +7,8 @@ Notable changes will be documented here
 - New user accounts are required to have 'complex' passwords. (Thanks: https://github.com/HugoPouliquen)
 - User roles user/admin (Thanks: https://github.com/HugoPouliquen)
 ### Fixed
-- Fixed issue where unsetting dynamic chunking wasnt properly taking #460 (https://github.com/hashview/hashview/issues/460)
-- Fixed issue where task groups could be created without any tasks assigned #461 (https://github.com/hashview/hashview/issues/461)
+- Fixed issue where unsetting dynamic chunking wasnt properly taking (https://github.com/hashview/hashview/issues/460)
+- Fixed issue where task groups could be created without any tasks assigned (https://github.com/hashview/hashview/issues/461)
 
 
 ## [v0.7.4-beta] - 2018-11-20
