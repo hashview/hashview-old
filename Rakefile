@@ -12,7 +12,7 @@ require_relative 'jobs/init'
 Sequel.extension :migration, :core_extensions
 
 Rake::TestTask.new do |t|
-  t.pattern = 'tests/*_spec.rb'
+  t.pattern = 'tests/**/*_spec.rb'
   t.verbose
 end
 

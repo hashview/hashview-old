@@ -11,45 +11,33 @@ end
 post '/accounts/create' do
   varWash(params)
 
-  if params[:username].nil? || params[:username].empty?
-    flash[:error] = 'You must have username.'
-    redirect to('/accounts/create')
-  end
-
-  if (params[:password].nil? || params[:password].empty?) && !params[:mfa]
-    flash[:error] = 'You must have a password.'
-    redirect to('/accounts/create')
-  end
-
   if params[:confirm].nil? || params[:confirm].empty? && !params[:mfa]
     flash[:error] = 'You must have a password.'
     redirect to('/accounts/create')
   end
 
-  # validate that no other user account exists
-  @users = User.where(username: params[:username]).all
-  if @users.empty?
-    if params[:password] != params[:confirm]
-      flash[:error] = 'Passwords do not match'
-      redirect to('/accounts/create')
-    else
-      new_user = User.new
-      new_user.username = params[:username]
-      new_user.password = params[:password]
-      new_user.email = params[:email] unless params[:email].nil? || params[:email].empty?
-      if params[:mfa]
-        new_user.mfa = 't'
-        new_user.auth_secret = ROTP::Base32.random_base32
-      else
-        new_user.mfa = 'f'
-        new_user.auth_secret = ''
-      end
-      new_user.admin = 't'
-      new_user.save
-    end
-  else
-    flash[:error] = 'User account already exists.'
+  if params[:password] != params[:confirm]
+    flash[:error] = 'Passwords do not match'
     redirect to('/accounts/create')
+  else
+    new_user = User.new(
+      username: params[:username],
+      password: params[:password],
+      email: params[:email],
+      admin: 't',
+      mfa: params[:mfa] ? 't' : 'f',
+      auth_secret:  params[:mfa] ? ROTP::Base32.random_base32 : ''
+    )
+    new_user.id = User.last[:id].to_i + 1
+    # sequel does not understand composite primary
+    # keys, and cant figure out which autoincrements
+
+    if new_user.valid?
+      new_user.save
+    else
+      flash[:error] = new_user.errors.full_messages.first.capitalize
+      redirect to('/accounts/create')
+    end
   end
   redirect to('/accounts/list')
 end
@@ -85,20 +73,17 @@ post '/accounts/save' do
   user.username = params[:username]
   user.password = params[:password] unless params[:password].nil? || params[:password].empty?
   user.email = params[:email] unless params[:email].nil? || params[:email].empty?
-  if params[:mfa] && user.auth_secret == ''
-    user.mfa = 't'
-    user.auth_secret = ROTP::Base32.random_base32
-  elsif params[:mfa]
-    user.mfa='t'
+  user.admin = 't' if params[:admin] == 'on'
+  user.auth_secret = (params[:mfa] && user.auth_secret == '') ? ROTP::Base32.random_base32 : ''
+  user.mfa = params[:mfa] ? 't' : 'f'
+  if user.valid?
+    user.save
+    flash[:success] = 'Account successfully updated.'
+    redirect to('/accounts/list')
   else
-    user.mfa = 'f'
-    user.auth_secret = ''
+    flash[:error] = user.errors.full_messages.first.capitalize
+    redirect to("/accounts/edit/#{params[:account_id]}")
   end
-  user.save
-
-  flash[:success] = 'Account successfully updated.'
-
-  redirect to('/accounts/list')
 end
 
 get '/accounts/delete/:id' do
