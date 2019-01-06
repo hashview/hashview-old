@@ -370,7 +370,7 @@ post '/v1/agents/:uuid/heartbeat' do
 
             # if dynamic chunking is disabled use staticly assigned chunk
             @settings = Settings.first
-            speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking
+            speed = @settings.chunk_size.to_i unless @settings.use_dynamic_chunking == '1'
 
             # if for whatever reason we dont have a value for speed set it here.
             speed = 50000 if speed.zero?

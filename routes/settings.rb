@@ -1,10 +1,11 @@
-# encoding: utf-8
+# frozen_string_literal: true
+
 get '/settings' do
   authorize :application, :admin_access?
   @hc_settings = HashcatSettings.first
   @hub_settings = HubSettings.first
 
-  @themes = %w(Light Dark Slate Flat Superhero Solar)
+  @themes = %w[Light Dark Slate Flat Superhero Solar]
 
   if @hc_settings.nil?
     @hc_settings = HashcatSettings.create # This shouldn't be needed
@@ -35,7 +36,7 @@ get '/settings' do
 
   end
   if @hub_settings.status == 'registered'
-    if @hub_settings.uuid and @hub_settings.auth_key
+    if @hub_settings.uuid && @hub_settings.auth_key
       hub_response = Hub.statusAuth
       hub_response = JSON.parse(hub_response)
       if hub_response['status'] == '403'
@@ -46,7 +47,7 @@ get '/settings' do
       end
     end
   end
-  @auth_types = %w(None Plain Login cram_md5)
+  @auth_types = %w[None Plain Login cram_md5]
 
   # get hcbinpath (stored in config file vs db)
   @hc_binpath = JSON.parse(File.read('config/agent_config.json'))['hc_binary_path']
@@ -135,14 +136,14 @@ post '/settings' do
     hc_settings.gpu_temp_retain = params[:gpu_temp_retain].to_i
 
     # Save force settings
-    params[:hc_force] == 'on' ? hc_settings.hc_force = 1 : hc_settings.hc_force = 0
+    hc_settings.hc_force = (params[:hc_force] == 'on' ? 1 : 0)
 
     hc_settings.save
 
   elsif params[:form_id] == '2' # Email
     settings = Settings.first
 
-    params[:smtp_use_tls] == 'on' ? params[:smtp_use_tls] = '1' : params[:smtp_use_tls] = '0'
+    params[:smtp_use_tls] = params[:smtp_use_tls] == 'on' ? '1' : '0'
 
     settings.smtp_server = params[:smtp_server] unless params[:smtp_server].nil? || params[:smtp_server].empty?
     settings.smtp_sender = params[:smtp_sender] unless params[:smtp_sender].nil? || params[:smtp_sender].empty?
@@ -163,9 +164,16 @@ post '/settings' do
     params[:use_dynamic_chunking] == 'on' ? params[:use_dynamic_chunking] = '1' : params[:use_dynamic_chunking] = '0'
 
     settings.use_dynamic_chunking = params[:use_dynamic_chunking] unless params[:use_dynamic_chunking].nil? || params[:use_dynamic_chunking].empty?
-    # we dont do any logic to parse if the chunk size is set when dynamic chunking option is enabled
-    #
-    settings.chunk_size = params[:chunk_size].to_i
+
+    # If we're not using dynamic chunking, set chunk size
+    if params[:use_dynamic_chunking] == '0'
+      if params[:chunk_size].nil? || params[:chunk_size].empty?
+        flash[:error] = 'You must provide a chunk size.'
+        redirect to('/settings')
+      end
+      settings.chunk_size = params[:chunk_size].to_i
+    end
+
     settings.save
 
   elsif params[:form_id] == '5' # Hub

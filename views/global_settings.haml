@@ -15,9 +15,9 @@
       }
       function handleChecked(checkbox) {
         if (checkbox.checked == true) {
-          document.getElementById('chunk_size').removeAttribute("disabled");
-        } else {
           document.getElementById('chunk_size').setAttribute("disabled", "disabled");
+        } else {
+          document.getElementById('chunk_size').removeAttribute("disabled");
         }
       }
     .span15
@@ -271,9 +271,9 @@
             %label.control-label.col-xs-2{for: ''} Chunk size
             .col-xs-10
               - if @settings.use_dynamic_chunking == true
-                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
-              - else
                 %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size, disabled: "disabled"}
+              - else
+                %input{type: 'typebox', class: 'form-control', name: 'chunk_size', id: 'chunk_size', value: @settings.chunk_size}
           .form-group
             .col-xs-10
               %input{type: 'hidden', name: 'form_id', value: '4'}
