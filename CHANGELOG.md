@@ -6,6 +6,9 @@ Notable changes will be documented here
 ###
 - New user accounts are required to have 'complex' passwords. (Thanks: https://github.com/HugoPouliquen)
 - User roles user/admin (Thanks: https://github.com/HugoPouliquen)
+### Fixed
+- Fixed issue where unsetting dynamic chunking wasnt properly taking
+
 
 ## [v0.7.4-beta] - 2018-11-20
 ### Added
