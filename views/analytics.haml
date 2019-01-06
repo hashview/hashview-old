@@ -62,7 +62,7 @@
                   <script type= "text/javascript">
                     var url = '/analytics/graph/TotalHashesCracked?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                     var THC_data = [];
-                    d3.json(url, function(error, json){
+                    d3.json(url).then(function(json){
                       $.each(json, function(d,i){
                         THC_data.push({
                           label: i.label,
@@ -133,7 +133,7 @@
                   <script type= "text/javascript">
                     var url = '/analytics/graph/ComplexityBreakdown?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                     var CB_data = [];
-                    d3.json(url, function(error, json){
+                    d3.json(url).then(function(json){
                       $.each(json, function(d,i){
                         CB_data.push({
                           label: i.label,
@@ -225,21 +225,21 @@
                       - if @customer_id.nil?
                         %a.btn.btn-success.pull-left{href: '/download?graph=3&type=cracked'}
                           Cracked
-                        &nbsp; 
+                        &nbsp;
                         %a.btn.btn-danger.pull-center{href: '/download?graph=3&type=uncracked'}
-                          Uncracked 
+                          Uncracked
                       - elsif @customer_id && @hashfile_id.nil?
                         %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}"}
                           Cracked
                         &nbsp;
                         %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}"}
-                          Uncracked 
+                          Uncracked
                       - elsif @customer_id && @hashfile_id
                         %a.btn.btn-success.pull-left{href: "/download?graph=3&type=cracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
                           Cracked
                         &nbsp;
                         %a.btn.btn-danger.pull-center{href: "/download?graph=3&type=uncracked&customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}"}
-                          Uncracked 
+                          Uncracked
           .col-md-6
             .panel.panel-default
               .panel-heading
@@ -251,7 +251,7 @@
                   <script type= "text/javascript">
                     var url = '/analytics/graph/CharsetBreakdown?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
                     var CSB_data = [];
-                    d3.json(url, function(error, json){
+                    d3.json(url).then(function(json){
                       $.each(json, function(d,i){
                         CSB_data.push({
                           label: i.label,
@@ -360,8 +360,7 @@
 
                   // get the data
                   var url = '/analytics/PasswordsCountByLength?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data
@@ -427,8 +426,7 @@
 
                   // get the data
                   var url = '/analytics/Top10Passwords?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data
@@ -494,8 +492,7 @@
 
                   // get the data
                   var url = '/analytics/Top10BaseWords?customer_id=#{@customer_id}&hashfile_id=#{@hashfile_id}';
-                  d3.json(url, function(error, data) {
-                    if (error) throw error;
+                  d3.json(url).then(function(data) {
                     console.log(data)
 
                     // format the data

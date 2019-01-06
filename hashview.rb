@@ -5,6 +5,7 @@ require 'haml'
 require 'resque'
 require 'resque/server'
 require 'logger'
+require 'rack/protection'
 
 require_relative 'models/master'
 require_relative 'helpers/init'
@@ -13,6 +14,8 @@ require_relative 'jobs/init'
 
 # Enable sessions
 enable :sessions
+
+use Rack::Protection::EscapedParams
 
 # Presume production if not told otherwise
 if ENV['RACK_ENV'].nil?

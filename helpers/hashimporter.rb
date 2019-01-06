@@ -86,6 +86,9 @@ def importPwdump(hash, hashfile_id, type)
 end
 
 def importShadow(hash, hashfile_id, type)
+  # Test if account is locked/disabled
+  return true if ignore_disable_account(hash.split(':')[1])
+
   # seems to be identical to ImportUserHash, forwarding traffic to it
   importUserHash(hash, hashfile_id, type)
 end
@@ -298,9 +301,9 @@ def getMode(hash)
     @modes.push('5100') # Half MD5
   elsif hash =~ /\$\d+\$.{53}$/
     @modes.push('3200')	# bcrypt, Blowfish(OpenBSD)
-  elsif hash =~ %r{^\$5\$rounds=\d+\$[\.\/0-9A-Za-z]{0,16}\$[\.\/0-9A-Za-z]{0,43}$}
+  elsif %r{^\$5\$(rounds=\d+\$)?[\.\/\w]{0,16}\$[\.\/\w]{0,43}$}.match?(hash)
     @modes.push('7400')	# sha256crypt, SHA256(Unix)
-  elsif hash =~ %r{^\$6\$[\.\/0-9A-Za-z]{4,9}\$[\.\/0-9A-Za-z]{86}$}
+  elsif %r{^\$6\$(rounds=\d+\$)?[a-z\d\/\.]{0,16}\$[a-z\d\/\.]{86}$}.match?(hash)
     @modes.push('1800')	# sha512crypt, SHA512(Unix)
   elsif hash =~ %r{^[\.\/0-9A-Za-z]{13}$}
     @modes.push('1500')	# descrypt, DES(Unix), Traditional DES
@@ -312,7 +315,7 @@ def getMode(hash)
     @modes.push('400')  # phppass, WordPress(MD5), Joomla (MD5)
   elsif hash =~ /^\$H\$/
     @modes.push('400')  # phppass, phpBB3 (MD5)
-  elsif hash =~ /^[\+\/\=0-9A-Za-z]+$/
+  elsif %r{^3u\+U[\w\+\/\=]+$}.match?(hash)
     @modes.push('501')  # Juniper IVE
   elsif hash =~ /^\$BLAKE2\$/
     @modes.push('600')  # Blake2b-512
@@ -498,12 +501,16 @@ def importHash(hash, file_type, hashfile_id, hashtype)
   end
 end
 
+def ignore_disable_account(hash)
+  hash == '*' || hash.match?(/^!/) || hash == '*LK*'
+end
+
 
 def detectHashType(hash_file, file_type)
   @hashtypes = []
   File.readlines(hash_file).each do |entry|
     entry = entry.gsub(/\s+/, "") # remove all spaces
-    if file_type == 'pwdump' || file_type == 'smart_hashdump'
+    if %w[pwdump smart_hashdump].include?(file_type)
       elements = entry.split(':')
       unless elements[2].nil?
         @modes = getMode(elements[2])
@@ -517,10 +524,12 @@ def detectHashType(hash_file, file_type)
           @hashtypes.push(mode) unless @hashtypes.include?(mode) # NTLM
         end
       end
-    elsif file_type == 'shadow' || file_type == 'dsusers' || file_type == 'user_hash'
+    elsif %w[shadow dsusers user_hash].include?(file_type)
       elements = entry.split(':')
-      unless elements[1].nil?
-        @modes = getMode(elements[1].downcase)
+      hash = elements[1]
+      unless hash.nil?
+        next if ignore_disable_account(hash)
+        @modes = getMode(hash.downcase)
         @modes.each do |mode|
           @hashtypes.push(mode) unless @hashtypes.include?(mode)
         end

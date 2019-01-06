@@ -2,7 +2,7 @@
 Notable changes will be documented here
 
 ## Current Release
-## [v0.7.4-beta] - 2018-0X-xx
+## [v0.7.4-beta] - 2018-11-20
 ### Added
 - Added new Analytics portlet "charset breakdown"
 - Extended Masks list to be to 10 instead of top 4.

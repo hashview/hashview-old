@@ -1,5 +1,4 @@
 get '/download' do
-
   varWash(params)
 
   if params[:graph] && !params[:graph].empty?
@@ -92,8 +91,8 @@ get '/download' do
         line = 'username,password'
         f.puts line
         @complexity_hashes.each do |entry|
-          unless entry.plaintext.to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
-            line = entry.username.to_s + ',' + entry.plaintext.to_s
+          unless entry[:plaintext].to_s =~ /^(?:(?=.*[a-z])(?:(?=.*[A-Z])(?=.*[\d\W])|(?=.*\W)(?=.*\d))|(?=.*\W)(?=.*[A-Z])(?=.*\d)).{8,}$/
+            line = entry[:username].to_s + ',' + entry[:plaintext].to_s
             f.puts line
           end
         end

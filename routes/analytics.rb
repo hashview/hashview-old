@@ -2,7 +2,6 @@ require 'json'
 
 # displays analytics for a specific client, job
 get '/analytics' do
-
   varWash(params)
 
   @customer_id = params[:customer_id]
@@ -13,18 +12,18 @@ get '/analytics' do
     @button_select_hashfiles = Hashfiles.where(customer_id: params[:customer_id]).all
   end
 
-  if params[:customer_id] && !params[:customer_id].empty?
-    @customers = Customers.first(id: params[:customer_id])
+  @customers = if params[:customer_id] && !params[:customer_id].empty?
+    Customers.first(id: params[:customer_id])
   else
-    @customers = Customers.order(Sequel.asc(:name)).all
-  end
+    Customers.order(Sequel.asc(:name)).all
+               end
 
   if params[:customer_id] && !params[:customer_id].empty?
-    if params[:hashfile_id] && !params[:hashfile_id].empty?
-      @hashfiles = Hashfiles.first(id: params[:hashfile_id])
+    @hashfiles = if params[:hashfile_id] && !params[:hashfile_id].empty?
+      Hashfiles.first(id: params[:hashfile_id])
     else
-      @hashfiles = Hashfiles.order(Sequel.asc(:id)).all
-    end
+      Hashfiles.order(Sequel.asc(:id)).all
+                 end
   end
 
   # get results of specific customer if customer_id is defined
@@ -87,11 +86,11 @@ get '/analytics' do
         dups = HVDB.fetch('SELECT a.username, h.plaintext, h.cracked FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id =? AND f.id = ? AND h.originalhash = ?)', params[:customer_id], params[:hashfile_id], hash[0] )
         # for each user with the same password hash add user to array
         dups.each do |d|
-          if !d[:username].nil?
-            users_same_password << d[:username]
+          users_same_password << if !d[:username].nil?
+            d[:username]
           else
-            users_same_password << 'NULL'
-          end
+            'NULL'
+                                 end
           if d[:cracked]
             hash[0] = d[:plaintext]
           end
@@ -216,7 +215,6 @@ end
 
 # Callback for d3 graph for displaying Total Hashes Cracked
 get '/analytics/graph/TotalHashesCracked' do
-
   varWash(params)
 
   if params[:customer_id] && !params[:customer_id].empty?
@@ -251,7 +249,6 @@ end
 
 # Callback for d3 graph for displaying Complexity Breakdown
 get '/analytics/graph/ComplexityBreakdown' do
-
   varWash(params)
 
   if params[:customer_id] && !params[:customer_id].empty?
@@ -300,7 +297,6 @@ end
 
 # Callback for d3 graph for displaying Complexity Breakdown
 get '/analytics/graph/CharsetBreakdown' do
-
   varWash(params)
 
   if params[:customer_id] && !params[:customer_id].empty?
@@ -308,19 +304,13 @@ get '/analytics/graph/CharsetBreakdown' do
     if params[:hashfile_id] && !params[:hashfile_id].empty?
       # Used for Complexity Breakdown doughnut: Customer: Hashfile
       @complexity_hashes = HVDB.fetch('SELECT a.username as username, h.plaintext as plaintext FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])
-      @cracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (a.hashfile_id = ? AND h.cracked = 1)', params[:hashfile_id])[:count]
-      cracked_pw_count = @cracked_pw_count[:count]
     else
       # Used for Complexity Breakdown doughnut: Customer
       @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])
-      @cracked_pw_count = HVDB.fetch('SELECT count(h.plaintext) as count FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (f.customer_id = ? AND h.cracked = 1)', params[:customer_id])[:count]
-      cracked_pw_count = @cracked_pw_count[:count]
     end
   else
     # Used for Complexity Breakdown Doughnut: Total
     @complexity_hashes = HVDB.fetch('SELECT a.username, h.plaintext FROM hashes h LEFT JOIN hashfilehashes a on h.id = a.hash_id LEFT JOIN hashfiles f on a.hashfile_id = f.id WHERE (h.cracked = 1)')
-    @cracked_pw_count = HVDB.fetch('SELECT COUNT(h.originalhash) as count FROM hashes h LEFT JOIN hashfilehashes a ON h.id = a.hash_id WHERE (h.cracked = 1)')[:count]
-    cracked_pw_count = @cracked_pw_count[:count]
   end
 
   numeric = 0
@@ -410,7 +400,6 @@ end
 
 # callback for d3 graph displaying passwords by length
 get '/analytics/PasswordsCountByLength' do
-
   varWash(params)
 
   @counts = []
@@ -430,7 +419,7 @@ get '/analytics/PasswordsCountByLength' do
     unless crack[:plaintext].nil?
       unless crack[:plaintext].empty?
         len = crack[:plaintext].length
-        @passwords[len].nil? ? @passwords[len] = 1 : @passwords[len] = @passwords[len].to_i + 1
+        @passwords[len] = @passwords[len].nil? ? 1 : @passwords[len].to_i + 1
       end
     end
   end
@@ -448,7 +437,6 @@ end
 
 # callback for d3 graph displaying top 10 passwords
 get '/analytics/Top10Passwords' do
-
   varWash(params)
 
   # This could probably be replaced with: SELECT COUNT(a.hash_id) AS frq, h.plaintext FROM hashfilehashes a LEFT JOIN hashes h ON h.id =  a.hash_id WHERE h.cracked = '1' GROUP BY a.hash_id ORDER BY frq DESC LIMIT 10;
@@ -495,7 +483,6 @@ end
 
 # callback for d3 graph displaying top 10 base words
 get '/analytics/Top10BaseWords' do
-
   varWash(params)
 
   plaintext = []
@@ -542,7 +529,6 @@ end
 
 # callback for Accounts with Weak Passwords
 get '/analytics/AccountsWithWeakPasswords' do
-
   varWash(params)
 
   # TODO
