@@ -3,12 +3,14 @@ Notable changes will be documented here
 
 ## Current Release
 ## [v0.7.5-beta] - 2019-xx-xx
-###
+### Added
 - New user accounts are required to have 'complex' passwords. (Thanks: https://github.com/HugoPouliquen)
 - User roles user/admin (Thanks: https://github.com/HugoPouliquen)
 ### Fixed
 - Fixed issue where unsetting dynamic chunking wasnt properly taking (https://github.com/hashview/hashview/issues/460)
 - Fixed issue where task groups could be created without any tasks assigned (https://github.com/hashview/hashview/issues/461)
+### Removed
+- Removed code for Hashview Hub. :( 
 
 
 ## [v0.7.4-beta] - 2018-11-20
