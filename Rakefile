@@ -297,17 +297,6 @@ namespace :db do
     rescue
       raise 'Error in creating default brute task'
     end
-
-    # Create Default Hub Settings
-    puts '[*] Setting up default hub settings'
-    query = [
-      'mysql', "--user=#{user}", "--password='#{password}'", "--host=#{host}", "--database=#{database}", "-e INSERT INTO hub_settings (status) VALUES ('unregistered')".inspect
-    ]
-    begin
-      system(query.compact.join(' '))
-    rescue
-      raise 'Error in creating default hub settings'
-    end
   end
 
   desc 'Setup local agent'
@@ -857,6 +846,10 @@ end
 def upgrade_to_v075(db_connection)
   puts '[*] Upgrading from v0.7.4 to v0.7.5'
   conn = db_connection
+
+  puts '[*] Removing hashview Hub table.  Goodnight sweet prince :(.'
+  conn.query('DROP TABLE hub_settings')
+
   conn.query('UPDATE settings SET version = \'0.7.5\'')
   puts '[+] Upgrade to v0.7.5 complete.'
 end

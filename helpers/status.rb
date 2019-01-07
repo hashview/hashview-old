@@ -122,9 +122,3 @@ def updateJobTaskStatus(jobtask_id, status)
   end
   true
 end
-
-def hubEnabled?
-  # Returns true if hub is enabled, and status is registered
-  hub_settings = HubSettings.first
-  hub_settings.status == 'registered' ? true : false
-end

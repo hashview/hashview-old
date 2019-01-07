@@ -6,7 +6,6 @@ cert/*
 *.swp
 *.swo
 config/agent_config.json
-config/hub_config.json
 control/outfiles/*
 !control/outfiles/.blank
 control/hashes/*

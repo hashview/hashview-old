@@ -66,16 +66,6 @@ Sequel.migration do
       Integer :total_run_time, default: 0
     end
 
-    create_table(:hub_settings) do
-      primary_key :id, type: :Bignum
-      TrueClass :enabled
-      String :status, default: 'unregistered', size: 50, null: false
-      String :email, size: 50
-      String :uuid, size: 50
-      String :auth_key, size: 254
-      Integer :balance, default: 0
-    end
-
     create_table(:jobs) do
       primary_key :id, type: :Bignum
       String :name, size: 50

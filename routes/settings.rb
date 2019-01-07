@@ -175,43 +175,6 @@ post '/settings' do
     end
 
     settings.save
-
-  elsif params[:form_id] == '5' # Hub
-
-    if params[:email].nil? || params[:email].empty?
-      flash[:error] = 'You must provide an email address.'
-      redirect to('/settings')
-    end
-
-    hub_settings = HubSettings.first
-    hub_settings.email = params[:email] unless params[:email].nil? || params[:email].empty?
-    hub_settings.uuid = params[:uuid] unless params[:uuid].nil? || params[:uuid].empty?
-    hub_settings.save
-
-    if hub_settings.status != 'registered'
-      hub_response = Hub.register('new')
-      hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '200'
-        hub_settings = HubSettings.first
-        hub_settings.auth_key = hub_response['auth_key']
-        hub_settings.status = 'registered'
-        hub_settings.save
-        flash[:success] = 'Hub registration success.'
-      else
-        flash[:error] = 'Hub registration failed.'
-      end
-    else
-      hub_response = Hub.register('remove')
-      hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '200'
-        hub_settings = HubSettings.first
-        hub_settings.destroy
-        flash[:success] = 'Successfully unregistered.'
-      else
-        flash[:error] = 'Failed to unregister.'
-      end
-    end
-    redirect to('/settings')
   end
 
   flash[:success] = 'Settings updated successfully.'
