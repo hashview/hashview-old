@@ -18,34 +18,6 @@ get '/settings' do
     @settings = Settings.first
   end
 
-  if @hub_settings.nil?
-    @hub_settings = HubSettings.create
-    @hub_settings = HubSettings.first
-
-    if @hub_settings.uuid.nil?
-      p 'Generating new UUID'
-      uuid = SecureRandom.hex(10)
-      # Add hyphens, (i am ashamed at how dumb this is)
-      uuid.insert(15, '-')
-      uuid.insert(10, '-')
-      uuid.insert(5, '-')
-      @hub_settings.uuid = uuid
-      @hub_settings.save
-    end
-
-  end
-  if @hub_settings.status == 'registered'
-    if @hub_settings.uuid && @hub_settings.auth_key
-      hub_response = Hub.statusAuth
-      hub_response = JSON.parse(hub_response)
-      if hub_response['status'] == '403'
-        flash[:error] = 'Invalid Authentication to Hub, check UUID.'
-      elsif hub_response['status'] == '200'
-        @hub_settings.save
-        @hub_settings = HubSettings.first
-      end
-    end
-  end
   @auth_types = %w[None Plain Login cram_md5]
 
   # get hcbinpath (stored in config file vs db)
