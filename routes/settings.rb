@@ -3,7 +3,6 @@
 get '/settings' do
   authorize :application, :admin_access?
   @hc_settings = HashcatSettings.first
-  @hub_settings = HubSettings.first
 
   @themes = %w[Light Dark Slate Flat Superhero Solar]
 
