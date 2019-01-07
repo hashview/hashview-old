@@ -1,6 +1,5 @@
 
 get '/hashfiles/list' do
-  @hub_settings = HubSettings.first
   @customers = Customers.order(Sequel.asc(:name)).all
   hf_ids = Jobs.where(owner: current_user.username).select(:hashfile_id)
   @hashfiles = current_user.admin ? Hashfiles.all : Hashfiles.where(id: hf_ids).all
