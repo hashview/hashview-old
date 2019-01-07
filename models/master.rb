@@ -169,11 +169,6 @@ class HashcatSettings < Sequel::Model(:hashcat_settings)
 
 end
 
-# Hashview Hub Settings
-class HubSettings < Sequel::Model(:hub_settings)
-
-end
-
 # Wordlist
 class Wordlists < Sequel::Model(:wordlists)
 
