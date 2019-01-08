@@ -50,7 +50,7 @@ class Api
   ######### specific api funcions #############
 
   # get heartbeat when we are looking for work to do
-  def self.heartbeat()
+  def self.heartbeat
     url = "https://#{@server}/v1/agents/#{@uuid}/heartbeat"
     # puts "HEARTBEETING"
     get(url)
@@ -125,7 +125,7 @@ class Api
   end
 
   # wordlists
-  def self.get_updateSmartWordlist()
+  def self.get_updateSmartWordlist
     url = "https://#{@server}/v1/updateSmartWordlist"
     get(url)
   end

@@ -478,7 +478,7 @@ def friendlyToMode(friendly)
 end
 
 def importHash(hash, file_type, hashfile_id, hashtype)
-  if file_type == 'pwdump' or file_type == 'smart hashdump'
+  if file_type == 'pwdump' || file_type == 'smart hashdump'
     importPwdump(hash, hashfile_id, hashtype) # because the format is the same aside from the trailing ::
   elsif file_type == 'shadow'
     importShadow(hash, hashfile_id, hashtype)
@@ -497,14 +497,13 @@ def importHash(hash, file_type, hashfile_id, hashtype)
   elsif file_type == 'NetNTLMv2'
     importNetNTLMv2(hash, hashfile_id, hashtype)
   else
-    return 'Unsupported hash format detected'
+    'Unsupported hash format detected'
   end
 end
 
 def ignore_disable_account(hash)
   hash == '*' || hash.match?(/^!/) || hash == '*LK*'
 end
-
 
 def detectHashType(hash_file, file_type)
   @hashtypes = []

@@ -8,9 +8,8 @@ def isDevelopment?
 end
 
 def isOldVersion?
-
   # Check to see what version the app is at
-  application_version = File.open('VERSION') {|f| f.readline}
+  application_version = File.open('VERSION', &:readline)
   puts 'APPLICATION VERSION: ' + application_version.to_s
   # application_version = application_version.to_i
 

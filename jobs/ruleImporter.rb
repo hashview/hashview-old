@@ -1,7 +1,7 @@
 module RuleImporter
   @queue = :management
 
-  def self.perform()
+  def self.perform
     sleep(rand(10))
     require_relative '../models/master'
     logger_ruleimporter = Logger.new('logs/jobs/ruleImporter.log', 'daily')

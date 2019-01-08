@@ -1,4 +1,5 @@
 # encoding: utf-8
+
 require 'pony'
 def sendEmail(recipient, sub, msg)
   smtp_settings = Settings.first
@@ -16,7 +17,7 @@ def sendEmail(recipient, sub, msg)
         :enable_starttls_auto => use_tls.to_s,
         :user_name            => smtp_settings.smtp_user.to_s,
         :password             => smtp_settings.smtp_pass.to_s,
-        :authentication       => smtp_settings.smtp_auth_type.to_s, 
+        :authentication       => smtp_settings.smtp_auth_type.to_s,
         :domain               => 'hashview.localdomain'
       }
     }
