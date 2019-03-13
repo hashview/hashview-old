@@ -113,7 +113,7 @@ Sequel.migration do
       String :smtp_server, size: 50
       String :smtp_sender, size: 50
       String :smtp_user, size: 50
-      String :smtp_pass, size: 50
+      String :smtp_pass, size: 100
       TrueClass :smtp_use_tls
       # Options include 'plain', 'login', 'cram_md5', 'none'
       String :smtp_auth_type, size: 50
