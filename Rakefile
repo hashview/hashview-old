@@ -1,4 +1,4 @@
-require 'resque/tasks'
+require 'resque'
 require 'resque/scheduler/tasks'
 require 'rake/testtask'
 require 'sequel'
