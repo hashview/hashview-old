@@ -1,3 +1,14 @@
+# !!! THIS PROJECT IS DEPRICATED !!!
+It will no longer be maintained. If you wish to use the latest version of hashview, please checkout https://github.com/hashview/hashview
+
+
+
+
+
+
+
+
+
 # Hashview
 [![Build Status](https://travis-ci.org/hashview/hashview.svg?branch=master)](https://travis-ci.org/hashview/hashview)
 
